@@ -2,6 +2,9 @@
 
 **Comprehensive solutions for common issues and advanced troubleshooting**
 
+**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 This guide covers troubleshooting for WebOps v2.0 with enterprise features. Most issues can be resolved quickly with the solutions below.
 
 ---
@@ -74,11 +77,11 @@ sudo ./install.sh
 sudo apt update
 
 # Install required packages manually
-sudo apt install -y python3.11 python3.11-venv python3-pip \
+sudo apt install -y python3.13 python3.13-venv python3-pip \
     postgresql postgresql-contrib redis-server nginx git
 
 # Verify Python version
-python3.11 --version  # Should be 3.11+
+python3.13 --version  # Should be 3.13+
 ```
 
 ### **Issue: Database Connection Failed**

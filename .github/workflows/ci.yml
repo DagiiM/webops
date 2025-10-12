@@ -1,4 +1,6 @@
 name: CI - Continuous Integration
+# Repository: https://github.com/DagiiM/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
 
 on:
   push:
@@ -13,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.13']
 
     services:
       postgres:
@@ -60,7 +62,7 @@ jobs:
         cd control-panel
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install coverage pytest pytest-django pytest-cov
+        pip install coverage pytest pytest-django pytest-cov pyright
 
     - name: Create .env file
       run: |
@@ -74,6 +76,11 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
         EOF
+
+    - name: Run Pyright type checking
+      run: |
+        cd control-panel
+        pyright
 
     - name: Run migrations
       run: |
@@ -106,15 +113,20 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
         cache: 'pip'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort pylint mypy bandit safety
+        pip install flake8 black isort pylint pyright bandit safety
         cd control-panel
         pip install -r requirements.txt
+
+    - name: Run Pyright type checking
+      run: |
+        cd control-panel
+        pyright
 
     - name: Run Black (code formatter check)
       run: |
@@ -207,7 +219,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |

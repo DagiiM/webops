@@ -2,6 +2,9 @@
 
 **Enterprise-grade security with zero compromise on simplicity**
 
+**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 ---
 
 ## 🔐 Authentication & Authorization

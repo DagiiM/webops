@@ -1,3 +1,26 @@
+# WebOps Code Owners
+# Repository: https://github.com/DagiiM/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
 # See https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-# Set repository-wide code owners. Replace with real usernames/teams.
-* @dagiim
+
+# Global code owner - Douglas Mutethia
+* @DagiiM
+
+# Documentation
+*.md @DagiiM
+docs/ @DagiiM
+
+# Configuration files
+*.yml @DagiiM
+*.yaml @DagiiM
+*.json @DagiiM
+*.toml @DagiiM
+
+# Security-sensitive files
+.github/ @DagiiM
+scripts/ @DagiiM
+SECURITY.md @DagiiM
+
+# Core application
+control-panel/ @DagiiM
+cli/ @DagiiM

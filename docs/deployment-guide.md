@@ -30,8 +30,8 @@ Your Django project **must** have these files in the repository root:
 
 ### Supported Configurations
 
-- **Python Version**: 3.10+ (recommended)
-- **Django Version**: 3.2+ (any modern version)
+- **Python Version**: 3.13+ (recommended)
+- **Django Version**: 5.2.6+ (any modern version)
 - **Database**: PostgreSQL (recommended), SQLite (development only)
 - **Repository**: Public or private GitHub repositories
 
@@ -50,14 +50,14 @@ pip freeze > requirements.txt
 **Minimum requirements for a Django project:**
 
 ```txt
-Django>=4.2
+Django>=5.2.6
 gunicorn>=21.0
 ```
 
 **For PostgreSQL database:**
 
 ```txt
-Django>=4.2
+Django>=5.2.6
 gunicorn>=21.0
 psycopg2-binary>=2.9
 ```
@@ -65,7 +65,7 @@ psycopg2-binary>=2.9
 **For static files (recommended):**
 
 ```txt
-Django>=4.2
+Django>=5.2.6
 gunicorn>=21.0
 whitenoise>=6.5
 ```

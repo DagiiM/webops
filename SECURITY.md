@@ -1,5 +1,9 @@
 # Security Policy
 
+**Project Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))  
+**Company**: Eleso Solutions  
+**Repository**: [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 ## Supported Versions
 
 We release patches for security vulnerabilities. Currently supported versions:
@@ -14,7 +18,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them via email to: **security@webops.dev** (or your actual security contact)
+Instead, please report them via email to: **support@ifinsta.com**
 
 You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 
@@ -114,8 +118,8 @@ Security updates are released as:
 Subscribe to security advisories:
 
 * Watch this repository for releases
-* Follow [@WebOpsProject](https://twitter.com/webopsproject) (example)
-* Subscribe to our mailing list
+* Follow [@DagiiM](https://github.com/DagiiM) on GitHub
+* Contact support@ifinsta.com for security updates
 
 ## Known Security Considerations
 
@@ -153,14 +157,14 @@ We'd like to thank the following security researchers for responsibly disclosing
 
 For security concerns, please contact:
 
-* **Email**: security@webops.dev
-* **PGP Key**: (If available)
+* **Email**: support@ifinsta.com
+* **Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))
 
 For general questions:
 
-* **GitHub Issues**: https://github.com/yourusername/webops/issues
-* **Discussions**: https://github.com/yourusername/webops/discussions
+* **GitHub Issues**: https://github.com/DagiiM/webops/issues
+* **Discussions**: https://github.com/DagiiM/webops/discussions
 
 ---
 
-Last updated: October 2025
+Last updated: January 2025

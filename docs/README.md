@@ -2,6 +2,10 @@
 
 **Enterprise-Grade Self-Hosted VPS Platform**
 
+**Project Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))  
+**Company**: Eleso Solutions  
+**Repository**: [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 Welcome to the comprehensive documentation for WebOps - the production-ready hosting platform that rivals commercial solutions with zero external dependencies.
 
 ## 🎯 **Quick Navigation**
@@ -51,10 +55,11 @@ Welcome to the comprehensive documentation for WebOps - the production-ready hos
 - ✅ **Auto-recovery** - Intelligent error handling and retry mechanisms
 
 ### **Technology Stack**
-- **Backend**: Python 3.11+, Django 5.x, PostgreSQL, Redis, Celery
+- **Backend**: Python 3.13+, Django 5.2.6+, PostgreSQL, Redis, Celery
 - **Frontend**: Vanilla HTML5/CSS3/ES6+ (zero frameworks, maximum performance)
 - **Infrastructure**: Nginx, systemd, Ubuntu/Debian Linux
 - **Security**: Built-in 2FA, encryption, audit logging
+- **Type Checking**: Pyright in strict mode for enhanced code quality
 
 ### **Competitive Advantage**
 WebOps exceeds major hosting platforms (Heroku, Vercel, Railway) in:
@@ -81,7 +86,7 @@ Ready to get started? Choose your path:
 
 ### **👨‍💻 For Developers**
 ```bash
-git clone [repository]
+git clone https://github.com/DagiiM/webops.git
 cd webops/control-panel
 ./quickstart.sh
 python manage.py runserver

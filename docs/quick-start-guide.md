@@ -2,6 +2,9 @@
 
 **Get WebOps up and running quickly - from installation to first deployment**
 
+**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 ---
 
 ## Overview
@@ -18,7 +21,7 @@ This guide covers:
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.13 or higher
 - Git
 - 2GB RAM minimum
 
@@ -57,10 +60,11 @@ python manage.py runserver
 - Admin interface for managing data
 
 ✅ **Technology Stack**
-- Python 3.10+ with Django 5.0
+- Python 3.13+ with Django 5.2.6+
 - SQLite database (for development)
 - Pure HTML5/CSS3/JavaScript (no npm, no build tools)
 - Virtual environment for dependencies
+- Pyright strict type checking enabled
 
 ---
 

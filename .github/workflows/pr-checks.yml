@@ -1,4 +1,6 @@
 name: PR Checks
+# Repository: https://github.com/DagiiM/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
 
 on:
   pull_request:
@@ -87,11 +89,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Install review tools
       run: |
-        pip install radon xenon
+        pip install radon xenon pyright
 
     - name: Check code complexity
       run: |
@@ -155,7 +157,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |
@@ -219,7 +221,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |

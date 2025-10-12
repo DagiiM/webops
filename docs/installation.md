@@ -33,10 +33,10 @@ This guide covers installing WebOps on Ubuntu/Debian servers for production use 
 
 ```bash
 # Download and run the installation script
-curl -sSL https://raw.githubusercontent.com/your-org/webops/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/DagiiM/webops/main/install.sh | bash
 
 # Or for more control:
-wget https://raw.githubusercontent.com/your-org/webops/main/install.sh
+wget https://raw.githubusercontent.com/DagiiM/webops/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
@@ -61,7 +61,7 @@ For custom installations or when you need more control:
 sudo apt update && sudo apt upgrade -y
 
 # Install system dependencies
-sudo apt install -y python3.11 python3.11-venv python3-pip \
+sudo apt install -y python3.13 python3.13-venv python3-pip \
     postgresql postgresql-contrib redis-server nginx \
     git curl wget gnupg2 software-properties-common \
     ufw fail2ban certbot python3-certbot-nginx
@@ -91,11 +91,11 @@ cd /opt/webops
 
 ```bash
 # Clone WebOps repository
-git clone https://github.com/your-org/webops.git .
+git clone https://github.com/DagiiM/webops.git .
 cd control-panel
 
 # Create Python virtual environment
-python3.11 -m venv venv
+python3.13 -m venv venv
 source venv/bin/activate
 
 # Install Python dependencies

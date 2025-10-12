@@ -22,11 +22,12 @@ Login: `admin` / `admin123`
 ### ✅ What's Complete (MVP - v0.1.0)
 
 **Core Infrastructure**
-- Django 5.0 project with proper structure
+- Django 5.2.6+ project with proper structure
 - PostgreSQL support (using SQLite for development)
 - Celery configuration (ready for background tasks)
 - Complete authentication system
 - Admin interface
+- Pyright strict type checking enabled
 
 **Data Models**
 - `BaseModel` - Abstract model with timestamps
@@ -96,23 +97,37 @@ Login: `admin` / `admin123`
 From CLAUDE.md:
 
 ```python
-# Always use type hints
+# Always use type hints with Self for methods
+from typing import Self, Dict, Any
+
 def my_function(param: str, count: int = 0) -> Dict[str, Any]:
-    """
-    Clear docstring explaining the function.
+    """Clear docstring explaining the function.
 
     Args:
-        param: Description
-        count: Description
+        param: Description of the parameter
+        count: Description with default value
 
     Returns:
-        Description
+        Dictionary containing the result data
+
+    Raises:
+        ValueError: If param is invalid
     """
     pass
 
+class MyClass:
+    def __init__(self: Self, name: str) -> None:
+        """Initialize the class.
+        
+        Args:
+            name: The name for this instance
+        """
+        self.name = name
+
 # Maximum line length: 100 characters
 # Use f-strings for formatting
-# Follow PEP 8
+# Follow PEP 8 with Google-style docstrings
+# Enable Pyright strict mode for type checking
 ```
 
 ### File Structure Conventions

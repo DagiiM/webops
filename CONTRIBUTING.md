@@ -2,6 +2,10 @@
 
 First off, thank you for considering contributing to WebOps! It's people like you that make WebOps such a great tool.
 
+**Project Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))  
+**Company**: Eleso Solutions  
+**Repository**: [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 ## Code of Conduct
 
 This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
@@ -45,7 +49,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/webops.git
+git clone https://github.com/DagiiM/webops.git
 cd webops
 
 # Run the setup script
@@ -71,16 +75,29 @@ coverage report
 
 #### Python Style Guide
 
-We follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) with some modifications:
+We follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) with strict type checking using **Pyright**:
 
-* Maximum line length: 100 characters
-* Use type hints for all function signatures
-* Use f-strings for string formatting
-* Import order: stdlib, third-party, local (separated by blank lines)
+* **Python Version**: 3.13+
+* **Django Version**: 5.2.6+
+* **Type Checking**: Pyright in strict mode
+* **Maximum line length**: 100 characters
+* **Type hints**: Required for all function signatures
+* **Docstrings**: Google-style Python docstrings with type information
+* **String formatting**: Use f-strings
+* **Import order**: stdlib, third-party, local (separated by blank lines)
+
+**Pyright Configuration** (`pyrightconfig.json`):
+```json
+{
+    "typeCheckingMode": "strict",
+    "reportMissingTypeStubs": false,
+    "reportUnknownMemberType": false
+}
+```
 
 Example:
 ```python
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Self
 from pathlib import Path
 
 from django.db import models
@@ -102,20 +119,39 @@ def deploy_application(
         env_vars: Environment variables for the application
 
     Returns:
-        Deployment result with status and metadata
+        A dictionary containing deployment result with status and metadata.
+
+    Raises:
+        ValueError: If repo_url is invalid.
+        ConnectionError: If unable to connect to repository.
     """
     if env_vars is None:
         env_vars = {}
 
     # Implementation here
     return {"status": "success", "deployment_id": "abc123"}
+
+
+class DeploymentRepository:
+    """A data access layer for deployment operations."""
+
+    def __init__(self: Self, connection: models.Model) -> None:
+        """Initialize the repository with a database connection.
+
+        Args:
+            connection: An active database connection object.
+        """
+        self.connection = connection
+```
 ```
 
 #### Frontend Style Guide
 
 * **HTML**: Use semantic HTML5 elements
-* **CSS**: Pure CSS3, no frameworks or preprocessors
+* **CSS**: Pure CSS3, no frameworks or preprocessors - implement custom CSS design system
 * **JavaScript**: Vanilla ES6+, no frameworks or build tools
+* **Icons**: Use SVG icons exclusively (no emojis)
+* **Styling**: Consistent custom CSS design system with CSS variables for theming
 
 Example:
 ```javascript

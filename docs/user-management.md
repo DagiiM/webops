@@ -2,6 +2,9 @@
 
 **Multi-user setup, permissions, and team collaboration for WebOps v2.0**
 
+**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 WebOps supports sophisticated user management with role-based access control, team collaboration features, and enterprise security.
 
 ---

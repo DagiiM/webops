@@ -2,6 +2,9 @@
 
 **Comprehensive monitoring, health checks, and performance analytics for WebOps v2.0**
 
+**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+
 WebOps includes enterprise-grade monitoring capabilities with real-time dashboards, automated health checks, and intelligent alerting.
 
 ---

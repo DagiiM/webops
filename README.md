@@ -3,8 +3,9 @@
 > A minimal, self-hosted VPS hosting platform for deploying and managing web applications
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Django](https://img.shields.io/badge/django-5.x-green.svg)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Django](https://img.shields.io/badge/django-5.2.6+-green.svg)](https://www.djangoproject.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-DagiiM%2Fwebops-blue.svg)](https://github.com/DagiiM/webops)
 
 WebOps is a lightweight hosting platform that transforms a fresh VPS into a fully-functional web application deployment system with a single command. Deploy Django applications, static sites, and more through a clean web interface or CLI.
 
@@ -64,7 +65,7 @@ ssh root@your-server-ip
 
 2. **Clone the repository**:
 ```bash
-git clone https://github.com/yourusername/webops.git
+git clone https://github.com/DagiiM/webops.git
 cd webops
 ```
 
@@ -157,7 +158,7 @@ webops restart myapp
 ```
 
 **Tech Stack:**
-- **Backend**: Django 5.x, Python 3.11+
+- **Backend**: Django 5.2.6+, Python 3.13+
 - **Frontend**: Pure HTML5/CSS3/Vanilla JavaScript (zero npm dependencies)
 - **Database**: PostgreSQL 15+
 - **Web Server**: Nginx
@@ -402,7 +403,7 @@ Contributions are welcome! Please read our contributing guidelines:
 **Development Setup:**
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/webops.git
+git clone https://github.com/DagiiM/webops.git
 cd webops
 
 # Set up development environment
@@ -488,9 +489,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/webops/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/webops/discussions)
-- **Email**: support@webops.dev
+- **Issues**: [GitHub Issues](https://github.com/DagiiM/webops/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/DagiiM/webops/discussions)
+- **Email**: support@ifinsta.com
+- **Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))
 
 ## 🌟 Star History
 
