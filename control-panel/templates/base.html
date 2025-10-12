@@ -1,0 +1,1087 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="description" content="WebOps - Self-hosted VPS platform for deploying and managing web applications">
+    <meta name="theme-color" content="#00ff88">
+    
+    <!-- Performance & Security -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    
+    <title>{% block title %}{{ branding.site_name }} Control Panel{% endblock %}</title>
+    
+    {% if branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    {% endif %}
+    
+    <!-- Web App Manifest for PWA -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
+    <style>
+        :root {
+            --webops-color-primary: {{ branding.primary_color }};
+            --webops-color-secondary: {{ branding.secondary_color }};
+            --webops-color-accent: {{ branding.accent_color }};
+            --webops-header-bg: {{ branding.header_bg_color }};
+        }
+    </style>
+    <style>
+        .webops-app-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .webops-sidebar {
+            width: 260px;
+            background: var(--webops-header-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-lg);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: transform var(--webops-transition-normal);
+            z-index: 1000;
+        }
+
+        .webops-sidebar-header {
+            margin-bottom: var(--webops-space-2xl);
+        }
+
+        .webops-sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            font-size: var(--webops-font-size-xl);
+            font-weight: var(--webops-font-weight-bold);
+            color: var(--webops-color-primary);
+            text-decoration: none;
+        }
+
+        .webops-nav-section {
+            margin-bottom: var(--webops-space-xl);
+        }
+
+        .webops-nav-section-title {
+            font-size: var(--webops-font-size-xs);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--webops-space-sm);
+        }
+
+        .webops-nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            padding: var(--webops-space-sm) var(--webops-space-md);
+            color: var(--webops-color-text-secondary);
+            text-decoration: none;
+            border-radius: var(--webops-border-radius-md);
+            transition: all var(--webops-transition-fast);
+            margin-bottom: var(--webops-space-xs);
+        }
+
+        .webops-nav-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--webops-color-primary);
+        }
+
+        .webops-nav-item.active {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--webops-color-primary);
+            border-left: 2px solid var(--webops-color-primary);
+        }
+
+        .webops-main-content {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .webops-header {
+            background: var(--webops-header-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-lg) var(--webops-space-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .webops-header-title {
+            font-size: var(--webops-font-size-2xl);
+            font-weight: var(--webops-font-weight-bold);
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .webops-user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            color: var(--webops-color-text);
+        }
+
+        .webops-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-background);
+        }
+
+        .webops-theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--webops-border-radius-md);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: var(--webops-color-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--webops-transition-fast);
+        }
+
+        .webops-theme-toggle:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--webops-color-primary);
+        }
+
+        .webops-settings-button {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--webops-border-radius-md);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: var(--webops-color-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--webops-transition-fast);
+        }
+
+        .webops-settings-button:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--webops-color-primary);
+        }
+
+        /* User Dropdown Menu Styles */
+        .webops-user-menu-dropdown {
+            position: relative;
+        }
+
+        .webops-user-menu-trigger {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            background: transparent;
+            border: none;
+            color: var(--webops-color-text);
+            cursor: pointer;
+            padding: var(--webops-space-sm) var(--webops-space-md);
+            border-radius: var(--webops-border-radius-md);
+            transition: all var(--webops-transition-fast);
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .webops-user-menu-trigger:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .webops-user-menu-trigger.active {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .webops-dropdown-arrow {
+            font-size: 16px;
+            transition: transform var(--webops-transition-fast);
+        }
+
+        .webops-user-menu-trigger.active .webops-dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .webops-user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: var(--webops-space-sm);
+            background: var(--webops-header-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: var(--webops-border-radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--webops-transition-normal);
+            z-index: 1000;
+        }
+
+        .webops-user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .webops-user-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-md);
+            padding: var(--webops-space-lg);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .webops-user-avatar-large {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--webops-font-weight-semibold);
+            font-size: var(--webops-font-size-lg);
+            color: var(--webops-color-background);
+        }
+
+        .webops-user-info {
+            flex: 1;
+        }
+
+        .webops-user-name {
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text);
+            margin-bottom: var(--webops-space-xs);
+        }
+
+        .webops-user-email {
+            font-size: var(--webops-font-size-sm);
+            color: var(--webops-color-text-secondary);
+        }
+
+        .webops-user-dropdown-divider {
+            height: 1px;
+            background: rgba(0, 255, 136, 0.1);
+            margin: var(--webops-space-sm) 0;
+        }
+
+        .webops-user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            padding: var(--webops-space-md) var(--webops-space-lg);
+            color: var(--webops-color-text-secondary);
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all var(--webops-transition-fast);
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .webops-user-dropdown-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--webops-color-primary);
+        }
+
+        .webops-user-dropdown-item-danger {
+            color: var(--webops-color-error);
+        }
+
+        .webops-user-dropdown-item-danger:hover {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--webops-color-error);
+        }
+
+        .webops-user-dropdown-item .material-icons {
+            font-size: 18px;
+        }
+
+        /* Modal Styles */
+        .webops-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity var(--webops-transition-normal);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: var(--webops-border-radius-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform var(--webops-transition-base);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: var(--webops-space-lg);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--webops-color-text-primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--webops-border-radius-sm);
+            background: transparent;
+            border: none;
+            color: var(--webops-color-text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--webops-transition-fast);
+            font-size: 24px;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--webops-color-error);
+        }
+
+        .modal-body {
+            padding: var(--webops-space-lg);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--webops-space-md) 0;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info h4 {
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--webops-font-weight-medium);
+            color: var(--webops-color-text-primary);
+            margin-bottom: var(--webops-space-xs);
+        }
+
+        .setting-info p {
+            font-size: var(--webops-font-size-sm);
+            color: var(--webops-color-text-tertiary);
+            margin: 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(168, 201, 187, 0.2);
+            border: 1px solid rgba(168, 201, 187, 0.3);
+            transition: var(--webops-transition-base);
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--webops-color-text-secondary);
+            transition: var(--webops-transition-base);
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--webops-color-primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background: var(--webops-color-primary);
+        }
+
+        .container {
+            flex: 1;
+            padding: var(--webops-space-2xl) var(--webops-space-xl);
+        }
+
+        .messages {
+            margin-bottom: var(--webops-space-lg);
+        }
+
+        .alert {
+            padding: var(--webops-space-md) var(--webops-space-lg);
+            border-radius: var(--webops-border-radius-md);
+            margin-bottom: var(--webops-space-sm);
+            border-left: 3px solid;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--webops-color-success);
+            color: var(--webops-color-success);
+        }
+
+        .alert-error {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: var(--webops-color-error);
+            color: var(--webops-color-error);
+        }
+
+        .alert-warning {
+            background: rgba(255, 170, 0, 0.1);
+            border-color: var(--webops-color-warning);
+            color: var(--webops-color-warning);
+        }
+
+        .alert-info {
+            background: rgba(0, 170, 255, 0.1);
+            border-color: var(--webops-color-info);
+            color: var(--webops-color-info);
+        }
+
+        footer {
+            padding: var(--webops-space-lg) var(--webops-space-xl);
+            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            color: var(--webops-color-text-tertiary);
+            text-align: center;
+            font-size: var(--webops-font-size-sm);
+        }
+
+        /* Mobile Styles */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: var(--webops-space-md);
+            left: var(--webops-space-md);
+            z-index: 1001;
+            background: var(--header-bg);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--webops-color-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--webops-border-radius-md);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .header-title {
+                font-size: var(--webops-font-size-sm);
+                margin-left: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="webops-app-background"></div>
+
+    <!-- Ultra-Sleek Loader -->
+    <div class="webops-loader-overlay" id="webopsLoader">
+        <div class="webops-loader">
+            <div class="webops-loader-ring"></div>
+            <div class="webops-loader-ring"></div>
+            <div class="webops-loader-ring"></div>
+            <div class="webops-loader-core"></div>
+            <div class="webops-loader-particles">
+                <div class="webops-loader-particle"></div>
+                <div class="webops-loader-particle"></div>
+                <div class="webops-loader-particle"></div>
+                <div class="webops-loader-particle"></div>
+            </div>
+        </div>
+        <div class="webops-loader-text">Loading</div>
+    </div>
+
+    <div class="webops-app-layout">
+        <!-- Sidebar -->
+        <aside class="webops-sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="webops-sidebar-header">
+                <a href="{% url 'dashboard' %}" class="webops-sidebar-brand" aria-label="WebOps Dashboard">
+                    {% if branding.logo %}
+                        <img src="{{ branding.logo.url }}" alt="{{ branding.site_name }} logo" style="max-height: 40px; max-width: 180px; object-fit: contain;">
+                    {% else %}
+                        {{ branding.site_name }}
+                    {% endif %}
+                </a>
+            </div>
+
+            <nav class="webops-sidebar-nav" role="menubar">
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Main</div>
+                    <a href="{% url 'dashboard' %}" class="webops-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" role="menuitem" aria-current="{% if request.resolver_match.url_name == 'dashboard' %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">dashboard</span>
+                        Dashboard
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Management</div>
+                    <a href="{% url 'deployments:deployment_list' %}" class="webops-nav-item {% if 'deployment' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'deployment' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">rocket_launch</span>
+                        Deployments
+                    </a>
+                    <a href="{% url 'database_list' %}" class="webops-nav-item {% if 'database' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'database' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">storage</span>
+                        Databases
+                    </a>
+                    <a href="{% url 'token_list' %}" class="webops-nav-item {% if 'token' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'token' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">vpn_key</span>
+                        API Tokens
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">AI & ML</div>
+                    <a href="{% url 'deployments:llm_list' %}" class="webops-nav-item {% if 'llm' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">smart_toy</span>
+                        LLM Models
+                    </a>
+                    <a href="{% url 'integrations_dashboard' %}" class="webops-nav-item {% if 'integrations' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">link</span>
+                        Integrations
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Monitoring</div>
+                    <a href="{% url 'monitoring_dashboard' %}" class="webops-nav-item {% if 'monitoring' in request.path and 'alerts' not in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">analytics</span>
+                        System Monitor
+                    </a>
+                    <a href="{% url 'alerts_list' %}" class="webops-nav-item {% if 'alerts' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">notifications</span>
+                        Alerts
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Security</div>
+                    <a href="{% url 'two_factor_setup' %}" class="webops-nav-item">
+                        <span class="material-icons" style="font-size: 20px;">lock</span>
+                        2FA Settings
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Documentation</div>
+                    <a href="{% url 'api_docs' %}" class="webops-nav-item {% if 'docs' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">book</span>
+                        API Docs
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">System</div>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'branding_settings' %}" class="webops-nav-item {% if 'branding' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">palette</span>
+                        Branding
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'admin:index' %}" class="webops-nav-item" target="_blank">
+                        <span class="material-icons" style="font-size: 20px;">admin_panel_settings</span>
+                        Admin Panel
+                    </a>
+                    <a href="{% url 'logout' %}" class="webops-nav-item">
+                        <span class="material-icons" style="font-size: 20px;">logout</span>
+                        Logout
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div class="webops-sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Mobile Sidebar Toggle -->
+        <button class="webops-sidebar-toggle" id="sidebar-toggle">
+            <span class="material-icons" style="font-size: 20px;">menu</span>
+        </button>
+
+        <!-- Main Content -->
+        <div class="webops-main-content">
+            <!-- Header -->
+            <header class="webops-header">
+                <div class="webops-header__title">{% block header_title %}{% endblock %}</div>
+                <div class="webops-header__actions">
+                    {% if user.is_authenticated %}
+                    
+                    <!-- Unified Theme Switcher -->
+                    <div class="webops-theme-switcher">
+                        <button 
+                            class="webops-theme-toggle" 
+                            id="themeToggle"
+                            aria-label="Switch theme"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                        >
+                            <svg class="webops-theme-toggle__icon webops-theme-toggle__icon--dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <svg class="webops-theme-toggle__icon webops-theme-toggle__icon--light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                            </svg>
+                            <svg class="webops-theme-toggle__icon webops-theme-toggle__icon--custom" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            <svg class="webops-theme-toggle__icon webops-theme-toggle__icon--high-contrast" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 2a10 10 0 0 0 0 20z"></path>
+                            </svg>
+                            <span class="webops-theme-toggle__label">Dark</span>
+                            <svg class="webops-theme-toggle__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+                        
+                        <div class="webops-theme-dropdown" id="themeDropdown" role="menu" aria-labelledby="themeToggle">
+                            <button class="webops-theme-option webops-theme-option--active" data-theme="dark" role="menuitem">
+                                <span class="webops-theme-option__preview webops-theme-option__preview--dark"></span>
+                                <span class="webops-theme-option__label">Dark</span>
+                            </button>
+                            <button class="webops-theme-option" data-theme="light" role="menuitem">
+                                <span class="webops-theme-option__preview webops-theme-option__preview--light"></span>
+                                <span class="webops-theme-option__label">Light</span>
+                            </button>
+                            <button class="webops-theme-option" data-theme="custom" role="menuitem">
+                                <span class="webops-theme-option__preview webops-theme-option__preview--custom"></span>
+                                <span class="webops-theme-option__label">Custom</span>
+                            </button>
+                            <button class="webops-theme-option" data-theme="high-contrast" role="menuitem">
+                                <span class="webops-theme-option__preview webops-theme-option__preview--high-contrast"></span>
+                                <span class="webops-theme-option__label">High Contrast</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Settings Button -->
+                    <button class="webops-settings-button" id="settingsButton" aria-label="Open settings">
+                        <svg class="webops-settings-button__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="webops-user-menu">
+                        <button 
+                            class="webops-user-menu__trigger" 
+                            id="userMenuTrigger"
+                            aria-label="Open user menu"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                        >
+                            <div class="webops-user-menu__avatar">{{ user.username|slice:":1"|upper }}</div>
+                            <span class="webops-user-menu__name">{{ user.username }}</span>
+                            <svg class="webops-user-menu__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+                        
+                        <div class="webops-user-menu__dropdown" id="userDropdown" role="menu" aria-labelledby="userMenuTrigger">
+                            <div class="webops-user-menu__header">
+                                <div class="webops-user-menu__avatar--large">{{ user.username|slice:":1"|upper }}</div>
+                                <div class="webops-user-menu__info">
+                                    <div class="webops-user-menu__display-name">{{ user.username }}</div>
+                                    <div class="webops-user-menu__email">{{ user.email|default:user.username }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="webops-user-menu__divider"></div>
+                            
+                            <a href="{% url 'two_factor_setup' %}" class="webops-user-menu__item" role="menuitem">
+                                <svg class="webops-user-menu__item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <circle cx="12" cy="16" r="1"></circle>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <span class="webops-user-menu__item-label">Two-Factor Auth</span>
+                            </a>
+                            
+                            <a href="{% url 'api_docs' %}" class="webops-user-menu__item" role="menuitem">
+                                <svg class="webops-user-menu__item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="16,18 22,12 16,6"></polyline>
+                                    <polyline points="8,6 2,12 8,18"></polyline>
+                                </svg>
+                                <span class="webops-user-menu__item-label">API Documentation</span>
+                            </a>
+                            
+                            <button class="webops-user-menu__item" id="userSettingsButton" role="menuitem">
+                                <svg class="webops-user-menu__item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                <span class="webops-user-menu__item-label">Settings</span>
+                            </button>
+                            
+                            <div class="webops-user-menu__divider"></div>
+                            
+                            <a href="{% url 'logout' %}" class="webops-user-menu__item webops-user-menu__item--danger" role="menuitem">
+                                <svg class="webops-user-menu__item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16,17 21,12 16,7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                                <span class="webops-user-menu__item-label">Sign Out</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="webops-container" role="main" aria-labelledby="main-heading">
+                {% if messages %}
+                <div class="webops-messages" role="alert" aria-live="polite">
+                    {% for message in messages %}
+                    <div class="webops-alert webops-alert-{{ message.tags }}" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="webops-footer">
+                <p>&copy; 2025 {{ branding.site_name }} - Self-Hosted VPS Platform</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="webops-modal-overlay" id="settingsModal">
+        <div class="webops-modal">
+            <div class="webops-modal-header">
+                <h2 class="webops-modal-title">Settings</h2>
+                <button class="webops-modal-close" id="closeSettings">
+                    <span class="material-icons" style="font-size: 20px;">close</span>
+                </button>
+            </div>
+            <div class="webops-modal-body">
+                <div class="webops-setting-item">
+                    <div class="webops-setting-info">
+                        <h4>Dark Mode</h4>
+                        <p>Switch between dark and light theme</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Animations</h4>
+                        <p>Enable or disable UI animations</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="animationsToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Compact View</h4>
+                        <p>Reduce spacing for more content</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="compactToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle for mobile
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                });
+
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+            }
+
+            // Theme Management
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+
+            function updateThemeUI(theme) {
+                if (theme === 'light') {
+                    themeIcon.textContent = 'dark_mode';
+                    if (darkModeToggle) darkModeToggle.checked = false;
+                } else {
+                    themeIcon.textContent = 'light_mode';
+                    if (darkModeToggle) darkModeToggle.checked = true;
+                }
+            }
+
+            function toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeUI(newTheme);
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('change', function() {
+                    toggleTheme();
+                });
+            }
+
+            // Settings Modal
+            const settingsButton = document.getElementById('settingsButton');
+            const settingsModal = document.getElementById('settingsModal');
+            const closeSettings = document.getElementById('closeSettings');
+
+            if (settingsButton) {
+                settingsButton.addEventListener('click', function() {
+                    settingsModal.classList.add('active');
+                });
+            }
+
+            if (closeSettings) {
+                closeSettings.addEventListener('click', function() {
+                    settingsModal.classList.remove('active');
+                });
+            }
+
+            // Close modal on overlay click
+            settingsModal.addEventListener('click', function(e) {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.remove('active');
+                }
+            });
+
+            // User Dropdown Menu
+            const userMenuTrigger = document.getElementById('userMenuTrigger');
+            const userDropdown = document.getElementById('userDropdown');
+            const userSettingsButton = document.getElementById('userSettingsButton');
+
+            function toggleUserDropdown() {
+                const isActive = userDropdown.classList.contains('active');
+                if (isActive) {
+                    userDropdown.classList.remove('active');
+                    userMenuTrigger.classList.remove('active');
+                } else {
+                    userDropdown.classList.add('active');
+                    userMenuTrigger.classList.add('active');
+                }
+            }
+
+            function closeUserDropdown() {
+                userDropdown.classList.remove('active');
+                userMenuTrigger.classList.remove('active');
+            }
+
+            if (userMenuTrigger) {
+                userMenuTrigger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleUserDropdown();
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target) && !userMenuTrigger.contains(e.target)) {
+                    closeUserDropdown();
+                }
+            });
+
+            // User settings button in dropdown opens settings modal
+            if (userSettingsButton) {
+                userSettingsButton.addEventListener('click', function() {
+                    closeUserDropdown();
+                    settingsModal.classList.add('active');
+                });
+            }
+
+            // Close dropdown when ESC key is pressed
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeUserDropdown();
+                }
+            });
+
+            // Animations Toggle
+            const animationsToggle = document.getElementById('animationsToggle');
+            const savedAnimations = localStorage.getItem('animations') !== 'false';
+            if (animationsToggle) {
+                animationsToggle.checked = savedAnimations;
+                document.documentElement.classList.toggle('webops-no-animations', !savedAnimations);
+
+                animationsToggle.addEventListener('change', function() {
+                    const enabled = this.checked;
+                    localStorage.setItem('animations', enabled);
+                    document.documentElement.classList.toggle('webops-no-animations', !enabled);
+                    if (window.WebOps && window.WebOps.Toast) {
+                        window.WebOps.Toast.success('Animations ' + (enabled ? 'enabled' : 'disabled'));
+                    }
+                });
+            }
+
+            // Compact View Toggle
+            const compactToggle = document.getElementById('compactToggle');
+            const savedCompact = localStorage.getItem('compact') === 'true';
+            if (compactToggle) {
+                compactToggle.checked = savedCompact;
+                document.documentElement.classList.toggle('webops-compact-view', savedCompact);
+
+                compactToggle.addEventListener('change', function() {
+                    const enabled = this.checked;
+                    localStorage.setItem('compact', enabled);
+                    document.documentElement.classList.toggle('webops-compact-view', enabled);
+                    if (window.WebOps && window.WebOps.Toast) {
+                        window.WebOps.Toast.success('Compact view ' + (enabled ? 'enabled' : 'disabled'));
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="{% static 'js/theme-switcher.js' %}"></script>
+    <script src="{% static 'js/header.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

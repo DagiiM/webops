@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts - WebOps{% endblock %}
+{% block header_title %}System Alerts{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">System Alerts</h2>
+        <p class="webops-text-muted">Monitor and manage system alerts</p>
+    </div>
+    {% if stats.unacknowledged > 0 %}
+    <form method="post" action="{% url 'alert_acknowledge_all' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="webops-btn webops-btn-secondary">
+            Acknowledge All ({{ stats.unacknowledged }})
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- Alert Stats -->
+<div class="webops-stats-grid">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-4.5-9c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5S12 8.33 12 7.5 12.67 6 13.5 6zM18 18H6v-.54c0-2.6 1.4-4.93 3.5-6.04V11c0-1.66 1.34-3 3-3s3 1.34 3 3v.46c2.1 1.11 3.5 3.44 3.5 6.04V18z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.total }}</div>
+        <div class="webops-stat-label">Total Alerts</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.unacknowledged }}</div>
+        <div class="webops-stat-label">Unacknowledged</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.critical }}</div>
+        <div class="webops-stat-label">Critical</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-body">
+        <form method="get" class="webops-flex webops-gap-md webops-items-end">
+            <div class="webops-form-group webops-flex-1">
+                <label class="webops-label">Severity</label>
+                <select name="severity" class="webops-input">
+                    <option value="">All</option>
+                    {% for value, label in severity_choices %}
+                    <option value="{{ value }}" {% if request.GET.severity == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="webops-form-group webops-flex-1">
+                <label class="webops-label">Type</label>
+                <select name="type" class="webops-input">
+                    <option value="">All</option>
+                    {% for value, label in type_choices %}
+                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="webops-form-group webops-flex-1">
+                <label class="webops-label">Status</label>
+                <select name="acknowledged" class="webops-input">
+                    <option value="">All</option>
+                    <option value="false" {% if request.GET.acknowledged == 'false' %}selected{% endif %}>Unacknowledged</option>
+                    <option value="true" {% if request.GET.acknowledged == 'true' %}selected{% endif %}>Acknowledged</option>
+                </select>
+            </div>
+
+            <button type="submit" class="webops-btn webops-btn-primary">Filter</button>
+            <a href="{% url 'alerts_list' %}" class="webops-btn webops-btn-secondary">Clear</a>
+        </form>
+    </div>
+</div>
+
+<!-- Alerts List -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Alerts</h3>
+    </div>
+
+    {% if alerts %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Severity</th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr>
+                    <td>
+                        {% if alert.severity == 'critical' %}
+                            <span class="webops-badge webops-badge-danger">CRITICAL</span>
+                        {% elif alert.severity == 'error' %}
+                            <span class="webops-badge webops-badge-danger">ERROR</span>
+                        {% elif alert.severity == 'warning' %}
+                            <span class="webops-badge webops-badge-warning">WARNING</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-info">INFO</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ alert.get_alert_type_display }}</td>
+                    <td>
+                        <strong>{{ alert.title }}</strong>
+                        <div class="webops-text-sm webops-text-secondary">{{ alert.message }}</div>
+                    </td>
+                    <td>{{ alert.created_at|date:"M j, g:i A" }}</td>
+                    <td>
+                        {% if alert.is_acknowledged %}
+                            <span class="webops-badge webops-badge-success">Acknowledged</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not alert.is_acknowledged %}
+                        <form method="post" action="{% url 'alert_acknowledge' alert.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="webops-btn webops-btn-sm webops-btn-secondary">
+                                Acknowledge
+                            </button>
+                        </form>
+                        {% else %}
+                            <span class="webops-text-muted webops-text-sm">{{ alert.acknowledged_at|date:"M j, g:i A" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-success); opacity: 0.3;">check_circle</span>
+        <h3 class="webops-empty-state-title">No alerts found</h3>
+        <p class="webops-empty-state-description">Your system is healthy. All alerts have been addressed.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

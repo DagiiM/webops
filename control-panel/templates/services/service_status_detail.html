@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ deployment.name }} Status - WebOps{% endblock %}
+{% block header_title %}Service Status: {{ deployment.name }}{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">{{ deployment.name }}</h2>
+        <p class="webops-text-muted">Service status and health monitoring</p>
+    </div>
+    <div class="webops-flex webops-gap-md">
+        <form method="post" action="{% url 'refresh_service_status' deployment.pk %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="webops-btn webops-btn-primary">
+                <span class="material-icons">refresh</span>
+                Refresh Status
+            </button>
+        </form>
+        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">
+            View Deployment
+        </a>
+    </div>
+</div>
+
+<!-- Service Status -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Current Status</h3>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid webops-grid-4">
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Status</div>
+                {% if status.status == 'running' %}
+                    <span class="webops-badge webops-badge-success" style="font-size: 1rem;">● Running</span>
+                {% elif status.status == 'stopped' %}
+                    <span class="webops-badge webops-badge-info" style="font-size: 1rem;">○ Stopped</span>
+                {% elif status.status == 'failed' %}
+                    <span class="webops-badge webops-badge-danger" style="font-size: 1rem;">✗ Failed</span>
+                {% else %}
+                    <span class="webops-badge webops-badge-warning" style="font-size: 1rem;">⟳ {{ status.get_status_display }}</span>
+                {% endif %}
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Process ID</div>
+                <div class="webops-font-semibold">{{ status.pid|default:"—" }}</div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">CPU Usage</div>
+                <div class="webops-font-semibold">{{ status.cpu_percent|floatformat:1 }}%</div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Memory Usage</div>
+                <div class="webops-font-semibold">{{ status.memory_mb|floatformat:0 }} MB</div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Uptime</div>
+                <div class="webops-font-semibold">
+                    {% if status.uptime_seconds %}
+                        {% widthratio status.uptime_seconds 3600 1 %}h {% widthratio status.uptime_seconds 60 1|add:"-"|add:status.uptime_seconds|divisibleby:60 %}m
+                    {% else %}
+                        —
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Restart Count</div>
+                <div class="webops-font-semibold">{{ status.restart_count }}</div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Last Checked</div>
+                <div class="webops-font-semibold">{{ status.last_checked|timesince }} ago</div>
+            </div>
+
+            <div>
+                <div class="webops-text-sm webops-text-secondary webops-mb-xs">Uptime %</div>
+                <div class="webops-font-semibold {% if uptime_percent > 99 %}webops-text-success{% elif uptime_percent > 95 %}webops-text-warning{% else %}webops-text-error{% endif %}">
+                    {{ uptime_percent|floatformat:2 }}%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Health Check History -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Health Check History</h3>
+        <div class="webops-text-sm webops-text-secondary">
+            Avg Response: {{ avg_response_time|floatformat:0 }} ms
+        </div>
+    </div>
+
+    {% if health_checks %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>URL</th>
+                    <th>Status</th>
+                    <th>Response Time</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in health_checks %}
+                <tr>
+                    <td>{{ check.created_at|date:"M j, g:i A" }}</td>
+                    <td class="webops-text-sm">{{ check.url }}</td>
+                    <td>
+                        {% if check.is_healthy %}
+                            <span class="webops-badge webops-badge-success">{{ check.status_code }}</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-danger">{{ check.status_code|default:"Error" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ check.response_time_ms }} ms</td>
+                    <td>
+                        {% if check.is_healthy %}
+                            <span class="webops-text-success">✓ Healthy</span>
+                        {% else %}
+                            <span class="webops-text-error">✗ {{ check.error_message|default:"Unhealthy" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <div class="webops-empty-state-icon">🏥</div>
+        <h3 class="webops-empty-state-title">No health checks yet</h3>
+        <p class="webops-empty-state-description">Health checks will appear here once configured</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

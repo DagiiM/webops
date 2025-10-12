@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Token - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2>🗑️ Delete API Token</h2>
+        <p class="webops-text--muted">Permanently delete API token</p>
+    </div>
+    <a href="{% url 'token_detail' token.pk %}" class="webops-btn">← Back to Token</a>
+</div>
+
+<!-- Warning Card -->
+<div class="webops-card webops-card--warning" style="max-width: 700px; margin: 0 auto;">
+    <div class="webops-card-header" style="background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); color: white; border: none;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 32px;">⚠️</span>
+            <div>
+                <h3 style="margin: 0; color: white;">Delete API Token</h3>
+                <p style="margin: 0.25rem 0 0 0; opacity: 0.9;">This action cannot be undone</p>
+            </div>
+        </div>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-token-info">
+            <h4 style="margin-bottom: 1rem; color: var(--webops-color-text-primary);">Token Details</h4>
+
+            <div class="webops-info-grid">
+                <div class="webops-info-row">
+                    <span class="webops-info-label">Name:</span>
+                    <strong class="webops-info-value">{{ token.name }}</strong>
+                </div>
+                <div class="webops-info-row">
+                    <span class="webops-info-label">Created:</span>
+                    <span class="webops-info-value">{{ token.created_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+                <div class="webops-info-row">
+                    <span class="webops-info-label">Last Used:</span>
+                    <span class="webops-info-value">
+                        {% if token.last_used %}
+                            {{ token.last_used|date:"F j, Y, g:i a" }}
+                        {% else %}
+                            <span class="webops-text--muted">Never</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="webops-info-row">
+                    <span class="webops-info-label">Status:</span>
+                    <span class="webops-info-value">
+                        {% if token.is_active %}
+                            <span class="webops-badge webops-badge--success">✅ Active</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge--secondary">⏸️ Inactive</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="webops-impact-section">
+            <h4 style="margin-bottom: 1rem; color: var(--webops-color-error);">⚡ What Will Happen:</h4>
+            <ul class="webops-impact-list">
+                <li>
+                    <span class="webops-impact-icon">🔑</span>
+                    <div>
+                        <strong>Token Revoked:</strong> The token will be immediately revoked and can no longer be used
+                    </div>
+                </li>
+                <li>
+                    <span class="webops-impact-icon">🚫</span>
+                    <div>
+                        <strong>API Access Blocked:</strong> Any applications using this token will lose API access
+                    </div>
+                </li>
+                <li>
+                    <span class="webops-impact-icon">⚠️</span>
+                    <div>
+                        <strong>Services May Break:</strong> If this token is actively used, services will fail authentication
+                    </div>
+                </li>
+                <li>
+                    <span class="webops-impact-icon">💾</span>
+                    <div>
+                        <strong>No Recovery:</strong> You cannot recover this token. You'll need to create a new one.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="webops-confirmation-section">
+            <form method="POST" id="delete-form">
+                {% csrf_token %}
+
+                <div class="webops-checkbox-group">
+                    <label class="webops-checkbox-label">
+                        <input type="checkbox" id="confirm-checkbox" required>
+                        <span class="webops-checkbox-text">
+                            I understand that deleting this token will immediately revoke API access
+                        </span>
+                    </label>
+                </div>
+
+                <div class="webops-form-actions">
+                    <button type="submit" class="webops-btn webops-btn-danger webops-btn-lg" id="delete-btn" disabled>
+                        <span id="delete-text">🗑️ Delete Token</span>
+                        <span id="delete-loading" style="display: none;">⏳ Deleting...</span>
+                    </button>
+                    <a href="{% url 'token_detail' token.pk %}" class="webops-btn webops-btn-outline webops-btn-lg">
+                        ← Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative Action Card -->
+<div class="webops-card" style="max-width: 700px; margin: 2rem auto 0; border-left: 4px solid var(--primary);">
+    <div class="webops-card-body">
+        <h4 style="margin-bottom: 1rem; color: var(--webops-color-primary);">💡 Consider Alternatives</h4>
+        <ul class="webops-help-list">
+            <li>
+                <strong>Deactivate Instead:</strong> You can deactivate the token to temporarily block access without deleting it
+            </li>
+            <li>
+                <strong>Update Applications:</strong> If rotating tokens, update your applications with the new token before deleting the old one
+            </li>
+            <li>
+                <strong>Check Usage:</strong> Review when the token was last used to avoid breaking active integrations
+            </li>
+        </ul>
+
+        <div style="margin-top: 1.5rem;">
+            <form method="POST" action="{% url 'token_toggle' token.pk %}" style="display: inline;">
+                {% csrf_token %}
+                {% if token.is_active %}
+                    <button type="submit" class="webops-btn webops-btn--warning">⏸️ Deactivate Token Instead</button>
+                {% else %}
+                    <button type="submit" class="webops-btn webops-btn--success">▶️ Reactivate Token Instead</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.webops-card--warning {
+    border: 3px solid var(--webops-color-error);
+    box-shadow: 0 4px 20px var(--webops-color-error-light);
+}
+
+.webops-token-info {
+    padding: var(--webops-space-lg);
+    background: var(--webops-color-background-secondary);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.webops-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-md);
+}
+
+.webops-info-row {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+}
+
+.webops-info-label {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    min-width: 100px;
+}
+
+.webops-info-value {
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-impact-section {
+    padding: var(--webops-space-lg);
+    background: linear-gradient(135deg, var(--webops-color-error-lighter) 0%, var(--webops-color-error-light) 100%);
+    border-radius: var(--webops-border-radius-md);
+    border: 2px solid var(--webops-color-error-light);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.webops-impact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-impact-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-md);
+    background: var(--webops-color-background);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: var(--webops-space-md);
+    border: 1px solid var(--webops-color-error-light);
+}
+
+.webops-impact-list li:last-child {
+    margin-bottom: 0;
+}
+
+.webops-impact-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.webops-confirmation-section {
+    padding-top: var(--webops-space-xl);
+    border-top: 2px solid var(--webops-color-border);
+}
+
+.webops-checkbox-group {
+    margin-bottom: var(--webops-space-xl);
+}
+
+.webops-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    cursor: pointer;
+    padding: var(--webops-space-md);
+    background: var(--webops-color-background-secondary);
+    border-radius: var(--webops-border-radius-md);
+    border: 2px solid var(--webops-color-border);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-checkbox-label:hover {
+    background: var(--webops-color-background);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.webops-checkbox-text {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-md);
+    flex-wrap: wrap;
+}
+
+.webops-btn-lg {
+    padding: var(--webops-space-md) var(--webops-space-lg);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-btn-danger {
+    background: var(--webops-color-error);
+    color: var(--webops-color-text-inverse);
+}
+
+.webops-btn-danger:hover:not(:disabled) {
+    background: var(--webops-color-error-dark);
+    transform: scale(1.02);
+}
+
+.webops-btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.webops-btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-color-border);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-btn-outline:hover {
+    background: var(--webops-color-background-secondary);
+    border-color: var(--webops-color-border-hover);
+}
+
+.webops-help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-help-list li {
+    padding: var(--webops-space-md) 0;
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.webops-help-list li:last-child {
+    border-bottom: none;
+}
+
+.webops-help-list strong {
+    color: var(--webops-color-text-primary);
+}
+</style>
+
+<script>
+const confirmCheckbox = document.getElementById('confirm-delete');
+const deleteButton = document.getElementById('delete-button');
+
+confirmCheckbox.addEventListener('change', function() {
+    deleteButton.disabled = !this.checked;
+});
+
+document.getElementById('delete-form').addEventListener('submit', function(e) {
+    if (!confirmCheckbox.checked) {
+        e.preventDefault();
+        alert('Please confirm that you understand the consequences of deleting this token.');
+    }
+});
+</script>
+{% endblock %}

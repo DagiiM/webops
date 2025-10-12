@@ -1,0 +1,263 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Validate PR title
+      uses: amannn/action-semantic-pull-request@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        types: |
+          feat
+          fix
+          docs
+          style
+          refactor
+          perf
+          test
+          build
+          ci
+          chore
+        requireScope: false
+
+    - name: Check PR size
+      uses: pascalgn/size-label-action@v0.5.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        sizes: >
+          {
+            "0": "XS",
+            "10": "S",
+            "50": "M",
+            "200": "L",
+            "500": "XL",
+            "1000": "XXL"
+          }
+
+    - name: Check for CHANGELOG update
+      run: |
+        if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "docs/CHANGELOG.md"; then
+          echo "✓ CHANGELOG.md updated"
+        else
+          echo "⚠ Warning: CHANGELOG.md not updated. Consider adding an entry for user-facing changes."
+        fi
+
+    - name: Check for TODO comments
+      run: |
+        TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" control-panel/apps/ --exclude-dir=migrations 2>/dev/null | wc -l || echo "0")
+        echo "Found $TODO_COUNT TODO/FIXME/XXX comments"
+        if [ "$TODO_COUNT" -gt 0 ]; then
+          echo "⚠ Warning: Consider addressing TODO comments before merging"
+          grep -r "TODO\|FIXME\|XXX" control-panel/apps/ --exclude-dir=migrations -n || true
+        fi
+
+    - name: Check for console.log statements
+      run: |
+        CONSOLE_COUNT=$(grep -r "console\.log\|console\.error\|console\.warn" control-panel/static/js/ control-panel/templates/ 2>/dev/null | grep -v "// " | wc -l || echo "0")
+        if [ "$CONSOLE_COUNT" -gt 0 ]; then
+          echo "⚠ Warning: Found $CONSOLE_COUNT console statements"
+          grep -r "console\.log\|console\.error\|console\.warn" control-panel/static/js/ control-panel/templates/ -n | grep -v "// " || true
+        else
+          echo "✓ No console statements found"
+        fi
+
+  code-review:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install review tools
+      run: |
+        pip install radon xenon
+
+    - name: Check code complexity
+      run: |
+        cd control-panel
+        echo "## Cyclomatic Complexity Report" > complexity-report.md
+        radon cc apps/ -a -nb >> complexity-report.md || true
+        echo "" >> complexity-report.md
+        echo "## Maintainability Index" >> complexity-report.md
+        radon mi apps/ -nb >> complexity-report.md || true
+        cat complexity-report.md
+
+    - name: Check for high complexity functions
+      run: |
+        cd control-panel
+        xenon --max-absolute B --max-modules A --max-average A apps/ || echo "⚠ Warning: High complexity detected"
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+
+  test-coverage:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: webops_test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: webops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django pytest-cov diff-cover
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=test-secret-key
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=localhost
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run tests with coverage
+      run: |
+        cd control-panel
+        coverage run --source='apps' manage.py test
+        coverage report
+        coverage xml
+        coverage html
+
+    - name: Check coverage threshold
+      run: |
+        cd control-panel
+        coverage report --fail-under=80 || echo "⚠ Warning: Coverage below 80%"
+
+    - name: Generate diff coverage report
+      run: |
+        cd control-panel
+        git fetch origin ${{ github.base_ref }}
+        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=80 || true
+
+    - name: Comment coverage on PR
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 60
+
+  performance:
+    name: Performance Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install locust
+
+    - name: Check for N+1 queries
+      run: |
+        cd control-panel
+        echo "⚠ Manual review recommended: Check for N+1 query patterns in new code"
+        grep -r "\.all()\|\.filter(" apps/ --include="*.py" -A 2 | grep -E "for .* in|\.get\(" || echo "No obvious N+1 patterns detected"
+
+  accessibility:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check HTML templates for accessibility
+      run: |
+        cd control-panel/templates
+        echo "## Accessibility Check" > accessibility-report.md
+
+        # Check for alt attributes on images
+        if grep -r "<img" . | grep -v "alt="; then
+          echo "⚠ Warning: Images without alt attributes found"
+        else
+          echo "✓ All images have alt attributes"
+        fi
+
+        # Check for proper heading hierarchy
+        echo "Checking heading hierarchy..."
+        grep -r "<h[1-6]" . || echo "No headings found"
+
+        # Check for form labels
+        if grep -r "<input" . | grep -v "type=\"hidden\"" | grep -v "<label"; then
+          echo "⚠ Warning: Consider adding labels to form inputs"
+        fi

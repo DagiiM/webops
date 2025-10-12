@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}LLM Models - {{ branding.site_name }}{% endblock %}
+{% block header_title %}LLM Models{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">LLM Models</h2>
+        <p class="webops-text-muted">Deploy and manage Large Language Models with vLLM</p>
+    </div>
+    <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-primary">
+        <span class="material-icons">add</span>
+        Deploy LLM Model
+    </a>
+</div>
+
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">All LLM Deployments</h3>
+        <input type="text" id="search" placeholder="Search models..." class="webops-input" style="max-width: 300px;">
+    </div>
+
+    {% if deployments %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Model</th>
+                    <th>Status</th>
+                    <th>GPUs</th>
+                    <th>Memory</th>
+                    <th>Data Type</th>
+                    <th>Endpoint</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deployment in deployments %}
+                <tr>
+                    <td><strong>{{ deployment.name }}</strong></td>
+                    <td>
+                        <code class="webops-text-sm">{{ deployment.model_name|truncatechars:40 }}</code>
+                    </td>
+                    <td>
+                        {% if deployment.status == 'running' %}
+                            <span class="webops-badge webops-badge-success">Running</span>
+                        {% elif deployment.status == 'stopped' %}
+                            <span class="webops-badge webops-badge-info">Stopped</span>
+                        {% elif deployment.status == 'pending' or deployment.status == 'building' %}
+                            <span class="webops-badge webops-badge-warning">Deploying</span>
+                        {% elif deployment.status == 'failed' %}
+                            <span class="webops-badge webops-badge-danger">Failed</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-info">{{ deployment.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="webops-text-sm">{{ deployment.tensor_parallel_size }}x GPU</span>
+                    </td>
+                    <td>
+                        <span class="webops-text-sm">{{ deployment.gpu_memory_utilization|floatformat:0 }}%</span>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-secondary">{{ deployment.dtype }}</span>
+                        {% if deployment.quantization %}
+                        <span class="webops-badge webops-badge-info">{{ deployment.quantization|upper }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if deployment.port and deployment.status == 'running' %}
+                            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-text-primary">
+                                :{{ deployment.port }}
+                            </a>
+                        {% else %}
+                            <span class="webops-text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ deployment.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'deployments:llm_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">smart_toy</span>
+        <h3 class="webops-empty-state-title">No LLM models deployed</h3>
+        <p class="webops-empty-state-description">Deploy your first Large Language Model to get started</p>
+        <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Deploy LLM Model
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% if deployments %}
+<div class="webops-card" style="margin-top: var(--webops-space-xl);">
+    <div class="webops-card-header">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-sm);">
+            <span class="material-icons" style="color: var(--webops-color-info);">info</span>
+            <h3 class="webops-h3" style="margin: 0;">About vLLM Deployments</h3>
+        </div>
+    </div>
+    <div style="padding: var(--webops-space-lg); color: var(--webops-color-text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: var(--webops-space-md);">
+            All LLM models are deployed using <strong>vLLM</strong>, a high-performance inference engine optimized for large language models.
+        </p>
+        <ul style="margin: var(--webops-space-md) 0; padding-left: var(--webops-space-xl);">
+            <li>OpenAI-compatible API endpoints for easy integration</li>
+            <li>Automatic tensor parallelism for multi-GPU deployments</li>
+            <li>Support for quantization (AWQ, GPTQ, SqueezeLLM) to reduce memory usage</li>
+            <li>Continuous batching for high throughput</li>
+        </ul>
+        <p style="margin-top: var(--webops-space-md);">
+            <strong>GPU Requirements:</strong> Most models require at least one GPU. Memory requirements vary by model size.
+        </p>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('search');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+</script>
+{% endblock %}

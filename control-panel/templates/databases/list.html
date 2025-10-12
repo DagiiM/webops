@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Databases - WebOps{% endblock %}
+{% block header_title %}Databases{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Databases</h2>
+        <p class="webops-text-muted">Manage PostgreSQL databases and credentials</p>
+    </div>
+    <button onclick="openCreateModal()" class="webops-btn webops-btn-primary">
+        <span class="material-icons">add</span>
+        Create Database
+    </button>
+</div>
+
+<!-- Statistics Cards -->
+<div class="webops-stats-grid">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 2h-8L4 8v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 18h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V8h2v2zm6 8h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4h-2v-2h2v2zm0-4h-2V8h2v2zm6 8h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4h-2v-2h2v2z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.total }}</div>
+        <div class="webops-stat-label">Total Databases</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.with_deployment }}</div>
+        <div class="webops-stat-label">With Deployments</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.standalone }}</div>
+        <div class="webops-stat-label">Standalone</div>
+    </div>
+</div>
+
+<!-- Databases Table -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">All Databases</h3>
+        <input type="text" id="search" placeholder="Search databases..." class="webops-input" style="max-width: 300px;">
+    </div>
+
+    {% if databases %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Host</th>
+                    <th>Port</th>
+                    <th>Deployment</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for db in databases %}
+                <tr>
+                    <td><strong>{{ db.name }}</strong></td>
+                    <td><code class="webops-text-sm">{{ db.username }}</code></td>
+                    <td>{{ db.host }}</td>
+                    <td>{{ db.port }}</td>
+                    <td>
+                        {% if db.deployment %}
+                            <a href="{% url 'deployments:deployment_detail' db.deployment.pk %}" class="webops-text-primary">{{ db.deployment.name }}</a>
+                        {% else %}
+                            <span class="webops-badge webops-badge-warning">Standalone</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ db.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'database_detail' db.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                        <a href="{% url 'database_delete' db.pk %}" class="webops-btn webops-btn-sm webops-btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">storage</span>
+        <h3 class="webops-empty-state-title">No databases yet</h3>
+        <p class="webops-empty-state-description">Create your first PostgreSQL database to get started</p>
+        <button onclick="openCreateModal()" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Database
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Database Modal -->
+<div id="createModal" class="webops-modal">
+    <div class="webops-modal-content">
+        <div class="webops-modal-header">
+            <h3 class="webops-h3">Create PostgreSQL Database</h3>
+            <button class="webops-modal-close" onclick="closeCreateModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'database_create' %}" id="createForm">
+            {% csrf_token %}
+            <div class="webops-modal-body">
+                <div class="webops-form-group">
+                    <label for="name" class="webops-label webops-label-required">Database Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        class="webops-input"
+                        required
+                        pattern="[a-z][a-z0-9_]*"
+                        placeholder="myapp_db"
+                        autocomplete="off"
+                    >
+                    <small class="webops-input-help">
+                        Must start with a letter, only lowercase letters, numbers, and underscores
+                    </small>
+                </div>
+
+                <div class="webops-form-group">
+                    <label for="username" class="webops-label webops-label-required">Database Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="webops-input"
+                        required
+                        pattern="[a-z][a-z0-9_]*"
+                        placeholder="myapp_user"
+                        autocomplete="off"
+                    >
+                    <small class="webops-input-help">
+                        Must start with a letter, only lowercase letters, numbers, and underscores
+                    </small>
+                </div>
+
+                <div class="webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-primary);">
+                    <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                        <span class="material-icons webops-text-primary" style="font-size: 20px;">lock</span>
+                        <div>
+                            <strong class="webops-font-semibold">Password Generation</strong>
+                            <p class="webops-text-sm webops-text-secondary" style="margin: 4px 0 0 0;">
+                                A secure 32-character password will be automatically generated and encrypted
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-modal-footer webops-flex webops-gap-sm">
+                <button type="button" onclick="closeCreateModal()" class="webops-btn webops-btn-secondary">Cancel</button>
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">add</span>
+                    Create Database
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('search');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+
+// Modal functions
+function openCreateModal() {
+    document.getElementById('createModal').classList.add('active');
+    document.getElementById('name').focus();
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').classList.remove('active');
+    document.getElementById('createForm').reset();
+}
+
+// Close modal on outside click
+document.getElementById('createModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCreateModal();
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCreateModal();
+    }
+});
+
+// Auto-suggest username from database name
+document.getElementById('name').addEventListener('input', function(e) {
+    const usernameInput = document.getElementById('username');
+    if (!usernameInput.value) {
+        const suggestion = e.target.value.replace(/_db$/, '_user');
+        usernameInput.value = suggestion;
+    }
+});
+
+// Show loader on form submit
+document.getElementById('createForm').addEventListener('submit', function() {
+    showLoader();
+});
+</script>
+{% endblock %}

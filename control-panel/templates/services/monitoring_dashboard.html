@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block title %}System Monitor - WebOps{% endblock %}
+{% block header_title %}System Monitoring{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">System Monitor</h2>
+        <p class="webops-text-muted">Real-time system metrics and health</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="toggleAutoRefresh()" id="autoRefreshToggle" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">autorenew</span>
+            <span id="autoRefreshText">Enable Auto-Refresh</span>
+        </button>
+        <button onclick="refreshMetrics()" class="webops-btn webops-btn-primary">
+            <span class="material-icons">refresh</span>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Resource Usage Stats -->
+<div class="webops-stats-grid">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ latest_metrics.cpu_percent|floatformat:1 }}%</div>
+        <div class="webops-stat-label">CPU Usage</div>
+        <div class="webops-progress-bar webops-mt-sm">
+            <div class="webops-progress-fill" style="width: {{ latest_metrics.cpu_percent }}%; background: {% if latest_metrics.cpu_percent > 80 %}var(--webops-color-error){% elif latest_metrics.cpu_percent > 60 %}var(--webops-color-warning){% else %}var(--webops-color-success){% endif %};"></div>
+        </div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 2h-8L4 8v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 18h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V8h2v2zm6 8h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4h-2v-2h2v2zm0-4h-2V8h2v2zm6 8h-2v-2h2v2zm-2-4h-2v-8h2v8zm-4-4h-2v-2h2v2z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ latest_metrics.memory_percent|floatformat:1 }}%</div>
+        <div class="webops-stat-label">Memory Usage</div>
+        <div class="webops-progress-bar webops-mt-sm">
+            <div class="webops-progress-fill" style="width: {{ latest_metrics.memory_percent }}%; background: {% if latest_metrics.memory_percent > 85 %}var(--webops-color-error){% elif latest_metrics.memory_percent > 70 %}var(--webops-color-warning){% else %}var(--webops-color-success){% endif %};"></div>
+        </div>
+        <div class="webops-text-xs webops-text-secondary webops-mt-xs">
+            {{ latest_metrics.memory_used_mb }} MB / {{ latest_metrics.memory_total_mb }} MB
+        </div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ latest_metrics.disk_percent|floatformat:1 }}%</div>
+        <div class="webops-stat-label">Disk Usage</div>
+        <div class="webops-progress-bar webops-mt-sm">
+            <div class="webops-progress-fill" style="width: {{ latest_metrics.disk_percent }}%; background: {% if latest_metrics.disk_percent > 90 %}var(--webops-color-error){% elif latest_metrics.disk_percent > 75 %}var(--webops-color-warning){% else %}var(--webops-color-success){% endif %};"></div>
+        </div>
+        <div class="webops-text-xs webops-text-secondary webops-mt-xs">
+            {{ latest_metrics.disk_used_gb|floatformat:1 }} GB / {{ latest_metrics.disk_total_gb|floatformat:1 }} GB
+        </div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 9a2 2 0 0 0 0 1.65 10 10 0 0 0 1.95 4.57l1.23-1.85a8 8 0 0 1 .22-7.58h13.86a8 8 0 0 1-10.5 9.7l-1.85 1.23A10 10 0 0 0 20.65 15a2 2 0 0 0 0-1.65 10 10 0 0 0-1.95-4.57z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ latest_metrics.load_average_1m|floatformat:2 }}</div>
+        <div class="webops-stat-label">Load Average (1m)</div>
+        <div class="webops-text-xs webops-text-secondary webops-mt-xs">
+            5m: {{ latest_metrics.load_average_5m|floatformat:2 }} | 15m: {{ latest_metrics.load_average_15m|floatformat:2 }}
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Summary -->
+{% if summary.alerts.total > 0 %}
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Active Alerts</h3>
+        <a href="{% url 'alerts_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary">View All</a>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid webops-grid-4 webops-mb-md">
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-error">{{ summary.alerts.critical }}</div>
+                <div class="webops-text-sm webops-text-secondary">Critical</div>
+            </div>
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-error">{{ summary.alerts.error }}</div>
+                <div class="webops-text-sm webops-text-secondary">Error</div>
+            </div>
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-warning">{{ summary.alerts.warning }}</div>
+                <div class="webops-text-sm webops-text-secondary">Warning</div>
+            </div>
+            <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-info">{{ summary.alerts.total }}</div>
+                <div class="webops-text-sm webops-text-secondary">Total</div>
+            </div>
+        </div>
+
+        {% if recent_alerts %}
+        <div class="webops-space-y-sm">
+            {% for alert in recent_alerts %}
+            <div class="webops-p-md" style="background: rgba({% if alert.severity == 'critical' or alert.severity == 'error' %}255, 68, 68{% elif alert.severity == 'warning' %}255, 170, 0{% else %}0, 170, 255{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if alert.severity == 'critical' or alert.severity == 'error' %}error{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %}); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-flex webops-justify-between webops-items-start">
+                    <div>
+                        <div class="webops-font-semibold">{{ alert.title }}</div>
+                        <div class="webops-text-sm webops-text-secondary">{{ alert.message }}</div>
+                    </div>
+                    <span class="webops-badge webops-badge-{% if alert.severity == 'critical' or alert.severity == 'error' %}danger{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %}">
+                        {{ alert.get_severity_display|upper }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Service Statuses -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Deployment Services</h3>
+        <div class="webops-text-sm webops-text-secondary">
+            {{ summary.services.running }} running | {{ summary.services.stopped }} stopped | {{ summary.services.failed }} failed
+        </div>
+    </div>
+
+    {% if service_statuses %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Deployment</th>
+                    <th>Status</th>
+                    <th>PID</th>
+                    <th>CPU</th>
+                    <th>Memory</th>
+                    <th>Uptime</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in service_statuses %}
+                <tr>
+                    <td><strong>{{ item.deployment.name }}</strong></td>
+                    <td>
+                        {% if item.status.status == 'running' %}
+                            <span class="webops-badge webops-badge-success">Running</span>
+                        {% elif item.status.status == 'stopped' %}
+                            <span class="webops-badge webops-badge-info">Stopped</span>
+                        {% elif item.status.status == 'failed' %}
+                            <span class="webops-badge webops-badge-danger">Failed</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-warning">{{ item.status.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.status.pid|default:"—" }}</td>
+                    <td>{{ item.status.cpu_percent|floatformat:1 }}%</td>
+                    <td>{{ item.status.memory_mb|floatformat:0 }} MB</td>
+                    <td>
+                        {% if item.status.uptime_seconds %}
+                            {% widthratio item.status.uptime_seconds 3600 1 %}h
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'service_status_detail' item.deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">rocket_launch</span>
+        <h3 class="webops-empty-state-title">No deployments yet</h3>
+        <p class="webops-empty-state-description">Deploy your first application to see service monitoring</p>
+        <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Deployment
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Health Checks -->
+{% if recent_health_checks %}
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Recent Health Checks</h3>
+    </div>
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Deployment</th>
+                    <th>URL</th>
+                    <th>Status</th>
+                    <th>Response Time</th>
+                    <th>Checked</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in recent_health_checks %}
+                <tr>
+                    <td>{{ check.deployment.name }}</td>
+                    <td class="webops-text-sm">{{ check.url }}</td>
+                    <td>
+                        {% if check.is_healthy %}
+                            <span class="webops-badge webops-badge-success">✓ {{ check.status_code }}</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-danger">✗ {{ check.status_code|default:"Error" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ check.response_time_ms }} ms</td>
+                    <td>{{ check.created_at|timesince }} ago</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+let autoRefreshInterval = null;
+let autoRefreshEnabled = localStorage.getItem('monitoringAutoRefresh') === 'true';
+
+function refreshMetrics() {
+    showLoader('Refreshing metrics');
+    location.reload();
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    localStorage.setItem('monitoringAutoRefresh', autoRefreshEnabled);
+
+    if (autoRefreshEnabled) {
+        startAutoRefresh();
+        if (window.WebOps && window.WebOps.Toast) {
+            WebOps.Toast.success('Auto-refresh enabled');
+        }
+    } else {
+        stopAutoRefresh();
+        if (window.WebOps && window.WebOps.Toast) {
+            WebOps.Toast.success('Auto-refresh disabled');
+        }
+    }
+
+    updateRefreshButton();
+}
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    autoRefreshInterval = setInterval(refreshMetrics, 30000); // 30 seconds
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+function updateRefreshButton() {
+    const toggleBtn = document.getElementById('autoRefreshToggle');
+    const textSpan = document.getElementById('autoRefreshText');
+
+    if (toggleBtn && textSpan) {
+        if (autoRefreshEnabled) {
+            toggleBtn.classList.remove('webops-btn-secondary');
+            toggleBtn.classList.add('webops-btn-primary');
+            textSpan.textContent = 'Auto-Refresh: ON';
+        } else {
+            toggleBtn.classList.remove('webops-btn-primary');
+            toggleBtn.classList.add('webops-btn-secondary');
+            textSpan.textContent = 'Enable Auto-Refresh';
+        }
+    }
+}
+
+// Update button on load
+document.addEventListener('DOMContentLoaded', () => {
+    updateRefreshButton();
+
+    // Only start auto-refresh if enabled
+    if (autoRefreshEnabled) {
+        startAutoRefresh();
+    }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
+});
+</script>
+{% endblock %}

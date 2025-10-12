@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring - {{ deployment.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.metric-card {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-lg);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.metric-label {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-xs);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--webops-color-text-primary);
+}
+
+.metric-unit {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--webops-color-text-secondary);
+    margin-left: 0.25rem;
+}
+
+.health-checks-section {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-lg);
+    box-shadow: var(--webops-shadow-sm);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.health-check-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.health-check-item:last-child {
+    border-bottom: none;
+}
+
+.health-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.health-icon.healthy {
+    background: var(--color-success-light);
+    color: var(--color-success-dark);
+}
+
+.health-icon.unhealthy {
+    background: var(--color-danger-light);
+    color: var(--color-danger-dark);
+}
+
+.health-check-label {
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    min-width: 120px;
+}
+
+.health-check-details {
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.chart-container {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-lg);
+    box-shadow: var(--webops-shadow-sm);
+    margin-bottom: var(--webops-space-xl);
+    height: 350px;
+}
+
+.chart-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-md);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    text-align: left;
+    padding: var(--webops-space-md);
+    background: var(--color-background-secondary);
+    font-weight: 600;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.history-table td {
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--webops-font-size-sm);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: var(--webops-space-xs);
+}
+
+.status-dot.healthy {
+    background: var(--webops-color-success);
+}
+
+.status-dot.unhealthy {
+    background: var(--color-danger);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--webops-space-3xl);
+    color: var(--webops-color-text-secondary);
+}
+
+.loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--webops-color-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="webops-container">
+    <!-- Header -->
+    <div class="webops-page-header">
+        <div>
+            <h1 class="webops-page-title">Monitoring Dashboard</h1>
+            <p class="webops-text-muted">
+                Deployment: <strong>{{ deployment.name }}</strong>
+            </p>
+        </div>
+        <div style="display: flex; gap: var(--webops-space-sm);">
+            <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">
+                ← Back to Deployment
+            </a>
+            <button id="runHealthCheckBtn" class="webops-btn webops-btn-success">
+                <span id="runHealthCheckText">Run Health Check</span>
+                <span id="runHealthCheckLoading" class="loading" style="display: none;"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Current Status -->
+    {% if latest_health_check %}
+    <div class="health-checks-section">
+        <h2 class="webops-h2" style="margin-bottom: var(--webops-space-md);">Current Status</h2>
+        <div class="health-check-item">
+            <div class="health-icon {% if latest_health_check.overall_healthy %}healthy{% else %}unhealthy{% endif %}">
+                {% if latest_health_check.overall_healthy %}✓{% else %}✗{% endif %}
+            </div>
+            <div class="health-check-label">Overall Health</div>
+            <div class="webops-badge {% if latest_health_check.overall_healthy %}webops-badge-success{% else %}webops-badge-danger{% endif %}">
+                {% if latest_health_check.overall_healthy %}Healthy{% else %}Unhealthy{% endif %}
+            </div>
+            <div class="health-check-details">
+                {{ latest_health_check.created_at|timesince }} ago
+            </div>
+        </div>
+
+        <div class="health-check-item">
+            <div class="health-icon {% if latest_health_check.process_healthy %}healthy{% else %}unhealthy{% endif %}">
+                {% if latest_health_check.process_healthy %}✓{% else %}✗{% endif %}
+            </div>
+            <div class="health-check-label">Process</div>
+            <div class="health-check-details">Service running status</div>
+        </div>
+
+        <div class="health-check-item">
+            <div class="health-icon {% if latest_health_check.http_healthy %}healthy{% else %}unhealthy{% endif %}">
+                {% if latest_health_check.http_healthy %}✓{% else %}✗{% endif %}
+            </div>
+            <div class="health-check-label">HTTP Response</div>
+            <div class="health-check-details">
+                {% if latest_health_check.http_status_code %}
+                    Status: {{ latest_health_check.http_status_code }}
+                    {% if latest_health_check.response_time_ms %}
+                        - {{ latest_health_check.response_time_ms|floatformat:0 }}ms
+                    {% endif %}
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="health-check-item">
+            <div class="health-icon {% if latest_health_check.resources_healthy %}healthy{% else %}unhealthy{% endif %}">
+                {% if latest_health_check.resources_healthy %}✓{% else %}✗{% endif %}
+            </div>
+            <div class="health-check-label">Resources</div>
+            <div class="health-check-details">
+                {% if latest_health_check.cpu_percent %}
+                    CPU: {{ latest_health_check.cpu_percent|floatformat:1 }}%
+                {% endif %}
+                {% if latest_health_check.memory_mb %}
+                    - Memory: {{ latest_health_check.memory_mb|floatformat:0 }}MB
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="health-check-item">
+            <div class="health-icon {% if latest_health_check.disk_healthy %}healthy{% else %}unhealthy{% endif %}">
+                {% if latest_health_check.disk_healthy %}✓{% else %}✗{% endif %}
+            </div>
+            <div class="health-check-label">Disk Space</div>
+            <div class="health-check-details">
+                {% if latest_health_check.disk_free_gb %}
+                    {{ latest_health_check.disk_free_gb|floatformat:2 }}GB free
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <span class="material-icons" style="font-size: 64px; opacity: 0.3;">monitor_heart</span>
+        <h3 class="webops-h3">No health checks yet</h3>
+        <p class="webops-text-muted">Run a health check to start monitoring this deployment</p>
+        <button onclick="document.getElementById('runHealthCheckBtn').click()" class="webops-btn webops-btn-primary" style="margin-top: var(--webops-space-md);">
+            Run First Health Check
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Metrics -->
+    {% if total_checks > 0 %}
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Uptime (24h)</div>
+            <div class="metric-value">
+                {{ uptime_percentage|floatformat:1 }}<span class="metric-unit">%</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Health Checks</div>
+            <div class="metric-value">
+                {{ total_checks }}<span class="metric-unit">total</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;">
+                {{ failed_checks }} failed
+            </div>
+        </div>
+
+        {% if avg_cpu %}
+        <div class="metric-card">
+            <div class="metric-label">Avg CPU</div>
+            <div class="metric-value">
+                {{ avg_cpu|floatformat:1 }}<span class="metric-unit">%</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if avg_memory %}
+        <div class="metric-card">
+            <div class="metric-label">Avg Memory</div>
+            <div class="metric-value">
+                {{ avg_memory|floatformat:0 }}<span class="metric-unit">MB</span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if avg_response_time %}
+        <div class="metric-card">
+            <div class="metric-label">Avg Response Time</div>
+            <div class="metric-value">
+                {{ avg_response_time|floatformat:0 }}<span class="metric-unit">ms</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-container">
+        <div class="chart-title">Health Status Over Time (Last 24 Hours)</div>
+        <canvas id="healthChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-title">Resource Usage</div>
+        <canvas id="resourceChart"></canvas>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const DEPLOYMENT_ID = {{ deployment.pk }};
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+// Run health check
+document.getElementById('runHealthCheckBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('runHealthCheckBtn');
+    const btnText = document.getElementById('runHealthCheckText');
+    const btnLoading = document.getElementById('runHealthCheckLoading');
+
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`/deployments/${DEPLOYMENT_ID}/health-check/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': CSRF_TOKEN
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Reload page to show new results
+            window.location.reload();
+        } else {
+            alert('Health check failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Health check error:', error);
+        alert('Failed to run health check: ' + error.message);
+    } finally {
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+        btn.disabled = false;
+    }
+});
+
+// Chart data from Django template
+{% if total_checks > 0 %}
+const healthData = {
+    labels: [{% for check in recent_checks %}'{{ check.created_at|date:"H:i" }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+    healthy: [{% for check in recent_checks %}{{ check.overall_healthy|yesno:"1,0" }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+    cpu: [{% for check in recent_checks %}{{ check.cpu_percent|default:"null" }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+    memory: [{% for check in recent_checks %}{{ check.memory_mb|default:"null" }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+    responseTime: [{% for check in recent_checks %}{{ check.response_time_ms|default:"null" }}{% if not forloop.last %}, {% endif %}{% endfor %}]
+};
+
+console.log('Health data loaded:', healthData);
+{% endif %}
+</script>
+{% endblock %}

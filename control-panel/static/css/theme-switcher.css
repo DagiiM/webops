@@ -1,0 +1,167 @@
+/**
+ * WebOps Theme Switcher Styles
+ * Styled dropdown component for theme switching
+ */
+
+.webops-theme-switcher {
+    position: relative;
+    display: inline-block;
+    z-index: 1000;
+}
+
+.webops-theme-switcher-floating {
+    position: fixed;
+    top: var(--webops-space-lg);
+    right: var(--webops-space-lg);
+    z-index: 9999;
+}
+
+.webops-theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    background: var(--webops-color-surface);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    backdrop-filter: blur(10px);
+}
+
+.webops-theme-toggle:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: rgba(0, 255, 136, 0.4);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-theme-toggle:active {
+    transform: translateY(1px);
+}
+
+.webops-theme-icon {
+    color: var(--webops-color-primary);
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-theme-switcher.open .webops-theme-icon {
+    transform: rotate(180deg);
+}
+
+.webops-theme-label {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-theme-dropdown {
+    position: absolute;
+    top: calc(100% + var(--webops-space-xs));
+    right: 0;
+    min-width: 160px;
+    background: var(--webops-color-bg-elevated);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: var(--webops-border-radius-md);
+    box-shadow: var(--webops-shadow-lg);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--webops-transition-fast);
+    z-index: 1001;
+}
+
+.webops-theme-switcher.open .webops-theme-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.webops-theme-option {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+    width: 100%;
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    background: transparent;
+    border: none;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-theme-option:hover {
+    background: var(--webops-color-surface-hover);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-theme-option.active {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--webops-color-primary);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-theme-option:first-child {
+    border-radius: var(--webops-border-radius-md) var(--webops-border-radius-md) 0 0;
+}
+
+.webops-theme-option:last-child {
+    border-radius: 0 0 var(--webops-border-radius-md) var(--webops-border-radius-md);
+}
+
+.webops-theme-preview {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.webops-theme-preview-dark {
+    background: linear-gradient(135deg, #0a0e0d 0%, #00ff88 100%);
+}
+
+.webops-theme-preview-light {
+    background: linear-gradient(135deg, #ffffff 0%, #00ff88 100%);
+}
+
+.webops-theme-preview-custom {
+    background: linear-gradient(135deg, #1a0033 0%, #ff00aa 50%, #00ff88 100%);
+}
+
+.webops-theme-preview-high-contrast {
+    background: linear-gradient(135deg, #000000 0%, #00ffff 100%);
+}
+
+/* Animation for theme transitions */
+* {
+    transition: background-color var(--webops-transition-base), 
+                color var(--webops-transition-base),
+                border-color var(--webops-transition-base);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .webops-theme-switcher-floating {
+        top: var(--webops-space-md);
+        right: var(--webops-space-md);
+    }
+    
+    .webops-theme-toggle {
+        padding: var(--webops-space-xs) var(--webops-space-sm);
+    }
+    
+    .webops-theme-label {
+        display: none;
+    }
+    
+    .webops-theme-dropdown {
+        right: 0;
+        min-width: 140px;
+    }
+}

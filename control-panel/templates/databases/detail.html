@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ database.name }} - WebOps{% endblock %}
+{% block header_title %}{{ database.name }}{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">{{ database.name }}</h2>
+        <p class="webops-text-muted">Database credentials and connection information</p>
+    </div>
+    <div style="display: flex; gap: var(--webops-space-sm);">
+        {% if database.deployment %}
+            <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
+                <span class="material-icons">launch</span>
+                View Deployment
+            </a>
+        {% endif %}
+        <a href="{% url 'database_delete' database.pk %}" class="webops-btn webops-btn-danger">
+            <span class="material-icons">delete</span>
+            Delete Database
+        </a>
+    </div>
+</div>
+
+<!-- Connection Info Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">settings_ethernet</span>
+            Connection Information
+        </h3>
+        <button onclick="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-primary">
+            <span class="material-icons">content_copy</span>
+            Copy Connection String
+        </button>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-info-grid">
+            <div class="webops-info-item">
+                <label class="webops-label">Database Name</label>
+                <div class="webops-info-value">
+                    <code class="webops-code">{{ database.name }}</code>
+                    <button onclick="copyToClipboard('{{ database.name }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Username</label>
+                <div class="webops-info-value">
+                    <code class="webops-code">{{ database.username }}</code>
+                    <button onclick="copyToClipboard('{{ database.username }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Password</label>
+                <div class="webops-info-value">
+                    <code id="password" class="webops-code password-hidden">••••••••••••••••</code>
+                    <button onclick="togglePassword()" class="webops-btn webops-btn-sm webops-btn-ghost" id="toggle-btn">
+                        <span class="material-icons">visibility</span>
+                    </button>
+                    <button onclick="copyToClipboard('{{ decrypted_password }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Host</label>
+                <div class="webops-info-value">
+                    <code class="webops-code">{{ database.host }}</code>
+                    <button onclick="copyToClipboard('{{ database.host }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Port</label>
+                <div class="webops-info-value">
+                    <code class="webops-code">{{ database.port }}</code>
+                    <button onclick="copyToClipboard('{{ database.port }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="webops-info-item webops-info-item-full">
+                <label class="webops-label">Connection String</label>
+                <div class="webops-info-value">
+                    <code id="connection-string" class="webops-code">{{ connection_string }}</code>
+                    <button onclick="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Metadata Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">info</span>
+            Metadata
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        <dl class="webops-info-list">
+            <dt class="webops-label">Associated Deployment:</dt>
+            <dd class="webops-text-muted">
+                {% if database.deployment %}
+                    <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-link">{{ database.deployment.name }}</a>
+                {% else %}
+                    <span class="webops-badge webops-badge-warning">Standalone Database</span>
+                {% endif %}
+            </dd>
+
+            <dt class="webops-label">Created:</dt>
+            <dd class="webops-text-muted">{{ database.created_at|date:"F j, Y, g:i a" }}</dd>
+
+            <dt class="webops-label">Last Updated:</dt>
+            <dd class="webops-text-muted">{{ database.updated_at|date:"F j, Y, g:i a" }}</dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Quick Connection Examples -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">code</span>
+            Connection Examples
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-code-examples">
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Python (psycopg2)</h4>
+                <pre class="webops-code-block"><code>import psycopg2
+
+conn = psycopg2.connect("{{ connection_string }}")
+cursor = conn.cursor()
+cursor.execute("SELECT version();")
+print(cursor.fetchone())</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Django settings.py</h4>
+                <pre class="webops-code-block"><code>DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': '{{ database.name }}',
+        'USER': '{{ database.username }}',
+        'PASSWORD': '{{ decrypted_password }}',
+        'HOST': '{{ database.host }}',
+        'PORT': '{{ database.port }}',
+    }
+}</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Command Line (psql)</h4>
+                <pre class="webops-code-block"><code>psql -h {{ database.host }} -p {{ database.port }} -U {{ database.username }} -d {{ database.name }}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const actualPassword = '{{ decrypted_password }}';
+let passwordVisible = false;
+
+function togglePassword() {
+    const passwordEl = document.getElementById('password');
+    const toggleBtn = document.getElementById('toggle-btn');
+
+    passwordVisible = !passwordVisible;
+
+    if (passwordVisible) {
+        passwordEl.textContent = actualPassword;
+        passwordEl.classList.remove('password-hidden');
+        toggleBtn.innerHTML = '<span class="material-icons">visibility_off</span>';
+    } else {
+        passwordEl.textContent = '••••••••••••••••';
+        passwordEl.classList.add('password-hidden');
+        toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Copied to clipboard!');
+    });
+}
+
+function copyConnectionString() {
+    const connectionString = '{{ connection_string }}';
+    navigator.clipboard.writeText(connectionString).then(() => {
+        showNotification('Connection string copied!');
+    });
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--webops-success);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--webops-radius);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
+</script>
+{% endblock %}

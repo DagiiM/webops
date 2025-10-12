@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup 2FA - WebOps{% endblock %}
+{% block header_title %}Two-Factor Authentication Setup{% endblock %}
+
+{% block content %}
+<div class="webops-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="webops-card-header">
+        <h2 class="webops-h2">Enable Two-Factor Authentication</h2>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-mb-lg">
+            <h3 class="webops-h4 webops-mb-md">Step 1: Scan QR Code</h3>
+            <p class="webops-text-secondary webops-mb-md">
+                Use an authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.) to scan this QR code:
+            </p>
+            <div style="text-align: center; padding: var(--webops-space-lg); background: var(--webops-color-bg-tertiary); border-radius: var(--webops-border-radius-md); margin-bottom: var(--webops-space-md);">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="2FA QR Code" style="max-width: 250px;">
+            </div>
+            <details class="webops-mb-md">
+                <summary class="webops-text-primary" style="cursor: pointer; user-select: none;">
+                    Can't scan? Enter manually
+                </summary>
+                <div class="webops-mt-sm webops-p-md" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
+                    <p class="webops-text-sm webops-text-secondary webops-mb-xs">Account: {{ user.username }}</p>
+                    <p class="webops-text-sm webops-text-secondary webops-mb-xs">Issuer: WebOps</p>
+                    <p class="webops-text-sm webops-mb-xs">Secret Key:</p>
+                    <code style="background: rgba(0, 255, 136, 0.1); padding: var(--webops-space-xs) var(--webops-space-sm); border-radius: var(--webops-border-radius-sm); color: var(--webops-color-primary); font-family: var(--webops-font-family-mono);">{{ secret }}</code>
+                </div>
+            </details>
+        </div>
+
+        <div class="webops-mb-lg">
+            <h3 class="webops-h4 webops-mb-md">Step 2: Verify Code</h3>
+            <p class="webops-text-secondary webops-mb-md">
+                Enter the 6-digit code from your authenticator app to verify setup:
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="webops-form-group">
+                    <label for="{{ form.verification_code.id_for_label }}" class="webops-label">Verification Code</label>
+                    {{ form.verification_code }}
+                    {% if form.verification_code.errors %}
+                        <div class="webops-text-error webops-text-sm webops-mt-xs">
+                            {{ form.verification_code.errors|first }}
+                        </div>
+                    {% elif form.verification_code.help_text %}
+                        <div class="webops-text-secondary webops-text-sm webops-mt-xs">
+                            {{ form.verification_code.help_text }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="webops-flex webops-gap-md">
+                    <a href="{% url 'dashboard' %}" class="webops-btn webops-btn-secondary webops-flex-1">
+                        Cancel
+                    </a>
+                    <button type="submit" class="webops-btn webops-btn-primary webops-flex-1">
+                        Verify & Enable
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-left: 4px solid var(--webops-color-info); border-radius: var(--webops-border-radius-md);">
+            <p class="webops-text-sm webops-text-info">
+                <strong>Note:</strong> After enabling 2FA, you'll receive backup codes. Save them in a safe place - they can be used to access your account if you lose access to your authenticator app.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

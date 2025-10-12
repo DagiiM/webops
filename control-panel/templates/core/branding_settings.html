@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Branding Settings - {{ branding.site_name }}{% endblock %}
+
+{% block header_title %}Branding Settings{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h1 class="webops-page-title">Branding Settings</h1>
+        <p class="webops-page-description">Customize the appearance of your WebOps control panel</p>
+    </div>
+</div>
+
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h2 class="webops-card-title">Customize Branding</h2>
+        <p class="webops-card-description">Upload your logo, customize colors, and set your site name</p>
+    </div>
+    <div class="webops-card-body">
+        <form method="post" enctype="multipart/form-data" id="brandingForm">
+            {% csrf_token %}
+
+            <div class="webops-form-section">
+                <h3 class="webops-form-section-title">General</h3>
+
+                <div class="webops-form-group">
+                    <label for="id_site_name" class="webops-label">Site Name</label>
+                    {{ form.site_name }}
+                    {% if form.site_name.help_text %}
+                    <p class="webops-help-text">{{ form.site_name.help_text }}</p>
+                    {% endif %}
+                    {% if form.site_name.errors %}
+                    <p class="webops-error-text">{{ form.site_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="webops-form-section">
+                <h3 class="webops-form-section-title">Logo & Favicon</h3>
+
+                <div class="webops-form-group">
+                    <label for="id_logo" class="webops-label">Logo</label>
+                    {% if settings.logo %}
+                    <div class="webops-image-preview" style="margin-bottom: var(--webops-space-md);">
+                        <img src="{{ settings.logo.url }}" alt="Current logo" style="max-height: 60px; border-radius: var(--webops-border-radius-md); background: rgba(255,255,255,0.1); padding: var(--webops-space-sm);">
+                        <p class="webops-help-text">Current logo</p>
+                    </div>
+                    {% endif %}
+                    {{ form.logo }}
+                    {% if form.logo.help_text %}
+                    <p class="webops-help-text">{{ form.logo.help_text }}</p>
+                    {% endif %}
+                    {% if form.logo.errors %}
+                    <p class="webops-error-text">{{ form.logo.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="webops-form-group">
+                    <label for="id_favicon" class="webops-label">Favicon</label>
+                    {% if settings.favicon %}
+                    <div class="webops-image-preview" style="margin-bottom: var(--webops-space-md);">
+                        <img src="{{ settings.favicon.url }}" alt="Current favicon" style="width: 32px; height: 32px; border-radius: var(--webops-border-radius-sm);">
+                        <p class="webops-help-text">Current favicon</p>
+                    </div>
+                    {% endif %}
+                    {{ form.favicon }}
+                    {% if form.favicon.help_text %}
+                    <p class="webops-help-text">{{ form.favicon.help_text }}</p>
+                    {% endif %}
+                    {% if form.favicon.errors %}
+                    <p class="webops-error-text">{{ form.favicon.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="webops-form-section">
+                <h3 class="webops-form-section-title">Colors</h3>
+
+                <div class="webops-form-grid">
+                    <div class="webops-form-group">
+                        <label for="id_primary_color" class="webops-label">Primary Color</label>
+                        {{ form.primary_color }}
+                        {% if form.primary_color.help_text %}
+                        <p class="webops-help-text">{{ form.primary_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.primary_color.errors %}
+                        <p class="webops-error-text">{{ form.primary_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="id_secondary_color" class="webops-label">Secondary Color</label>
+                        {{ form.secondary_color }}
+                        {% if form.secondary_color.help_text %}
+                        <p class="webops-help-text">{{ form.secondary_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.secondary_color.errors %}
+                        <p class="webops-error-text">{{ form.secondary_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="id_accent_color" class="webops-label">Accent Color</label>
+                        {{ form.accent_color }}
+                        {% if form.accent_color.help_text %}
+                        <p class="webops-help-text">{{ form.accent_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.accent_color.errors %}
+                        <p class="webops-error-text">{{ form.accent_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="id_header_bg_color" class="webops-label">Header Background</label>
+                        {{ form.header_bg_color }}
+                        {% if form.header_bg_color.help_text %}
+                        <p class="webops-help-text">{{ form.header_bg_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.header_bg_color.errors %}
+                        <p class="webops-error-text">{{ form.header_bg_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-form-actions">
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    Save Changes
+                </button>
+                <button type="button" class="webops-btn webops-btn-secondary" id="resetBtn">
+                    Reset to Defaults
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .webops-form-section {
+        margin-bottom: var(--webops-space-2xl);
+        padding-bottom: var(--webops-space-xl);
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    }
+
+    .webops-form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .webops-form-section-title {
+        font-size: var(--webops-font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--webops-color-text-primary);
+        margin-bottom: var(--webops-space-lg);
+    }
+
+    .webops-form-group {
+        margin-bottom: var(--webops-space-lg);
+    }
+
+    .webops-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--webops-space-lg);
+    }
+
+    .webops-label {
+        display: block;
+        font-size: var(--webops-font-size-sm);
+        font-weight: var(--webops-font-weight-medium);
+        color: var(--webops-color-text-secondary);
+        margin-bottom: var(--webops-space-sm);
+    }
+
+    .webops-input,
+    .webops-file-input {
+        width: 100%;
+        padding: var(--webops-space-sm) var(--webops-space-md);
+        background: rgba(0, 255, 136, 0.05);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: var(--webops-border-radius-md);
+        color: var(--webops-color-text-primary);
+        font-size: var(--webops-font-size-sm);
+        transition: all var(--webops-transition-fast);
+    }
+
+    .webops-input[type="color"] {
+        height: 48px;
+        cursor: pointer;
+    }
+
+    .webops-input:focus,
+    .webops-file-input:focus {
+        outline: none;
+        border-color: var(--webops-color-primary);
+        background: rgba(0, 255, 136, 0.1);
+    }
+
+    .webops-help-text {
+        font-size: var(--webops-font-size-sm);
+        color: var(--webops-color-text-tertiary);
+        margin-top: var(--webops-space-xs);
+        margin-bottom: 0;
+    }
+
+    .webops-error-text {
+        font-size: var(--webops-font-size-sm);
+        color: var(--webops-color-error);
+        margin-top: var(--webops-space-xs);
+        margin-bottom: 0;
+    }
+
+    .webops-form-actions {
+        display: flex;
+        gap: var(--webops-space-md);
+        margin-top: var(--webops-space-xl);
+    }
+
+    .webops-btn {
+        padding: var(--webops-space-sm) var(--webops-space-lg);
+        border-radius: var(--webops-border-radius-md);
+        font-size: var(--webops-font-size-sm);
+        font-weight: var(--webops-font-weight-medium);
+        cursor: pointer;
+        transition: all var(--webops-transition-fast);
+        border: none;
+    }
+
+    .webops-btn-primary {
+        background: var(--webops-color-primary);
+        color: var(--webops-color-bg-primary);
+    }
+
+    .webops-btn-primary:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .webops-btn-secondary {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: var(--webops-color-primary);
+    }
+
+    .webops-btn-secondary:hover {
+        background: rgba(0, 255, 136, 0.2);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resetBtn = document.getElementById('resetBtn');
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to reset branding to default values? This will reload the page.')) {
+                return;
+            }
+
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const response = await fetch('{% url "reset_branding" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to reset branding settings');
+                }
+            } catch (error) {
+                console.error('Error resetting branding:', error);
+                alert('An error occurred while resetting branding settings');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Database - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-header">
+    <div>
+        <h2>📊 Create PostgreSQL Database</h2>
+        <p class="text-muted">Create a new PostgreSQL database with secure credentials</p>
+    </div>
+    <a href="{% url 'database_list' %}" class="webops-btn">← Back to Databases</a>
+</div>
+
+<div class="webops-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="webops-card-header">
+        <h3>Database Configuration</h3>
+    </div>
+    <div class="webops-card-body">
+        <form method="POST" id="create-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="name">Database Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-input"
+                    required
+                    pattern="[a-z][a-z0-9_]*"
+                    placeholder="myapp_db"
+                    autocomplete="off"
+                >
+                <small class="form-help">
+                    Must start with a letter, only lowercase letters, numbers, and underscores allowed
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Database Username *</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-input"
+                    required
+                    pattern="[a-z][a-z0-9_]*"
+                    placeholder="myapp_user"
+                    autocomplete="off"
+                >
+                <small class="form-help">
+                    Must start with a letter, only lowercase letters, numbers, and underscores allowed
+                </small>
+            </div>
+
+            <div class="form-group">
+                <div class="info-box">
+                    <span style="font-size: 20px; margin-right: 8px;">🔐</span>
+                    <div>
+                        <strong>Password Generation</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 0.875rem; color: var(--webops-gray-600);">
+                            A secure 32-character password will be automatically generated and encrypted
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="webops-btn webops-btn-primary btn-large">
+                    <span id="submit-text">🚀 Create Database</span>
+                    <span id="submit-loading" style="display: none;">⏳ Creating...</span>
+                </button>
+                <a href="{% url 'database_list' %}" class="webops-btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Help Card -->
+<div class="webops-card" style="max-width: 600px; margin: 2rem auto 0;">
+    <div class="webops-card-header">
+        <h3>💡 Best Practices</h3>
+    </div>
+    <div class="webops-card-body">
+        <ul class="help-list">
+            <li>
+                <strong>Naming Convention:</strong> Use descriptive names like <code>myapp_production</code> or <code>blog_db</code>
+            </li>
+            <li>
+                <strong>Username:</strong> Create a dedicated user per application for better security isolation
+            </li>
+            <li>
+                <strong>Access Control:</strong> The new user will have full access only to the created database
+            </li>
+            <li>
+                <strong>Credentials:</strong> After creation, you'll see the connection details. Save them securely!
+            </li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--webops-gray-700);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--webops-gray-300);
+    border-radius: var(--webops-border-radius-md);
+    font-size: 1rem;
+    transition: all 0.2s;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:invalid:not(:placeholder-shown) {
+    border-color: var(--danger);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--webops-gray-600);
+}
+
+.info-box {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-lighter) 100%);
+    border-radius: var(--webops-border-radius-md);
+    border-left: 4px solid var(--primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-large {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-gray-300);
+    color: var(--webops-gray-700);
+}
+
+.btn-outline:hover {
+    background: var(--webops-gray-50);
+    border-color: var(--webops-gray-400);
+}
+
+.help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--webops-gray-200);
+}
+
+.help-list li:last-child {
+    border-bottom: none;
+}
+
+.help-list strong {
+    color: var(--webops-gray-700);
+}
+
+.help-list code {
+    background: var(--webops-gray-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+document.getElementById('create-form').addEventListener('submit', function() {
+    const submitText = document.getElementById('submit-text');
+    const submitLoading = document.getElementById('submit-loading');
+
+    submitText.style.display = 'none';
+    submitLoading.style.display = 'inline';
+
+    // Disable form inputs
+    const inputs = this.querySelectorAll('input, button');
+    inputs.forEach(input => input.disabled = true);
+});
+
+// Auto-generate username suggestion from database name
+document.getElementById('name').addEventListener('input', function(e) {
+    const usernameInput = document.getElementById('username');
+    if (!usernameInput.value) {
+        const suggestion = e.target.value.replace(/_db$/, '_user');
+        usernameInput.value = suggestion;
+    }
+});
+
+// Real-time validation feedback
+document.querySelectorAll('.form-input[pattern]').forEach(input => {
+    input.addEventListener('blur', function() {
+        if (this.value && !this.validity.valid) {
+            this.style.borderColor = 'var(--danger)';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+
+    input.addEventListener('input', function() {
+        if (this.validity.valid) {
+            this.style.borderColor = 'var(--success)';
+        }
+    });
+});
+</script>
+{% endblock %}

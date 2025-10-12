@@ -1,0 +1,11 @@
+{% extends "errors/base_error.html" %}
+
+{% block error_title %}400 - Bad Request{% endblock %}
+
+{% block error_code %}400{% endblock %}
+
+{% block error_heading %}Bad Request{% endblock %}
+
+{% block error_message %}
+{{ error.user_message }}
+{% endblock %}

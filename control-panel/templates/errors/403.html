@@ -1,0 +1,11 @@
+{% extends "errors/base_error.html" %}
+
+{% block error_title %}403 - Forbidden{% endblock %}
+
+{% block error_code %}403{% endblock %}
+
+{% block error_heading %}Access Denied{% endblock %}
+
+{% block error_message %}
+{{ error.user_message }}
+{% endblock %}

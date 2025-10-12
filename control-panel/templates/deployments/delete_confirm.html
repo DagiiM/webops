@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ deployment.name }} - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <h2 class="webops-page-title">Delete Deployment</h2>
+</div>
+
+<div class="webops-card webops-mb-lg" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error);">
+    <div class="webops-card-body">
+        <h3 class="webops-h3 webops-text-error webops-mb-md">⚠️ Warning</h3>
+        <p>You are about to delete the deployment <strong>{{ deployment.name }}</strong>.</p>
+        <p class="webops-mb-sm">This action will:</p>
+        <ul style="margin-left: var(--webops-space-lg); margin-bottom: var(--webops-space-md);">
+            <li>Stop the running service (if running)</li>
+            <li>Remove all deployed files</li>
+            <li>Delete the systemd service</li>
+            <li>Delete the Nginx configuration</li>
+            <li>Remove the deployment from the database</li>
+        </ul>
+        <p class="webops-font-bold webops-text-error">This action cannot be undone!</p>
+    </div>
+</div>
+
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Deployment Details</h3>
+    </div>
+    <div class="webops-card-body">
+        <dl class="webops-grid webops-grid-2" style="gap: var(--webops-space-md);">
+            <div>
+                <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Repository:</dt>
+                <dd><code class="webops-text-sm">{{ deployment.repo_url }}</code></dd>
+            </div>
+
+            <div>
+                <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Branch:</dt>
+                <dd><code class="webops-text-sm">{{ deployment.branch }}</code></dd>
+            </div>
+
+            <div>
+                <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Status:</dt>
+                <dd><span class="webops-badge webops-badge-{{ deployment.status }}">{{ deployment.get_status_display }}</span></dd>
+            </div>
+
+            {% if deployment.port %}
+            <div>
+                <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Port:</dt>
+                <dd>{{ deployment.port }}</dd>
+            </div>
+            {% endif %}
+
+            <div>
+                <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Created:</dt>
+                <dd>{{ deployment.created_at|date:"Y-m-d H:i:s" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="webops-flex webops-gap-sm">
+        <button type="submit" class="webops-btn webops-btn-danger">Confirm Delete</button>
+        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

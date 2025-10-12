@@ -1,0 +1,2686 @@
+/*
+ * WebOps Control Panel - Premium Design System
+ * Graph-inspired green aesthetic - Ultra-sleek, high-end graphics
+ */
+
+:root {
+    --webops-color-primary: #00ff88;
+    --webops-color-primary-dark: #00cc6a;
+    --webops-color-primary-darker: #009950;
+    --webops-color-primary-light: #33ffaa;
+    --webops-color-primary-glow: rgba(0, 255, 136, 0.3);
+    --webops-color-bg-primary: #0a0e0d;
+    --webops-color-bg-secondary: #111816;
+    --webops-color-bg-tertiary: #1a221e;
+    --webops-color-bg-elevated: #1f2926;
+    --webops-color-surface: #141a17;
+    --webops-color-surface-hover: #1a221e;
+    --webops-color-surface-active: #1f2926;
+    --webops-color-text-primary: #e8f5f0;
+    --webops-color-text-secondary: #a8c9bb;
+    --webops-color-text-tertiary: #6b8577;
+    --webops-color-text-disabled: #3d4a44;
+    --webops-color-success: #00ff88;
+    --webops-color-warning: #ffaa00;
+    --webops-color-error: #ff4444;
+    --webops-color-info: #00aaff;
+    --webops-color-graph-node: #00ff88;
+    --webops-color-graph-edge: rgba(0, 255, 136, 0.15);
+    --webops-color-graph-grid: rgba(0, 255, 136, 0.05);
+    --webops-color-primary-alpha-03: rgba(0, 255, 136, 0.03);
+    --webops-color-primary-alpha-05: rgba(0, 255, 136, 0.05);
+    --webops-color-primary-alpha-10: rgba(0, 255, 136, 0.1);
+    --webops-color-primary-alpha-15: rgba(0, 255, 136, 0.15);
+    --webops-color-primary-alpha-20: rgba(0, 255, 136, 0.2);
+    --webops-color-primary-alpha-35: rgba(0, 255, 136, 0.35);
+    --webops-color-primary-alpha-50: rgba(0, 255, 136, 0.5);
+    --webops-color-bg-card: rgba(20, 26, 23, 0.8);
+    --webops-color-bg-card-mobile: rgba(20, 26, 23, 0.6);
+    --webops-color-modal-backdrop: rgba(10, 14, 13, 0.85);
+    --webops-color-modal-shadow: rgba(0, 255, 136, 0.15);
+    --webops-color-warning-alpha-10: rgba(255, 170, 0, 0.1);
+    --webops-color-info-alpha-10: rgba(0, 170, 255, 0.1);
+    --webops-color-error-alpha-10: rgba(255, 68, 68, 0.1);
+    --webops-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --webops-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --webops-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+    --webops-border-radius-sm: 4px;
+    --webops-border-radius-md: 8px;
+    --webops-border-radius-lg: 12px;
+    --webops-border-radius-xl: 16px;
+    
+    --webops-space-xs: 4px;
+    --webops-space-sm: 8px;
+    --webops-space-md: 16px;
+    --webops-space-lg: 24px;
+    --webops-space-xl: 32px;
+    --webops-space-2xl: 48px;
+    --webops-font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --webops-font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+    --webops-font-size-xs: 0.75rem;
+    --webops-font-size-sm: 0.875rem;
+    --webops-font-size-base: 1rem;
+    --webops-font-size-lg: 1.125rem;
+    --webops-font-size-xl: 1.25rem;
+    --webops-font-size-2xl: 1.5rem;
+    --webops-font-size-3xl: 2rem;
+    --webops-font-weight-normal: 400;
+    --webops-font-weight-medium: 500;
+    --webops-font-weight-semibold: 600;
+    --webops-font-weight-bold: 700;
+    --webops-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --webops-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --webops-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body {
+    font-family: var(--webops-font-family-sans);
+    font-size: var(--webops-font-size-base);
+    line-height: 1.6;
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-bg-primary);
+    overflow-x: hidden;
+}
+
+/* WebOps Global Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-left: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-sm);
+    border: 2px solid var(--webops-color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--webops-color-primary-alpha-35);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: var(--webops-color-primary-alpha-50);
+}
+
+/* Scrollbar for Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--webops-color-primary-alpha-20) var(--webops-color-bg-secondary);
+}
+
+/* WebOps Background */
+.webops-app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: var(--webops-color-bg-primary);
+}
+
+.webops-app-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px);
+    animation: webopsGridPulse 8s ease-in-out infinite;
+}
+
+.webops-app-background::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, var(--webops-color-primary-glow) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    animation: webopsGlowPulse 6s ease-in-out infinite;
+}
+
+@keyframes webopsGridPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+@keyframes webopsGlowPulse { 0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.1); } }
+
+/* WebOps Typography */
+.webops-h1 {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--font-weight-bold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--webops-space-md);
+}
+
+.webops-h2 {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-sm);
+}
+
+.webops-h3 {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin: 0;
+}
+
+/* Light Mode Variables (Default) */
+:root[data-theme="light"] {
+    --color-bg-primary: #f8faf9;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #f0f4f2;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f0f4f2;
+    --color-text-primary: #0a0e0d;
+    --color-text-secondary: #4a5652;
+    --color-text-tertiary: #8a9690;
+    --color-border: var(--webops-color-primary-alpha-20);
+}
+
+/* WebOps Grid System */
+.webops-grid { display: grid; gap: var(--webops-space-lg); }
+.webops-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.webops-grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+/* WebOps Container - Using layout.css for comprehensive container system */
+/* This simplified version is kept for backward compatibility */
+.webops-container {
+    max-width: 1280px;
+    padding: var(--webops-space-2xl) var(--webops-space-lg);
+}
+
+/* Accessibility: Skip link */
+.skip-link:focus {
+    clip: auto;
+    height: auto;
+    width: auto;
+    position: absolute;
+    top: 6px !important;
+}
+
+/* Accessibility: Focus indicators */
+*:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+}
+
+/* Enhanced focus for interactive elements */
+.webops-btn:focus,
+.nav-item:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .webops-app-background::before,
+    .webops-app-background::after {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --color-primary: #00ff00;
+        --color-text-primary: #ffffff;
+        --color-bg-primary: #000000;
+        --color-border: #ffffff;
+    }
+}
+
+/* Performance: GPU acceleration for animations */
+.webops-loader,
+.webops-loader-ring,
+.webops-modal,
+.sidebar {
+    will-change: transform;
+}
+
+/* Improved loading states */
+.webops-skeleton {
+    background: linear-gradient(90deg, var(--webops-color-surface) 25%, var(--webops-color-surface-hover) 50%, var(--webops-color-surface) 75%);
+    background-size: 200% 100%;
+    animation: webopsSkeletonLoading 1.5s infinite;
+}
+
+@keyframes webopsSkeletonLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* WebOps Page Header */
+.webops-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--webops-space-2xl);
+    gap: var(--webops-space-lg);
+}
+
+.webops-page-title {
+    font-size: var(--webops-font-size-2xl);
+    font-weight: var(--webops-font-weight-bold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-xs);
+}
+
+.webops-text-muted {
+    color: var(--webops-color-text-tertiary);
+    font-size: var(--webops-font-size-sm);
+}
+
+/* WebOps Stats Grid */
+.webops-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-2xl);
+}
+
+.webops-stat-card {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    padding: var(--webops-space-lg);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-stat-card:hover {
+    border-color: var(--webops-color-primary-alpha-35);
+    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
+    transform: translateY(-2px);
+}
+
+.webops-stat-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--webops-space-md);
+    color: var(--webops-color-primary);
+    font-size: 24px;
+}
+
+.webops-stat-value {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-xs);
+}
+
+.webops-stat-label {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Table Responsive */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* WebOps Responsive Breakpoints */
+@media (max-width: 1024px) {
+    .webops-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .webops-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--webops-space-md);
+    }
+
+    .webops-stat-card {
+        padding: var(--webops-space-md);
+    }
+
+    .webops-stat-value {
+        font-size: var(--webops-font-size-sm);
+    }
+
+    .webops-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-sm);
+    }
+
+    .webops-grid-2, .webops-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .webops-container {
+        padding: var(--webops-space-lg) var(--webops-space-md);
+    }
+}
+
+/* WebOps Tables */
+.webops-table-container {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+}
+
+.webops-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.webops-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.webops-table thead {
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-table thead th {
+    padding: var(--webops-space-md);
+    text-align: left;
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-20);
+    white-space: nowrap;
+}
+
+.webops-table tbody tr {
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+    transition: background var(--webops-transition-fast);
+}
+
+.webops-table tbody tr:hover {
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.webops-table tbody td {
+    padding: var(--webops-space-md);
+    color: var(--webops-color-text-secondary);
+}
+
+/* Mobile Table Cards */
+@media (max-width: 768px) {
+    .webops-table-responsive.webops-mobile-cards .webops-table {
+        min-width: 100%;
+    }
+
+    .webops-table-responsive.webops-mobile-cards .webops-table thead {
+        display: none;
+    }
+
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody tr {
+        display: block;
+        margin-bottom: var(--webops-space-md);
+        background: var(--webops-color-bg-card-mobile);
+        border-radius: var(--webops-border-radius-md);
+        border: 1px solid var(--webops-color-primary-alpha-10);
+        padding: var(--webops-space-md);
+    }
+
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--webops-space-sm) 0;
+        border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    }
+
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody td:before {
+        content: attr(data-label);
+        font-weight: var(--webops-font-weight-semibold);
+        color: var(--webops-color-text-primary);
+        font-size: var(--webops-font-size-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+}
+
+/* WebOps Button Icon */
+.webops-btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* WebOps Status Badges */
+.webops-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-xs);
+    padding: var(--webops-space-xs) var(--webops-space-md);
+    border-radius: var(--webops-border-radius-sm);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.webops-status-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: webopsStatusPulse 2s ease-in-out infinite;
+}
+
+@keyframes webopsStatusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.webops-status-running {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-status-running::before {
+    background: var(--webops-color-success);
+    box-shadow: 0 0 8px var(--webops-color-success);
+}
+
+.webops-status-pending {
+    background: var(--webops-color-warning-alpha-10);
+    color: var(--webops-color-warning);
+}
+
+.webops-status-pending::before {
+    background: var(--webops-color-warning);
+    box-shadow: 0 0 8px var(--webops-color-warning);
+}
+
+.webops-status-building {
+    background: var(--webops-color-info-alpha-10);
+    color: var(--webops-color-info);
+}
+
+.webops-status-building::before {
+    background: var(--webops-color-info);
+    box-shadow: 0 0 8px var(--webops-color-info);
+}
+
+.webops-status-failed, .webops-status-stopped {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-status-failed::before, .webops-status-stopped::before {
+    background: var(--webops-color-error);
+    box-shadow: 0 0 8px var(--webops-color-error);
+}
+
+/* WebOps Code Editor Component */
+.webops-code-editor {
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-md);
+    overflow: hidden;
+}
+
+.webops-code-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    background: var(--webops-color-primary-alpha-05);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-20);
+}
+
+.webops-code-editor-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-code-editor-body {
+    display: flex;
+}
+
+.webops-code-editor-lines {
+    padding: var(--webops-space-md) var(--webops-space-sm);
+    background: var(--webops-color-primary-alpha-03);
+    border-right: 1px solid var(--webops-color-primary-alpha-20);
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    user-select: none;
+    text-align: right;
+}
+
+.webops-code-editor-content {
+    flex: 1;
+    padding: var(--webops-space-md);
+}
+
+.webops-code-editor-content textarea {
+    width: 100%;
+    min-height: 400px;
+    background: transparent;
+    border: none;
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    resize: vertical;
+    outline: none;
+}
+
+/* WebOps Empty State */
+.webops-empty-state {
+    text-align: center;
+    padding: var(--webops-space-2xl);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-empty-state-icon {
+    display: block;
+    margin: 0 auto var(--webops-space-lg);
+}
+
+.webops-empty-state-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-sm);
+}
+
+.webops-empty-state-description {
+    margin-bottom: var(--webops-space-lg);
+    color: var(--webops-color-text-tertiary);
+}
+
+/* WebOps Actions Group */
+.webops-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+}
+
+/* WebOps Compact View */
+:root.webops-compact-view {
+    --space-xs: 2px;
+    --space-sm: 4px;
+    --space-md: 8px;
+    --space-lg: 12px;
+    --space-xl: 16px;
+    --space-2xl: 24px;
+}
+
+:root.webops-compact-view .webops-stat-card,
+:root.webops-compact-view .webops-card {
+    padding: var(--webops-space-md);
+}
+
+/* WebOps No Animations */
+:root.webops-no-animations * {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* WebOps Modal Styles */
+.webops-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--webops-color-modal-backdrop);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+    padding: var(--webops-space-lg);
+    overflow-y: auto;
+}
+
+.webops-modal.active {
+    display: flex;
+    opacity: 1;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.webops-modal-content {
+    background: var(--webops-color-bg-secondary);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-lg);
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    margin: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95) translateY(-20px);
+    transition: all var(--webops-transition-base);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-modal-shadow);
+    position: relative;
+}
+
+.webops-modal.active .webops-modal-content {
+    transform: scale(1) translateY(0);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.webops-modal-header {
+    padding: var(--webops-space-lg) var(--webops-space-xl);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--webops-color-primary-alpha-03);
+    flex-shrink: 0;
+}
+
+.webops-modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--webops-border-radius-md);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--webops-transition-fast);
+    font-size: 20px;
+}
+
+.webops-modal-close:hover {
+    background: var(--webops-color-error-alpha-10);
+    border-color: var(--webops-color-error);
+    color: var(--webops-color-error);
+    transform: rotate(90deg);
+}
+
+.webops-modal-body {
+    max-height: 50vh;
+    padding: var(--webops-space-xl);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.webops-modal-footer {
+    padding: var(--webops-space-lg) var(--webops-space-xl);
+    border-top: 1px solid var(--webops-color-primary-alpha-15);
+    background: var(--webops-color-primary-alpha-03);
+    flex-shrink: 0;
+}
+
+/* Modal Scrollbar */
+.webops-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.webops-modal-body::-webkit-scrollbar-track {
+    background: var(--webops-color-primary-alpha-05);
+    border-radius: var(--webops-border-radius-sm);
+}
+
+.webops-modal-body::-webkit-scrollbar-thumb {
+    background: var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-sm);
+}
+
+.webops-modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--webops-color-primary-alpha-35);
+}
+
+/* WebOps Modal Content (BEM Methodology) */
+.webops-modal__content {
+    background: var(--webops-color-bg-secondary);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    margin: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95) translateY(-20px);
+    transition: all var(--webops-transition-base);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-modal-shadow);
+    position: relative;
+}
+
+/* Active state for modal content */
+.webops-modal.active .webops-modal__content {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal content sections */
+.webops-modal__content .webops-modal-header,
+.webops-modal__content .webops-modal__header {
+    padding: var(--webops-space-lg) var(--webops-space-xl);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--webops-color-primary-alpha-03);
+    flex-shrink: 0;
+    min-height: 60px;
+}
+
+.webops-modal__content .webops-modal-body,
+.webops-modal__content .webops-modal__body {
+    padding: var(--webops-space-xl);
+    overflow-y: auto;
+    flex: 1;
+    line-height: 1.6;
+}
+
+.webops-modal__content .webops-modal-footer,
+.webops-modal__content .webops-modal__footer {
+    padding: var(--webops-space-lg) var(--webops-space-xl);
+    border-top: 1px solid var(--webops-color-primary-alpha-15);
+    background: var(--webops-color-primary-alpha-03);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--webops-space-md);
+    min-height: 60px;
+}
+
+/* Modal content typography */
+.webops-modal__content h1,
+.webops-modal__content h2,
+.webops-modal__content h3,
+.webops-modal__content h4,
+.webops-modal__content h5,
+.webops-modal__content h6 {
+    color: var(--webops-color-text-primary);
+    font-weight: var(--webops-font-weight-semibold);
+    margin-bottom: var(--webops-space-md);
+    line-height: 1.3;
+}
+
+.webops-modal__content h1 { font-size: var(--webops-font-size-2xl); }
+.webops-modal__content h2 { font-size: var(--webops-font-size-xl); }
+.webops-modal__content h3 { font-size: var(--webops-font-size-lg); }
+.webops-modal__content h4 { font-size: var(--webops-font-size-base); }
+.webops-modal__content h5 { font-size: var(--webops-font-size-sm); }
+.webops-modal__content h6 { font-size: var(--webops-font-size-xs); }
+
+.webops-modal__content p {
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-md);
+    line-height: 1.6;
+}
+
+.webops-modal__content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Modal content form elements */
+.webops-modal__content .webops-form-group {
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-modal__content .webops-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.webops-modal__content label {
+    display: block;
+    color: var(--webops-color-text-primary);
+    font-weight: var(--webops-font-weight-medium);
+    margin-bottom: var(--webops-space-sm);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-modal__content input,
+.webops-modal__content textarea,
+.webops-modal__content select {
+    width: 100%;
+    padding: var(--webops-space-md);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-modal__content input:focus,
+.webops-modal__content textarea:focus,
+.webops-modal__content select:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-10);
+}
+
+/* Modal content lists */
+.webops-modal__content ul,
+.webops-modal__content ol {
+    margin-bottom: var(--webops-space-md);
+    padding-left: var(--webops-space-lg);
+}
+
+.webops-modal__content li {
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-xs);
+    line-height: 1.6;
+}
+
+/* Modal content code blocks */
+.webops-modal__content code {
+    background: var(--webops-color-surface);
+    color: var(--webops-color-primary);
+    padding: var(--webops-space-xs) var(--webops-space-sm);
+    border-radius: var(--webops-border-radius-sm);
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-xs);
+}
+
+.webops-modal__content pre {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-md);
+    margin-bottom: var(--webops-space-md);
+    overflow-x: auto;
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+}
+
+/* Modal content scrollbar customization */
+.webops-modal__content .webops-modal-body::-webkit-scrollbar,
+.webops-modal__content .webops-modal__body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.webops-modal__content .webops-modal-body::-webkit-scrollbar-track,
+.webops-modal__content .webops-modal__body::-webkit-scrollbar-track {
+    background: var(--webops-color-primary-alpha-05);
+    border-radius: var(--webops-border-radius-sm);
+}
+
+.webops-modal__content .webops-modal-body::-webkit-scrollbar-thumb,
+.webops-modal__content .webops-modal__body::-webkit-scrollbar-thumb {
+    background: var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-sm);
+}
+
+.webops-modal__content .webops-modal-body::-webkit-scrollbar-thumb:hover,
+.webops-modal__content .webops-modal__body::-webkit-scrollbar-thumb:hover {
+    background: var(--webops-color-primary-alpha-35);
+}
+
+/* Responsive design for modal content */
+@media (max-width: 768px) {
+    .webops-modal__content {
+        max-width: 95vw;
+        max-height: 95vh;
+        margin: var(--webops-space-sm);
+        border-radius: var(--webops-border-radius-md);
+    }
+    
+    .webops-modal__content .webops-modal-header,
+    .webops-modal__content .webops-modal__header {
+        padding: var(--webops-space-md) var(--webops-space-lg);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-sm);
+        min-height: auto;
+    }
+    
+    .webops-modal__content .webops-modal-body,
+    .webops-modal__content .webops-modal__body {
+        padding: var(--webops-space-lg);
+    }
+    
+    .webops-modal__content .webops-modal-footer,
+    .webops-modal__content .webops-modal__footer {
+        padding: var(--webops-space-md) var(--webops-space-lg);
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--webops-space-sm);
+        min-height: auto;
+    }
+    
+    .webops-modal__content h1 { font-size: var(--webops-font-size-xl); }
+    .webops-modal__content h2 { font-size: var(--webops-font-size-lg); }
+    .webops-modal__content h3 { font-size: var(--webops-font-size-base); }
+}
+
+@media (max-width: 480px) {
+    .webops-modal__content {
+        max-width: 100vw;
+        max-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+    
+    .webops-modal__content .webops-modal-header,
+    .webops-modal__content .webops-modal__header,
+    .webops-modal__content .webops-modal-body,
+    .webops-modal__content .webops-modal__body,
+    .webops-modal__content .webops-modal-footer,
+    .webops-modal__content .webops-modal__footer {
+        padding-left: var(--webops-space-md);
+        padding-right: var(--webops-space-md);
+    }
+}
+
+/* High contrast mode support for modal content */
+@media (prefers-contrast: high) {
+    .webops-modal__content {
+        border-color: var(--webops-color-primary);
+        border-width: 2px;
+    }
+    
+    .webops-modal__content .webops-modal-header,
+    .webops-modal__content .webops-modal__header,
+    .webops-modal__content .webops-modal-footer,
+    .webops-modal__content .webops-modal__footer {
+        border-color: var(--webops-color-primary);
+        border-width: 2px 0;
+    }
+}
+
+/* Reduced motion support for modal content */
+@media (prefers-reduced-motion: reduce) {
+    .webops-modal__content {
+        transform: none;
+        transition: opacity var(--webops-transition-fast);
+    }
+    
+    .webops-modal.active .webops-modal__content {
+        transform: none;
+    }
+}
+
+/* ========================================
+   WebOps Design System - Prefixed Classes
+   ======================================== */
+
+/* WebOps Buttons */
+.webops-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--webops-space-sm);
+    padding: var(--webops-space-sm) var(--webops-space-lg);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    font-family: var(--webops-font-family-sans);
+    border: none;
+    border-radius: var(--webops-border-radius-md);
+    cursor: pointer;
+    transition: all var(--webops-transition-base);
+    text-decoration: none;
+}
+
+.webops-btn-primary {
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    color: var(--webops-color-bg-primary);
+    box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+}
+
+.webops-btn-primary:hover {
+    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
+    box-shadow: 0 6px 20px var(--webops-color-primary-glow);
+    transform: translateY(-1px);
+}
+
+.webops-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-primary);
+    box-shadow: none;
+}
+
+.webops-btn-secondary:hover {
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-btn-danger {
+    background: linear-gradient(135deg, var(--webops-color-error), var(--webops-color-error-dark));
+    color: white;
+    box-shadow: 0 4px 12px var(--webops-color-error-alpha-30);
+}
+
+.webops-btn-danger:hover {
+    background: linear-gradient(135deg, var(--webops-color-error-light), var(--webops-color-error));
+    transform: translateY(-1px);
+}
+
+.webops-btn-sm {
+    padding: var(--webops-space-xs) var(--webops-space-sm);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-btn-lg {
+    padding: var(--webops-space-md) var(--webops-space-xl);
+    font-size: var(--webops-font-size-sm);
+}
+
+/* WebOps Input Fields */
+.webops-input {
+    width: 100%;
+    padding: var(--webops-space-md);
+    font-size: var(--webops-font-size-base);
+    font-family: var(--webops-font-family-sans);
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-md);
+    transition: all var(--webops-transition-base);
+    outline: none;
+}
+
+.webops-input:focus {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--webops-color-bg-disabled);
+}
+
+.webops-input::placeholder {
+    color: var(--webops-color-text-tertiary);
+}
+
+/* WebOps Textarea */
+.webops-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--webops-space-md);
+    font-size: var(--webops-font-size-base);
+    font-family: var(--webops-font-family-sans);
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-md);
+    transition: all var(--webops-transition-base);
+    outline: none;
+    resize: vertical;
+}
+
+.webops-textarea:focus {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+/* WebOps Select */
+.webops-select {
+    width: 100%;
+    padding: var(--webops-space-md);
+    font-size: var(--webops-font-size-base);
+    font-family: var(--webops-font-family-sans);
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-md);
+    transition: all var(--webops-transition-base);
+    outline: none;
+    cursor: pointer;
+}
+
+.webops-select:focus {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+}
+
+/* WebOps Checkbox & Radio */
+.webops-checkbox,
+.webops-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--webops-color-primary-alpha-30);
+    border-radius: var(--webops-border-radius-sm);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-radio {
+    border-radius: 50%;
+}
+
+.webops-checkbox:checked,
+.webops-radio:checked {
+    background: var(--webops-color-primary);
+    border-color: var(--webops-color-primary);
+}
+
+/* WebOps Form Group */
+.webops-form-group {
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-label {
+    display: block;
+    margin-bottom: var(--webops-space-sm);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-label-required::after {
+    content: '*';
+    color: var(--webops-color-error);
+    margin-left: var(--webops-space-xs);
+}
+
+.webops-input-help {
+    display: block;
+    margin-top: var(--webops-space-xs);
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-input-error {
+    display: block;
+    margin-top: var(--webops-space-xs);
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-error);
+}
+
+/* WebOps Cards */
+.webops-card {
+    margin: 1rem auto;
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border-radius: var(--webops-border-radius-lg);
+    padding: var(--webops-space-lg);
+    box-shadow: var(--webops-shadow-sm);
+    transition: all var(--webops-transition-base);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-card:hover {
+    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
+    transform: translateY(-2px);
+}
+
+.webops-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-lg);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-card-body {
+    padding: var(--webops-space-lg);
+}
+
+.webops-card-footer {
+    padding: var(--webops-space-lg);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+/* WebOps Badges */
+.webops-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-xs);
+    padding: var(--webops-space-xs) var(--webops-space-md);
+    border-radius: var(--webops-border-radius-sm);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.webops-badge-success {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-badge-warning {
+    background: var(--webops-color-warning-alpha-10);
+    color: var(--webops-color-warning);
+}
+
+.webops-badge-danger {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-badge-info {
+    background: var(--webops-color-info-alpha-10);
+    color: var(--webops-color-info);
+}
+
+/* WebOps Text Ellipsis Utilities */
+.webops-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.webops-ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.webops-ellipsis-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* WebOps Layout Utilities */
+.webops-flex {
+    display: flex;
+}
+
+.webops-flex-col {
+    flex-direction: column;
+}
+
+.webops-items-center {
+    align-items: center;
+}
+
+.webops-justify-between {
+    justify-content: space-between;
+}
+
+.webops-justify-center {
+    justify-content: center;
+}
+
+.webops-gap-xs { gap: var(--webops-space-xs); }
+.webops-gap-sm { gap: var(--webops-space-sm); }
+.webops-gap-md { gap: var(--webops-space-md); }
+.webops-gap-lg { gap: var(--webops-space-lg); }
+
+/* WebOps Spacing Utilities */
+.webops-mt-xs { margin-top: var(--webops-space-xs); }
+.webops-mt-sm { margin-top: var(--webops-space-sm); }
+.webops-mt-md { margin-top: var(--webops-space-md); }
+.webops-mt-lg { margin-top: var(--webops-space-lg); }
+.webops-mt-xl { margin-top: var(--webops-space-xl); }
+
+.webops-mb-xs { margin-bottom: var(--webops-space-xs); }
+.webops-mb-sm { margin-bottom: var(--webops-space-sm); }
+.webops-mb-md { margin-bottom: var(--webops-space-md); }
+.webops-mb-lg { margin-bottom: var(--webops-space-lg); }
+.webops-mb-xl { margin-bottom: var(--webops-space-xl); }
+
+.webops-p-xs { padding: var(--webops-space-xs); }
+.webops-p-sm { padding: var(--webops-space-sm); }
+.webops-p-md { padding: var(--webops-space-md); }
+.webops-p-lg { padding: var(--webops-space-lg); }
+.webops-p-xl { padding: var(--webops-space-xl); }
+
+/* WebOps Text Utilities */
+.webops-text-primary { color: var(--webops-color-primary); }
+.webops-text-secondary { color: var(--webops-color-text-secondary); }
+.webops-text-tertiary { color: var(--webops-color-text-tertiary); }
+.webops-text-success { color: var(--webops-color-success); }
+.webops-text-warning { color: var(--webops-color-warning); }
+.webops-text-error { color: var(--webops-color-error); }
+.webops-text-info { color: var(--webops-color-info); }
+
+.webops-text-xs { font-size: var(--webops-font-size-xs); }
+.webops-text-sm { font-size: var(--webops-font-size-sm); }
+.webops-text-base { font-size: var(--webops-font-size-base); }
+.webops-text-lg { font-size: var(--webops-font-size-lg); }
+.webops-text-xl { font-size: var(--webops-font-size-xl); }
+
+.webops-font-medium { font-weight: var(--webops-font-weight-medium); }
+.webops-font-semibold { font-weight: var(--webops-font-weight-semibold); }
+.webops-font-bold { font-weight: var(--webops-font-weight-bold); }
+
+.webops-text-center { text-align: center; }
+.webops-text-right { text-align: right; }
+
+/* WebOps Width Utilities */
+.webops-w-full { width: 100%; }
+.webops-w-auto { width: auto; }
+.webops-max-w-xs { max-width: 320px; }
+.webops-max-w-sm { max-width: 480px; }
+.webops-max-w-md { max-width: 640px; }
+.webops-max-w-lg { max-width: 768px; }
+.webops-max-w-xl { max-width: 1024px; }
+
+/* WebOps Progress Bar */
+.webops-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-sm);
+    overflow: hidden;
+}
+
+.webops-progress-fill {
+    height: 100%;
+    background: var(--webops-color-primary);
+    border-radius: var(--webops-border-radius-sm);
+    transition: width var(--webops-transition-base);
+}
+
+/* Material Icons Alignment */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'liga';
+    vertical-align: middle;
+}
+
+/* ========================================
+   WebOps Ultra-Sleek Loader
+   ======================================== */
+
+.webops-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--webops-color-modal-backdrop);
+    backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+    pointer-events: none;
+}
+
+.webops-loader-overlay.active {
+    display: flex;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.webops-loader-overlay .webops-loader,
+.webops-loader-overlay .webops-loader-text {
+    pointer-events: none;
+}
+
+.webops-loader {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+/* Outer rotating ring with gradient */
+.webops-loader-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top-color: var(--webops-color-primary);
+    border-right-color: var(--webops-color-primary);
+    border-radius: 50%;
+    animation: webopsLoaderSpin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    box-shadow: 0 0 20px var(--webops-color-primary-alpha-30);
+}
+
+.webops-loader-ring:nth-child(2) {
+    width: 90%;
+    height: 90%;
+    top: 5%;
+    left: 5%;
+    border-top-color: var(--webops-color-primary-light);
+    border-right-color: transparent;
+    animation-duration: 1.5s;
+    animation-direction: reverse;
+}
+
+.webops-loader-ring:nth-child(3) {
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    border-top-color: transparent;
+    border-right-color: var(--webops-color-primary-dark);
+    animation-duration: 1.8s;
+}
+
+/* Center pulsing dot */
+.webops-loader-core {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    border-radius: 50%;
+    box-shadow:
+        0 0 20px var(--webops-color-primary-glow),
+        0 0 40px var(--webops-color-primary-glow),
+        inset 0 0 10px var(--webops-color-bg-highlight);
+    animation: webopsLoaderPulse 1.5s ease-in-out infinite;
+}
+
+/* Loading text */
+.webops-loader-text {
+    position: absolute;
+    top: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+    animation: webopsLoaderTextPulse 1.5s ease-in-out infinite;
+}
+
+/* Animated dots */
+.webops-loader-text::after {
+    content: '';
+    animation: webopsLoaderDots 1.5s steps(4) infinite;
+}
+
+/* Spinning particles */
+.webops-loader-particles {
+    position: absolute;
+    width: 140%;
+    height: 140%;
+    top: -20%;
+    left: -20%;
+}
+
+.webops-loader-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--webops-color-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--webops-color-primary);
+    opacity: 0;
+    animation: webopsLoaderParticle 2s ease-in-out infinite;
+}
+
+.webops-loader-particle:nth-child(1) {
+    top: 0;
+    left: 50%;
+    animation-delay: 0s;
+}
+
+.webops-loader-particle:nth-child(2) {
+    top: 50%;
+    right: 0;
+    animation-delay: 0.5s;
+}
+
+.webops-loader-particle:nth-child(3) {
+    bottom: 0;
+    left: 50%;
+    animation-delay: 1s;
+}
+
+.webops-loader-particle:nth-child(4) {
+    top: 50%;
+    left: 0;
+    animation-delay: 1.5s;
+}
+
+/* Animations */
+@keyframes webopsLoaderSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes webopsLoaderPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.8;
+    }
+}
+
+@keyframes webopsLoaderTextPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes webopsLoaderDots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+    100% { content: ''; }
+}
+
+@keyframes webopsLoaderParticle {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.5);
+    }
+}
+
+/* Disable animations when preference set */
+:root.webops-no-animations .webops-loader-ring,
+:root.webops-no-animations .webops-loader-core,
+:root.webops-no-animations .webops-loader-text,
+:root.webops-no-animations .webops-loader-particle {
+    animation: none !important;
+}
+
+:root.webops-no-animations .webops-loader-core {
+    transform: translate(-50%, -50%);
+}
+
+:root.webops-no-animations .webops-loader-text::after {
+    content: '...';
+}
+
+/* ============================================================================
+   Sidebar Toggle Button (Mobile)
+   ============================================================================ */
+
+.webops-sidebar-toggle {
+    position: fixed;
+    top: var(--webops-space-lg);
+    left: var(--webops-space-lg);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-border-radius-lg);
+    color: var(--webops-color-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-sidebar-toggle:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-30);
+    box-shadow: var(--webops-shadow-lg);
+    transform: translateY(-1px);
+}
+
+.webops-sidebar-toggle:active {
+    transform: translateY(0);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-sidebar-toggle .material-icons {
+    color: inherit;
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-sidebar-toggle:hover .material-icons {
+    transform: scale(1.1);
+}
+
+/* Show toggle button on mobile */
+@media (max-width: 768px) {
+    .webops-sidebar-toggle {
+        display: flex;
+    }
+}
+
+/* ============================================================================
+   Header Components
+   ============================================================================ */
+
+.webops-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-lg);
+    background: var(--webops-color-bg-secondary);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+    backdrop-filter: blur(10px);
+}
+
+.webops-header__title {
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+}
+
+/* ============================================================================
+   Theme Switcher
+   ============================================================================ */
+
+.webops-theme-switcher {
+    position: relative;
+}
+
+.webops-theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-theme-toggle:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-20);
+    transform: translateY(-1px);
+}
+
+.webops-theme-toggle[aria-expanded="true"] {
+    background: var(--webops-color-surface-active);
+    border-color: var(--webops-color-primary-alpha-35);
+}
+
+.webops-theme-toggle__icon {
+    color: var(--webops-color-primary);
+    transition: transform var(--webops-transition-fast);
+}
+
+/* Theme-specific icon visibility */
+.webops-theme-toggle__icon--light,
+.webops-theme-toggle__icon--custom,
+.webops-theme-toggle__icon--high-contrast {
+    display: none;
+}
+
+/* Show dark theme icon by default */
+.webops-theme-toggle__icon--dark {
+    display: block;
+}
+
+/* Show appropriate icon based on current theme */
+[data-theme="dark"] .webops-theme-toggle__icon--dark,
+[data-theme="light"] .webops-theme-toggle__icon--light,
+[data-theme="custom"] .webops-theme-toggle__icon--custom,
+[data-theme="high-contrast"] .webops-theme-toggle__icon--high-contrast {
+    display: block;
+}
+
+/* Hide all other icons when a specific theme is active */
+[data-theme="dark"] .webops-theme-toggle__icon--light,
+[data-theme="dark"] .webops-theme-toggle__icon--custom,
+[data-theme="dark"] .webops-theme-toggle__icon--high-contrast,
+[data-theme="light"] .webops-theme-toggle__icon--dark,
+[data-theme="light"] .webops-theme-toggle__icon--custom,
+[data-theme="light"] .webops-theme-toggle__icon--high-contrast,
+[data-theme="custom"] .webops-theme-toggle__icon--dark,
+[data-theme="custom"] .webops-theme-toggle__icon--light,
+[data-theme="custom"] .webops-theme-toggle__icon--high-contrast,
+[data-theme="high-contrast"] .webops-theme-toggle__icon--dark,
+[data-theme="high-contrast"] .webops-theme-toggle__icon--light,
+[data-theme="high-contrast"] .webops-theme-toggle__icon--custom {
+    display: none;
+}
+
+.webops-theme-toggle__label {
+    color: var(--webops-color-text-primary);
+}
+
+.webops-theme-toggle__arrow {
+    color: var(--webops-color-text-secondary);
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-theme-toggle[aria-expanded="true"] .webops-theme-toggle__arrow {
+    transform: rotate(180deg);
+}
+
+.webops-theme-dropdown {
+    position: absolute;
+    top: calc(100% + var(--webops-space-sm));
+    right: 0;
+    min-width: 200px;
+    background: var(--webops-color-bg-elevated);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-lg);
+    box-shadow: var(--webops-shadow-lg);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--webops-transition-fast);
+    z-index: 1000;
+    padding: var(--webops-space-sm);
+}
+
+.webops-theme-dropdown.webops-theme-dropdown--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.webops-theme-option {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    width: 100%;
+    padding: var(--webops-space-md);
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-font-size-sm);
+    text-align: left;
+}
+
+.webops-theme-option:hover {
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-theme-option--active {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
+}
+
+.webops-theme-option__preview {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--webops-color-primary-alpha-20);
+}
+
+.webops-theme-option__preview--dark {
+    background: linear-gradient(135deg, #0a0e0d 0%, #111816 100%);
+}
+
+.webops-theme-option__preview--light {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.webops-theme-option__preview--custom {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.webops-theme-option__preview--high-contrast {
+    background: linear-gradient(135deg, #000000 0%, #ffffff 100%);
+}
+
+.webops-theme-option__label {
+    font-weight: var(--webops-font-weight-medium);
+}
+
+/* ============================================================================
+   Settings Button
+   ============================================================================ */
+
+.webops-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-settings-button:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-20);
+    color: var(--webops-color-primary);
+    transform: translateY(-1px);
+}
+
+.webops-settings-button__icon {
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-settings-button:hover .webops-settings-button__icon {
+    transform: rotate(90deg);
+}
+
+/* ============================================================================
+   User Menu
+   ============================================================================ */
+
+.webops-user-menu {
+    position: relative;
+}
+
+.webops-user-menu__trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+    padding: var(--webops-space-sm);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-user-menu__trigger:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-20);
+    transform: translateY(-1px);
+}
+
+.webops-user-menu__trigger[aria-expanded="true"] {
+    background: var(--webops-color-surface-active);
+    border-color: var(--webops-color-primary-alpha-35);
+}
+
+.webops-user-menu__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+    border-radius: 50%;
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-bold);
+}
+
+.webops-user-menu__name {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-user-menu__arrow {
+    color: var(--webops-color-text-secondary);
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-user-menu__trigger[aria-expanded="true"] .webops-user-menu__arrow {
+    transform: rotate(180deg);
+}
+
+.webops-user-menu__dropdown {
+    position: absolute;
+    top: calc(100% + var(--webops-space-sm));
+    right: 0;
+    min-width: 280px;
+    background: var(--webops-color-bg-elevated);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-lg);
+    box-shadow: var(--webops-shadow-lg);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--webops-transition-fast);
+    z-index: 1000;
+    padding: var(--webops-space-md);
+}
+
+.webops-user-menu__dropdown.webops-user-menu__dropdown--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.webops-user-menu__header {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    padding-bottom: var(--webops-space-md);
+}
+
+.webops-user-menu__avatar--large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+    border-radius: 50%;
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-bold);
+}
+
+.webops-user-menu__info {
+    flex: 1;
+}
+
+.webops-user-menu__display-name {
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: 2px;
+}
+
+.webops-user-menu__email {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-user-menu__divider {
+    height: 1px;
+    background: var(--webops-color-primary-alpha-10);
+    margin: var(--webops-space-md) 0;
+}
+
+.webops-user-menu__item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    width: 100%;
+    padding: var(--webops-space-md);
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-border-radius-md);
+    color: var(--webops-color-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-font-size-sm);
+    text-align: left;
+}
+
+.webops-user-menu__item:hover {
+    background: var(--webops-color-surface-hover);
+    color: var(--webops-color-primary);
+}
+
+.webops-user-menu__item--danger {
+    color: var(--webops-color-error);
+}
+
+.webops-user-menu__item--danger:hover {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-user-menu__item-icon {
+    color: var(--webops-color-text-secondary);
+    transition: color var(--webops-transition-fast);
+}
+
+.webops-user-menu__item:hover .webops-user-menu__item-icon {
+    color: inherit;
+}
+
+.webops-user-menu__item-label {
+    font-weight: var(--webops-font-weight-medium);
+}
+
+/* ========================================
+   WebOps Deployment Detail Components
+   ======================================== */
+
+/* WebOps Tabs */
+.webops-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-20);
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-tab {
+    padding: var(--webops-space-md) var(--webops-space-lg);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-medium);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-tab:hover {
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-tab.active {
+    color: var(--webops-color-primary);
+    border-bottom-color: var(--webops-color-primary);
+}
+
+.webops-tab-content {
+    display: none;
+}
+
+.webops-tab-content.active {
+    display: block;
+}
+
+/* WebOps File Browser */
+.webops-file-browser {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+}
+
+.webops-browser-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-md);
+    background: var(--webops-color-primary-alpha-05);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-xs);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-breadcrumb-item {
+    color: var(--webops-color-text-secondary);
+    text-decoration: none;
+    transition: color var(--webops-transition-fast);
+}
+
+.webops-breadcrumb-item:hover {
+    color: var(--webops-color-primary);
+}
+
+.webops-breadcrumb-item.active {
+    color: var(--webops-color-text-primary);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-file-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.webops-file-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    cursor: pointer;
+    transition: background var(--webops-transition-fast);
+}
+
+.webops-file-item:hover {
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-file-item:last-child {
+    border-bottom: none;
+}
+
+.webops-file-viewer {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+}
+
+.webops-file-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-md);
+    background: var(--webops-color-primary-alpha-05);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+/* WebOps Logs */
+.webops-logs-container {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    max-height: 500px;
+    overflow-y: auto;
+    font-family: var(--webops-font-family-mono);
+}
+
+.webops-log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    font-size: var(--webops-font-size-sm);
+    line-height: 1.5;
+}
+
+.webops-log-entry:last-child {
+    border-bottom: none;
+}
+
+.webops-log-time {
+    color: var(--webops-color-text-tertiary);
+    font-size: var(--webops-font-size-xs);
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.webops-log-level {
+    font-weight: var(--webops-font-weight-semibold);
+    text-transform: uppercase;
+    font-size: var(--webops-font-size-xs);
+    min-width: 60px;
+}
+
+.webops-log-level.info {
+    color: var(--webops-color-info);
+}
+
+.webops-log-level.warning {
+    color: var(--webops-color-warning);
+}
+
+.webops-log-level.error {
+    color: var(--webops-color-error);
+}
+
+.webops-log-level.success {
+    color: var(--webops-color-success);
+}
+
+.webops-log-message {
+    flex: 1;
+    color: var(--webops-color-text-primary);
+    word-break: break-word;
+}
+
+/* WebOps Alerts */
+.webops-alert {
+    padding: var(--webops-space-md);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: var(--webops-space-md);
+    border-left: 4px solid;
+}
+
+.webops-alert.success {
+    background: var(--webops-color-success-alpha-10);
+    border-left-color: var(--webops-color-success);
+    color: var(--webops-color-success);
+}
+
+.webops-alert.warning {
+    background: var(--webops-color-warning-alpha-10);
+    border-left-color: var(--webops-color-warning);
+    color: var(--webops-color-warning);
+}
+
+.webops-alert.error {
+    background: var(--webops-color-error-alpha-10);
+    border-left-color: var(--webops-color-error);
+    color: var(--webops-color-error);
+}
+
+.webops-alert.info {
+    background: var(--webops-color-info-alpha-10);
+    border-left-color: var(--webops-color-info);
+    color: var(--webops-color-info);
+}
+
+/* WebOps Info Grid */
+.webops-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.webops-info-item {
+    background: var(--webops-color-bg-card);
+    padding: var(--webops-space-lg);
+    border-radius: var(--webops-border-radius-lg);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    transition: all var(--webops-transition-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-info-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-10);
+    transform: translateY(-2px);
+}
+
+.webops-info-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    opacity: 0;
+    transition: opacity var(--webops-transition-medium);
+}
+
+.webops-info-item:hover::before {
+    opacity: 1;
+}
+
+.webops-info-item-full {
+    grid-column: 1 / -1;
+}
+
+.webops-info-item h4 {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-xs);
+}
+
+.webops-info-item p {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    margin: 0;
+}
+
+.webops-info-value {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-sm);
+    margin-top: var(--webops-space-sm);
+    padding: var(--webops-space-sm);
+    background: var(--webops-color-primary-alpha-05);
+    border-radius: var(--webops-border-radius-md);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-info-value:hover {
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-info-value .webops-code {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    word-break: break-all;
+}
+
+.webops-info-value .webops-btn {
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-info-value:hover .webops-btn {
+    opacity: 1;
+}
+
+.webops-info-value .webops-btn:hover {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
+    transform: scale(1.05);
+}
+
+.webops-label {
+    display: block;
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--webops-space-xs);
+}
+
+/* WebOps Environment Variables */
+.webops-env-vars-list {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+}
+
+.webops-env-var-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+}
+
+.webops-env-var-item:last-child {
+    border-bottom: none;
+}
+
+.webops-env-key {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-primary);
+}
+
+.webops-env-value {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    background: var(--webops-color-primary-alpha-05);
+    padding: var(--webops-space-xs) var(--webops-space-sm);
+    border-radius: var(--webops-border-radius-sm);
+}
+
+.webops-env-editor-controls {
+    display: flex;
+    gap: var(--webops-space-md);
+    margin-bottom: var(--webops-space-md);
+}
+
+.webops-env-inputs {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    padding: var(--webops-space-md);
+    margin-bottom: var(--webops-space-md);
+}
+
+.webops-env-input-row {
+    display: flex;
+    gap: var(--webops-space-md);
+    margin-bottom: var(--webops-space-md);
+    align-items: center;
+}
+
+.webops-env-input-row:last-child {
+    margin-bottom: 0;
+}
+
+.webops-env-help {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    margin-top: var(--webops-space-sm);
+}
+
+/* WebOps Validation Results */
+.webops-validation-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    background: var(--webops-color-bg-card);
+}
+
+.webops-validation-result-item:last-child {
+    border-bottom: none;
+}
+
+.webops-validation-result-item.success {
+    border-left: 4px solid var(--webops-color-success);
+}
+
+.webops-validation-result-item.warning {
+    border-left: 4px solid var(--webops-color-warning);
+}
+
+.webops-validation-result-item.error {
+    border-left: 4px solid var(--webops-color-error);
+}
+
+.webops-validation-message {
+    flex: 1;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    line-height: 1.5;
+}
+
+.webops-validation-summary {
+    background: var(--webops-color-primary-alpha-05);
+    padding: var(--webops-space-md);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-validation-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-xs);
+    margin-right: var(--webops-space-md);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-validation-stat.success {
+    color: var(--webops-color-success);
+}
+
+.webops-validation-stat.warning {
+    color: var(--webops-color-warning);
+}
+
+.webops-validation-stat.error {
+    color: var(--webops-color-error);
+}
+
+/* WebOps Code Examples */
+.webops-code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-lg);
+    margin-top: var(--webops-space-lg);
+}
+
+.webops-code-example {
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+    transition: all var(--webops-transition-base);
+}
+
+.webops-code-example:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-10);
+}
+
+.webops-h4 {
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin: 0;
+    padding: var(--webops-space-md) var(--webops-space-sm);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-15);
+}
+
+.webops-code-block {
+    margin: 0;
+    padding: var(--webops-space-lg);
+    background: var(--webops-color-bg-primary);
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    line-height: 1.6;
+    overflow-x: auto;
+    border: none;
+}
+
+.webops-code-block code {
+    color: var(--webops-color-text-primary);
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre;
+    word-wrap: normal;
+}
+
+/* WebOps Inline Code */
+.webops-code {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-xs) var(--webops-space-sm);
+    border-radius: var(--webops-border-radius-sm);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+}
+
+/* Responsive Design for Deployment Detail Components */
+@media (max-width: 768px) {
+    .webops-tabs {
+        flex-direction: column;
+    }
+    
+    .webops-tab {
+        border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+        border-left: 2px solid transparent;
+    }
+    
+    .webops-tab.active {
+        border-bottom-color: var(--webops-color-primary-alpha-10);
+        border-left-color: var(--webops-color-primary);
+    }
+    
+    .webops-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .webops-env-input-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .webops-browser-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--webops-space-sm);
+    }
+    
+    .webops-code-examples {
+        gap: var(--webops-space-md);
+    }
+    
+    .webops-code-block {
+        padding: var(--webops-space-md);
+        font-size: var(--webops-font-size-xs);
+    }
+}

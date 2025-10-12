@@ -1,0 +1,292 @@
+name: Nightly Quality Checks
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install safety pip-audit
+
+    - name: Run Safety check
+      run: |
+        cd control-panel
+        safety check --json --output safety-report.json || true
+        safety check
+
+    - name: Run pip-audit
+      run: |
+        cd control-panel
+        pip-audit --format json --output pip-audit-report.json || true
+        pip-audit
+
+    - name: Upload audit reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-audit-reports
+        path: |
+          control-panel/safety-report.json
+          control-panel/pip-audit-report.json
+
+  code-quality-trends:
+    name: Code Quality Trends
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install analysis tools
+      run: |
+        pip install radon xenon cloc
+
+    - name: Run code metrics
+      run: |
+        cd control-panel
+
+        echo "# Code Quality Report - $(date)" > quality-report.md
+        echo "" >> quality-report.md
+
+        echo "## Lines of Code" >> quality-report.md
+        cloc apps/ --md >> quality-report.md
+        echo "" >> quality-report.md
+
+        echo "## Cyclomatic Complexity" >> quality-report.md
+        radon cc apps/ -a -s >> quality-report.md
+        echo "" >> quality-report.md
+
+        echo "## Maintainability Index" >> quality-report.md
+        radon mi apps/ -s >> quality-report.md
+        echo "" >> quality-report.md
+
+        echo "## Raw Metrics" >> quality-report.md
+        radon raw apps/ -s >> quality-report.md
+
+        cat quality-report.md
+
+    - name: Upload quality report
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-quality-report
+        path: control-panel/quality-report.md
+
+  integration-tests:
+    name: Full Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: webops_test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: webops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y nginx postgresql-client redis-tools
+
+    - name: Install Python dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install selenium pytest-selenium
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=test-secret-key-nightly
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=localhost,127.0.0.1
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run integration tests
+      run: |
+        cd control-panel
+        python manage.py test --tag=integration --parallel 2 || true
+
+  performance-baseline:
+    name: Performance Baseline
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: webops_test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: webops_test
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install locust django-silk
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=False
+        SECRET_KEY=test-secret-key
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        ALLOWED_HOSTS=*
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Create test data
+      run: |
+        cd control-panel
+        python manage.py shell << EOF
+        from django.contrib.auth.models import User
+        User.objects.create_superuser('admin', 'admin@test.com', 'adminpass')
+        EOF
+
+    - name: Collect static files
+      run: |
+        cd control-panel
+        python manage.py collectstatic --noinput
+
+    - name: Performance benchmarks
+      run: |
+        echo "Performance baseline checks would run here"
+        echo "Consider using:"
+        echo "  - Locust for load testing"
+        echo "  - django-silk for profiling"
+        echo "  - Apache Bench for endpoint testing"
+
+  stale-issues:
+    name: Mark Stale Issues
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/stale@v9
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: 'This issue has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs. Thank you for your contributions.'
+        stale-pr-message: 'This pull request has been automatically marked as stale because it has not had recent activity. It will be closed if no further activity occurs.'
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
+        days-before-stale: 60
+        days-before-close: 7
+        exempt-issue-labels: 'pinned,security,bug'
+        exempt-pr-labels: 'pinned,security'
+
+  link-check:
+    name: Documentation Link Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for broken links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        folder-path: 'docs/'
+
+  notify-failures:
+    name: Notify on Failures
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, code-quality-trends, integration-tests, performance-baseline]
+    if: failure()
+
+    steps:
+    - name: Create issue on failure
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `Nightly build failed - ${new Date().toISOString().split('T')[0]}`;
+          const body = `The nightly quality checks have failed. Please investigate:\n\n` +
+                      `**Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n` +
+                      `This is an automated issue created by the nightly workflow.`;
+
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['automated', 'nightly-failure']
+          });

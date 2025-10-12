@@ -1,0 +1,1241 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ deployment.name }} - WebOps{% endblock %}
+{% block header_title %}{{ deployment.name }}{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">{{ deployment.name }}</h2>
+        <p class="webops-text-muted">Deployment details and configuration</p>
+    </div>
+    <div style="display: flex; gap: var(--webops-space-sm);">
+        <a href="{% url 'deployments:deployment_monitoring' deployment.pk %}" class="webops-btn webops-btn-info">
+            <span class="material-icons">monitor_heart</span>
+            Monitoring
+        </a>
+        <a href="{% url 'deployments:deployment_env_manage' deployment.pk %}" class="webops-btn webops-btn-success">
+            <span class="material-icons">settings</span>
+            Environment
+        </a>
+        <a href="{% url 'deployments:deployment_editor' deployment.pk %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">code</span>
+            Code Editor
+        </a>
+        {% if deployment.status == 'running' %}
+            <form method="POST" action="{% url 'deployments:deployment_stop' deployment.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-warning">
+                    <span class="material-icons">pause</span>
+                    Stop
+                </button>
+            </form>
+            <form method="POST" action="{% url 'deployments:deployment_restart' deployment.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">refresh</span>
+                    Restart
+                </button>
+            </form>
+        {% elif deployment.status == 'stopped' %}
+            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-success">
+                    <span class="material-icons">play_arrow</span>
+                    Start
+                </button>
+            </form>
+        {% elif deployment.status == 'pending' %}
+            <span class="webops-badge webops-badge-warning">Building...</span>
+        {% elif deployment.status == 'failed' %}
+            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-success">
+                    <span class="material-icons">replay</span>
+                    Retry
+                </button>
+            </form>
+        {% endif %}
+        <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="webops-btn webops-btn-danger">
+            <span class="material-icons">delete</span>
+            Delete
+        </a>
+    </div>
+</div>
+
+<!-- Status Banner -->
+<div class="webops-status-banner webops-status-{{ deployment.status }}" style="display: flex; align-items: center; gap: var(--webops-space-md); padding: var(--webops-space-lg); margin-bottom: var(--webops-space-xl); border-radius: var(--webops-border-radius-lg); background: var(--webops-color-bg-elevated); border-left: 4px solid var(--webops-color-primary);">
+    <span class="material-icons" style="font-size: 24px; color: var(--webops-color-primary);">
+        {% if deployment.status == 'running' %}check_circle{% elif deployment.status == 'stopped' %}pause_circle{% elif deployment.status == 'failed' %}error{% else %}pending{% endif %}
+    </span>
+    <div>
+        <strong class="webops-text-primary">Status: {{ deployment.get_status_display }}</strong>
+        {% if service_status %}
+            <p class="webops-text-secondary" style="margin: 4px 0 0 0; font-size: var(--webops-font-size-sm);">
+                Service is {{ service_status.active_state }} and {{ service_status.sub_state }}
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Deployment Info Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">description</span>
+            Deployment Information
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-lg);">
+            <div class="webops-info-item">
+                <label class="webops-label">Repository</label>
+                <div class="webops-info-value">
+                    <code class="webops-text-sm">{{ deployment.repo_url }}</code>
+                    <a href="{{ deployment.repo_url }}" target="_blank" class="webops-btn webops-btn-sm" style="margin-left: 8px;">
+                        <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Branch</label>
+                <div class="webops-info-value">
+                    <code class="webops-text-sm">{{ deployment.branch }}</code>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Project Type</label>
+                <div class="webops-info-value">
+                    <span class="webops-badge webops-badge-info">{{ deployment.get_project_type_display }}</span>
+                </div>
+            </div>
+
+            {% if deployment.domain %}
+            <div class="webops-info-item">
+                <label class="webops-label">Domain</label>
+                <div class="webops-info-value">
+                    <code class="webops-text-sm">{{ deployment.domain }}</code>
+                    <a href="http://{{ deployment.domain }}" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary" style="margin-left: 8px;">
+                        <span class="material-icons" style="font-size: 16px;">language</span>
+                        Visit
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if deployment.port %}
+            <div class="webops-info-item">
+                <label class="webops-label">Port</label>
+                <div class="webops-info-value">
+                    <code class="webops-text-sm">{{ deployment.port }}</code>
+                    <a href="http://localhost:{{ deployment.port }}" target="_blank" class="webops-btn webops-btn-sm" style="margin-left: 8px;">
+                        <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="webops-info-item">
+                <label class="webops-label">Deployed By</label>
+                <div class="webops-info-value">
+                    <span class="webops-text-sm">{{ deployment.deployed_by.username }}</span>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Created</label>
+                <div class="webops-info-value">
+                    <span class="webops-text-sm">{{ deployment.created_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+            </div>
+
+            <div class="webops-info-item">
+                <label class="webops-label">Last Updated</label>
+                <div class="webops-info-value">
+                    <span class="webops-text-sm">{{ deployment.updated_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Variables Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">settings</span>
+            Environment Variables
+        </h3>
+        <button onclick="toggleEnvEditor()" class="webops-btn webops-btn-sm webops-btn-primary" id="edit-env-btn">
+            <span class="material-icons" style="font-size: 16px;">edit</span>
+            Edit
+        </button>
+    </div>
+    <div class="webops-card-body">
+        <div id="env-display">
+            {% if deployment.env_vars %}
+            <div class="webops-env-vars-list">
+                {% for key, value in deployment.env_vars.items %}
+                <div class="webops-env-var-item">
+                    <code class="webops-env-key">{{ key }}</code>
+                    <code class="webops-env-value">{{ value }}</code>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="webops-text-muted">No environment variables set</p>
+            {% endif %}
+        </div>
+
+        <div id="env-editor" style="display: none;">
+            <div class="webops-env-editor-controls">
+                <button onclick="addEnvVar()" class="webops-btn webops-btn-sm">
+                    <span class="material-icons" style="font-size: 16px;">add</span>
+                    Add Variable
+                </button>
+                <button onclick="saveEnvVars()" class="webops-btn webops-btn-sm webops-btn-primary">
+                    <span class="material-icons" style="font-size: 16px;">save</span>
+                    Save & Restart
+                </button>
+                <button onclick="cancelEnvEdit()" class="webops-btn webops-btn-sm btn-outline">
+                    <span class="material-icons" style="font-size: 16px;">close</span>
+                    Cancel
+                </button>
+            </div>
+
+            <div id="env-inputs" class="webops-env-inputs">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <div class="webops-env-help">
+                <span class="material-icons" style="margin-right: 8px; color: var(--primary);">info</span>
+                <div style="font-size: 0.875rem; color: var(--webops-gray-600);">
+                    Changes will restart the service automatically. Common variables: DATABASE_URL, SECRET_KEY, DEBUG, API_KEY
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Validation & File Browser Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">folder_open</span>
+            Project Files & Validation
+        </h3>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="runValidation()" class="webops-btn webops-btn-sm webops-btn-primary" id="validate-btn">
+                <span class="material-icons" style="font-size: 16px;">verified</span>
+                Validate
+            </button>
+            <button onclick="loadEnvWizard()" class="webops-btn btn-sm" id="env-wizard-btn">
+                <span class="material-icons" style="font-size: 16px;">settings_suggest</span>
+                .env Wizard
+            </button>
+        </div>
+    </div>
+    <div class="webops-card-body">
+        <!-- Tabs -->
+        <div class="webops-tabs">
+            <button class="webops-tab webops-tab--active" onclick="switchTab('files')">Files</button>
+            <button class="webops-tab" onclick="switchTab('validation')">Validation</button>
+        </div>
+
+        <!-- Files Tab -->
+        <div id="files-tab" class="webops-tab-content webops-tab-content--active">
+            <div id="file-browser" class="webops-file-browser">
+                <div class="webops-browser-toolbar">
+                    <div class="webops-breadcrumb" id="breadcrumb">
+                        <span onclick="navigateTo('')" class="webops-breadcrumb-item">Root</span>
+                    </div>
+                </div>
+                <div id="file-list" class="webops-file-list">
+                    <p class="webops-text-muted">Click a folder to browse, or a file to view its contents</p>
+                </div>
+                <div id="file-viewer" class="webops-file-viewer" style="display: none;">
+                    <div class="webops-file-viewer-header">
+                        <span id="file-name"></span>
+                        <button onclick="closeFileViewer()" class="webops-btn webops-btn-sm">
+                            <span class="material-icons" style="font-size: 16px;">close</span>
+                            Close
+                        </button>
+                    </div>
+                    <pre id="file-content"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Tab -->
+        <div id="validation-tab" class="webops-tab-content">
+            <div id="validation-results">
+                <p class="webops-text-muted">Click "Validate" to check your project for common issues</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deployment Logs Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">article</span>
+            Deployment Logs
+        </h3>
+        <button onclick="refreshLogs()" class="webops-btn webops-btn-sm">
+            <span class="material-icons" style="font-size: 16px;">refresh</span>
+            Refresh
+        </button>
+    </div>
+    <div class="webops-card-body">
+        {% if logs %}
+        <div class="webops-logs-container" id="logs-container">
+            {% for log in logs %}
+            <div class="webops-log-entry webops-log-entry--{{ log.level }}">
+                <span class="webops-log-time">{{ log.created_at|date:"H:i:s" }}</span>
+                <span class="webops-log-level">[{{ log.level|upper }}]</span>
+                <span class="webops-log-message">{{ log.message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="webops-text-muted">No logs available yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.webops-alert {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: 2rem;
+    font-size: 0.9375rem;
+}
+
+.webops-alert--running {
+    background: linear-gradient(135deg, var(--success-light) 0%, #d1fae5 100%);
+    border-left: 4px solid var(--success);
+}
+
+.webops-alert--stopped {
+    background: linear-gradient(135deg, var(--webops-gray-200) 0%, var(--webops-gray-100) 100%);
+    border-left: 4px solid var(--webops-gray-400);
+}
+
+.webops-alert--failed {
+    background: linear-gradient(135deg, var(--danger-light) 0%, #fee2e2 100%);
+    border-left: 4px solid var(--danger);
+}
+
+.webops-alert--pending {
+    background: linear-gradient(135deg, var(--warning-light) 0%, #fef3c7 100%);
+    border-left: 4px solid var(--warning);
+}
+
+.webops-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.webops-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.webops-info-item label {
+    font-weight: 600;
+    color: var(--webops-gray-700);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-info-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-border-radius-md);
+    border: 1px solid var(--webops-color-bg-tertiary);
+}
+
+.webops-info-value code {
+    flex: 1;
+    background: transparent;
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+.webops-badge-info {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.webops-env-vars-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.webops-env-var-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--webops-gray-50);
+    border-radius: var(--webops-border-radius-md);
+    border: 1px solid var(--webops-gray-200);
+}
+
+.webops-env-key {
+    font-weight: 600;
+    color: var(--webops-gray-700);
+    background: transparent;
+    padding: 0;
+}
+
+.webops-env-value {
+    color: var(--webops-gray-600);
+    background: transparent;
+    padding: 0;
+    word-break: break-all;
+}
+
+.webops-env-editor-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.webops-env-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.webops-env-input-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 40px;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.webops-env-input-row input {
+    padding: 0.5rem;
+    border: 2px solid var(--webops-gray-300);
+    border-radius: var(--webops-border-radius-md);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+}
+
+.webops-env-input-row input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.webops-env-input-row button {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: var(--webops-border-radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.webops-env-help {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    background: var(--primary-light);
+    border-radius: var(--webops-border-radius-md);
+    border-left: 4px solid var(--primary);
+}
+
+.webops-logs-container {
+    max-height: 500px;
+    overflow-y: auto;
+    background: var(--webops-gray-900);
+    padding: 1rem;
+    border-radius: var(--webops-border-radius-md);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.webops-log-entry {
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    border-left: 3px solid transparent;
+}
+
+.webops-log-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.webops-log-time {
+    color: var(--webops-gray-400);
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+}
+
+.webops-log-level {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.webops-log-message {
+    color: var(--webops-gray-200);
+}
+
+.webops-log-info {
+    border-left-color: var(--primary);
+}
+
+.webops-log-info .webops-log-level {
+    color: var(--primary-light);
+}
+
+.webops-log-warning {
+    border-left-color: var(--warning);
+}
+
+.webops-log-warning .webops-log-level {
+    color: var(--warning-light);
+}
+
+.webops-log-error {
+    border-left-color: var(--danger);
+}
+
+.webops-log-error .webops-log-level {
+    color: var(--danger-light);
+}
+
+.webops-log-success {
+    border-left-color: var(--success);
+}
+
+.webops-log-success .webops-log-level {
+    color: var(--success-light);
+}
+
+/* Tabs */
+.webops-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--webops-color-bg-tertiary);
+    margin-bottom: 1.5rem;
+}
+
+.webops-tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--webops-gray-600);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+}
+
+.webops-tab:hover {
+    color: var(--primary);
+}
+
+.webops-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.webops-tab-content {
+    display: none;
+}
+
+.webops-tab-content.active {
+    display: block;
+}
+
+/* File Browser */
+.webops-file-browser {
+    min-height: 400px;
+}
+
+.webops-browser-toolbar {
+    background: var(--webops-color-bg-tertiary);
+    padding: 0.75rem;
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: 1rem;
+    border: 1px solid var(--webops-color-bg-tertiary);
+}
+
+.webops-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.webops-breadcrumb-item {
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.webops-breadcrumb-item:hover {
+    background: var(--primary-light);
+}
+
+.webops-breadcrumb-separator {
+    color: var(--webops-gray-400);
+}
+
+.webops-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.webops-file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--webops-gray-50);
+    border: 1px solid var(--webops-gray-200);
+    border-radius: var(--webops-border-radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.webops-file-item:hover {
+    background: var(--webops-gray-100);
+    border-color: var(--primary);
+}
+
+.webops-file-item .material-icons {
+    color: var(--webops-gray-600);
+    font-size: 24px;
+}
+
+.webops-file-item.directory .material-icons {
+    color: var(--primary);
+}
+
+.webops-file-info {
+    flex: 1;
+}
+
+.webops-file-name {
+    font-weight: 500;
+    color: var(--webops-gray-900);
+}
+
+.webops-file-size {
+    font-size: 0.75rem;
+    color: var(--webops-gray-500);
+}
+
+.webops-file-viewer {
+    border: 1px solid var(--webops-gray-300);
+    border-radius: var(--webops-border-radius-md);
+    overflow: hidden;
+}
+
+.webops-file-viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--webops-gray-100);
+    border-bottom: 1px solid var(--webops-gray-300);
+    font-weight: 600;
+}
+
+.webops-file-viewer pre {
+    margin: 0;
+    padding: 1rem;
+    background: var(--webops-gray-900);
+    color: var(--webops-gray-100);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+    max-height: 500px;
+    overflow: auto;
+    line-height: 1.6;
+}
+
+/* Validation Results */
+.webops-validation-result-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: 0.75rem;
+}
+
+.webops-validation-result-item .material-icons {
+    font-size: 24px;
+}
+
+.webops-validation-result-item.passed {
+    background: var(--success-light);
+    border-left: 4px solid var(--success);
+}
+
+.webops-validation-result-item.passed .material-icons {
+    color: var(--success);
+}
+
+.webops-validation-result-item.warning {
+    background: var(--warning-light);
+    border-left: 4px solid var(--warning);
+}
+
+.webops-validation-result-item.warning .material-icons {
+    color: var(--warning);
+}
+
+.webops-validation-result-item.error {
+    background: var(--danger-light);
+    border-left: 4px solid var(--danger);
+}
+
+.webops-validation-result-item.error .material-icons {
+    color: var(--danger);
+}
+
+.webops-validation-result-item.info {
+    background: var(--primary-light);
+    border-left: 4px solid var(--primary);
+}
+
+.webops-validation-result-item.info .material-icons {
+    color: var(--primary);
+}
+
+.webops-validation-message {
+    flex: 1;
+}
+
+.webops-validation-summary {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--webops-gray-50);
+    border-radius: var(--webops-border-radius-md);
+}
+
+.webops-validation-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.webops-validation-stat .material-icons {
+    font-size: 20px;
+}
+</style>
+
+<script>
+let envEditorActive = false;
+const deploymentId = {{ deployment.pk }};
+const csrfToken = '{{ csrf_token }}';
+
+// Load initial env vars
+const initialEnvVars = {{ deployment.env_vars|safe|default:"{}" }};
+
+function toggleEnvEditor() {
+    envEditorActive = !envEditorActive;
+    const display = document.getElementById('env-display');
+    const editor = document.getElementById('env-editor');
+    const editBtn = document.getElementById('edit-env-btn');
+
+    if (envEditorActive) {
+        display.style.display = 'none';
+        editor.style.display = 'block';
+        editBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">close</span> Close Editor';
+        populateEnvEditor();
+    } else {
+        display.style.display = 'block';
+        editor.style.display = 'none';
+        editBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">edit</span> Edit';
+    }
+}
+
+function populateEnvEditor() {
+    const container = document.getElementById('env-inputs');
+    container.innerHTML = '';
+
+    // Add existing env vars
+    for (const [key, value] of Object.entries(initialEnvVars)) {
+        addEnvVarRow(key, value);
+    }
+
+    // Add one empty row if no vars exist
+    if (Object.keys(initialEnvVars).length === 0) {
+        addEnvVarRow('', '');
+    }
+}
+
+function addEnvVar() {
+    addEnvVarRow('', '');
+}
+
+function addEnvVarRow(key = '', value = '') {
+    const container = document.getElementById('env-inputs');
+    const row = document.createElement('div');
+    row.className = 'webops-env-input-row';
+    row.innerHTML = `
+        <input type="text" placeholder="KEY" value="${key}" class="env-key-input">
+        <input type="text" placeholder="value" value="${value}" class="env-value-input">
+        <button onclick="removeEnvVarRow(this)" title="Remove">
+            <span class="material-icons" style="font-size: 16px;">delete</span>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function removeEnvVarRow(btn) {
+    btn.parentElement.remove();
+}
+
+async function saveEnvVars() {
+    const rows = document.querySelectorAll('.webops-env-input-row');
+    const envVars = {};
+
+    rows.forEach(row => {
+        const key = row.querySelector('.env-key-input').value.trim();
+        const value = row.querySelector('.env-value-input').value;
+
+        if (key) {
+            envVars[key] = value;
+        }
+    });
+
+    try {
+        const response = await fetch(`/deployments/${deploymentId}/env/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ env_vars: envVars })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Environment variables updated! Service restarting...', 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to update environment variables', 'error');
+        console.error(error);
+    }
+}
+
+function cancelEnvEdit() {
+    envEditorActive = false;
+    document.getElementById('env-display').style.display = 'block';
+    document.getElementById('env-editor').style.display = 'none';
+    document.getElementById('edit-env-btn').innerHTML = '<span class="material-icons" style="font-size: 16px;">edit</span> Edit';
+}
+
+function refreshLogs() {
+    location.reload();
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--webops-border-radius-md);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Auto-scroll logs to bottom
+const logsContainer = document.getElementById('logs-container');
+if (logsContainer) {
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+}
+
+// File browser and validation functions
+let currentPath = '';
+
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+
+    // Load initial content for tabs
+    if (tabName === 'files' && !document.getElementById('file-list').hasChildNodes()) {
+        navigateTo('');
+    }
+}
+
+async function navigateTo(path) {
+    currentPath = path;
+
+    try {
+        const response = await fetch(`/deployments/${deploymentId}/files/?path=${encodeURIComponent(path)}`);
+        const data = await response.json();
+
+        if (!data.success) {
+            showNotification(data.error, 'error');
+            return;
+        }
+
+        if (data.type === 'directory') {
+            displayDirectory(data);
+        } else if (data.type === 'file') {
+            displayFile(data);
+        }
+    } catch (error) {
+        showNotification('Error loading files', 'error');
+        console.error(error);
+    }
+}
+
+function displayDirectory(data) {
+    const fileList = document.getElementById('file-list');
+    const fileViewer = document.getElementById('file-viewer');
+
+    fileViewer.style.display = 'none';
+    fileList.innerHTML = '';
+
+    // Update breadcrumb
+    updateBreadcrumb(data.path);
+
+    // Display items
+    if (data.items.length === 0) {
+        fileList.innerHTML = '<p class="text-muted">Empty directory</p>';
+        return;
+    }
+
+    data.items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = ` ${item.type}`;
+        itemDiv.onclick = () => navigateTo(item.path);
+
+        itemDiv.innerHTML = `
+            <span class="material-icons">${item.type === 'directory' ? 'folder' : 'description'}</span>
+            <div class="file-info">
+                <div class="file-name">${item.name}</div>
+                ${item.type === 'file' ? `<div class="file-size">${formatFileSize(item.size)}</div>` : ''}
+            </div>
+        `;
+
+        fileList.appendChild(itemDiv);
+    });
+}
+
+function displayFile(data) {
+    const fileList = document.getElementById('file-list');
+    const fileViewer = document.getElementById('file-viewer');
+    const fileName = document.getElementById('file-name');
+    const fileContent = document.getElementById('file-content');
+
+    fileList.style.display = 'none';
+    fileViewer.style.display = 'block';
+
+    fileName.textContent = data.name;
+    fileContent.textContent = data.content;
+}
+
+function closeFileViewer() {
+    document.getElementById('file-list').style.display = 'flex';
+    document.getElementById('file-viewer').style.display = 'none';
+
+    // Navigate back to parent directory
+    const pathParts = currentPath.split('/');
+    pathParts.pop();
+    navigateTo(pathParts.join('/'));
+}
+
+function updateBreadcrumb(path) {
+    const breadcrumb = document.getElementById('breadcrumb');
+    breadcrumb.innerHTML = '<span onclick="navigateTo(\'\')" class="breadcrumb-item">Root</span>';
+
+    if (!path) return;
+
+    const parts = path.split('/').filter(p => p);
+    let currentPath = '';
+
+    parts.forEach((part, index) => {
+        currentPath += (index > 0 ? '/' : '') + part;
+        const pathCopy = currentPath;
+
+        breadcrumb.innerHTML += '<span class="breadcrumb-separator">/</span>';
+        breadcrumb.innerHTML += `<span onclick="navigateTo('${pathCopy}')" class="breadcrumb-item">${part}</span>`;
+    });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+async function runValidation() {
+    const btn = document.getElementById('validate-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">hourglass_empty</span> Validating...';
+
+    try {
+        const response = await fetch(`/deployments/${deploymentId}/validate/`);
+        const data = await response.json();
+
+        if (!data.success) {
+            showNotification(data.error, 'error');
+            return;
+        }
+
+        displayValidationResults(data);
+
+        // Switch to validation tab
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById('validation-tab').classList.add('active');
+
+    } catch (error) {
+        showNotification('Error running validation', 'error');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">verified</span> Validate';
+    }
+}
+
+function displayValidationResults(data) {
+    const container = document.getElementById('validation-results');
+    container.innerHTML = '';
+
+    // Summary
+    const summary = document.createElement('div');
+    summary.className = 'validation-summary';
+
+    const errorCount = data.results.filter(r => r.level === 'error').length;
+    const warningCount = data.results.filter(r => r.level === 'warning').length;
+    const passedCount = data.results.filter(r => r.passed).length;
+
+    summary.innerHTML = `
+        <div class="validation-stat">
+            <span class="material-icons" style="color: var(--success);">check_circle</span>
+            <span>${passedCount} Passed</span>
+        </div>
+        <div class="validation-stat">
+            <span class="material-icons" style="color: var(--danger);">error</span>
+            <span>${errorCount} Errors</span>
+        </div>
+        <div class="validation-stat">
+            <span class="material-icons" style="color: var(--warning);">warning</span>
+            <span>${warningCount} Warnings</span>
+        </div>
+    `;
+
+    container.appendChild(summary);
+
+    // Results
+    data.results.forEach(result => {
+        const item = document.createElement('div');
+        const levelClass = result.passed ? 'passed' : result.level;
+        item.className = `validation-result-item ${levelClass}`;
+
+        const icon = result.passed ? 'check_circle' :
+                     result.level === 'error' ? 'error' :
+                     result.level === 'warning' ? 'warning' : 'info';
+
+        item.innerHTML = `
+            <span class="material-icons">${icon}</span>
+            <div class="validation-message">
+                <div style="font-weight: 500;">${result.message}</div>
+                ${result.details && result.details.suggestion ?
+                    `<div style="margin-top: 4px; font-size: 0.875rem; color: var(--webops-gray-600);">
+                        💡 ${result.details.suggestion}
+                    </div>` : ''
+                }
+            </div>
+        `;
+
+        container.appendChild(item);
+    });
+}
+
+async function loadEnvWizard() {
+    try {
+        const response = await fetch(`/deployments/${deploymentId}/env-wizard/`);
+        const data = await response.json();
+
+        if (!data.available) {
+            showNotification(data.error || 'No .env.example file found', 'info');
+            return;
+        }
+
+        // Show modal with env wizard
+        showEnvWizardModal(data);
+
+    } catch (error) {
+        showNotification('Error loading .env wizard', 'error');
+        console.error(error);
+    }
+}
+
+function showEnvWizardModal(data) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+    `;
+
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: var(--webops-color-bg-tertiary);
+        border-radius: 8px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: auto;
+        padding: 2rem;
+    `;
+
+    let envInputsHTML = '';
+    data.variables.forEach(variable => {
+        const value = initialEnvVars[variable.key] || variable.suggested_value || variable.default_value || '';
+
+        envInputsHTML += `
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">
+                    ${variable.key}
+                    ${variable.required ? '<span style="color: var(--danger);">*</span>' : ''}
+                </label>
+                ${variable.comment ? `<div style="font-size: 0.875rem; color: var(--webops-gray-600); margin-bottom: 0.5rem;">${variable.comment}</div>` : ''}
+                <input type="${variable.is_secret ? 'password' : 'text'}"
+                       class="form-input env-wizard-input"
+                       data-key="${variable.key}"
+                       value="${value}"
+                       placeholder="${variable.suggested_value}"
+                       ${variable.required ? 'required' : ''}>
+            </div>
+        `;
+    });
+
+    modalContent.innerHTML = `
+        <h2 style="margin-top: 0;">Environment Variables Wizard</h2>
+        <p style="color: var(--webops-gray-600);">Configure environment variables from .env.example</p>
+        <div style="margin: 1.5rem 0;">
+            ${envInputsHTML}
+        </div>
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button onclick="this.closest('[style*=fixed]').remove()" class="webops-btn btn-outline">Cancel</button>
+            <button onclick="applyEnvWizard()" class="webops-btn webops-btn-primary">Apply & Restart</button>
+        </div>
+    `;
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+async function applyEnvWizard() {
+    const inputs = document.querySelectorAll('.env-wizard-input');
+    const envVars = {};
+
+    inputs.forEach(input => {
+        const key = input.dataset.key;
+        const value = input.value.trim();
+        if (value) {
+            envVars[key] = value;
+        }
+    });
+
+    try {
+        const response = await fetch(`/deployments/${deploymentId}/env/update/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ env_vars: envVars })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Environment variables applied! Service restarting...', 'success');
+            document.querySelector('[style*=fixed]').remove();
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to apply environment variables', 'error');
+        console.error(error);
+    }
+}
+
+// Auto-load file browser on page load
+document.addEventListener('DOMContentLoaded', () => {
+    navigateTo('');
+});
+</script>
+{% endblock %}

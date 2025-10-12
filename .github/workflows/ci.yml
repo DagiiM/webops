@@ -1,0 +1,260 @@
+name: CI - Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: webops_test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: webops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Install Python dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django pytest-cov
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=test-secret-key-for-ci-only
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=localhost,127.0.0.1
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run tests with coverage
+      run: |
+        cd control-panel
+        coverage run --source='apps' manage.py test
+        coverage report
+        coverage xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./control-panel/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort pylint mypy bandit safety
+        cd control-panel
+        pip install -r requirements.txt
+
+    - name: Run Black (code formatter check)
+      run: |
+        cd control-panel
+        black --check --diff apps/
+
+    - name: Run isort (import sorting check)
+      run: |
+        cd control-panel
+        isort --check-only --diff apps/
+
+    - name: Run Flake8 (style guide)
+      run: |
+        cd control-panel
+        flake8 apps/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 apps/ --count --max-complexity=10 --max-line-length=100 --statistics
+
+    - name: Run Pylint (code analysis)
+      run: |
+        cd control-panel
+        pylint apps/ --fail-under=8.0 --disable=C0111,R0903 || true
+
+    - name: Run Bandit (security linter)
+      run: |
+        cd control-panel
+        bandit -r apps/ -f json -o bandit-report.json || true
+        bandit -r apps/ -ll
+
+    - name: Check for security vulnerabilities in dependencies
+      run: |
+        cd control-panel
+        safety check --json || true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Gitleaks (secret scanning)
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  javascript:
+    name: JavaScript Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install ESLint
+      run: npm install -g eslint
+
+    - name: Run ESLint on JavaScript files
+      run: |
+        cd control-panel/static/js
+        eslint *.js --no-eslintrc --env browser,es6 --parser-options ecmaVersion:2020 || true
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Check for missing migrations
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=test-key
+        DATABASE_URL=sqlite:///db.sqlite3
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        EOF
+        python manage.py makemigrations --check --dry-run --no-input
+
+    - name: Collect static files
+      run: |
+        cd control-panel
+        python manage.py collectstatic --noinput
+
+    - name: Check deployment readiness
+      run: |
+        cd control-panel
+        python manage.py check --deploy --fail-level WARNING
+
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for broken links in markdown
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+        folder-path: 'docs/'
+
+    - name: Validate CLAUDE.md structure
+      run: |
+        if [ ! -f "CLAUDE.md" ]; then
+          echo "Error: CLAUDE.md is missing"
+          exit 1
+        fi
+        echo "CLAUDE.md exists ✓"

@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+"""WebOps CLI entry point."""
+
+import sys
+import os
+
+# Add the CLI directory to the path
+cli_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, cli_dir)
+
+from webops_cli.cli import main
+
+if __name__ == '__main__':
+    main()

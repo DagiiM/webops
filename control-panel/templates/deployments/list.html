@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Deployments - WebOps{% endblock %}
+{% block header_title %}Deployments{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Deployments</h2>
+        <p class="webops-text-muted">Manage your application deployments</p>
+    </div>
+    <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
+        <span class="material-icons">add</span>
+        New Deployment
+    </a>
+</div>
+
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">All Deployments</h3>
+        <input type="text" id="search" placeholder="Search deployments..." class="webops-input" style="max-width: 300px;">
+    </div>
+
+    {% if deployments %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Repository</th>
+                    <th>Domain</th>
+                    <th>Port</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deployment in deployments %}
+                <tr>
+                    <td><strong>{{ deployment.name }}</strong></td>
+                    <td>
+                        {% if deployment.status == 'running' %}
+                            <span class="webops-badge webops-badge-success">Running</span>
+                        {% elif deployment.status == 'stopped' %}
+                            <span class="webops-badge webops-badge-info">Stopped</span>
+                        {% elif deployment.status == 'pending' %}
+                            <span class="webops-badge webops-badge-warning">Building</span>
+                        {% elif deployment.status == 'failed' %}
+                            <span class="webops-badge webops-badge-danger">Failed</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-info">{{ deployment.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ deployment.get_project_type_display }}</td>
+                    <td><code class="webops-text-sm">{{ deployment.repo_url|truncatechars:50 }}</code></td>
+                    <td>
+                        {% if deployment.domain %}
+                            <a href="http://{{ deployment.domain }}" target="_blank" class="webops-text-primary">
+                                {{ deployment.domain }}
+                            </a>
+                        {% else %}
+                            <span class="webops-text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if deployment.port %}
+                            <code class="webops-text-sm">:{{ deployment.port }}</code>
+                        {% else %}
+                            <span class="webops-text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ deployment.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">rocket_launch</span>
+        <h3 class="webops-empty-state-title">No deployments yet</h3>
+        <p class="webops-empty-state-description">Create your first deployment to get started</p>
+        <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Deployment
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('search');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+</script>
+{% endblock %}

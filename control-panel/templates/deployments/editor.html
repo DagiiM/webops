@@ -1,0 +1,1202 @@
+{% extends "base.html" %}
+
+{% block title %}Code Editor - {{ deployment.name }}{% endblock %}
+
+{% block header_title %}
+    <div class="d-flex align-center gap-2">
+        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm btn-outline">
+            <span class="material-icons" style="font-size: 18px;">arrow_back</span>
+        </a>
+        <span>{{ deployment.name }}</span>
+        <span class="webops-badge webops-badge- info">Code Editor</span>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <!-- Sidebar with file tree -->
+    <aside class="editor-sidebar">
+        <div class="editor-sidebar-header">
+            <h3>Explorer</h3>
+            <div class="sidebar-actions">
+                <button class="sidebar-icon-btn" id="refreshFiles" title="Refresh">
+                    <span class="material-icons">refresh</span>
+                </button>
+                <button class="sidebar-icon-btn" id="collapseAll" title="Collapse All">
+                    <span class="material-icons">unfold_less</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="file-tree-container">
+            <!-- Loading State -->
+            <div class="file-tree-state" id="loadingState">
+                <div class="state-icon">
+                    <div class="spinner"></div>
+                </div>
+                <p class="state-message">Loading files...</p>
+                <p class="state-hint">Please wait while we fetch your project files</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="file-tree-state hidden" id="errorState">
+                <div class="state-icon">
+                    <span class="material-icons">error_outline</span>
+                </div>
+                <p class="state-message">Failed to load files</p>
+                <p class="state-hint" id="errorMessage">An error occurred</p>
+                <button class="webops-btn webops-btn-sm webops-btn-primary" id="retryLoad">
+                    <span class="material-icons">refresh</span>
+                    Retry
+                </button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="file-tree-state hidden" id="emptyState">
+                <div class="state-icon">
+                    <span class="material-icons">folder_open</span>
+                </div>
+                <p class="state-message">No files found</p>
+                <p class="state-hint">This deployment has no files yet</p>
+            </div>
+
+            <!-- File Tree -->
+            <div class="file-tree hidden" id="fileTree"></div>
+        </div>
+    </aside>
+
+    <!-- Main editor area -->
+    <main class="editor-main">
+        <!-- Tabs for open files -->
+        <div class="editor-tabs" id="editorTabs">
+            <!-- Tabs will be added dynamically -->
+        </div>
+
+        <!-- Editor content -->
+        <div class="editor-content" id="editorContent">
+            <div class="editor-welcome">
+                <div class="welcome-icon">
+                    <span class="material-icons">code</span>
+                </div>
+                <h2>WebOps Code Editor</h2>
+                <p class="welcome-subtitle">A powerful, integrated development environment</p>
+
+                <div class="welcome-features">
+                    <div class="feature-card">
+                        <span class="material-icons">folder_open</span>
+                        <h4>File Explorer</h4>
+                        <p>Browse and navigate your project files</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="material-icons">edit</span>
+                        <h4>Syntax Highlighting</h4>
+                        <p>Support for 10+ programming languages</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="material-icons">save</span>
+                        <h4>Auto-Save</h4>
+                        <p>Track changes with smart save detection</p>
+                    </div>
+                </div>
+
+                <div class="welcome-shortcuts">
+                    <h4>Keyboard Shortcuts</h4>
+                    <div class="shortcut-grid">
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                            <span>Save file</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>W</kbd>
+                            <span>Close tab</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>F</kbd>
+                            <span>Find in file</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="welcome-action">Select a file from the explorer to begin editing</p>
+            </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="editor-statusbar">
+            <div class="statusbar-section">
+                <span class="status-indicator" id="connectionStatus">
+                    <span class="material-icons">cloud_done</span>
+                    Connected
+                </span>
+            </div>
+            <div class="statusbar-section">
+                <span id="statusMessage">Ready</span>
+            </div>
+            <div class="statusbar-section statusbar-right">
+                <span id="fileInfo"></span>
+                <span class="statusbar-separator"></span>
+                <span id="cursorPosition">Ln 1, Col 1</span>
+                <span class="statusbar-separator"></span>
+                <span id="fileEncoding">UTF-8</span>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Hidden inputs -->
+<input type="hidden" id="deploymentId" value="{{ deployment.pk }}">
+<input type="hidden" id="deploymentName" value="{{ deployment.name }}">
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/dockerfile/dockerfile.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/search.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/dialog/dialog.min.js"></script>
+
+<style>
+/* ===== EDITOR LAYOUT ===== */
+.editor-container {
+    display: flex;
+    height: calc(100vh - var(--header-height));
+    background: #1e1e1e;
+    margin: calc(var(--header-height) * -1) -2rem 0 -2rem;
+    overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.editor-sidebar {
+    width: 300px;
+    background: #252526;
+    border-right: 1px solid #3e3e42;
+    display: flex;
+    flex-direction: column;
+    color: #cccccc;
+}
+
+.editor-sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #3e3e42;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2d2d30;
+}
+
+.editor-sidebar-header h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #cccccc;
+}
+
+.sidebar-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.sidebar-icon-btn {
+    background: none;
+    border: none;
+    color: #858585;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sidebar-icon-btn:hover {
+    background: #3e3e42;
+    color: #cccccc;
+}
+
+.sidebar-icon-btn .material-icons {
+    font-size: 18px;
+}
+
+/* ===== FILE TREE CONTAINER ===== */
+.file-tree-container {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* ===== FILE TREE STATES ===== */
+.file-tree-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+    height: 100%;
+}
+
+.file-tree-state.hidden {
+    display: none;
+}
+
+.state-icon {
+    margin-bottom: 1.5rem;
+    color: #858585;
+}
+
+.state-icon .material-icons {
+    font-size: 48px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #3e3e42;
+    border-top-color: #007acc;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.state-message {
+    font-size: 16px;
+    font-weight: 600;
+    color: #cccccc;
+    margin-bottom: 0.5rem;
+}
+
+.state-hint {
+    font-size: 13px;
+    color: #858585;
+    margin-bottom: 1.5rem;
+}
+
+/* ===== FILE TREE ===== */
+.file-tree {
+    padding: 8px 0;
+}
+
+.file-tree.hidden {
+    display: none;
+}
+
+.file-tree-item {
+    padding: 4px 8px 4px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #cccccc;
+    user-select: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.file-tree-item:hover {
+    background: #2a2d2e;
+}
+
+.file-tree-item.active {
+    background: #37373d;
+    color: #ffffff;
+}
+
+.file-tree-item.folder {
+    font-weight: 500;
+}
+
+.file-tree-item .material-icons {
+    font-size: 18px;
+    color: #858585;
+    flex-shrink: 0;
+}
+
+.file-tree-item.folder > .material-icons.chevron {
+    color: #858585;
+    transition: transform 0.2s;
+}
+
+.file-tree-item.folder.expanded > .material-icons.chevron {
+    transform: rotate(90deg);
+}
+
+.file-tree-item.folder > .material-icons.folder-icon {
+    color: #dcb67a;
+}
+
+.file-tree-item .file-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.file-tree-children {
+    display: none;
+    padding-left: 16px;
+}
+
+.file-tree-children.expanded {
+    display: block;
+}
+
+/* ===== MAIN EDITOR ===== */
+.editor-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===== EDITOR TABS ===== */
+.editor-tabs {
+    display: flex;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3e3e42;
+    overflow-x: auto;
+    min-height: 35px;
+    scrollbar-width: thin;
+    scrollbar-color: #3e3e42 #2d2d2d;
+}
+
+.editor-tabs::-webkit-scrollbar {
+    height: 3px;
+}
+
+.editor-tabs::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.editor-tabs::-webkit-scrollbar-thumb {
+    background: #3e3e42;
+}
+
+.editor-tab {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-right: 1px solid #3e3e42;
+    font-size: 13px;
+    color: #969696;
+    background: #2d2d2d;
+    position: relative;
+    white-space: nowrap;
+    min-width: 120px;
+    max-width: 200px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.editor-tab:hover {
+    background: #1e1e1e;
+    color: #cccccc;
+}
+
+.editor-tab.active {
+    background: #1e1e1e;
+    color: #ffffff;
+    border-bottom: 2px solid #007acc;
+}
+
+.editor-tab-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.editor-tab.modified .editor-tab-name::before {
+    content: '● ';
+    color: #4ec9b0;
+}
+
+.editor-tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.editor-tab:hover .editor-tab-close {
+    opacity: 1;
+}
+
+.editor-tab-close:hover {
+    background: #3e3e42;
+}
+
+.editor-tab-close .material-icons {
+    font-size: 16px;
+}
+
+/* ===== EDITOR CONTENT ===== */
+.editor-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #1e1e1e;
+}
+
+/* ===== WELCOME SCREEN ===== */
+.editor-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #cccccc;
+    text-align: center;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.welcome-icon {
+    margin-bottom: 1.5rem;
+}
+
+.welcome-icon .material-icons {
+    font-size: 80px;
+    color: #007acc;
+    opacity: 0.8;
+}
+
+.editor-welcome h2 {
+    font-size: 28px;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.welcome-subtitle {
+    font-size: 14px;
+    color: #858585;
+    margin-bottom: 3rem;
+}
+
+.welcome-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 800px;
+    margin-bottom: 3rem;
+}
+
+.feature-card {
+    background: #252526;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #3e3e42;
+}
+
+.feature-card .material-icons {
+    font-size: 32px;
+    color: #007acc;
+    margin-bottom: 0.75rem;
+}
+
+.feature-card h4 {
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 12px;
+    color: #858585;
+    margin: 0;
+}
+
+.welcome-shortcuts {
+    background: #252526;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid #3e3e42;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.welcome-shortcuts h4 {
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.shortcut-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #1e1e1e;
+    border-radius: 4px;
+}
+
+.shortcut-item kbd {
+    display: inline-block;
+    background: #3e3e42;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    color: #cccccc;
+    border: 1px solid #4e4e52;
+    box-shadow: 0 2px 0 #1e1e1e;
+}
+
+.shortcut-item span {
+    font-size: 12px;
+    color: #858585;
+}
+
+.welcome-action {
+    font-size: 14px;
+    color: #007acc;
+    font-weight: 500;
+}
+
+/* ===== CODE MIRROR ===== */
+.CodeMirror {
+    height: 100% !important;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.editor-panel {
+    display: none;
+    height: 100%;
+}
+
+.editor-panel.active {
+    display: block;
+}
+
+/* ===== STATUS BAR ===== */
+.editor-statusbar {
+    height: 22px;
+    background: #007acc;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.statusbar-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.statusbar-right {
+    margin-left: auto;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-indicator .material-icons {
+    font-size: 16px;
+}
+
+.statusbar-separator {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Status bar states */
+.editor-statusbar.success {
+    background: #4caf50;
+}
+
+.editor-statusbar.error {
+    background: #f44336;
+}
+
+.editor-statusbar.warning {
+    background: #ff9800;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .editor-sidebar {
+        position: absolute;
+        left: -300px;
+        height: 100%;
+        z-index: 100;
+        transition: left 0.3s;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .editor-sidebar.active {
+        left: 0;
+    }
+
+    .welcome-features {
+        grid-template-columns: 1fr;
+    }
+
+    .shortcut-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== UTILITY ===== */
+.hidden {
+    display: none !important;
+}
+</style>
+
+<script>
+'use strict';
+
+class WebOpsCodeEditor {
+    constructor() {
+        this.deploymentId = document.getElementById('deploymentId').value;
+        this.deploymentName = document.getElementById('deploymentName').value;
+        this.csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        this.openFiles = new Map();
+        this.activeFile = null;
+        this.fileTree = null;
+        this.expandedFolders = new Set();
+
+        this.elements = {
+            loadingState: document.getElementById('loadingState'),
+            errorState: document.getElementById('errorState'),
+            emptyState: document.getElementById('emptyState'),
+            fileTree: document.getElementById('fileTree'),
+            errorMessage: document.getElementById('errorMessage'),
+            editorTabs: document.getElementById('editorTabs'),
+            editorContent: document.getElementById('editorContent'),
+            statusMessage: document.getElementById('statusMessage'),
+            fileInfo: document.getElementById('fileInfo'),
+            cursorPosition: document.getElementById('cursorPosition'),
+            connectionStatus: document.getElementById('connectionStatus')
+        };
+
+        this.init();
+    }
+
+    async init() {
+        this.setupEventListeners();
+        this.setupKeyboardShortcuts();
+        await this.loadFileTree();
+    }
+
+    setupEventListeners() {
+        // Refresh button
+        document.getElementById('refreshFiles').addEventListener('click', () => {
+            this.loadFileTree();
+        });
+
+        // Collapse all button
+        document.getElementById('collapseAll').addEventListener('click', () => {
+            this.collapseAllFolders();
+        });
+
+        // Retry button
+        document.getElementById('retryLoad').addEventListener('click', () => {
+            this.loadFileTree();
+        });
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + S - Save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (this.activeFile) {
+                    this.saveFile(this.activeFile);
+                }
+            }
+
+            // Ctrl/Cmd + W - Close tab
+            if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+                e.preventDefault();
+                if (this.activeFile) {
+                    this.closeFile(this.activeFile);
+                }
+            }
+        });
+    }
+
+    async loadFileTree() {
+        this.showState('loading');
+
+        try {
+            const response = await fetch(`/api/deployments/${this.deploymentId}/files/tree/`, {
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRFToken': this.csrfToken
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.tree || data.tree.length === 0) {
+                this.showState('empty');
+                return;
+            }
+
+            this.fileTree = data.tree;
+            this.renderFileTree(this.fileTree);
+            this.showState('tree');
+            this.setConnectionStatus(true);
+
+        } catch (error) {
+            console.error('Error loading file tree:', error);
+            this.elements.errorMessage.textContent = error.message;
+            this.showState('error');
+            this.setConnectionStatus(false, error.message);
+        }
+    }
+
+    showState(state) {
+        // Hide all states
+        this.elements.loadingState.classList.add('hidden');
+        this.elements.errorState.classList.add('hidden');
+        this.elements.emptyState.classList.add('hidden');
+        this.elements.fileTree.classList.add('hidden');
+
+        // Show requested state
+        switch (state) {
+            case 'loading':
+                this.elements.loadingState.classList.remove('hidden');
+                break;
+            case 'error':
+                this.elements.errorState.classList.remove('hidden');
+                break;
+            case 'empty':
+                this.elements.emptyState.classList.remove('hidden');
+                break;
+            case 'tree':
+                this.elements.fileTree.classList.remove('hidden');
+                break;
+        }
+    }
+
+    renderFileTree(tree, parentElement = null, level = 0) {
+        const container = parentElement || this.elements.fileTree;
+        if (!parentElement) container.innerHTML = '';
+
+        tree.forEach(item => {
+            if (item.type === 'directory') {
+                this.renderFolder(item, container, level);
+            } else {
+                this.renderFile(item, container, level);
+            }
+        });
+    }
+
+    renderFolder(folder, container, level) {
+        const folderDiv = document.createElement('div');
+        folderDiv.className = 'file-tree-item folder';
+        folderDiv.style.paddingLeft = `${level * 12 + 12}px`;
+
+        if (this.expandedFolders.has(folder.path)) {
+            folderDiv.classList.add('expanded');
+        }
+
+        folderDiv.innerHTML = `
+            <span class="material-icons chevron">chevron_right</span>
+            <span class="material-icons folder-icon">folder</span>
+            <span>${folder.name}</span>
+        `;
+
+        const childrenDiv = document.createElement('div');
+        childrenDiv.className = 'file-tree-children';
+
+        if (this.expandedFolders.has(folder.path)) {
+            childrenDiv.classList.add('expanded');
+        }
+
+        folderDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = folderDiv.classList.toggle('expanded');
+            childrenDiv.classList.toggle('expanded');
+
+            if (isExpanded) {
+                this.expandedFolders.add(folder.path);
+            } else {
+                this.expandedFolders.delete(folder.path);
+            }
+        });
+
+        container.appendChild(folderDiv);
+        container.appendChild(childrenDiv);
+
+        if (folder.children && folder.children.length > 0) {
+            this.renderFileTree(folder.children, childrenDiv, level + 1);
+        }
+    }
+
+    renderFile(file, container, level) {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-tree-item';
+        fileDiv.style.paddingLeft = `${level * 12 + 12}px`;
+
+        const icon = this.getFileIcon(file.name);
+        fileDiv.innerHTML = `
+            <span class="material-icons">${icon}</span>
+            <span>${file.name}</span>
+        `;
+
+        fileDiv.addEventListener('click', () => {
+            this.openFile(file.path);
+        });
+
+        container.appendChild(fileDiv);
+    }
+
+    getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+            'py': 'code',
+            'js': 'javascript',
+            'jsx': 'javascript',
+            'ts': 'javascript',
+            'tsx': 'javascript',
+            'html': 'html',
+            'css': 'style',
+            'json': 'data_object',
+            'md': 'description',
+            'txt': 'description',
+            'yml': 'settings',
+            'yaml': 'settings',
+            'xml': 'code',
+            'sql': 'storage',
+            'sh': 'terminal',
+            'env': 'vpn_key'
+        };
+        return iconMap[ext] || 'insert_drive_file';
+    }
+
+    async openFile(path) {
+        if (this.openFiles.has(path)) {
+            this.switchToFile(path);
+            return;
+        }
+
+        try {
+            this.setStatus(`Loading ${path}...`);
+
+            const response = await fetch(`/api/deployments/${this.deploymentId}/files/read/?path=${encodeURIComponent(path)}`, {
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRFToken': this.csrfToken
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `Failed to load file`);
+            }
+
+            const data = await response.json();
+
+            // Create editor panel
+            const editorPanel = document.createElement('div');
+            editorPanel.className = 'editor-panel';
+            editorPanel.id = `editor-${this.sanitizePath(path)}`;
+            this.elements.editorContent.appendChild(editorPanel);
+
+            // Initialize CodeMirror
+            const editor = CodeMirror(editorPanel, {
+                value: data.content,
+                mode: this.getModeForFile(path),
+                theme: 'material-darker',
+                lineNumbers: true,
+                styleActiveLine: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: false,
+                lineWrapping: false
+            });
+
+            // Track changes
+            editor.on('change', () => {
+                this.markFileModified(path);
+            });
+
+            // Update cursor position
+            editor.on('cursorActivity', () => {
+                const cursor = editor.getCursor();
+                this.elements.cursorPosition.textContent = `Ln ${cursor.line + 1}, Col ${cursor.ch + 1}`;
+            });
+
+            this.openFiles.set(path, {
+                editor: editor,
+                modified: false,
+                originalContent: data.content,
+                panel: editorPanel
+            });
+
+            this.createTab(path);
+            this.switchToFile(path);
+            this.setStatus(`Loaded ${path}`, 'success');
+
+        } catch (error) {
+            console.error('Error opening file:', error);
+            this.setStatus(`Failed to open ${path}: ${error.message}`, 'error');
+        }
+    }
+
+    createTab(path) {
+        const tab = document.createElement('div');
+        tab.className = 'editor-tab';
+        tab.dataset.path = path;
+
+        const fileName = path.split('/').pop();
+
+        tab.innerHTML = `
+            <span class="editor-tab-name">${fileName}</span>
+            <div class="editor-tab-close">
+                <span class="material-icons">close</span>
+            </div>
+        `;
+
+        tab.querySelector('.editor-tab-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closeFile(path);
+        });
+
+        tab.addEventListener('click', () => {
+            this.switchToFile(path);
+        });
+
+        this.elements.editorTabs.appendChild(tab);
+    }
+
+    switchToFile(path) {
+        // Hide welcome screen
+        const welcome = this.elements.editorContent.querySelector('.editor-welcome');
+        if (welcome) welcome.style.display = 'none';
+
+        // Deactivate all tabs and panels
+        document.querySelectorAll('.editor-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.editor-panel').forEach(panel => panel.classList.remove('active'));
+
+        // Activate selected tab and panel
+        const tab = document.querySelector(`.editor-tab[data-path="${path}"]`);
+        if (tab) tab.classList.add('active');
+
+        const fileData = this.openFiles.get(path);
+        if (fileData) {
+            fileData.panel.classList.add('active');
+            fileData.editor.refresh();
+            fileData.editor.focus();
+            this.activeFile = path;
+
+            const fileName = path.split('/').pop();
+            this.elements.fileInfo.textContent = fileName;
+        }
+    }
+
+    async saveFile(path) {
+        const fileData = this.openFiles.get(path);
+        if (!fileData) return;
+
+        try {
+            this.setStatus(`Saving ${path}...`);
+
+            const content = fileData.editor.getValue();
+
+            const response = await fetch(`/api/deployments/${this.deploymentId}/files/write/`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken
+                },
+                body: JSON.stringify({
+                    path: path,
+                    content: content
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || 'Failed to save file');
+            }
+
+            fileData.modified = false;
+            fileData.originalContent = content;
+
+            const tab = document.querySelector(`.editor-tab[data-path="${path}"]`);
+            if (tab) tab.classList.remove('modified');
+
+            this.setStatus(`Saved ${path}`, 'success');
+
+        } catch (error) {
+            console.error('Error saving file:', error);
+            this.setStatus(`Failed to save ${path}: ${error.message}`, 'error');
+        }
+    }
+
+    closeFile(path) {
+        const fileData = this.openFiles.get(path);
+        if (!fileData) return;
+
+        if (fileData.modified) {
+            if (!confirm(`${path} has unsaved changes. Close anyway?`)) {
+                return;
+            }
+        }
+
+        // Remove tab
+        const tab = document.querySelector(`.editor-tab[data-path="${path}"]`);
+        if (tab) tab.remove();
+
+        // Remove panel
+        fileData.panel.remove();
+
+        // Remove from open files
+        this.openFiles.delete(path);
+
+        // Switch to another file or show welcome
+        if (this.openFiles.size > 0) {
+            const firstPath = this.openFiles.keys().next().value;
+            this.switchToFile(firstPath);
+        } else {
+            const welcome = this.elements.editorContent.querySelector('.editor-welcome');
+            if (welcome) welcome.style.display = 'flex';
+            this.activeFile = null;
+            this.elements.fileInfo.textContent = '';
+            this.elements.cursorPosition.textContent = 'Ln 1, Col 1';
+        }
+    }
+
+    markFileModified(path) {
+        const fileData = this.openFiles.get(path);
+        if (!fileData || fileData.modified) return;
+
+        const currentContent = fileData.editor.getValue();
+        if (currentContent !== fileData.originalContent) {
+            fileData.modified = true;
+            const tab = document.querySelector(`.editor-tab[data-path="${path}"]`);
+            if (tab) tab.classList.add('modified');
+        }
+    }
+
+    collapseAllFolders() {
+        this.expandedFolders.clear();
+        document.querySelectorAll('.file-tree-item.folder').forEach(folder => {
+            folder.classList.remove('expanded');
+        });
+        document.querySelectorAll('.file-tree-children').forEach(children => {
+            children.classList.remove('expanded');
+        });
+    }
+
+    getModeForFile(path) {
+        const ext = path.split('.').pop().toLowerCase();
+        const modeMap = {
+            'js': 'javascript',
+            'jsx': 'javascript',
+            'ts': 'javascript',
+            'tsx': 'javascript',
+            'py': 'python',
+            'html': 'htmlmixed',
+            'htm': 'htmlmixed',
+            'css': 'css',
+            'scss': 'css',
+            'less': 'css',
+            'json': 'javascript',
+            'md': 'markdown',
+            'xml': 'xml',
+            'sql': 'sql',
+            'sh': 'shell',
+            'bash': 'shell',
+            'yaml': 'yaml',
+            'yml': 'yaml',
+            'dockerfile': 'dockerfile'
+        };
+        return modeMap[ext] || 'text/plain';
+    }
+
+    sanitizePath(path) {
+        return path.replace(/[^a-zA-Z0-9]/g, '-');
+    }
+
+    setStatus(message, type = 'info') {
+        this.elements.statusMessage.textContent = message;
+
+        const statusBar = document.querySelector('.editor-statusbar');
+        statusBar.classList.remove('success', 'error', 'warning');
+
+        if (type === 'success') {
+            statusBar.classList.add('success');
+            setTimeout(() => statusBar.classList.remove('success'), 3000);
+        } else if (type === 'error') {
+            statusBar.classList.add('error');
+            setTimeout(() => statusBar.classList.remove('error'), 5000);
+        }
+    }
+
+    setConnectionStatus(connected, errorMsg = '') {
+        const statusEl = this.elements.connectionStatus;
+        if (connected) {
+            statusEl.innerHTML = '<span class="material-icons">cloud_done</span> Connected';
+            statusEl.style.color = '#ffffff';
+        } else {
+            statusEl.innerHTML = '<span class="material-icons">cloud_off</span> Disconnected';
+            statusEl.style.color = '#ffcccc';
+            if (errorMsg) {
+                statusEl.title = errorMsg;
+            }
+        }
+    }
+}
+
+// Initialize editor on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    new WebOpsCodeEditor();
+});
+</script>
+{% endblock %}

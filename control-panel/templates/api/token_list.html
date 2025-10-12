@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}API Tokens - WebOps{% endblock %}
+{% block header_title %}API Tokens{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">API Tokens</h2>
+        <p class="webops-text-muted">Manage API authentication tokens for programmatic access</p>
+    </div>
+    <button onclick="openCreateModal()" class="webops-btn webops-btn-primary">
+        <span class="material-icons">add</span>
+        Create Token
+    </button>
+</div>
+
+<!-- Statistics Cards -->
+<div class="webops-stats-grid">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.total }}</div>
+        <div class="webops-stat-label">Total Tokens</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.active }}</div>
+        <div class="webops-stat-label">Active</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(168, 201, 187, 0.1); color: var(--webops-color-text-secondary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5zm4-11.5L18 12l-4 4.5v-9z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.inactive }}</div>
+        <div class="webops-stat-label">Inactive</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" fill="currentColor"/>
+            </svg>
+        </div>
+        <div class="webops-stat-value">{{ stats.expired }}</div>
+        <div class="webops-stat-label">Expired</div>
+    </div>
+</div>
+
+<!-- Info Banner -->
+<div class="webops-alert webops-alert--info">
+    <div class="webops-alert__icon">
+        <span class="material-icons">info</span>
+    </div>
+    <div class="webops-alert__content">
+        <strong>API Access:</strong> Use these tokens to authenticate API requests. Include the token in the <code class="webops-text-sm" style="background: var(--webops-color-bg-tertiary); padding: 2px 6px; border-radius: 3px;">Authorization: Bearer &lt;token&gt;</code> header.
+        <a href="/api/status/" target="_blank" class="webops-text-info webops-font-semibold" style="margin-left: 8px; text-decoration: none;">View API Docs</a>
+    </div>
+</div>
+
+<!-- Tokens List -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Your API Tokens</h3>
+        <input type="text" id="search" placeholder="Search tokens..." class="webops-input" style="max-width: 300px;">
+    </div>
+
+    {% if tokens %}
+    <div class="webops-grid webops-grid-3" style="padding: var(--webops-space-lg);">
+        {% for token in tokens %}
+        <div class="webops-card" style="margin: 0;">
+            <div class="webops-card-body">
+                <div class="webops-flex webops-justify-between webops-items-start webops-mb-md">
+                    <h4 class="webops-text-lg webops-font-semibold" style="margin: 0;">{{ token.name }}</h4>
+                    {% if token.is_active %}
+                        {% now "U" as current_timestamp %}
+                        {% if token.expires_at and token.expires_at.timestamp < current_timestamp|add:"0" %}
+                            <span class="webops-badge webops-badge--danger">Expired</span>
+                        {% else %}
+                            <span class="webops-badge webops-badge--success">Active</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="webops-badge webops-badge--info">Inactive</span>
+                    {% endif %}
+                </div>
+
+                <div class="webops-flex webops-flex-col webops-gap-xs webops-text-sm webops-text-secondary webops-mb-md">
+                    <div class="webops-flex webops-justify-between">
+                        <span>Created:</span>
+                        <span>{{ token.created_at|date:"M j, Y" }}</span>
+                    </div>
+                    <div class="webops-flex webops-justify-between">
+                        <span>Last Used:</span>
+                        <span>{{ token.last_used|date:"M j, Y"|default:"Never" }}</span>
+                    </div>
+                    {% if token.expires_at %}
+                    <div class="webops-flex webops-justify-between">
+                        <span>Expires:</span>
+                        <span>{{ token.expires_at|date:"M j, Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="webops-flex webops-gap-sm">
+                    <a href="{% url 'token_detail' token.pk %}" class="webops-btn webops-btn-sm webops-btn-primary" style="flex: 1;">View Details</a>
+                    <a href="{% url 'token_delete' token.pk %}" class="webops-btn webops-btn-sm webops-btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">vpn_key</span>
+        <h3 class="webops-empty-state-title">No API tokens yet</h3>
+        <p class="webops-empty-state-description">Create your first API token to start using the WebOps API</p>
+        <button onclick="openCreateModal()" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Token
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Token Modal -->
+<div id="createModal" class="webops-modal">
+    <div class="webops-modal__content">
+        <div class="webops-modal__header">
+            <h3 class="webops-h3">Create API Token</h3>
+            <button class="webops-modal__close" onclick="closeCreateModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'token_create' %}" id="createForm">
+            {% csrf_token %}
+            <div class="webops-modal__body">
+                <div class="webops-form-group">
+                    <label for="name" class="webops-label webops-label--required">Token Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        class="webops-input"
+                        required
+                        placeholder="e.g., CI/CD Pipeline, Mobile App"
+                        autocomplete="off"
+                        maxlength="100"
+                    >
+                    <small class="webops-input-help">
+                        A descriptive name to identify where this token is used
+                    </small>
+                </div>
+
+                <div class="webops-form-group">
+                    <label for="expires_days" class="webops-label">Expiration Period</label>
+                    <select id="expires_days" name="expires_days" class="webops-select">
+                        <option value="">Never expires (not recommended)</option>
+                        <option value="7">7 days</option>
+                        <option value="30" selected>30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="180">180 days</option>
+                        <option value="365">1 year</option>
+                    </select>
+                    <small class="webops-input-help">
+                        Tokens with expiration dates are more secure
+                    </small>
+                </div>
+
+                <div class="webops-alert webops-alert--error">
+                    <div class="webops-alert__icon">
+                        <span class="material-icons">warning</span>
+                    </div>
+                    <div class="webops-alert__content">
+                        <strong class="webops-font-semibold">Security Notice</strong>
+                        <ul style="margin: 0.5rem 0 0 0; padding-left: 20px;">
+                            <li>Store tokens securely</li>
+                            <li>Never commit tokens to version control</li>
+                            <li>Rotate tokens regularly</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-modal__footer webops-flex webops-gap-sm">
+                <button type="button" onclick="closeCreateModal()" class="webops-btn webops-btn-secondary">Cancel</button>
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">add</span>
+                    Generate Token
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('search');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.webops-card-body');
+
+        cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            const parentCard = card.closest('.webops-card');
+            if (parentCard && parentCard.parentElement.style.gridTemplateColumns) {
+                parentCard.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        });
+    });
+}
+
+// Modal functions
+function openCreateModal() {
+    document.getElementById('createModal').classList.add('active');
+    document.getElementById('name').focus();
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').classList.remove('active');
+    document.getElementById('createForm').reset();
+}
+
+// Close modal on outside click
+document.getElementById('createModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCreateModal();
+    }
+});
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCreateModal();
+    }
+});
+
+// Show loader on form submit
+document.getElementById('createForm').addEventListener('submit', function() {
+    showLoader();
+});
+</script>
+{% endblock %}

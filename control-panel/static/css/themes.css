@@ -1,0 +1,186 @@
+/**
+ * WebOps Theme System
+ * Multiple theme variants with consistent variable structure
+ */
+
+/* Default Theme (Dark) - Already defined in main.css */
+:root {
+    /* Theme variables are inherited from main.css */
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --webops-color-primary: #00cc6a;
+    --webops-color-primary-dark: #009950;
+    --webops-color-primary-darker: #007a3d;
+    --webops-color-primary-light: #33d685;
+    --webops-color-primary-glow: rgba(0, 204, 106, 0.3);
+    
+    /* Background colors */
+    --webops-color-bg-primary: #ffffff;
+    --webops-color-bg-secondary: #f8fafb;
+    --webops-color-bg-tertiary: #f1f5f3;
+    --webops-color-bg-elevated: #ffffff;
+    
+    /* Surface colors */
+    --webops-color-surface: #ffffff;
+    --webops-color-surface-hover: #f8fafb;
+    --webops-color-surface-active: #f1f5f3;
+    
+    /* Text colors */
+    --webops-color-text-primary: #1a1a1a;
+    --webops-color-text-secondary: #4a5568;
+    --webops-color-text-tertiary: #718096;
+    --webops-color-text-disabled: #a0aec0;
+    
+    /* Status colors */
+    --webops-color-success: #00cc6a;
+    --webops-color-warning: #ed8936;
+    --webops-color-error: #e53e3e;
+    --webops-color-info: #3182ce;
+    
+    /* Graph colors */
+    --webops-color-graph-node: #00cc6a;
+    --webops-color-graph-edge: rgba(0, 204, 106, 0.15);
+    --webops-color-graph-grid: rgba(0, 204, 106, 0.05);
+    
+    /* Shadows */
+    --webops-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --webops-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --webops-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+}
+
+/* Custom Theme (Purple/Pink Gradient) */
+[data-theme="custom"] {
+    --webops-color-primary: #ff00aa;
+    --webops-color-primary-dark: #cc0088;
+    --webops-color-primary-darker: #990066;
+    --webops-color-primary-light: #ff33bb;
+    --webops-color-primary-glow: rgba(255, 0, 170, 0.3);
+    
+    /* Background colors */
+    --webops-color-bg-primary: #1a0033;
+    --webops-color-bg-secondary: #2d0055;
+    --webops-color-bg-tertiary: #400077;
+    --webops-color-bg-elevated: #330066;
+    
+    /* Surface colors */
+    --webops-color-surface: #2d0055;
+    --webops-color-surface-hover: #400077;
+    --webops-color-surface-active: #4d0099;
+    
+    /* Text colors */
+    --webops-color-text-primary: #f0e6ff;
+    --webops-color-text-secondary: #c299ff;
+    --webops-color-text-tertiary: #9966cc;
+    --webops-color-text-disabled: #663399;
+    
+    /* Status colors */
+    --webops-color-success: #00ff88;
+    --webops-color-warning: #ffaa00;
+    --webops-color-error: #ff4466;
+    --webops-color-info: #00aaff;
+    
+    /* Graph colors */
+    --webops-color-graph-node: #ff00aa;
+    --webops-color-graph-edge: rgba(255, 0, 170, 0.15);
+    --webops-color-graph-grid: rgba(255, 0, 170, 0.05);
+    
+    /* Shadows */
+    --webops-shadow-sm: 0 2px 8px rgba(255, 0, 170, 0.2);
+    --webops-shadow-md: 0 4px 16px rgba(255, 0, 170, 0.3);
+    --webops-shadow-lg: 0 8px 32px rgba(255, 0, 170, 0.4);
+    --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+}
+
+/* High Contrast Theme (Accessibility) */
+[data-theme="high-contrast"] {
+    --webops-color-primary: #00ffff;
+    --webops-color-primary-dark: #00cccc;
+    --webops-color-primary-darker: #009999;
+    --webops-color-primary-light: #33ffff;
+    --webops-color-primary-glow: rgba(0, 255, 255, 0.5);
+    
+    /* Background colors */
+    --webops-color-bg-primary: #000000;
+    --webops-color-bg-secondary: #111111;
+    --webops-color-bg-tertiary: #222222;
+    --webops-color-bg-elevated: #333333;
+    
+    /* Surface colors */
+    --webops-color-surface: #111111;
+    --webops-color-surface-hover: #222222;
+    --webops-color-surface-active: #333333;
+    
+    /* Text colors */
+    --webops-color-text-primary: #ffffff;
+    --webops-color-text-secondary: #cccccc;
+    --webops-color-text-tertiary: #999999;
+    --webops-color-text-disabled: #666666;
+    
+    /* Status colors */
+    --webops-color-success: #00ff00;
+    --webops-color-warning: #ffff00;
+    --webops-color-error: #ff0000;
+    --webops-color-info: #0088ff;
+    
+    /* Graph colors */
+    --webops-color-graph-node: #00ffff;
+    --webops-color-graph-edge: rgba(0, 255, 255, 0.3);
+    --webops-color-graph-grid: rgba(0, 255, 255, 0.1);
+    
+    /* Shadows */
+    --webops-shadow-sm: 0 2px 8px rgba(0, 255, 255, 0.3);
+    --webops-shadow-md: 0 4px 16px rgba(0, 255, 255, 0.4);
+    --webops-shadow-lg: 0 8px 32px rgba(0, 255, 255, 0.5);
+    --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+}
+
+/* Theme transition animations */
+[data-theme] {
+    transition: all var(--webops-transition-base);
+}
+
+/* Scrollbar theming */
+[data-theme="light"] ::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-left: 1px solid rgba(0, 204, 106, 0.1);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: rgba(0, 204, 106, 0.2);
+    border: 2px solid var(--webops-color-bg-secondary);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 204, 106, 0.35);
+}
+
+[data-theme="custom"] ::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-left: 1px solid rgba(255, 0, 170, 0.1);
+}
+
+[data-theme="custom"] ::-webkit-scrollbar-thumb {
+    background: rgba(255, 0, 170, 0.2);
+    border: 2px solid var(--webops-color-bg-secondary);
+}
+
+[data-theme="custom"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 0, 170, 0.35);
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-left: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.4);
+    border: 2px solid var(--webops-color-bg-secondary);
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.6);
+}

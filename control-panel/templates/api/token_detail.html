@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ token.name }} - WebOps{% endblock %}
+{% block header_title %}{{ token.name }}{% endblock %}
+
+{% block content %}
+<div class="webops-header">
+    <div>
+        <h2>{{ token.name }}</h2>
+        <p class="text-muted">API token details and usage</p>
+    </div>
+    <div class="actions">
+        <a href="{% url 'token_list' %}" class="webops-btn">
+            <span class="material-icons" style="font-size: 16px;">arrow_back</span>
+            Back to Tokens
+        </a>
+        <form method="POST" action="{% url 'token_toggle' token.pk %}" style="display: inline;">
+            {% csrf_token %}
+            {% if token.is_active %}
+                <button type="submit" class="webops-btn btn-warning">
+                    <span class="material-icons" style="font-size: 16px;">pause</span>
+                    Deactivate
+                </button>
+            {% else %}
+                <button type="submit" class="webops-btn btn-success">
+                    <span class="material-icons" style="font-size: 16px;">play_arrow</span>
+                    Activate
+                </button>
+            {% endif %}
+        </form>
+        <a href="{% url 'token_delete' token.pk %}" class="webops-btn btn-danger">
+            <span class="material-icons" style="font-size: 16px;">delete</span>
+            Delete
+        </a>
+    </div>
+</div>
+
+<!-- Status Banner -->
+{% if is_expired %}
+<div class="webops-alert webops-alert--danger">
+    <span class="material-icons webops-alert__icon">schedule</span>
+    <div class="webops-alert__content">
+        <strong>Token Expired!</strong> This token expired on {{ token.expires_at|date:"F j, Y" }} and can no longer be used for API authentication.
+    </div>
+</div>
+{% elif not token.is_active %}
+<div class="webops-alert webops-alert--warning">
+    <span class="material-icons webops-alert__icon">pause_circle</span>
+    <div class="webops-alert__content">
+        <strong>Token Inactive:</strong> This token is currently deactivated and cannot be used for API requests.
+    </div>
+</div>
+{% else %}
+<div class="webops-alert webops-alert--success">
+    <span class="material-icons webops-alert__icon">check_circle</span>
+    <div class="webops-alert__content">
+        <strong>Token Active:</strong> This token is active and can be used for API authentication.
+    </div>
+</div>
+{% endif %}
+
+<!-- Token Value Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">key</span>
+            Token Value
+        </h3>
+        <button onclick="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
+            <span class="material-icons" style="font-size: 16px;">content_copy</span>
+            Copy Token
+        </button>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-token-display">
+            <code id="token-value" class="webops-token-display__value webops-token-display__value--hidden">{{ token.token }}</code>
+            <div class="webops-token-display__controls">
+                <button onclick="toggleToken()" class="webops-btn webops-btn-sm webops-token-display__toggle" id="toggle-btn">
+                    <span class="material-icons" style="font-size: 16px;">visibility</span>
+                    Show Token
+                </button>
+                <button onclick="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
+                    <span class="material-icons" style="font-size: 16px;">content_copy</span>
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <div class="webops-token-warning">
+            <span class="material-icons webops-token-warning__icon">warning</span>
+            <div class="webops-token-warning__content">
+                <strong>Keep this token secret!</strong>
+                <p class="webops-token-warning__text">
+                    Anyone with this token can access your WebOps API. Never commit it to version control or share it publicly.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Token Info Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">info</span>
+            Token Information
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        <dl class="info-list">
+            <dt>Name:</dt>
+            <dd><strong>{{ token.name }}</strong></dd>
+
+            <dt>Status:</dt>
+            <dd>
+                {% if is_expired %}
+                    <span class="webops-badge webops-badge--danger">Expired</span>
+                {% elif token.is_active %}
+                    <span class="webops-badge webops-badge--success">Active</span>
+                {% else %}
+                    <span class="webops-badge webops-badge--secondary">Inactive</span>
+                {% endif %}
+            </dd>
+
+            <dt>Created:</dt>
+            <dd>{{ token.created_at|date:"F j, Y, g:i a" }}</dd>
+
+            <dt>Last Used:</dt>
+            <dd>
+                {% if token.last_used %}
+                    {{ token.last_used|date:"F j, Y, g:i a" }}
+                {% else %}
+                    <span class="text-muted">Never used</span>
+                {% endif %}
+            </dd>
+
+            <dt>Expires:</dt>
+            <dd>
+                {% if token.expires_at %}
+                    {{ token.expires_at|date:"F j, Y, g:i a" }}
+                    {% if is_expired %}
+                        <span class="webops-badge webops-badge--danger" style="margin-left: 8px;">Expired</span>
+                    {% else %}
+                        <span style="margin-left: 8px; color: var(--webops-color-text-tertiary); font-size: var(--webops-font-size-sm);">
+                            (in {{ token.expires_at|timeuntil }})
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted">Never</span>
+                    <span class="webops-badge webops-badge--warning" style="margin-left: 8px;">No expiration</span>
+                {% endif %}
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Usage Examples Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3>
+            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">code</span>
+            Usage Examples
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-code-examples">
+            <div class="webops-code-example">
+                <h4 class="webops-code-example__header">cURL</h4>
+                <pre class="webops-code-example__code"><code>curl -H "Authorization: Bearer {{ token.token }}" \
+     http://{{ request.get_host }}/api/deployments/</code></pre>
+                <button onclick="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                    <span class="material-icons">content_copy</span>
+                    Copy
+                </button>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-code-example__header">Python (requests)</h4>
+                <pre class="webops-code-example__code"><code>import requests
+
+headers = {
+    'Authorization': 'Bearer {{ token.token }}'
+}
+
+response = requests.get(
+    'http://{{ request.get_host }}/api/deployments/',
+    headers=headers
+)
+
+deployments = response.json()
+print(deployments)</code></pre>
+                <button onclick="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                    <span class="material-icons">content_copy</span>
+                    Copy
+                </button>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-code-example__header">JavaScript (fetch)</h4>
+                <pre class="webops-code-example__code"><code>fetch('http://{{ request.get_host }}/api/deployments/', {
+    headers: {
+        'Authorization': 'Bearer {{ token.token }}'
+    }
+})
+.then(response => response.json())
+.then(deployments => console.log(deployments))
+.catch(error => console.error('Error:', error));</code></pre>
+                <button onclick="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                    <span class="material-icons">content_copy</span>
+                    Copy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* WebOps Alert Component - BEM Methodology */
+.webops-alert {
+    display: flex;
+    align-items: center;
+    padding: var(--webops-space-md) var(--webops-space-lg);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: var(--webops-space-2xl);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-alert__icon {
+    font-size: 24px;
+    margin-right: var(--webops-space-sm);
+}
+
+.webops-alert__content {
+    flex: 1;
+}
+
+.webops-alert--success {
+    background: linear-gradient(135deg, var(--webops-color-success-light) 0%, rgba(0, 255, 136, 0.05) 100%);
+    border-left: 4px solid var(--webops-color-success);
+}
+
+.webops-alert--warning {
+    background: linear-gradient(135deg, var(--webops-color-warning-light) 0%, rgba(255, 184, 0, 0.05) 100%);
+    border-left: 4px solid var(--webops-color-warning);
+}
+
+.webops-alert--danger {
+    background: linear-gradient(135deg, var(--webops-color-error-light) 0%, rgba(255, 71, 87, 0.05) 100%);
+    border-left: 4px solid var(--webops-color-error);
+}
+
+/* WebOps Token Display Component - BEM Methodology */
+.webops-token-display {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-md);
+    padding: var(--webops-space-lg);
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    border: 2px solid var(--webops-color-surface);
+}
+
+.webops-token-display__value {
+    flex: 1;
+    font-size: var(--webops-font-size-sm);
+    font-family: var(--webops-font-family-mono);
+    padding: var(--webops-space-sm);
+    background: var(--webops-color-surface);
+    color: var(--webops-color-text-tertiary);
+    border-radius: var(--webops-border-radius-sm);
+    word-break: break-all;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-token-display__value--hidden {
+    filter: blur(8px);
+    user-select: none;
+}
+
+.webops-token-display__controls {
+    display: flex;
+    gap: var(--webops-space-sm);
+}
+
+/* WebOps Token Warning Component - BEM Methodology */
+.webops-token-warning {
+    display: flex;
+    align-items: flex-start;
+    margin-top: var(--webops-space-lg);
+    padding: var(--webops-space-md);
+    background: linear-gradient(135deg, var(--webops-color-error-light) 0%, rgba(255, 71, 87, 0.05) 100%);
+    border-radius: var(--webops-border-radius-md);
+    border-left: 4px solid var(--webops-color-error);
+}
+
+.webops-token-warning__icon {
+    margin-right: var(--webops-space-sm);
+    color: var(--webops-color-error);
+}
+
+.webops-token-warning__content {
+    flex: 1;
+}
+
+.webops-token-warning__text {
+    margin: var(--webops-space-xs) 0 0 0;
+    font-size: var(--webops-font-size-sm);
+}
+
+/* WebOps Info List Component */
+.info-list {
+    display: grid;
+    gap: var(--webops-space-md);
+}
+
+.info-list dt {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-secondary);
+}
+
+.info-list dd {
+    margin-left: 0;
+    color: var(--webops-color-text-tertiary);
+}
+
+/* WebOps Code Examples Component - BEM Methodology */
+.webops-code-examples {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2xl);
+}
+
+.webops-code-example {
+    position: relative;
+}
+
+.webops-code-example__header {
+    margin-bottom: var(--webops-space-sm);
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-code-example__code {
+    background: var(--webops-color-surface-elevated);
+    color: var(--webops-color-text);
+    padding: var(--webops-space-md);
+    border-radius: var(--webops-border-radius-md);
+    overflow-x: auto;
+    margin: 0;
+}
+
+.webops-code-example__code code {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    line-height: var(--webops-line-height-relaxed);
+}
+
+.webops-code-example__copy-button {
+    margin-top: var(--webops-space-sm);
+    padding: var(--webops-space-sm) var(--webops-space-md);
+    background: var(--webops-color-primary);
+    color: var(--webops-color-background);
+    border: none;
+    border-radius: var(--webops-border-radius-sm);
+    cursor: pointer;
+    font-size: var(--webops-font-size-sm);
+    transition: all var(--webops-transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-xs);
+}
+
+.webops-code-example__copy-button:hover {
+    background: var(--webops-color-primary-dark);
+    transform: scale(1.05);
+}
+
+/* WebOps Badge Component - BEM Methodology */
+.webops-badge {
+    padding: var(--webops-space-xs) var(--webops-space-sm);
+    border-radius: var(--webops-border-radius-full);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    white-space: nowrap;
+}
+
+.webops-badge--success {
+    background: var(--webops-color-success-light);
+    color: var(--webops-color-success);
+}
+
+.webops-badge--warning {
+    background: var(--webops-color-warning-light);
+    color: var(--webops-color-warning);
+}
+
+.webops-badge--danger {
+    background: var(--webops-color-error-light);
+    color: var(--webops-color-error);
+}
+
+.webops-badge--secondary {
+    background: var(--webops-color-border);
+    color: var(--webops-color-text-tertiary);
+}
+</style>
+
+<script>
+const tokenValue = '{{ token.token }}';
+let tokenVisible = false;
+
+function toggleToken() {
+    const tokenEl = document.getElementById('token-value');
+    const toggleBtn = document.getElementById('toggle-btn');
+
+    tokenVisible = !tokenVisible;
+
+    if (tokenVisible) {
+        tokenEl.classList.remove('webops-token-display__value--hidden');
+        toggleBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">visibility_off</span> Hide Token';
+    } else {
+        tokenEl.classList.add('webops-token-display__value--hidden');
+        toggleBtn.innerHTML = '<span class="material-icons" style="font-size: 16px;">visibility</span> Show Token';
+    }
+}
+
+function copyToken() {
+    navigator.clipboard.writeText(tokenValue).then(() => {
+        showNotification('Token copied to clipboard!');
+    });
+}
+
+function copyCode(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Code copied to clipboard!');
+    });
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--webops-border-radius-md);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
+</script>
+{% endblock %}

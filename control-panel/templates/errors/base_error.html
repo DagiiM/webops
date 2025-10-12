@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block error_title %}Error{% endblock %} - WebOps</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--webops-space-2xl);
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-card {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: var(--webops-font-weight-bold);
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: var(--webops-space-lg);
+            animation: errorPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes errorPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .error-title {
+            font-size: var(--webops-font-size-3xl);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-primary);
+            margin-bottom: var(--webops-space-md);
+        }
+
+        .error-message {
+            font-size: var(--webops-font-size-lg);
+            color: var(--webops-color-text-secondary);
+            margin-bottom: var(--webops-space-2xl);
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: var(--webops-space-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 80px;
+            }
+
+            .error-title {
+                font-size: var(--webops-font-size-2xl);
+            }
+
+            .error-message {
+                font-size: var(--webops-font-size-base);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-background"></div>
+
+    <div class="error-container">
+        <div class="error-card">
+            <div class="error-code">{% block error_code %}{% endblock %}</div>
+            <h1 class="error-title">{% block error_heading %}{% endblock %}</h1>
+            <p class="error-message">{% block error_message %}{% endblock %}</p>
+            <div class="error-actions">
+                {% block error_actions %}
+                <a href="{% url 'dashboard' %}" class="webops-btn webops-btn-primary">
+                    Back to Dashboard
+                </a>
+                <button onclick="window.history.back()" class="webops-btn btn-secondary">
+                    Go Back
+                </button>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

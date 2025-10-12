@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - {{ branding.site_name }}{% endblock %}
+{% block header_title %}Notifications{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--webops-space-2xl);">
+        <div>
+            <h1 style="font-size: var(--webops-font-size-3xl); font-weight: var(--webops-font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-sm);">
+                Notifications
+            </h1>
+            <p style="color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-lg);">
+                Manage your notification preferences and channels
+            </p>
+        </div>
+        <button onclick="showCreateModal()" 
+                style="background: var(--webops-color-primary); color: white; border: none; padding: var(--webops-space-md) var(--webops-space-xl); border-radius: var(--webops-border-radius-lg); font-weight: var(--webops-font-weight-semibold); cursor: pointer;">
+            <span class="material-icons" style="vertical-align: middle; margin-right: var(--webops-space-xs);">add</span>
+            Add Channel
+        </button>
+    </div>
+
+    <!-- Notification Channels -->
+    <div style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-lg); padding: var(--webops-space-xl); margin-bottom: var(--webops-space-xl);">
+        <h2 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-lg);">
+            Notification Channels
+        </h2>
+
+        {% if channels %}
+            <div style="display: grid; gap: var(--webops-space-md);">
+                {% for channel in channels %}
+                <div style="background: var(--webops-color-bg-primary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md); padding: var(--webops-space-lg);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: var(--webops-space-sm); margin-bottom: var(--webops-space-xs);">
+                                <span class="material-icons" style="color: var(--webops-color-primary);">
+                                    {% if channel.type == 'email' %}email
+                                    {% elif channel.type == 'slack' %}chat
+                                    {% elif channel.type == 'webhook' %}webhook
+                                    {% else %}notifications{% endif %}
+                                </span>
+                                <h3 style="font-size: var(--webops-font-size-lg); font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary); margin: 0;">
+                                    {{ channel.name }}
+                                </h3>
+                                {% if channel.is_active %}
+                                    <span style="background: var(--webops-color-success); color: white; padding: 2px var(--webops-space-xs); border-radius: var(--webops-border-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-medium);">
+                                        Active
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <p style="color: var(--webops-color-text-tertiary); margin: 0; font-size: var(--webops-font-size-sm);">
+                                {{ channel.description|default:"No description" }}
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: var(--webops-space-xs);">
+                            <button onclick="editChannel('{{ channel.id }}')" 
+                                    style="background: transparent; border: 1px solid rgba(0, 255, 136, 0.3); color: var(--webops-color-text-secondary); padding: var(--webops-space-xs) var(--webops-space-sm); border-radius: var(--webops-border-radius-sm); cursor: pointer;">
+                                <span class="material-icons" style="font-size: 16px;">edit</span>
+                            </button>
+                            <button onclick="deleteChannel('{{ channel.id }}')" 
+                                    style="background: transparent; border: 1px solid var(--webops-color-error); color: var(--webops-color-error); padding: var(--webops-space-xs) var(--webops-space-sm); border-radius: var(--webops-border-radius-sm); cursor: pointer;">
+                                <span class="material-icons" style="font-size: 16px;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: var(--webops-space-2xl); color: var(--webops-color-text-tertiary);">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: var(--webops-space-md); opacity: 0.5;">notifications_off</span>
+                <p style="margin: 0;">No notification channels configured</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Notifications -->
+    <div style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-lg); padding: var(--webops-space-xl);">
+        <h2 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-lg);">
+            Recent Notifications
+        </h2>
+
+        {% if notifications %}
+            <div style="display: grid; gap: var(--webops-space-sm);">
+                {% for notification in notifications %}
+                <div style="background: var(--webops-color-bg-primary); border: 1px solid rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-md); padding: var(--webops-space-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: var(--webops-space-xs); margin-bottom: var(--webops-space-xs);">
+                                <span class="material-icons" style="color: 
+                                    {% if notification.level == 'error' %}var(--webops-color-error)
+                                    {% elif notification.level == 'warning' %}var(--webops-color-warning)
+                                    {% elif notification.level == 'success' %}var(--webops-color-success)
+                                    {% else %}var(--webops-color-info){% endif %}; font-size: 16px;">
+                                    {% if notification.level == 'error' %}error
+                                    {% elif notification.level == 'warning' %}warning
+                                    {% elif notification.level == 'success' %}check_circle
+                                    {% else %}info{% endif %}
+                                </span>
+                                <span style="font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary); font-size: var(--webops-font-size-sm);">
+                                    {{ notification.title }}
+                                </span>
+                            </div>
+                            <p style="color: var(--webops-color-text-secondary); margin: 0; font-size: var(--webops-font-size-sm);">
+                                {{ notification.message }}
+                            </p>
+                        </div>
+                        <small style="color: var(--webops-color-text-tertiary); font-size: var(--webops-font-size-sm);">
+                            {{ notification.created_at|timesince }} ago
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: var(--webops-space-2xl); color: var(--webops-color-text-tertiary);">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: var(--webops-space-md); opacity: 0.5;">notifications_none</span>
+                <p style="margin: 0;">No recent notifications</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Channel Modal -->
+<div id="createModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--webops-color-bg-primary); border-radius: var(--webops-border-radius-lg); padding: var(--webops-space-2xl); min-width: 400px;">
+        <h3 style="margin: 0 0 var(--webops-space-lg) 0; color: var(--webops-color-text-primary);">Add Notification Channel</h3>
+        <form id="createForm" method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: var(--webops-space-md);">
+                <label style="display: block; margin-bottom: var(--webops-space-xs); color: var(--webops-color-text-primary);">Channel Type</label>
+                <select name="type" required style="width: 100%; padding: var(--webops-space-sm); background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-border-radius-sm); color: var(--webops-color-text-primary);">
+                    <option value="email">Email</option>
+                    <option value="slack">Slack</option>
+                    <option value="webhook">Webhook</option>
+                </select>
+            </div>
+            <div style="margin-bottom: var(--webops-space-md);">
+                <label style="display: block; margin-bottom: var(--webops-space-xs); color: var(--webops-color-text-primary);">Name</label>
+                <input type="text" name="name" required style="width: 100%; padding: var(--webops-space-sm); background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-border-radius-sm); color: var(--webops-color-text-primary);">
+            </div>
+            <div style="display: flex; gap: var(--webops-space-sm); justify-content: flex-end;">
+                <button type="button" onclick="hideCreateModal()" style="background: transparent; border: 1px solid rgba(0, 255, 136, 0.3); color: var(--webops-color-text-secondary); padding: var(--webops-space-sm) var(--webops-space-md); border-radius: var(--webops-border-radius-sm); cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit" style="background: var(--webops-color-primary); color: white; border: none; padding: var(--webops-space-sm) var(--webops-space-md); border-radius: var(--webops-border-radius-sm); cursor: pointer;">
+                    Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showCreateModal() {
+    document.getElementById('createModal').style.display = 'block';
+}
+
+function hideCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+}
+
+function editChannel(channelId) {
+    // Implementation for editing channel
+    console.log('Edit channel:', channelId);
+}
+
+function deleteChannel(channelId) {
+    if (confirm('Are you sure you want to delete this notification channel?')) {
+        // Implementation for deleting channel
+        console.log('Delete channel:', channelId);
+    }
+}
+</script>
+{% endblock %}

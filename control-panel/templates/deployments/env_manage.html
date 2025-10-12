@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Environment Variables - {{ deployment.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.env-table-container {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    box-shadow: var(--webops-shadow-sm);
+    overflow: hidden;
+}
+
+.env-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.env-table thead {
+    background: var(--webops-color-background-secondary);
+}
+
+.env-table th {
+    padding: var(--webops-space-md);
+    text-align: left;
+    font-weight: 600;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.env-table td {
+    padding: var(--webops-space-md);
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.env-key {
+    font-family: var(--webops-font-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    font-weight: 500;
+}
+
+.env-value {
+    font-family: var(--webops-font-mono);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.env-value.secret {
+    color: var(--webops-color-text-tertiary);
+    font-style: italic;
+}
+
+.env-actions-cell {
+    display: flex;
+    gap: var(--webops-space-xs);
+}
+
+.btn-icon {
+    padding: var(--webops-space-xs);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--webops-border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--webops-color-text-secondary);
+}
+
+.btn-icon:hover {
+    background: var(--color-background-secondary);
+    border-color: var(--webops-color-text-secondary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--webops-space-3xl) var(--webops-space-md);
+    color: var(--webops-color-text-secondary);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: var(--webops-space-md);
+    opacity: 0.3;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-lg);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--webops-space-lg);
+}
+
+.modal-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--webops-color-text-secondary);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--webops-color-text-primary);
+}
+
+.form-group {
+    margin-bottom: var(--webops-space-md);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--webops-space-xs);
+    font-weight: 500;
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--webops-space-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--webops-border-radius-sm);
+    font-size: var(--webops-font-size-sm);
+    font-family: var(--font-mono);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-help {
+    margin-top: var(--webops-space-xs);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--webops-space-sm);
+    justify-content: flex-end;
+    margin-top: var(--webops-space-lg);
+}
+
+.loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--webops-color-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="webops-container">
+    <!-- Header -->
+    <div class="webops-page-header">
+        <div>
+            <h1 class="webops-page-title">Environment Variables</h1>
+            <p class="webops-text-muted">
+                Deployment: <strong>{{ deployment.name }}</strong>
+            </p>
+        </div>
+        <div style="display: flex; gap: var(--webops-space-sm);">
+            <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">
+                ← Back
+            </a>
+            {% if env_example_exists %}
+            <button id="generateEnvBtn" class="webops-btn webops-btn-success">
+                Generate from .env.example
+            </button>
+            {% endif %}
+            <button id="addVariableBtn" class="webops-btn webops-btn-primary">
+                + Add Variable
+            </button>
+        </div>
+    </div>
+
+    <!-- Status -->
+    <div class="webops-status-banner" style="margin-bottom: var(--webops-space-lg);">
+        <div style="display: flex; gap: var(--webops-space-lg); padding: var(--webops-space-md); align-items: center;">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                {% if repo_exists %}
+                <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
+                {% else %}
+                <span class="material-icons" style="color: var(--color-danger); font-size: 20px;">error</span>
+                {% endif %}
+                <span class="webops-text-sm">Repository: {% if repo_exists %}Cloned{% else %}Not cloned{% endif %}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                {% if env_file_exists %}
+                <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
+                {% else %}
+                <span class="material-icons" style="color: var(--color-danger); font-size: 20px;">error</span>
+                {% endif %}
+                <span class="webops-text-sm">.env file: {% if env_file_exists %}Exists{% else %}Not found{% endif %}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                {% if env_example_exists %}
+                <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
+                {% else %}
+                <span class="material-icons" style="color: var(--color-danger); font-size: 20px;">error</span>
+                {% endif %}
+                <span class="webops-text-sm">.env.example: {% if env_example_exists %}Found{% else %}Not found{% endif %}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                <span class="material-icons" style="color: var(--webops-color-primary); font-size: 20px;">settings</span>
+                <span class="webops-text-sm webops-text-primary">{{ env_vars_count }} variables</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if not repo_exists %}
+    <div class="webops-alert webops-alert-warning" style="margin-bottom: var(--webops-space-lg);">
+        <strong>Repository not cloned yet.</strong> Please wait for the deployment to complete before managing environment variables.
+    </div>
+    {% elif not env_file_exists and not env_example_exists %}
+    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-lg);">
+        <strong>No environment file found.</strong> You can manually add variables or create a .env file in your repository.
+    </div>
+    {% elif not env_file_exists and env_example_exists %}
+    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-lg);">
+        <strong>.env.example found!</strong> Click "Generate from .env.example" to automatically create your .env file with generated values.
+    </div>
+    {% endif %}
+
+    <!-- Variables Table -->
+    {% if env_vars %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="envTableBody">
+                {% for key, value in env_vars.items %}
+                <tr data-key="{{ key }}">
+                    <td>
+                        <strong>{{ key }}</strong>
+                    </td>
+                    <td>
+                        {% if 'SECRET' in key or 'PASSWORD' in key or 'KEY' in key or 'TOKEN' in key %}
+                            <code class="webops-text-sm webops-text-muted">••••••••</code>
+                        {% else %}
+                            <code class="webops-text-sm">{{ value }}</code>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="webops-btn webops-btn-sm webops-btn-secondary edit-var" title="Edit">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button class="webops-btn webops-btn-sm webops-btn-danger delete-var" title="Delete">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif repo_exists %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">settings</span>
+        <h3 class="webops-empty-state-title">No environment variables yet</h3>
+        <p class="webops-empty-state-description">Add your first environment variable to configure your deployment</p>
+        <button onclick="openVariableModal()" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Add Variable
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add/Edit Variable Modal -->
+<div id="variableModal" class="webops-modal">
+    <div class="webops-modal-content">
+        <div class="webops-modal-header">
+            <h2 class="modal-title" id="modalTitle">Add Variable</h2>
+            <button class="webops-modal-close" id="closeModal">×</button>
+        </div>
+        <form id="variableForm">
+            <div class="form-group">
+                <label class="form-label" for="varKey">Variable Name</label>
+                <input type="text" id="varKey" class="form-input" placeholder="e.g., DATABASE_URL" required>
+                <p class="form-help">Use UPPERCASE_WITH_UNDERSCORES format</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="varValue">Value</label>
+                <input type="text" id="varValue" class="form-input" placeholder="Enter value" required>
+                <p class="form-help">Leave sensitive values empty to set later</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="webops-btn webops-btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" class="webops-btn webops-btn-primary" id="saveBtn">
+                    <span id="saveBtnText">Save</span>
+                    <span id="saveBtnLoading" class="loading" style="display: none;"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Wizard Modal -->
+<div id="wizardModal" class="webops-modal">
+    <div class="webops-modal-content" style="max-width: 800px;">
+        <div class="webops-modal-header">
+            <h2 class="modal-title">Generate from .env.example</h2>
+            <button class="webops-modal-close" id="closeWizard">×</button>
+        </div>
+        <div id="wizardContent">
+            <p style="text-align: center;" class="webops-text-muted">
+                <span class="loading"></span> Loading variables...
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Deployment ID
+const DEPLOYMENT_ID = "{{ deployment.pk|escapejs }}";
+const CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/env_manager.js' %}"></script>
+{% endblock %}

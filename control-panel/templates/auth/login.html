@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - WebOps</title>
+    {% if branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    {% endif %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body class="login-page">
+    <div class="webops-app-background"></div>
+    <div class="login-container">
+        <div class="webops-card" style="max-width: 420px; margin: 0 auto;">
+            <div class="webops-card-body">
+                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-xs);">WebOps</h1>
+                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Control Panel Login</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="webops-mb-md webops-p-md" style="background: rgba({% if message.tags == 'error' %}255, 68, 68{% else %}0, 255, 136{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if message.tags == 'error' %}error{% else %}success{% endif %}); border-radius: var(--webops-border-radius-md);">
+                        <span class="webops-text-{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-border-radius-md);">
+                    <span class="webops-text-error">Invalid username or password.</span>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="webops-form-group">
+                        <label for="id_username" class="webops-label">Username</label>
+                        <input type="text" name="username" id="id_username" class="webops-input" required autofocus>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="id_password" class="webops-label">Password</label>
+                        <input type="password" name="password" id="id_password" class="webops-input" required>
+                    </div>
+
+                    <div class="webops-form-group webops-flex webops-items-center webops-justify-between">
+                        <label class="webops-flex webops-items-center webops-gap-xs" style="cursor: pointer;">
+                            <input type="checkbox" name="remember_me" id="id_remember_me" class="webops-checkbox" checked>
+                            <span class="webops-text-sm webops-text-secondary">Remember me</span>
+                        </label>
+                        <a href="{% url 'password_reset' %}" class="webops-text-sm webops-text-primary" style="text-decoration: none;">
+                            Forgot password?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">Login</button>
+
+                    <div class="webops-text-center webops-text-secondary">
+                        Don't have an account?
+                        <a href="{% url 'register' %}" class="webops-text-primary" style="text-decoration: none;">
+                            Sign Up
+                        </a>
+                    </div>
+
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

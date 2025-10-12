@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Backup Codes - WebOps{% endblock %}
+{% block header_title %}2FA Backup Codes{% endblock %}
+
+{% block content %}
+<div class="webops-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="webops-card-header">
+        <h2 class="webops-h2">2FA Enabled Successfully!</h2>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 255, 136, 0.1); border-left: 4px solid var(--webops-color-success); border-radius: var(--webops-border-radius-md);">
+            <p class="webops-text-success">
+                <strong>Two-Factor Authentication is now active on your account.</strong>
+            </p>
+        </div>
+
+        <h3 class="webops-h3 webops-mb-md">Save Your Backup Codes</h3>
+        <p class="webops-text-secondary webops-mb-md">
+            Each backup code can be used once. Store them in a safe place - you'll need them if you lose access to your authenticator app.
+        </p>
+
+        <div class="webops-mb-lg webops-p-lg" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
+            <div class="webops-grid webops-grid-2 webops-gap-md" style="font-family: var(--webops-font-family-mono);">
+                {% for code in backup_codes %}
+                <div class="webops-p-sm" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-sm); text-align: center;">
+                    <code style="color: var(--webops-color-primary); font-size: 1.1rem;">{{ code }}</code>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button onclick="copyBackupCodes()" class="webops-btn webops-btn-secondary webops-w-full webops-mb-sm">
+            📋 Copy All Codes
+        </button>
+
+        <button onclick="downloadBackupCodes()" class="webops-btn webops-btn-secondary webops-w-full webops-mb-lg">
+            💾 Download as Text File
+        </button>
+
+        <div class="webops-p-md webops-mb-lg" style="background: rgba(255, 170, 0, 0.1); border-left: 4px solid var(--webops-color-warning); border-radius: var(--webops-border-radius-md);">
+            <p class="webops-text-warning webops-text-sm">
+                <strong>Warning:</strong> These codes will not be shown again. Make sure to save them now!
+            </p>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="webops-btn webops-btn-primary webops-w-full">
+            Continue to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+function copyBackupCodes() {
+    const codes = {{ backup_codes|safe }}.join('\n');
+    navigator.clipboard.writeText(codes).then(() => {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.success('Backup codes copied to clipboard');
+        } else {
+            alert('Backup codes copied to clipboard');
+        }
+    });
+}
+
+function downloadBackupCodes() {
+    const codes = {{ backup_codes|safe }}.join('\n');
+    const blob = new Blob([
+        'WebOps 2FA Backup Codes\n',
+        '========================\n\n',
+        'Username: {{ user.username }}\n',
+        'Generated: {{ now|date:"Y-m-d H:i:s" }}\n\n',
+        'Backup Codes:\n',
+        codes
+    ], { type: 'text/plain' });
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'webops-2fa-backup-codes.txt';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    if (window.WebOps && window.WebOps.Toast) {
+        window.WebOps.Toast.success('Backup codes downloaded');
+    }
+}
+</script>
+{% endblock %}

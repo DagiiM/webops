@@ -1,0 +1,743 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>API Documentation - WebOps</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        .webops-docs-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--webops-space-2xl);
+            background: var(--webops-color-bg-primary);
+            min-height: 100vh;
+        }
+
+        .webops-docs-header {
+            text-align: center;
+            margin-bottom: var(--webops-space-2xl);
+        }
+
+        .webops-docs-header h1 {
+            font-size: var(--webops-font-size-3xl);
+            font-weight: var(--webops-font-weight-bold);
+            color: var(--webops-color-primary);
+            margin: 0;
+            text-shadow: 0 0 20px var(--webops-color-primary-glow);
+        }
+
+        .webops-docs-sidebar {
+            position: sticky;
+            top: var(--webops-space-xl);
+            height: fit-content;
+            background: var(--webops-color-bg-secondary);
+            border-radius: var(--webops-border-radius-lg);
+            padding: var(--webops-space-lg);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .webops-docs-nav {
+            display: flex;
+            flex-direction: column;
+            gap: var(--webops-space-lg);
+        }
+
+        .webops-docs-nav__group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--webops-space-sm);
+        }
+
+        .webops-docs-nav__title {
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--webops-space-xs);
+        }
+
+        .webops-docs-nav__item {
+            padding: var(--webops-space-sm);
+            color: var(--webops-color-text-secondary);
+            cursor: pointer;
+            border-radius: var(--webops-border-radius-md);
+            transition: all var(--webops-transition-fast);
+            font-size: var(--webops-font-size-sm);
+        }
+
+        .webops-docs-nav__item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--webops-color-primary);
+        }
+
+        .webops-docs-nav__item.active {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--webops-color-primary);
+        }
+
+        .webops-docs-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--webops-space-2xl);
+        }
+
+        .webops-endpoint-card {
+            background: var(--webops-color-bg-secondary);
+            border-radius: var(--webops-border-radius-lg);
+            padding: var(--webops-space-2xl);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .webops-endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-md);
+            margin-bottom: var(--webops-space-lg);
+        }
+
+        .webops-method-badge {
+            padding: var(--webops-space-xs) var(--webops-space-sm);
+            border-radius: var(--webops-border-radius-sm);
+            font-size: var(--webops-font-size-xs);
+            font-weight: var(--webops-font-weight-semibold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .webops-method-badge--get {
+            background: rgba(0, 170, 255, 0.2);
+            color: #00aaff;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        .webops-method-badge--post {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--webops-color-primary);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .webops-method-badge--put, .webops-method-badge--patch {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .webops-method-badge--delete {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .webops-endpoint-path {
+            font-family: var(--webops-font-family-mono);
+            font-size: var(--webops-font-size-lg);
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-auth-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--webops-space-xs);
+            padding: var(--webops-space-xs) var(--webops-space-sm);
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+            border-radius: var(--webops-border-radius-sm);
+            font-size: var(--webops-font-size-xs);
+            color: #ffaa00;
+        }
+
+        .webops-endpoint-description {
+            color: var(--webops-color-text-secondary);
+            margin-bottom: var(--webops-space-lg);
+            line-height: 1.6;
+        }
+
+        .webops-section-title {
+            font-size: var(--webops-font-size-base);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-primary);
+            margin-bottom: var(--webops-space-md);
+            margin-top: var(--webops-space-lg);
+        }
+
+        .webops-code-block {
+            background: var(--webops-color-bg-secondary);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: var(--webops-border-radius-md);
+            padding: var(--webops-space-md);
+            font-family: var(--webops-font-family-mono);
+            font-size: var(--webops-font-size-sm);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .webops-code-block pre {
+            margin: 0;
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-copy-button {
+            position: absolute;
+            top: var(--webops-space-sm);
+            right: var(--webops-space-sm);
+            padding: var(--webops-space-xs) var(--webops-space-sm);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: var(--webops-border-radius-sm);
+            color: var(--webops-color-primary);
+            font-size: var(--webops-font-size-xs);
+            cursor: pointer;
+            transition: all var(--webops-transition-fast);
+        }
+
+        .webops-copy-button:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        .webops-tabs {
+            display: flex;
+            gap: var(--webops-space-sm);
+            margin-bottom: var(--webops-space-md);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .webops-tab {
+            padding: var(--webops-space-sm) var(--webops-space-md);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--webops-color-text-secondary);
+            transition: all var(--webops-transition-fast);
+        }
+
+        .webops-tab:hover {
+            color: var(--webops-color-primary);
+        }
+
+        .webops-tab--active {
+            color: var(--webops-color-primary);
+            border-bottom-color: var(--webops-color-primary);
+        }
+
+        .webops-tab-content {
+            display: none;
+        }
+
+        .webops-tab-content--active {
+            display: block;
+        }
+
+        .webops-param-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .webops-param-table th {
+            background: rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-sm);
+            text-align: left;
+            font-size: var(--webops-font-size-xs);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .webops-param-table td {
+            padding: var(--webops-space-sm);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            color: var(--webops-color-text-secondary);
+            font-size: var(--webops-font-size-sm);
+        }
+
+        .webops-param-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .webops-required-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            font-size: 10px;
+            border-radius: 3px;
+            margin-left: var(--webops-space-xs);
+        }
+
+        .webops-try-it-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--webops-space-sm);
+            padding: var(--webops-space-sm) var(--webops-space-lg);
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+            color: var(--webops-color-bg-primary);
+            border: none;
+            border-radius: var(--webops-border-radius-md);
+            font-weight: var(--webops-font-weight-medium);
+            cursor: pointer;
+            transition: all var(--webops-transition-base);
+            box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+        }
+
+        .webops-try-it-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--webops-color-primary-glow);
+        }
+
+        .webops-response-display {
+            margin-top: var(--webops-space-md);
+            padding: var(--webops-space-md);
+            background: var(--webops-color-bg-secondary);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: var(--webops-border-radius-md);
+        }
+
+        .webops-loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-top-color: var(--webops-color-primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-background"></div>
+
+    <div class="webops-docs-container">
+        <div class="webops-docs-header">
+            <h1>API Documentation</h1>
+            <p class="webops-text--secondary" style="font-size: var(--webops-font-size-sm); margin-top: var(--webops-space-sm);">
+                Complete reference for WebOps REST API with live examples
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 250px 1fr; gap: var(--webops-space-2xl);">
+            <aside class="webops-docs-sidebar">
+                <nav class="webops-docs-nav" id="docsNav">
+                    <div class="webops-docs-nav__group">
+                        <div class="webops-docs-nav__title">Getting Started</div>
+                        <div class="webops-docs-nav__item" data-section="authentication">Authentication</div>
+                    </div>
+                </nav>
+            </aside>
+
+            <main class="webops-docs-content">
+                <section id="authentication" class="webops-endpoint-card">
+                    <h2 class="webops-section-title">Authentication</h2>
+                    <p class="webops-endpoint-description">
+                        All API requests require authentication using a Bearer token. Include your API token in the Authorization header:
+                    </p>
+                    <div class="webops-code-block">
+                        <button class="webops-copy-button" onclick="copyCode(this)">Copy</button>
+                        <pre>Authorization: Bearer YOUR_API_TOKEN</pre>
+                    </div>
+                    <p class="webops-endpoint-description" style="margin-top: var(--webops-space-md);">
+                        You can generate API tokens from the <a href="/api/tokens/" style="color: var(--webops-color-primary);">API Tokens</a> page in the control panel.
+                    </p>
+                </section>
+
+                <div id="endpointsContainer"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        'use strict';
+
+        class APIDocumentation {
+            constructor() {
+                this.apiData = null;
+                this.loadDocumentation();
+            }
+
+            async loadDocumentation() {
+                try {
+                    const response = await fetch('/api/docs/data/');
+                    this.apiData = await response.json();
+                    this.renderNavigation();
+                    this.renderEndpoints();
+                } catch (error) {
+                    console.error('Failed to load API documentation:', error);
+                    WebOps.Toast.error('Failed to load API documentation');
+                }
+            }
+
+            renderNavigation() {
+                const nav = document.getElementById('docsNav');
+                const groups = this.apiData.endpoints;
+
+                Object.entries(groups).forEach(([groupName, endpoints]) => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'docs-nav-group';
+
+                    const title = document.createElement('div');
+                    title.className = 'docs-nav-title';
+                    title.textContent = groupName;
+                    groupDiv.appendChild(title);
+
+                    endpoints.forEach(endpoint => {
+                        const item = document.createElement('div');
+                        item.className = 'docs-nav-item';
+                        item.textContent = `${endpoint.method} ${endpoint.path.split('/').pop() || 'root'}`;
+                        item.dataset.section = `${endpoint.method}-${endpoint.path}`;
+                        item.onclick = () => this.scrollToEndpoint(item.dataset.section);
+                        groupDiv.appendChild(item);
+                    });
+
+                    nav.appendChild(groupDiv);
+                });
+            }
+
+            renderEndpoints() {
+                const container = document.getElementById('endpointsContainer');
+                const groups = this.apiData.endpoints;
+
+                Object.entries(groups).forEach(([groupName, endpoints]) => {
+                    endpoints.forEach(endpoint => {
+                        const card = this.createEndpointCard(endpoint);
+                        container.appendChild(card);
+                    });
+                });
+            }
+
+            createEndpointCard(endpoint) {
+                const card = document.createElement('section');
+                card.className = 'webops-endpoint-card';
+                card.id = `${endpoint.method}-${endpoint.path}`;
+
+                const header = document.createElement('div');
+                header.className = 'webops-endpoint-header';
+
+                const methodBadge = document.createElement('span');
+                methodBadge.className = `webops-method-badge webops-method-badge--${endpoint.method.toLowerCase()}`;
+                methodBadge.textContent = endpoint.method;
+
+                const path = document.createElement('code');
+                path.className = 'webops-endpoint-path';
+                path.textContent = endpoint.path;
+
+                header.appendChild(methodBadge);
+                header.appendChild(path);
+
+                if (endpoint.authentication_required) {
+                    const authBadge = document.createElement('span');
+                    authBadge.className = 'webops-auth-badge';
+                    authBadge.innerHTML = '&#128274; Auth Required';
+                    header.appendChild(authBadge);
+                }
+
+                const description = document.createElement('p');
+                description.className = 'webops-endpoint-description';
+                description.textContent = endpoint.description;
+
+                card.appendChild(header);
+                card.appendChild(description);
+
+                if (endpoint.parameters && endpoint.parameters.length > 0) {
+                    card.appendChild(this.createParametersSection(endpoint.parameters));
+                }
+
+                if (endpoint.request_body) {
+                    card.appendChild(this.createRequestBodySection(endpoint.request_body));
+                }
+
+                if (endpoint.examples && endpoint.examples.length > 0) {
+                    card.appendChild(this.createExamplesSection(endpoint.examples, endpoint));
+                }
+
+                if (endpoint.error_responses && endpoint.error_responses.length > 0) {
+                    card.appendChild(this.createErrorsSection(endpoint.error_responses));
+                }
+
+                return card;
+            }
+
+            createParametersSection(parameters) {
+                const section = document.createElement('div');
+
+                const title = document.createElement('h3');
+                title.className = 'webops-section-title';
+                title.textContent = 'Parameters';
+                section.appendChild(title);
+
+                const table = document.createElement('table');
+                table.className = 'webops-param-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>In</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${parameters.map(param => `
+                            <tr>
+                                <td>
+                                    <code>${param.name}</code>
+                                    ${param.required ? '<span class="webops-required-badge">Required</span>' : ''}
+                                </td>
+                                <td><code>${param.type}</code></td>
+                                <td>${param.in}</td>
+                                <td>${param.description || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                section.appendChild(table);
+
+                return section;
+            }
+
+            createRequestBodySection(requestBody) {
+                const section = document.createElement('div');
+
+                const title = document.createElement('h3');
+                title.className = 'webops-section-title';
+                title.textContent = 'Request Body';
+                section.appendChild(title);
+
+                const table = document.createElement('table');
+                table.className = 'webops-param-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(requestBody).map(([key, field]) => `
+                            <tr>
+                                <td>
+                                    <code>${key}</code>
+                                    ${field.required ? '<span class="webops-required-badge">Required</span>' : ''}
+                                </td>
+                                <td><code>${field.type}</code></td>
+                                <td>${field.description || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                section.appendChild(table);
+
+                return section;
+            }
+
+            createExamplesSection(examples, endpoint) {
+                const section = document.createElement('div');
+
+                const title = document.createElement('h3');
+                title.className = 'webops-section-title';
+                title.textContent = 'Examples';
+                section.appendChild(title);
+
+                const tabs = document.createElement('div');
+                tabs.className = 'webops-tabs';
+
+                const curlTab = document.createElement('div');
+                curlTab.className = 'webops-tab webops-tab--active';
+                curlTab.textContent = 'cURL';
+                curlTab.onclick = () => this.switchTab(curlTab, 'curl');
+
+                const jsTab = document.createElement('div');
+                jsTab.className = 'webops-tab';
+                jsTab.textContent = 'JavaScript';
+                jsTab.onclick = () => this.switchTab(jsTab, 'javascript');
+
+                const pythonTab = document.createElement('div');
+                pythonTab.className = 'webops-tab';
+                pythonTab.textContent = 'Python';
+                pythonTab.onclick = () => this.switchTab(pythonTab, 'python');
+
+                tabs.appendChild(curlTab);
+                tabs.appendChild(jsTab);
+                tabs.appendChild(pythonTab);
+                section.appendChild(tabs);
+
+                examples.forEach((example, idx) => {
+                    if (idx > 0) return; // Only show first example
+
+                    const curlContent = this.createCodeBlock(
+                        this.generateCurlExample(example),
+                        'curl',
+                        true
+                    );
+
+                    const jsContent = this.createCodeBlock(
+                        this.generateJavaScriptExample(example),
+                        'javascript'
+                    );
+
+                    const pythonContent = this.createCodeBlock(
+                        this.generatePythonExample(example),
+                        'python'
+                    );
+
+                    section.appendChild(curlContent);
+                    section.appendChild(jsContent);
+                    section.appendChild(pythonContent);
+                });
+
+                return section;
+            }
+
+            createErrorsSection(errors) {
+                const section = document.createElement('div');
+
+                const title = document.createElement('h3');
+                title.className = 'webops-section-title';
+                title.textContent = 'Error Responses';
+                section.appendChild(title);
+
+                errors.forEach(error => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.marginBottom = 'var(--webops-space-md)';
+
+                    errorDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-sm); margin-bottom: var(--webops-space-xs);">
+                            <span class="webops-method-badge webops-method-badge--delete">${error.status}</span>
+                            <strong style="color: var(--webops-color-text-primary);">${error.title}</strong>
+                        </div>
+                        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-sm);">${error.description}</p>
+                        ${this.createCodeBlock(JSON.stringify(error.example, null, 2)).outerHTML}
+                    `;
+
+                    section.appendChild(errorDiv);
+                });
+
+                return section;
+            }
+
+            createCodeBlock(code, language = '', active = true) {
+                const div = document.createElement('div');
+                div.className = `webops-tab-content ${active ? 'webops-tab-content--active' : ''}`;
+                div.dataset.lang = language;
+
+                const codeBlock = document.createElement('div');
+                codeBlock.className = 'webops-code-block';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'webops-copy-button';
+                copyBtn.textContent = 'Copy';
+                copyBtn.onclick = () => this.copyCode(code);
+
+                const pre = document.createElement('pre');
+                pre.textContent = code;
+
+                codeBlock.appendChild(copyBtn);
+                codeBlock.appendChild(pre);
+                div.appendChild(codeBlock);
+
+                return div;
+            }
+
+            generateCurlExample(example) {
+                const req = example.request;
+                let curl = `curl -X ${req.method} \\\n  '${window.location.origin}${req.url}'`;
+
+                if (req.headers) {
+                    Object.entries(req.headers).forEach(([key, value]) => {
+                        curl += ` \\\n  -H '${key}: ${value}'`;
+                    });
+                }
+
+                if (req.body) {
+                    curl += ` \\\n  -d '${JSON.stringify(req.body, null, 2)}'`;
+                }
+
+                return curl;
+            }
+
+            generateJavaScriptExample(example) {
+                const req = example.request;
+                let js = `const response = await fetch('${req.url}', {\n`;
+                js += `  method: '${req.method}',\n`;
+                js += `  headers: ${JSON.stringify(req.headers, null, 4)},\n`;
+                if (req.body) {
+                    js += `  body: JSON.stringify(${JSON.stringify(req.body, null, 4)})\n`;
+                }
+                js += `});\n\nconst data = await response.json();\nconsole.log(data);`;
+                return js;
+            }
+
+            generatePythonExample(example) {
+                const req = example.request;
+                let py = `import requests\n\n`;
+                py += `headers = ${JSON.stringify(req.headers, null, 4).replace(/"/g, "'")}\n\n`;
+                if (req.body) {
+                    py += `data = ${JSON.stringify(req.body, null, 4).replace(/"/g, "'")}\n\n`;
+                }
+                py += `response = requests.${req.method.toLowerCase()}(\n`;
+                py += `    '${window.location.origin}${req.url}',\n`;
+                py += `    headers=headers`;
+                if (req.body) {
+                    py += `,\n    json=data`;
+                }
+                py += `\n)\n\nprint(response.json())`;
+                return py;
+            }
+
+            switchTab(tabElement, language) {
+                const parent = tabElement.parentElement.parentElement;
+                const tabs = parent.querySelectorAll('.webops-tab');
+                const contents = parent.querySelectorAll('.webops-tab-content');
+
+                tabs.forEach(t => t.classList.remove('webops-tab--active'));
+                contents.forEach(c => c.classList.remove('webops-tab-content--active'));
+
+                tabElement.classList.add('webops-tab--active');
+                parent.querySelector(`.webops-tab-content[data-lang="${language}"]`).classList.add('webops-tab-content--active');
+            }
+
+            copyCode(code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    WebOps.Toast.success('Copied to clipboard');
+                }).catch(() => {
+                    WebOps.Toast.error('Failed to copy');
+                });
+            }
+
+            scrollToEndpoint(sectionId) {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Update active nav item
+                    document.querySelectorAll('.webops-docs-nav-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+                }
+            }
+        }
+
+        function copyCode(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => button.textContent = 'Copy', 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new APIDocumentation();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Create API Token - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2>🔑 Create API Token</h2>
+        <p class="webops-text--muted">Generate a new API token for programmatic access</p>
+    </div>
+    <a href="{% url 'token_list' %}" class="webops-btn">← Back to Tokens</a>
+</div>
+
+<div class="webops-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="webops-card-header">
+        <h3>Token Configuration</h3>
+    </div>
+    <div class="webops-card-body">
+        <form method="POST" id="create-form">
+            {% csrf_token %}
+
+            <div class="webops-form-group">
+                <label for="name">Token Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="webops-form-input"
+                    required
+                    placeholder="e.g., CI/CD Pipeline, Mobile App, Dev Environment"
+                    autocomplete="off"
+                    maxlength="100"
+                >
+                <small class="webops-form-help">
+                    A descriptive name to identify where this token is used
+                </small>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="expires_days">Expiration Period</label>
+                <select id="expires_days" name="expires_days" class="webops-form-input">
+                    <option value="">Never expires (not recommended)</option>
+                    <option value="7">7 days</option>
+                    <option value="30" selected>30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="180">180 days</option>
+                    <option value="365">1 year</option>
+                </select>
+                <small class="webops-form-help">
+                    Tokens with expiration dates are more secure. You can always create a new one.
+                </small>
+            </div>
+
+            <div class="webops-info-box webops-info-box--security">
+                <span style="font-size: 24px; margin-right: 12px;">🔐</span>
+                <div>
+                    <strong>Security Best Practices</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.875rem;">
+                        <li>Store tokens securely (use environment variables)</li>
+                        <li>Never commit tokens to version control</li>
+                        <li>Use separate tokens for different applications</li>
+                        <li>Rotate tokens regularly</li>
+                        <li>Delete unused tokens immediately</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="webops-form-actions">
+                <button type="submit" class="webops-btn webops-btn-primary webops-btn-lg">
+                    <span id="submit-text">🚀 Generate Token</span>
+                    <span id="submit-loading" style="display: none;">⏳ Generating...</span>
+                </button>
+                <a href="{% url 'token_list' %}" class="webops-btn webops-btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Info Card -->
+<div class="webops-card" style="max-width: 600px; margin: 2rem auto 0;">
+    <div class="webops-card-header">
+        <h3>💡 How to Use API Tokens</h3>
+    </div>
+    <div class="webops-card-body">
+        <h4 style="margin-bottom: 0.75rem; color: var(--webops-gray-700);">Authentication</h4>
+        <p style="margin-bottom: 1rem; color: var(--webops-gray-600);">
+            Include your token in the Authorization header of every API request:
+        </p>
+
+        <div class="webops-code-examples">
+            <h5>cURL Example</h5>
+            <pre><code>curl -H "Authorization: Bearer YOUR_TOKEN" \
+     http://your-server/api/deployments/</code></pre>
+        </div>
+
+        <div class="webops-code-examples">
+            <h5>Python Example</h5>
+            <pre><code>import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_TOKEN'
+}
+
+response = requests.get(
+    'http://your-server/api/deployments/',
+    headers=headers
+)
+
+print(response.json())</code></pre>
+        </div>
+
+        <div class="webops-code-examples">
+            <h5>JavaScript Example</h5>
+            <pre><code>fetch('http://your-server/api/deployments/', {
+    headers: {
+        'Authorization': 'Bearer YOUR_TOKEN'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));</code></pre>
+        </div>
+    </div>
+</div>
+
+<style>
+.webops-form-group {
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-form-group label {
+    display: block;
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-sm);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-form-input {
+    width: 100%;
+    padding: var(--webops-space-md);
+    border: 2px solid var(--webops-color-border);
+    border-radius: var(--webops-border-radius-md);
+    font-size: var(--webops-font-size-base);
+    transition: all var(--webops-transition-fast);
+    background: var(--webops-color-background);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-form-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-light);
+}
+
+.webops-form-help {
+    display: block;
+    margin-top: var(--webops-space-sm);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-info-box {
+    padding: var(--webops-space-lg);
+    background: linear-gradient(135deg, var(--webops-color-primary-light) 0%, var(--webops-color-primary-lighter) 100%);
+    border-radius: var(--webops-border-radius-md);
+    border-left: 4px solid var(--webops-color-primary);
+    margin-bottom: var(--webops-space-xl);
+}
+
+.webops-info-box--security {
+    display: flex;
+    align-items: flex-start;
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-md);
+    margin-top: var(--webops-space-xl);
+}
+
+.webops-btn-lg {
+    padding: var(--webops-space-md) var(--webops-space-lg);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-color-border);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-btn-outline:hover {
+    background: var(--webops-color-background-secondary);
+    border-color: var(--webops-color-border-hover);
+}
+
+.webops-code-examples {
+    margin-bottom: var(--webops-space-lg);
+}
+
+.webops-code-examples:last-child {
+    margin-bottom: 0;
+}
+
+.webops-code-examples h5 {
+    margin-bottom: var(--webops-space-sm);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-code-examples pre {
+    background: var(--webops-color-background-tertiary);
+    color: var(--webops-color-text-inverse);
+    padding: var(--webops-space-md);
+    border-radius: var(--webops-border-radius-md);
+    overflow-x: auto;
+}
+
+.webops-code-examples code {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    line-height: var(--webops-line-height-relaxed);
+}
+</style>
+
+<script>
+document.getElementById('create-form').addEventListener('submit', function() {
+    const submitText = document.getElementById('submit-text');
+    const submitLoading = document.getElementById('submit-loading');
+
+    submitText.style.display = 'none';
+    submitLoading.style.display = 'inline';
+
+    // Disable form inputs
+    const inputs = this.querySelectorAll('input, select, button');
+    inputs.forEach(input => input.disabled = true);
+});
+
+// Character counter for token name
+const nameInput = document.getElementById('name');
+nameInput.addEventListener('input', function() {
+    const length = this.value.length;
+    const maxLength = this.maxLength;
+
+    if (length > maxLength * 0.9) {
+        this.style.borderColor = 'var(--webops-color-warning)';
+    } else {
+        this.style.borderColor = '';
+    }
+});
+</script>
+{% endblock %}

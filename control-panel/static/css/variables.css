@@ -1,0 +1,143 @@
+/**
+ * WebOps CSS Variables
+ * Centralized design system variables following --webops-* naming convention
+ */
+
+:root {
+    /* Colors - Primary Palette */
+    --webops-color-primary: #00ff88;
+    --webops-color-primary-dark: #00cc6a;
+    --webops-color-primary-light: #33ffaa;
+    --webops-color-secondary: #1a1a1a;
+    --webops-color-accent: #ff6b35;
+
+    /* Colors - Status */
+    --webops-color-success: #00ff88;
+    --webops-color-warning: #ffb800;
+    --webops-color-error: #ff4757;
+    --webops-color-info: #3742fa;
+
+    /* Colors - Status Light Variants */
+    --webops-color-success-light: rgba(0, 255, 136, 0.1);
+    --webops-color-warning-light: rgba(255, 184, 0, 0.1);
+    --webops-color-error-light: rgba(255, 71, 87, 0.1);
+    --webops-color-info-light: rgba(55, 66, 250, 0.1);
+
+    /* Colors - Text */
+    --webops-color-text: #ffffff;
+    --webops-color-text-secondary: rgba(255, 255, 255, 0.7);
+    --webops-color-text-tertiary: rgba(255, 255, 255, 0.5);
+    --webops-color-text-muted: rgba(255, 255, 255, 0.4);
+
+    /* Colors - Background */
+    --webops-color-background: #0a0a0a;
+    --webops-color-surface: #1a1a1a;
+    --webops-color-surface-elevated: #2a2a2a;
+    --webops-color-overlay: rgba(0, 0, 0, 0.8);
+
+    /* Colors - Border */
+    --webops-color-border: rgba(255, 255, 255, 0.1);
+    --webops-color-border-focus: var(--webops-color-primary);
+    --webops-color-border-hover: rgba(255, 255, 255, 0.2);
+
+    /* Spacing */
+    --webops-space-xs: 0.25rem;    /* 4px */
+    --webops-space-sm: 0.5rem;     /* 8px */
+    --webops-space-md: 1rem;       /* 16px */
+    --webops-space-lg: 1.5rem;     /* 24px */
+    --webops-space-xl: 2rem;       /* 32px */
+    --webops-space-2xl: 3rem;      /* 48px */
+    --webops-space-3xl: 4rem;      /* 64px */
+
+    /* Typography */
+    --webops-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --webops-font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    
+    --webops-font-size-xs: 0.75rem;    /* 12px */
+    --webops-font-size-sm: 0.875rem;   /* 14px */
+    --webops-font-size-base: 1rem;     /* 16px */
+    --webops-font-size-lg: 1.125rem;   /* 18px */
+    --webops-font-size-xl: 1.25rem;    /* 20px */
+    --webops-font-size-2xl: 1.5rem;    /* 24px */
+    --webops-font-size-3xl: 1.875rem;  /* 30px */
+    --webops-font-size-4xl: 2.25rem;   /* 36px */
+
+    --webops-font-weight-normal: 400;
+    --webops-font-weight-medium: 500;
+    --webops-font-weight-semibold: 600;
+    --webops-font-weight-bold: 700;
+
+    --webops-line-height-tight: 1.25;
+    --webops-line-height-normal: 1.5;
+    --webops-line-height-relaxed: 1.75;
+
+    /* Border Radius */
+    --webops-border-radius-none: 0;
+    --webops-border-radius-sm: 0.25rem;   /* 4px */
+    --webops-border-radius-md: 0.5rem;    /* 8px */
+    --webops-border-radius-lg: 0.75rem;   /* 12px */
+    --webops-border-radius-xl: 1rem;      /* 16px */
+    --webops-border-radius-full: 9999px;
+
+    /* Shadows */
+    --webops-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --webops-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --webops-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --webops-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --webops-shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+    /* Transitions */
+    --webops-transition-fast: 150ms ease-in-out;
+    --webops-transition-normal: 250ms ease-in-out;
+    --webops-transition-slow: 350ms ease-in-out;
+
+    /* Z-Index */
+    --webops-z-dropdown: 1000;
+    --webops-z-sticky: 1020;
+    --webops-z-fixed: 1030;
+    --webops-z-modal-backdrop: 1040;
+    --webops-z-modal: 1050;
+    --webops-z-popover: 1060;
+    --webops-z-tooltip: 1070;
+
+    /* Layout */
+    --webops-max-width-xs: 20rem;      /* 320px */
+    --webops-max-width-sm: 24rem;      /* 384px */
+    --webops-max-width-md: 28rem;      /* 448px */
+    --webops-max-width-lg: 32rem;      /* 512px */
+    --webops-max-width-xl: 36rem;      /* 576px */
+    --webops-max-width-2xl: 42rem;     /* 672px */
+    --webops-max-width-3xl: 48rem;     /* 768px */
+    --webops-max-width-4xl: 56rem;     /* 896px */
+    --webops-max-width-5xl: 64rem;     /* 1024px */
+    --webops-max-width-6xl: 72rem;     /* 1152px */
+    --webops-max-width-7xl: 80rem;     /* 1280px */
+    --webops-max-width-full: 100%;
+
+    /* Sidebar */
+    --webops-sidebar-width: 16rem;     /* 256px */
+    --webops-sidebar-width-collapsed: 4rem; /* 64px */
+
+    /* Header */
+    --webops-header-height: 4rem;      /* 64px */
+
+    /* Component Specific */
+    --webops-button-height-sm: 2rem;   /* 32px */
+    --webops-button-height-md: 2.5rem; /* 40px */
+    --webops-button-height-lg: 3rem;   /* 48px */
+
+    --webops-input-height-sm: 2rem;    /* 32px */
+    --webops-input-height-md: 2.5rem;  /* 40px */
+    --webops-input-height-lg: 3rem;    /* 48px */
+
+    --webops-gray-50: #fafafa;
+    --webops-gray-100: #f5f5f5;
+    --webops-gray-200: #e5e5e5;
+    --webops-gray-300: #d4d4d4;
+    --webops-gray-400: #a3a3a3;
+    --webops-gray-500: #737373;
+    --webops-gray-600: #525252;
+    --webops-gray-700: #404040;
+    --webops-gray-800: #262626;
+    --webops-gray-900: #171717;
+}

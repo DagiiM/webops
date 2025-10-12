@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block title %}New Deployment - WebOps{% endblock %}
+{% block header_title %}New Deployment{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Create New Deployment</h2>
+        <p class="webops-text-muted">Deploy a new application to your server</p>
+    </div>
+    <a href="{% url 'deployments:deployment_list' %}" class="webops-btn webops-btn-secondary">
+        <span class="material-icons">arrow_back</span>
+        Back to Deployments
+    </a>
+</div>
+
+{% if github_connected and github_repos %}
+<!-- GitHub Repository Browser -->
+<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+    <div class="webops-card-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-md);">
+            <span class="material-icons" style="color: var(--webops-color-primary);">folder_special</span>
+            <h3 class="webops-h3" style="margin: 0;">Select from Your GitHub Repositories</h3>
+        </div>
+        <span class="webops-badge webops-badge-success">{{ github_repos|length }} repos</span>
+    </div>
+    <div class="webops-card-body">
+        <!-- Search Box -->
+        <div class="webops-form-group" style="margin-bottom: var(--webops-space-lg);">
+            <div style="position: relative;">
+                <span class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--webops-color-text-tertiary); font-size: 20px;">search</span>
+                <input type="text" id="repoSearch" class="webops-input" placeholder="Search repositories..." style="padding-left: 40px;" autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Repository Grid -->
+        <div id="repoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--webops-space-md); max-height: 500px; overflow-y: auto; padding: 2px;">
+            {% for repo in github_repos %}
+            <div class="repo-card" data-repo-name="{{ repo.name|lower }}" data-repo-desc="{{ repo.description|lower }}" data-repo-fullname="{{ repo.full_name }}">
+                <div style="padding: var(--webops-space-lg); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: all var(--webops-transition-fast); height: 100%;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-md);">
+                        <div style="flex: 1; min-width: 0;">
+                            <h4 class="webops-h4" style="margin: 0 0 var(--webops-space-xs) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ repo.name }}
+                            </h4>
+                            <p class="webops-text-xs webops-text-tertiary" style="margin: 0;">{{ repo.full_name }}</p>
+                        </div>
+                        {% if repo.private %}
+                        <span class="webops-badge" style="background: rgba(255, 191, 0, 0.2); color: var(--webops-color-warning); font-size: 11px;">
+                            <span class="material-icons" style="font-size: 12px;">lock</span>
+                            Private
+                        </span>
+                        {% else %}
+                        <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); font-size: 11px;">
+                            <span class="material-icons" style="font-size: 12px;">public</span>
+                            Public
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    {% if repo.description %}
+                    <p class="webops-text-sm webops-text-secondary" style="margin: 0 0 var(--webops-space-md) 0; height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        {{ repo.description }}
+                    </p>
+                    {% else %}
+                    <p class="webops-text-sm webops-text-tertiary" style="margin: 0 0 var(--webops-space-md) 0; height: 40px; font-style: italic;">
+                        No description provided
+                    </p>
+                    {% endif %}
+
+                    <!-- Metadata -->
+                    <div style="display: flex; align-items: center; gap: var(--webops-space-md); flex-wrap: wrap; margin-bottom: var(--webops-space-md);">
+                        {% if repo.language %}
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">code</span>
+                            <span class="webops-text-xs webops-text-secondary">{{ repo.language }}</span>
+                        </div>
+                        {% endif %}
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">star</span>
+                            <span class="webops-text-xs webops-text-secondary">{{ repo.stargazers_count }}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">call_split</span>
+                            <span class="webops-text-xs webops-text-secondary">{{ repo.forks_count }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Select Button -->
+                    <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" style="width: 100%;" onclick="selectRepository('{{ repo.html_url }}', '{{ repo.full_name }}', '{{ repo.default_branch }}', '{{ repo.name }}')">
+                        <span class="material-icons">check_circle</span>
+                        Use This Repository
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="noResults" style="display: none; text-align: center; padding: var(--webops-space-2xl); color: var(--webops-color-text-tertiary);">
+            <span class="material-icons" style="font-size: 48px; opacity: 0.5;">search_off</span>
+            <p class="webops-text-secondary" style="margin-top: var(--webops-space-md);">No repositories match your search</p>
+        </div>
+    </div>
+</div>
+
+<div class="webops-flex webops-gap-sm" style="align-items: center; margin-bottom: var(--webops-space-xl); padding: var(--webops-space-md); background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.2);">
+    <span class="material-icons webops-text-success">check_circle</span>
+    <span class="webops-text-sm webops-text-secondary">Select a repository above or manually enter repository details below</span>
+</div>
+{% elif github_connected %}
+<!-- No repositories found -->
+<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-2xl);">
+        <span class="material-icons" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.5;">folder_off</span>
+        <h3 class="webops-h3" style="margin-top: var(--webops-space-lg); color: var(--webops-color-text-secondary);">No Repositories Found</h3>
+        <p class="webops-text-secondary">Your GitHub account doesn't have any repositories yet, or they couldn't be fetched.</p>
+        <p class="webops-text-sm webops-text-tertiary" style="margin-top: var(--webops-space-md);">You can still manually enter a repository URL below.</p>
+    </div>
+</div>
+{% else %}
+<!-- GitHub not connected -->
+<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-2xl);">
+        <div style="width: 64px; height: 64px; border-radius: var(--webops-border-radius-lg); background: linear-gradient(135deg, #24292e, #6e5494); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-lg);">
+            <span class="material-icons" style="font-size: 36px; color: white;">code</span>
+        </div>
+        <h3 class="webops-h3" style="margin-bottom: var(--webops-space-sm);">Connect GitHub for Quick Deploy</h3>
+        <p class="webops-text-secondary" style="margin-bottom: var(--webops-space-lg);">Connect your GitHub account to browse and select repositories directly from this page.</p>
+        <a href="{% url 'integrations_dashboard' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">link</span>
+            Connect GitHub
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Core Services Status -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header" style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+        <div class="webops-flex webops-gap-sm" style="align-items:center;">
+            <span class="material-icons">health_and_safety</span>
+            <h3 class="webops-h3" style="margin:0;">Prerequisites</h3>
+        </div>
+        {% if core_status.all_ok %}
+            <span class="webops-badge webops-badge-success">All services healthy</span>
+        {% else %}
+            <span class="webops-badge" style="background: rgba(255,191,0,0.2); color: var(--webops-color-warning);">Attention required</span>
+        {% endif %}
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+            <div class="webops-flex webops-gap-sm" style="align-items:center;">
+                <span class="material-icons" style="color: {{ core_status.systemctl|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+                    {{ core_status.systemctl|yesno:'check_circle,error' }}
+                </span>
+                <span class="webops-text-sm">systemctl available</span>
+            </div>
+            <div class="webops-flex webops-gap-sm" style="align-items:center;">
+                <span class="material-icons" style="color: {{ core_status.services.redis|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+                    {{ core_status.services.redis|yesno:'check_circle,error' }}
+                </span>
+                <span class="webops-text-sm">Redis</span>
+            </div>
+            <div class="webops-flex webops-gap-sm" style="align-items:center;">
+                <span class="material-icons" style="color: {{ core_status.services.postgresql|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+                    {{ core_status.services.postgresql|yesno:'check_circle,error' }}
+                </span>
+                <span class="webops-text-sm">PostgreSQL</span>
+            </div>
+            <div class="webops-flex webops-gap-sm" style="align-items:center;">
+                <span class="material-icons" style="color: {{ core_status.services.nginx|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+                    {{ core_status.services.nginx|yesno:'check_circle,error' }}
+                </span>
+                <span class="webops-text-sm">Nginx</span>
+            </div>
+            <div class="webops-flex webops-gap-sm" style="align-items:center;">
+                <span class="material-icons" style="color: {{ core_status.services.celery|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+                    {{ core_status.services.celery|yesno:'check_circle,error' }}
+                </span>
+                <span class="webops-text-sm">Celery worker</span>
+            </div>
+        </div>
+        {% if not core_status.all_ok %}
+            <p class="webops-text-sm webops-text-secondary" style="margin-top:12px;">
+                Some required services are not running. Please start them and refresh this page before deploying.
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Manual Deployment Form -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Deployment Configuration</h3>
+    </div>
+    <div class="webops-card-body">
+        <form method="POST" id="deploymentForm">
+            {% csrf_token %}
+
+            <div class="webops-form-group">
+                <label for="name" class="webops-label webops-label-required">Application Name</label>
+                <input type="text" id="name" name="name" class="webops-input" required
+                       pattern="[a-z0-9-_]+"
+                       placeholder="my-app"
+                       autocomplete="off">
+                <small class="webops-input-help">Lowercase letters, numbers, hyphens, and underscores only</small>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="repo_url" class="webops-label webops-label-required">Repository URL</label>
+                <input type="url" id="repo_url" name="repo_url" class="webops-input" required
+                       placeholder="https://github.com/username/repository"
+                       autocomplete="off">
+                <small class="webops-input-help">GitHub repository URL (public or private with connected GitHub account)</small>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="branch" class="webops-label">Branch</label>
+                <div style="position: relative;">
+                    <input type="text" id="branch" name="branch" class="webops-input" value="main"
+                           placeholder="main"
+                           autocomplete="off">
+                    <div id="branchLoader" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);">
+                        <div class="webops-spinner" style="width: 20px; height: 20px;"></div>
+                    </div>
+                </div>
+                <div id="branchSelector" style="display: none; margin-top: var(--webops-space-sm);">
+                    <select id="branchSelect" class="webops-input" style="cursor: pointer;">
+                        <option value="">Select a branch...</option>
+                    </select>
+                </div>
+                <small class="webops-input-help">Git branch to deploy (default: main)</small>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="domain" class="webops-label">Domain (optional)</label>
+                <input type="text" id="domain" name="domain" class="webops-input"
+                       placeholder="example.com"
+                       autocomplete="off">
+                <small class="webops-input-help">Leave empty to use IP address and port</small>
+            </div>
+
+            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-info);">
+                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                    <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
+                    <div class="webops-text-sm">
+                        <strong class="webops-font-semibold">Deployment Process</strong>
+                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                            The deployment will automatically clone your repository, install dependencies, and start your application.
+                            You can monitor the progress in the deployment details page.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-flex webops-gap-sm">
+                <button type="submit" class="webops-btn webops-btn-primary" {% if not core_status.all_ok %}disabled aria-disabled="true"{% endif %}>
+                    <span class="material-icons">rocket_launch</span>
+                    Create Deployment
+                </button>
+                <a href="{% url 'deployments:deployment_list' %}" class="webops-btn webops-btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Repository search
+const searchInput = document.getElementById('repoSearch');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const repoCards = document.querySelectorAll('.repo-card');
+        let visibleCount = 0;
+
+        repoCards.forEach(card => {
+            const name = card.dataset.repoName;
+            const desc = card.dataset.repoDesc;
+
+            if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        const noResults = document.getElementById('noResults');
+        const repoGrid = document.getElementById('repoGrid');
+        if (visibleCount === 0) {
+            repoGrid.style.display = 'none';
+            noResults.style.display = 'block';
+        } else {
+            repoGrid.style.display = 'grid';
+            noResults.style.display = 'none';
+        }
+    });
+}
+
+// Select repository
+function selectRepository(repoUrl, fullName, defaultBranch, repoName) {
+    // Auto-fill form fields
+    document.getElementById('repo_url').value = repoUrl;
+    document.getElementById('branch').value = defaultBranch || 'main';
+
+    // Auto-generate app name from repo name
+    const appName = repoName.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    document.getElementById('name').value = appName;
+
+    // Scroll to form
+    document.getElementById('deploymentForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Highlight form briefly
+    const card = document.querySelector('.webops-card:last-child');
+    card.style.boxShadow = '0 0 0 3px rgba(0, 255, 136, 0.3)';
+    setTimeout(() => {
+        card.style.boxShadow = '';
+    }, 2000);
+
+    // Fetch branches
+    fetchBranches(fullName);
+}
+
+// Fetch branches when repo URL changes
+{% if github_connected %}
+let currentRepo = null;
+
+document.getElementById('repo_url').addEventListener('blur', function() {
+    const url = this.value.trim();
+    if (url.includes('github.com/')) {
+        // Extract owner/repo from URL
+        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
+        if (match) {
+            const fullName = match[1].replace(/\.git$/, '');
+            if (fullName !== currentRepo) {
+// Disable submit if prerequisites not met (progressive enhancement)
+(function(){
+    try {
+        const submitBtn = document.querySelector('#deploymentForm button[type="submit"]');
+        const allOk = {{ core_status.all_ok|yesno:'true,false' }};
+        if (!allOk && submitBtn) {
+            submitBtn.setAttribute('disabled', 'disabled');
+            submitBtn.setAttribute('aria-disabled', 'true');
+        }
+    } catch(e) {}
+})();
+                currentRepo = fullName;
+                fetchBranches(fullName);
+            }
+        }
+    }
+});
+
+function fetchBranches(fullName) {
+    const branchLoader = document.getElementById('branchLoader');
+    const branchSelector = document.getElementById('branchSelector');
+    const branchSelect = document.getElementById('branchSelect');
+
+    branchLoader.style.display = 'block';
+    branchSelector.style.display = 'none';
+
+    fetch(`{% url 'deployments:github_repo_branches' %}?repo=${encodeURIComponent(fullName)}`)
+        .then(response => response.json())
+        .then(data => {
+            branchLoader.style.display = 'none';
+
+            if (data.success && data.branches.length > 0) {
+                branchSelect.innerHTML = '<option value="">Select a branch...</option>';
+                data.branches.forEach(branch => {
+                    const option = document.createElement('option');
+                    option.value = branch;
+                    option.textContent = branch;
+                    branchSelect.appendChild(option);
+                });
+
+                // Set current branch value as selected
+                const currentBranch = document.getElementById('branch').value;
+                if (currentBranch && data.branches.includes(currentBranch)) {
+                    branchSelect.value = currentBranch;
+                }
+
+                branchSelector.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to fetch branches:', error);
+            branchLoader.style.display = 'none';
+        });
+}
+
+// Update branch input when selection changes
+document.getElementById('branchSelect').addEventListener('change', function() {
+    if (this.value) {
+        document.getElementById('branch').value = this.value;
+    }
+});
+{% endif %}
+
+document.getElementById('deploymentForm').addEventListener('submit', function() {
+    showLoader();
+});
+</script>
+{% endblock %}

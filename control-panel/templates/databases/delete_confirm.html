@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Database - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">🗑️ Delete Database</h2>
+        <p class="webops-text-muted">Permanently delete database and associated credentials</p>
+    </div>
+    <a href="{% url 'database_detail' database.pk %}" class="webops-btn webops-btn-secondary">← Back to Database</a>
+</div>
+
+<!-- Warning Card -->
+<div class="webops-card warning-card" style="max-width: 700px; margin: 0 auto;">
+    <div class="webops-card-header" style="background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); color: white; border: none;">
+        <div class="webops-flex webops-items-center webops-gap-md">
+            <span style="font-size: 32px;">⚠️</span>
+            <div>
+                <h3 class="webops-h3" style="margin: 0; color: white;">Danger Zone - Irreversible Action</h3>
+                <p style="margin: 0.25rem 0 0 0; opacity: 0.9;">This action cannot be undone. All data will be permanently lost.</p>
+            </div>
+        </div>
+    </div>
+    <div class="webops-card-body">
+        <div class="database-info">
+            <h4 style="margin-bottom: 1rem; color: var(--webops-gray-700);">Database Details</h4>
+
+            <div class="info-grid">
+                <div class="info-row">
+                    <span class="info-label">Database Name:</span>
+                    <code class="webops-info-value">{{ database.name }}</code>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Username:</span>
+                    <code class="webops-info-value">{{ database.username }}</code>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Host:</span>
+                    <code class="webops-info-value">{{ database.host }}</code>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Port:</span>
+                    <code class="webops-info-value">{{ database.port }}</code>
+                </div>
+                {% if database.deployment %}
+                <div class="info-row">
+                    <span class="info-label">Associated Deployment:</span>
+                    <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="deployment-link">
+                        {{ database.deployment.name }}
+                    </a>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label">Created:</span>
+                    <span class="webops-info-value">{{ database.created_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="impact-section">
+            <h4 style="margin-bottom: 1rem; color: var(--webops-danger);">⚡ What Will Be Deleted:</h4>
+            <ul class="impact-list">
+                <li>
+                    <span class="impact-icon">🗄️</span>
+                    <div>
+                        <strong>PostgreSQL Database:</strong> The entire <code>{{ database.name }}</code> database will be dropped
+                    </div>
+                </li>
+                <li>
+                    <span class="impact-icon">👤</span>
+                    <div>
+                        <strong>Database User:</strong> PostgreSQL user <code>{{ database.username }}</code> will be removed
+                    </div>
+                </li>
+                <li>
+                    <span class="impact-icon">📊</span>
+                    <div>
+                        <strong>All Data:</strong> All tables, rows, indexes, and database contents will be permanently lost
+                    </div>
+                </li>
+                <li>
+                    <span class="impact-icon">🔐</span>
+                    <div>
+                        <strong>Credentials:</strong> Stored credentials will be removed from WebOps
+                    </div>
+                </li>
+                {% if database.deployment %}
+                <li>
+                    <span class="impact-icon">⚠️</span>
+                    <div>
+                        <strong>Deployment Impact:</strong> The deployment <strong>{{ database.deployment.name }}</strong> will lose its database connection
+                    </div>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="confirmation-section">
+            <form method="POST" id="delete-form">
+                {% csrf_token %}
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="confirm-checkbox" required>
+                        <span class="checkbox-text">
+                            I understand that this action is permanent and cannot be undone
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-actions webops-flex webops-gap-sm">
+                    <button type="submit" class="webops-btn webops-btn-danger btn-large" id="delete-btn" disabled>
+                        <span id="delete-text">🗑️ Permanently Delete Database</span>
+                        <span id="delete-loading" style="display: none;">⏳ Deleting...</span>
+                    </button>
+                    <a href="{% url 'database_detail' database.pk %}" class="webops-btn webops-btn-secondary btn-large">
+                        ← Cancel and Go Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Safety Tips -->
+<div class="webops-card" style="max-width: 700px; margin: 2rem auto 0; border-left: 4px solid var(--webops-color-primary);">
+    <div class="webops-card-body">
+        <h4 class="webops-h3 webops-text-primary webops-mb-md">💡 Before You Delete</h4>
+        <ul class="help-list">
+            <li>
+                <strong>Backup First:</strong> Consider backing up your data using <code>pg_dump</code> before deletion
+            </li>
+            <li>
+                <strong>Check Dependencies:</strong> Verify that no applications are actively using this database
+            </li>
+            <li>
+                <strong>Alternative:</strong> If temporarily unused, you can keep the database for future use
+            </li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.warning-card {
+    border: 3px solid var(--danger);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.database-info {
+    padding: 1.5rem;
+    background: var(--webops-gray-50);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: 2rem;
+}
+
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--webops-gray-700);
+    min-width: 180px;
+}
+
+.info-value {
+    background: var(--webops-color-bg-tertiary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+}
+
+.deployment-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.deployment-link:hover {
+    text-decoration: underline;
+}
+
+.impact-section {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-radius: var(--webops-border-radius-md);
+    border: 2px solid var(--danger-light);
+    margin-bottom: 2rem;
+}
+
+.impact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.impact-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-border-radius-md);
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--danger-light);
+}
+
+.impact-list li:last-child {
+    margin-bottom: 0;
+}
+
+.impact-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.impact-list code {
+    background: var(--webops-gray-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.875rem;
+}
+
+.confirmation-section {
+    padding-top: 2rem;
+    border-top: 2px solid var(--webops-gray-200);
+}
+
+.checkbox-group {
+    margin-bottom: 2rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 1rem;
+    background: var(--webops-gray-50);
+    border-radius: var(--webops-border-radius-md);
+    border: 2px solid var(--webops-gray-300);
+    transition: all 0.2s;
+}
+
+.checkbox-label:hover {
+    background: var(--webops-color-bg-tertiary);
+    border-color: var(--primary);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-text {
+    font-weight: 600;
+    color: var(--webops-gray-700);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-large {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    transform: scale(1.02);
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-gray-300);
+    color: var(--webops-gray-700);
+}
+
+.btn-outline:hover {
+    background: var(--webops-gray-50);
+    border-color: var(--webops-gray-400);
+}
+
+.help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--webops-gray-200);
+}
+
+.help-list li:last-child {
+    border-bottom: none;
+}
+
+.help-list strong {
+    color: var(--webops-gray-700);
+}
+
+.help-list code {
+    background: var(--webops-gray-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+// Enable delete button only when checkbox is checked
+const confirmCheckbox = document.getElementById('confirm-checkbox');
+const deleteBtn = document.getElementById('delete-btn');
+
+confirmCheckbox.addEventListener('change', function() {
+    deleteBtn.disabled = !this.checked;
+    if (this.checked) {
+        deleteBtn.style.opacity = '1';
+        deleteBtn.style.cursor = 'pointer';
+    } else {
+        deleteBtn.style.opacity = '0.5';
+        deleteBtn.style.cursor = 'not-allowed';
+    }
+});
+
+// Handle form submission
+document.getElementById('delete-form').addEventListener('submit', function(e) {
+    const deleteText = document.getElementById('delete-text');
+    const deleteLoading = document.getElementById('delete-loading');
+
+    deleteText.style.display = 'none';
+    deleteLoading.style.display = 'inline';
+
+    // Disable form inputs
+    const inputs = this.querySelectorAll('input, button');
+    inputs.forEach(input => input.disabled = true);
+});
+
+// Warn if user tries to leave page
+let formSubmitted = false;
+document.getElementById('delete-form').addEventListener('submit', function() {
+    formSubmitted = true;
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (!formSubmitted && confirmCheckbox.checked) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+"""
+URL configuration for core app (authentication and integrations).
+
+Reference: CLAUDE.md "URL Routing" section
+"""
+
+from django.urls import path
+from . import auth_views, views, integration_views
+
+urlpatterns = [
+    # Authentication
+    path('login/', auth_views.login_view, name='login'),
+    path('register/', auth_views.register_view, name='register'),
+    path('logout/', auth_views.logout_view, name='logout'),
+
+    # Password Reset
+    path('password-reset/', auth_views.password_reset_request, name='password_reset'),
+    path('password-reset/<uidb64>/<token>/', auth_views.password_reset_confirm, name='password_reset_confirm'),
+
+    # Two-Factor Authentication
+    path('2fa/setup/', auth_views.two_factor_setup, name='two_factor_setup'),
+    path('2fa/verify/', auth_views.two_factor_verify, name='two_factor_verify'),
+    path('2fa/disable/', auth_views.two_factor_disable, name='two_factor_disable'),
+
+    # Branding Settings
+    path('settings/branding/', views.branding_settings, name='branding_settings'),
+    path('settings/branding/reset/', views.reset_branding, name='reset_branding'),
+
+    # Platform Integrations
+    path('integrations/', integration_views.integrations_dashboard, name='integrations_dashboard'),
+
+    # GitHub Integration
+    path('integrations/github/connect/', integration_views.github_connect, name='github_connect'),
+    path('integrations/github/oauth/', integration_views.github_connect_oauth, name='github_connect_oauth'),
+    path('integrations/github/callback/', integration_views.github_callback, name='github_callback'),
+    path('integrations/github/disconnect/', integration_views.github_disconnect, name='github_disconnect'),
+    path('integrations/github/test/', integration_views.github_test, name='github_test'),
+
+    # Hugging Face Integration
+    path('integrations/huggingface/connect/', integration_views.huggingface_connect, name='huggingface_connect'),
+    path('integrations/huggingface/disconnect/', integration_views.huggingface_disconnect, name='huggingface_disconnect'),
+    path('integrations/huggingface/test/', integration_views.huggingface_test, name='huggingface_test'),
+    path('integrations/huggingface/models/', integration_views.huggingface_models, name='huggingface_models'),
+
+    # Webhooks (placeholder views to be implemented)
+    path('integrations/webhooks/', integration_views.webhook_list, name='webhook_list'),
+
+    # Notifications (placeholder views to be implemented)
+    path('integrations/notifications/', integration_views.notification_list, name='notification_list'),
+]

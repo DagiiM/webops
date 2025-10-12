@@ -1,0 +1,222 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate version tag
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Error: Invalid version tag format. Expected: v0.0.0"
+          exit 1
+        fi
+        echo "Valid version tag: $TAG"
+
+    - name: Check CHANGELOG
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        if grep -q "$TAG" docs/CHANGELOG.md; then
+          echo "✓ CHANGELOG.md contains entry for $TAG"
+        else
+          echo "Error: CHANGELOG.md missing entry for $TAG"
+          exit 1
+        fi
+
+  test:
+    name: Final Tests
+    needs: validate-release
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: webops_test
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: webops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=False
+        SECRET_KEY=test-secret-key-for-release
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=*
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run full test suite
+      run: |
+        cd control-panel
+        coverage run --source='apps' manage.py test
+        coverage report --fail-under=80
+
+    - name: Check deployment settings
+      run: |
+        cd control-panel
+        python manage.py check --deploy
+
+  build:
+    name: Build Release Assets
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Create release tarball
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        tar -czf webops-${VERSION}.tar.gz \
+          --exclude='.git' \
+          --exclude='.github' \
+          --exclude='*.pyc' \
+          --exclude='__pycache__' \
+          --exclude='*.sqlite3' \
+          --exclude='venv' \
+          --exclude='.env' \
+          .
+
+    - name: Generate checksums
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        sha256sum webops-${VERSION}.tar.gz > webops-${VERSION}.tar.gz.sha256
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-assets
+        path: |
+          webops-*.tar.gz
+          webops-*.tar.gz.sha256
+
+  create-release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: release-assets
+
+    - name: Extract release notes
+      id: release_notes
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+
+        # Extract relevant section from CHANGELOG
+        awk "/## \[$TAG\]/,/## \[/" docs/CHANGELOG.md | sed '1d;$d' > release-notes.md
+
+        if [ ! -s release-notes.md ]; then
+          echo "Error: Could not extract release notes from CHANGELOG"
+          exit 1
+        fi
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: release-notes.md
+        files: |
+          webops-*.tar.gz
+          webops-*.tar.gz.sha256
+        draft: false
+        prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-docs:
+    name: Deploy Documentation
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Deploy docs placeholder
+      run: |
+        echo "Documentation deployment would happen here"
+        echo "Consider using GitHub Pages, ReadTheDocs, or similar"
+
+  notify:
+    name: Release Notifications
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Send notification
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        echo "🚀 WebOps $TAG has been released!"
+        echo "Consider sending notifications to:"
+        echo "  - Discord/Slack"
+        echo "  - Twitter"
+        echo "  - Mailing list"
+        echo "  - RSS feed"

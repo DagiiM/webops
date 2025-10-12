@@ -1,0 +1,578 @@
+/*
+ * WebOps Admin Theme
+ * Unified design system using CSS variables from main.css
+ * Matches the WebOps gradient purple/blue theme
+ */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================================
+   CSS Variables - Import from Design System
+   ============================================================================ */
+:root {
+    /* Brand Colors - Unified Purple/Blue Gradient Theme */
+    --primary: #667eea;
+    --primary-dark: #5568d3;
+    --primary-light: #a5b4fc;
+    --primary-lighter: #e0e7ff;
+    --secondary: #764ba2;
+    --accent: #f093fb;
+
+    /* Semantic Colors */
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+    --info: #3b82f6;
+    --info-light: #dbeafe;
+
+    /* Grayscale */
+    --gray-50: #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-200: #e5e5e5;
+    --gray-300: #d4d4d4;
+    --gray-400: #a3a3a3;
+    --gray-500: #737373;
+    --gray-600: #525252;
+    --gray-700: #404040;
+    --gray-800: #262626;
+    --gray-900: #171717;
+
+    /* Backgrounds */
+    --bg-primary: #ffffff;
+    --bg-secondary: #fafbfc;
+    --bg-tertiary: #f6f8fa;
+    --bg-hover: #f3f4f6;
+
+    /* Layout */
+    --spacing: 8px;
+    --radius: 8px;
+    --radius-lg: 12px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   Global Overrides
+   ============================================================================ */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg-secondary) !important;
+    color: var(--webops-gray-800) !important;
+}
+
+/* ============================================================================
+   Header - Gradient Branding
+   ============================================================================ */
+#header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    box-shadow: var(--webops-shadow-md);
+}
+
+#branding h1,
+#branding h1 a:link,
+#branding h1 a:visited {
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1.5rem !important;
+}
+
+#branding h1 a:hover {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* User tools */
+#user-tools {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#user-tools a {
+    color: white !important;
+    border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+#user-tools a:hover {
+    border-bottom-color: white !important;
+}
+
+/* ============================================================================
+   Breadcrumbs
+   ============================================================================ */
+div.breadcrumbs {
+    background: var(--bg-tertiary) !important;
+    border-bottom: 1px solid var(--webops-gray-200) !important;
+    color: var(--webops-gray-700) !important;
+}
+
+div.breadcrumbs a {
+    color: var(--primary) !important;
+}
+
+div.breadcrumbs a:hover {
+    color: var(--primary-dark) !important;
+}
+
+/* ============================================================================
+   Buttons - Using Design System Colors
+   ============================================================================ */
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+a.button {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: calc(var(--spacing) * 1.25) calc(var(--spacing) * 2) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    box-shadow: var(--webops-shadow-md) !important;
+    transition: all 0.2s ease !important;
+}
+
+.button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.submit-row input:hover,
+a.button:hover {
+    box-shadow: var(--webops-shadow-lg) !important;
+    transform: translateY(-2px) !important;
+    color: white !important;
+}
+
+.button:active,
+input[type="submit"]:active,
+input[type="button"]:active {
+    transform: translateY(0) !important;
+}
+
+/* Default/Cancel buttons */
+.button.default,
+.cancel-link {
+    background: var(--webops-gray-100) !important;
+    color: var(--webops-gray-700) !important;
+    box-shadow: none !important;
+}
+
+.button.default:hover {
+    background: var(--webops-gray-200) !important;
+    transform: none !important;
+}
+
+/* Delete button */
+.deletelink,
+.deletelink-box a {
+    background: var(--danger) !important;
+}
+
+.deletelink:hover,
+.deletelink-box a:hover {
+    background: #dc2626 !important;
+}
+
+/* ============================================================================
+   Links
+   ============================================================================ */
+a:link,
+a:visited {
+    color: var(--primary) !important;
+}
+
+a:hover,
+a:active {
+    color: var(--primary-dark) !important;
+}
+
+/* ============================================================================
+   Tables
+   ============================================================================ */
+#changelist-filter li.selected a {
+    color: var(--primary) !important;
+    font-weight: 600 !important;
+}
+
+thead th {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    color: white !important;
+}
+
+thead th a:link,
+thead th a:visited {
+    color: white !important;
+}
+
+tr.selected {
+    background-color: var(--primary-lighter) !important;
+}
+
+tbody tr:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+/* ============================================================================
+   Module Boxes
+   ============================================================================ */
+.module {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--webops-gray-200) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--webops-shadow-sm) !important;
+    overflow: hidden !important;
+}
+
+.module:hover {
+    box-shadow: var(--webops-shadow-md) !important;
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2) !important;
+}
+
+.module h3 {
+    color: var(--webops-gray-800) !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================================================
+   Dashboard - Recent Actions
+   ============================================================================ */
+#recent-actions-module h2 {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+}
+
+#recent-actions-module ul {
+    border-left: 3px solid var(--primary) !important;
+}
+
+/* ============================================================================
+   Forms
+   ============================================================================ */
+.form-row input[type="text"],
+.form-row input[type="password"],
+.form-row input[type="email"],
+.form-row input[type="url"],
+.form-row input[type="number"],
+.form-row textarea,
+.form-row select {
+    border: 1px solid var(--webops-gray-200) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) * 1.5) !important;
+    transition: all 0.2s ease !important;
+    background: var(--bg-primary) !important;
+}
+
+.form-row input[type="text"]:focus,
+.form-row input[type="password"]:focus,
+.form-row input[type="email"]:focus,
+.form-row input[type="url"]:focus,
+.form-row input[type="number"]:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+    border-color: var(--primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* ============================================================================
+   Navigation - Sidebar
+   ============================================================================ */
+.module ul li a:hover {
+    color: var(--primary) !important;
+    background: var(--bg-hover) !important;
+}
+
+#changelist-filter li.selected a {
+    background: var(--primary-lighter) !important;
+    border-radius: calc(var(--webops-border-radius-md) / 2) !important;
+    padding: calc(var(--spacing) / 2) var(--spacing) !important;
+}
+
+/* ============================================================================
+   Messages/Alerts
+   ============================================================================ */
+.messagelist .success {
+    background-color: var(--success) !important;
+    color: white !important;
+}
+
+.messagelist .warning {
+    background-color: var(--warning) !important;
+    color: white !important;
+}
+
+.messagelist .error {
+    background-color: var(--danger) !important;
+    color: white !important;
+}
+
+.messagelist .info {
+    background-color: var(--info) !important;
+    color: white !important;
+}
+
+/* ============================================================================
+   Object Tools
+   ============================================================================ */
+.object-tools a {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    font-weight: 500 !important;
+    box-shadow: var(--webops-shadow-md) !important;
+}
+
+.object-tools a:hover {
+    box-shadow: var(--webops-shadow-lg) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ============================================================================
+   Login Page
+   ============================================================================ */
+body.login {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+}
+
+.login #header {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.login #branding h1 {
+    margin-bottom: calc(var(--spacing) * 4) !important;
+}
+
+.login #content {
+    background: var(--bg-primary) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-xl) !important;
+    padding: calc(var(--spacing) * 4) !important;
+}
+
+.login .form-row {
+    padding: var(--spacing) 0 !important;
+}
+
+.login .form-row label {
+    color: var(--webops-gray-700) !important;
+    font-weight: 500 !important;
+}
+
+.login .form-row input {
+    border: 1px solid var(--webops-gray-200) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) * 1.5) !important;
+}
+
+.login .submit-row {
+    background: transparent !important;
+    border: none !important;
+    padding: var(--spacing) 0 0 0 !important;
+}
+
+.login input[type="submit"] {
+    width: 100% !important;
+    padding: calc(var(--spacing) * 1.75) !important;
+    font-size: 1rem !important;
+}
+
+/* ============================================================================
+   Calendar Widget
+   ============================================================================ */
+.calendarbox h2 {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+}
+
+.calendar td a:hover {
+    background: var(--webops-primary) !important;
+}
+
+.calendar td.selected a {
+    background: var(--webops-primary) !important;
+}
+
+/* ============================================================================
+   Pagination
+   ============================================================================ */
+.paginator a:link,
+.paginator a:visited {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--webops-gray-200) !important;
+    color: var(--primary) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) / 2) var(--spacing) !important;
+}
+
+.paginator a:hover {
+    background: var(--primary-lighter) !important;
+    border-color: var(--primary) !important;
+}
+
+.paginator .this-page {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) / 2) var(--spacing) !important;
+}
+
+/* ============================================================================
+   Action Checkboxes
+   ============================================================================ */
+.action-checkbox {
+    accent-color: var(--primary) !important;
+}
+
+/* ============================================================================
+   Help Text
+   ============================================================================ */
+.help,
+.help-tooltip {
+    color: var(--webops-gray-600) !important;
+    font-size: 0.875rem !important;
+}
+
+/* ============================================================================
+   Status Icons
+   ============================================================================ */
+.yes,
+.icon-yes,
+img[alt="True"],
+img[src*="icon-yes"] {
+    filter: hue-rotate(15deg) !important;
+}
+
+.no,
+.icon-no,
+img[alt="False"],
+img[src*="icon-no"] {
+    filter: hue-rotate(-15deg) !important;
+}
+
+/* ============================================================================
+   Related Objects
+   ============================================================================ */
+.related-widget-wrapper-link {
+    color: var(--primary) !important;
+}
+
+.related-widget-wrapper-link:hover {
+    color: var(--primary-dark) !important;
+}
+
+/* ============================================================================
+   Change List Actions
+   ============================================================================ */
+#changelist .actions {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--webops-gray-200) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) * 2) !important;
+}
+
+#changelist .actions select {
+    border: 1px solid var(--webops-gray-200) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) * 1.5) !important;
+    background: var(--bg-primary) !important;
+}
+
+#changelist .actions button {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+    border: none !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    color: white !important;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2) !important;
+    font-weight: 500 !important;
+}
+
+#changelist .actions button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--webops-shadow-md) !important;
+}
+
+/* ============================================================================
+   Inline Forms
+   ============================================================================ */
+.inline-group .tabular tr.has_original td {
+    background: var(--bg-tertiary) !important;
+}
+
+.inline-group .add-row a {
+    color: var(--primary) !important;
+    font-weight: 500 !important;
+}
+
+.inline-group .add-row a:hover {
+    color: var(--primary-dark) !important;
+}
+
+/* ============================================================================
+   Error Lists
+   ============================================================================ */
+.errorlist {
+    background: var(--danger-light) !important;
+    border-left: 3px solid var(--danger) !important;
+    border-radius: var(--webops-border-radius-md) !important;
+    padding: calc(var(--spacing) * 1.5) !important;
+    color: #991b1b !important;
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+#footer {
+    color: var(--webops-gray-600) !important;
+    border-top: 1px solid var(--webops-gray-200) !important;
+    padding: calc(var(--spacing) * 3) 0 !important;
+}
+
+/* ============================================================================
+   Dashboard Cards Enhancement
+   ============================================================================ */
+#content-main .module {
+    transition: all 0.2s ease !important;
+}
+
+#content-main .module:hover {
+    transform: translateY(-2px) !important;
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+@media (max-width: 768px) {
+    .login #content {
+        margin: var(--spacing) !important;
+        padding: calc(var(--spacing) * 3) !important;
+    }
+
+    .module {
+        margin-bottom: var(--spacing) !important;
+    }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+@media print {
+    #header,
+    div.breadcrumbs,
+    .object-tools,
+    #changelist-filter {
+        display: none !important;
+    }
+}

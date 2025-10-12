@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}Deploy LLM Model - {{ branding.site_name }}{% endblock %}
+{% block header_title %}Deploy LLM Model{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Deploy LLM Model</h2>
+        <p class="webops-text-muted">Deploy a Large Language Model using vLLM</p>
+    </div>
+    <a href="{% url 'deployments:llm_list' %}" class="webops-btn webops-btn-secondary">
+        <span class="material-icons">arrow_back</span>
+        Back to LLM Models
+    </a>
+</div>
+
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Model Configuration</h3>
+    </div>
+    <div class="webops-card-body">
+        <form method="POST" id="llmForm">
+            {% csrf_token %}
+
+            <div class="webops-form-group">
+                <label for="name" class="webops-label webops-label-required">Deployment Name</label>
+                <input type="text" id="name" name="name" class="webops-input" required
+                       pattern="[a-z0-9-_]+"
+                       placeholder="gpt2-deployment"
+                       autocomplete="off">
+                <small class="webops-input-help">Lowercase letters, numbers, hyphens, and underscores only</small>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="model_name" class="webops-label webops-label-required">Model Name</label>
+                <input type="text" id="model_name" name="model_name" class="webops-input" required
+                       placeholder="gpt2 or meta-llama/Llama-2-7b-hf"
+                       autocomplete="off">
+                <small class="webops-input-help">Hugging Face model ID (e.g., gpt2, meta-llama/Llama-2-7b-hf)</small>
+            </div>
+
+            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-success);">
+                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                    <span class="material-icons webops-text-success" style="font-size: 20px;">link</span>
+                    <div class="webops-text-sm">
+                        <strong class="webops-font-semibold">Need access to private models?</strong>
+                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                            Connect your Hugging Face account in <a href="{% url 'integrations_dashboard' %}" class="webops-text-primary">Integrations</a> to deploy private models.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-form-row">
+                <div class="webops-form-group">
+                    <label for="tensor_parallel_size" class="webops-label">Number of GPUs</label>
+                    <input type="number" id="tensor_parallel_size" name="tensor_parallel_size"
+                           class="webops-input" value="1" min="1" max="8">
+                    <small class="webops-input-help">Tensor parallelism across GPUs (default: 1)</small>
+                </div>
+
+                <div class="webops-form-group">
+                    <label for="gpu_memory_utilization" class="webops-label">GPU Memory</label>
+                    <input type="number" id="gpu_memory_utilization" name="gpu_memory_utilization"
+                           class="webops-input" value="0.9" min="0.1" max="1.0" step="0.1">
+                    <small class="webops-input-help">Fraction of GPU memory to use (0.1-1.0)</small>
+                </div>
+            </div>
+
+            <div class="webops-form-row">
+                <div class="webops-form-group">
+                    <label for="dtype" class="webops-label">Data Type</label>
+                    <select id="dtype" name="dtype" class="webops-input">
+                        <option value="auto">Auto</option>
+                        <option value="float16">Float16 (Recommended)</option>
+                        <option value="bfloat16">BFloat16</option>
+                        <option value="float32">Float32</option>
+                    </select>
+                    <small class="webops-input-help">Model precision (float16 recommended for most models)</small>
+                </div>
+
+                <div class="webops-form-group">
+                    <label for="quantization" class="webops-label">Quantization</label>
+                    <select id="quantization" name="quantization" class="webops-input">
+                        <option value="">None</option>
+                        <option value="awq">AWQ</option>
+                        <option value="gptq">GPTQ</option>
+                        <option value="squeezellm">SqueezeLLM</option>
+                    </select>
+                    <small class="webops-input-help">Reduce memory usage (requires quantized model)</small>
+                </div>
+            </div>
+
+            <div class="webops-form-group">
+                <label for="max_model_len" class="webops-label">Max Context Length (Optional)</label>
+                <input type="number" id="max_model_len" name="max_model_len"
+                       class="webops-input" placeholder="e.g., 4096">
+                <small class="webops-input-help">Override model's maximum context length (leave empty for auto)</small>
+            </div>
+
+            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-info);">
+                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                    <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
+                    <div class="webops-text-sm">
+                        <strong class="webops-font-semibold">Deployment Process</strong>
+                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                            The deployment will download the model from Hugging Face, set up vLLM environment, and start the inference server.
+                            This may take several minutes depending on model size. You can monitor progress in the deployment details page.
+                        </p>
+                        <p class="webops-text-secondary" style="margin: 8px 0 0 0;">
+                            <strong>Note:</strong> vLLM requires GPU access. Ensure your system has available GPU resources.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="webops-flex webops-gap-sm">
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">smart_toy</span>
+                    Deploy Model
+                </button>
+                <a href="{% url 'deployments:llm_list' %}" class="webops-btn webops-btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Model Browser Card -->
+<div class="webops-card" style="margin-top: var(--webops-space-xl);">
+    <div class="webops-card-header">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-sm);">
+            <span class="material-icons" style="color: var(--webops-color-warning);">hub</span>
+            <h3 class="webops-h3" style="margin: 0;">Popular Models</h3>
+        </div>
+    </div>
+    <div style="padding: var(--webops-space-lg);">
+        <h4 class="webops-h4" style="margin-bottom: var(--webops-space-md); color: var(--webops-color-text-secondary);">Testing & Small Models</h4>
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--webops-space-md); margin-bottom: var(--webops-space-2xl);">
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">GPT-2</h4>
+                <code class="webops-text-xs">gpt2</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    OpenAI's classic model, perfect for testing (~550M params, ~2GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('gpt2', 'gpt2-test')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">Phi-2</h4>
+                <code class="webops-text-xs">microsoft/phi-2</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Microsoft's efficient 2.7B model with strong performance (~6GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('microsoft/phi-2', 'phi2')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">TinyLlama 1.1B</h4>
+                <code class="webops-text-xs">TinyLlama/TinyLlama-1.1B-Chat-v1.0</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Compact chat model, great for testing (~3GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('TinyLlama/TinyLlama-1.1B-Chat-v1.0', 'tinyllama')">
+                    Use This Model
+                </button>
+            </div>
+        </div>
+
+        <h4 class="webops-h4" style="margin-bottom: var(--webops-space-md); color: var(--webops-color-text-secondary);">DeepSeek Models</h4>
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--webops-space-md); margin-bottom: var(--webops-space-2xl);">
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(255, 191, 0, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(255, 191, 0, 0.05);">
+                <h4 class="webops-h4">DeepSeek-V3</h4>
+                <code class="webops-text-xs">deepseek-ai/DeepSeek-V3</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    DeepSeek's flagship 671B model with MoE architecture (requires 80GB+ VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" onclick="fillModel('deepseek-ai/DeepSeek-V3', 'deepseek-v3')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(255, 191, 0, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(255, 191, 0, 0.05);">
+                <h4 class="webops-h4">DeepSeek Coder V2</h4>
+                <code class="webops-text-xs">deepseek-ai/DeepSeek-Coder-V2-Instruct</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Specialized code generation model, 236B params (~40GB+ VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" onclick="fillModel('deepseek-ai/DeepSeek-Coder-V2-Instruct', 'deepseek-coder-v2')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(255, 191, 0, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(255, 191, 0, 0.05);">
+                <h4 class="webops-h4">DeepSeek R1</h4>
+                <code class="webops-text-xs">deepseek-ai/DeepSeek-R1</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Reasoning-focused model with strong problem-solving (671B params)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" onclick="fillModel('deepseek-ai/DeepSeek-R1', 'deepseek-r1')">
+                    Use This Model
+                </button>
+            </div>
+        </div>
+
+        <h4 class="webops-h4" style="margin-bottom: var(--webops-space-md); color: var(--webops-color-text-secondary);">Popular 7B Models</h4>
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--webops-space-md); margin-bottom: var(--webops-space-2xl);">
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">Llama 3 8B Instruct</h4>
+                <code class="webops-text-xs">meta-llama/Meta-Llama-3-8B-Instruct</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Meta's latest Llama 3 instruction-tuned model (~16GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('meta-llama/Meta-Llama-3-8B-Instruct', 'llama3-8b')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">Mistral 7B Instruct</h4>
+                <code class="webops-text-xs">mistralai/Mistral-7B-Instruct-v0.3</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Mistral AI's high-performance 7B model (~14GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('mistralai/Mistral-7B-Instruct-v0.3', 'mistral-7b')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md);">
+                <h4 class="webops-h4">Gemma 2 9B</h4>
+                <code class="webops-text-xs">google/gemma-2-9b-it</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Google's Gemma 2 instruction-tuned model (~18GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="fillModel('google/gemma-2-9b-it', 'gemma2-9b')">
+                    Use This Model
+                </button>
+            </div>
+        </div>
+
+        <h4 class="webops-h4" style="margin-bottom: var(--webops-space-md); color: var(--webops-color-text-secondary);">Quantized Models (Reduced VRAM)</h4>
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--webops-space-md);">
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 170, 255, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(0, 170, 255, 0.05);">
+                <h4 class="webops-h4">Llama 2 7B AWQ</h4>
+                <code class="webops-text-xs">TheBloke/Llama-2-7B-Chat-AWQ</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Quantized Llama 2 with 50% memory reduction (~7GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-info" onclick="fillModel('TheBloke/Llama-2-7B-Chat-AWQ', 'llama2-awq')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 170, 255, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(0, 170, 255, 0.05);">
+                <h4 class="webops-h4">Mistral 7B AWQ</h4>
+                <code class="webops-text-xs">TheBloke/Mistral-7B-Instruct-v0.2-AWQ</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Quantized Mistral for lower memory usage (~7GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-info" onclick="fillModel('TheBloke/Mistral-7B-Instruct-v0.2-AWQ', 'mistral-awq')">
+                    Use This Model
+                </button>
+            </div>
+
+            <div style="padding: var(--webops-space-md); border: 1px solid rgba(0, 170, 255, 0.3); border-radius: var(--webops-border-radius-md); background: rgba(0, 170, 255, 0.05);">
+                <h4 class="webops-h4">DeepSeek Coder 6.7B</h4>
+                <code class="webops-text-xs">deepseek-ai/deepseek-coder-6.7b-instruct</code>
+                <p class="webops-text-sm webops-text-secondary" style="margin: var(--webops-space-sm) 0; min-height: 3rem;">
+                    Smaller DeepSeek code model, more accessible (~14GB VRAM)
+                </p>
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-info" onclick="fillModel('deepseek-ai/deepseek-coder-6.7b-instruct', 'deepseek-coder-6.7b')">
+                    Use This Model
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillModel(modelId, deploymentName) {
+    document.getElementById('model_name').value = modelId;
+    document.getElementById('name').value = deploymentName;
+}
+
+document.getElementById('llmForm').addEventListener('submit', function() {
+    showLoader();
+});
+</script>
+{% endblock %}

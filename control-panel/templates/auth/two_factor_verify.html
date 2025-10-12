@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify 2FA - WebOps</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body class="login-page">
+    <div class="webops-app-background"></div>
+    <div class="login-container">
+        <div class="webops-card" style="max-width: 450px; margin: 0 auto;">
+            <div class="webops-card-body">
+                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-xs);">WebOps</h1>
+                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Two-Factor Authentication</h2>
+
+                <p class="webops-text-secondary webops-mb-lg webops-text-center">
+                    Enter the 6-digit code from your authenticator app, or use a backup code
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="webops-form-group">
+                        <label for="{{ form.code.id_for_label }}" class="webops-label">Verification Code (or use backup code below)</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                {{ form.code.errors|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <details class="webops-mb-md">
+                        <summary class="webops-text-secondary webops-text-sm" style="cursor: pointer; user-select: none;">
+                            Use backup code instead
+                        </summary>
+                        <div class="webops-mt-sm">
+                            <label for="{{ form.backup_code.id_for_label }}" class="webops-label">Backup Code</label>
+                            {{ form.backup_code }}
+                            {% if form.backup_code.errors %}
+                                <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                    {{ form.backup_code.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </details>
+
+                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">
+                        Verify
+                    </button>
+
+                    <div class="webops-text-center webops-text-secondary">
+                        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none;">
+                            ← Back to Login
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - WebOps</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body class="login-page">
+    <div class="webops-app-background"></div>
+    <div class="login-container" style="padding: 2rem 1rem;">
+        <div class="webops-card" style="max-width: 480px; margin: 0 auto;">
+            <div class="webops-card-body">
+                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-xs);">WebOps</h1>
+                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Create Your Account</h2>
+
+                {% if form.non_field_errors %}
+                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-border-radius-md);">
+                    {% for error in form.non_field_errors %}
+                    <span class="webops-text-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="webops-form-group">
+                        <label for="{{ form.username.id_for_label }}" class="webops-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                {{ form.username.errors|first }}
+                            </div>
+                        {% elif form.username.help_text %}
+                            <div class="webops-text-secondary webops-text-sm webops-mt-xs">
+                                {{ form.username.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="{{ form.email.id_for_label }}" class="webops-label">Email Address</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                {{ form.email.errors|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="{{ form.password1.id_for_label }}" class="webops-label">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                {{ form.password1.errors|first }}
+                            </div>
+                        {% elif form.password1.help_text %}
+                            <div class="webops-text-secondary webops-text-sm webops-mt-xs">
+                                {{ form.password1.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="{{ form.password2.id_for_label }}" class="webops-label">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="webops-text-error webops-text-sm webops-mt-xs">
+                                {{ form.password2.errors|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">
+                        Create Account
+                    </button>
+
+                    <div class="webops-text-center webops-text-secondary">
+                        Already have an account?
+                        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none;">
+                            Sign In
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
