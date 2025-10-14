@@ -178,6 +178,94 @@ class ErrorBoundary {
     }
 }
 
+class SidebarManager {
+    constructor() {
+        this.sidebar = null;
+        this.toggle = null;
+        this.overlay = null;
+        this.isOpen = false;
+        this.init();
+    }
+
+    init() {
+        this.sidebar = document.querySelector('.webops-sidebar');
+        this.toggle = document.querySelector('.webops-sidebar-toggle');
+        this.overlay = document.querySelector('.webops-sidebar-overlay');
+
+        if (!this.sidebar || !this.toggle || !this.overlay) {
+            console.warn('Sidebar elements not found');
+            return;
+        }
+
+        this.bindEvents();
+        this.handleResize();
+    }
+
+    bindEvents() {
+        // Toggle button click
+        this.toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleSidebar();
+        });
+
+        // Overlay click to close
+        this.overlay.addEventListener('click', () => {
+            this.closeSidebar();
+        });
+
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.closeSidebar();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+
+        // Close sidebar when clicking nav links on mobile
+        const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    this.closeSidebar();
+                }
+            });
+        });
+    }
+
+    toggleSidebar() {
+        if (this.isOpen) {
+            this.closeSidebar();
+        } else {
+            this.openSidebar();
+        }
+    }
+
+    openSidebar() {
+        this.sidebar.classList.add('active');
+        this.overlay.classList.add('active');
+        this.isOpen = true;
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+
+    closeSidebar() {
+        this.sidebar.classList.remove('active');
+        this.overlay.classList.remove('active');
+        this.isOpen = false;
+        document.body.style.overflow = ''; // Restore scroll
+    }
+
+    handleResize() {
+        // Auto-close sidebar on desktop
+        if (window.innerWidth > 768 && this.isOpen) {
+            this.closeSidebar();
+        }
+    }
+}
+
 // Retry mechanism for failed requests
 class RetryManager {
     static async withRetry(fn, maxRetries = 3, delay = 1000) {
@@ -207,12 +295,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize components
     try {
         new GraphBackground();
+        const sidebarManager = new SidebarManager();
+        
         window.WebOps = {
             API: new APIClient(),
             Loader,
             Toast,
             ErrorBoundary,
-            RetryManager
+            RetryManager,
+            Sidebar: sidebarManager
         };
         console.log('%cWebOps', 'color: #00ff88; font-size: 24px; font-weight: bold;');
     } catch (error) {

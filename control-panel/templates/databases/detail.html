@@ -9,7 +9,7 @@
         <h2 class="webops-page-title">{{ database.name }}</h2>
         <p class="webops-text-muted">Database credentials and connection information</p>
     </div>
-    <div style="display: flex; gap: var(--webops-space-sm);">
+    <div style="display: flex; gap: var(--webops-space-1-5);">
         {% if database.deployment %}
             <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
                 <span class="material-icons">launch</span>

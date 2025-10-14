@@ -14,18 +14,18 @@
             <p class="webops-text-secondary webops-mb-md">
                 Use an authenticator app (Google Authenticator, Authy, Microsoft Authenticator, etc.) to scan this QR code:
             </p>
-            <div style="text-align: center; padding: var(--webops-space-lg); background: var(--webops-color-bg-tertiary); border-radius: var(--webops-border-radius-md); margin-bottom: var(--webops-space-md);">
+            <div style="text-align: center; padding: var(--webops-space-3); background: var(--webops-color-bg-tertiary); border-radius: var(--webops-radius-md); margin-bottom: var(--webops-space-3);">
                 <img src="data:image/png;base64,{{ qr_code }}" alt="2FA QR Code" style="max-width: 250px;">
             </div>
             <details class="webops-mb-md">
                 <summary class="webops-text-primary" style="cursor: pointer; user-select: none;">
                     Can't scan? Enter manually
                 </summary>
-                <div class="webops-mt-sm webops-p-md" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
+                <div class="webops-mt-sm webops-p-md" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
                     <p class="webops-text-sm webops-text-secondary webops-mb-xs">Account: {{ user.username }}</p>
                     <p class="webops-text-sm webops-text-secondary webops-mb-xs">Issuer: WebOps</p>
                     <p class="webops-text-sm webops-mb-xs">Secret Key:</p>
-                    <code style="background: rgba(0, 255, 136, 0.1); padding: var(--webops-space-xs) var(--webops-space-sm); border-radius: var(--webops-border-radius-sm); color: var(--webops-color-primary); font-family: var(--webops-font-family-mono);">{{ secret }}</code>
+                    <code style="background: rgba(0, 255, 136, 0.1); padding: var(--webops-space-0-5) var(--webops-space-1-5); border-radius: var(--webops-radius-sm); color: var(--webops-color-primary); font-family: var(--webops-font-family-mono);">{{ secret }}</code>
                 </div>
             </details>
         </div>
@@ -63,7 +63,7 @@
             </form>
         </div>
 
-        <div class="webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-left: 4px solid var(--webops-color-info); border-radius: var(--webops-border-radius-md);">
+        <div class="webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-left: 4px solid var(--webops-color-info); border-radius: var(--webops-radius-md);">
             <p class="webops-text-sm webops-text-info">
                 <strong>Note:</strong> After enabling 2FA, you'll receive backup codes. Save them in a safe place - they can be used to access your account if you lose access to your authenticator app.
             </p>

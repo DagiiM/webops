@@ -1,6 +1,6 @@
 """API client for WebOps."""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Self
 import requests
 from requests.exceptions import RequestException
 
@@ -13,9 +13,8 @@ class WebOpsAPIError(Exception):
 class WebOpsAPIClient:
     """Client for WebOps REST API."""
 
-    def __init__(self, base_url: str, token: str):
-        """
-        Initialize API client.
+    def __init__(self: Self, base_url: str, token: str) -> None:
+        """Initialize API client.
 
         Args:
             base_url: Base URL of WebOps panel (e.g., https://panel.example.com)
@@ -30,13 +29,12 @@ class WebOpsAPIClient:
         })
 
     def _request(
-        self,
+        self: Self,
         method: str,
         endpoint: str,
-        **kwargs
+        **kwargs: Any
     ) -> Dict[str, Any]:
-        """
-        Make HTTP request to API.
+        """Make HTTP request to API.
 
         Args:
             method: HTTP method (GET, POST, etc.)
@@ -66,36 +64,67 @@ class WebOpsAPIClient:
             raise WebOpsAPIError(error_msg)
 
     # Status
-    def get_status(self) -> Dict[str, Any]:
-        """Get API status."""
+    def get_status(self: Self) -> Dict[str, Any]:
+        """Get API status.
+        
+        Returns:
+            Dictionary containing API status information.
+        """
         return self._request('GET', '/api/status/')
 
     # Deployments
     def list_deployments(
-        self,
+        self: Self,
         page: int = 1,
         per_page: int = 20,
         status: Optional[str] = None
     ) -> Dict[str, Any]:
-        """List all deployments."""
+        """List all deployments.
+        
+        Args:
+            page: Page number for pagination.
+            per_page: Number of results per page.
+            status: Filter by deployment status.
+            
+        Returns:
+            Dictionary containing deployment list and pagination info.
+        """
         params = {'page': page, 'per_page': per_page}
         if status:
             params['status'] = status
         return self._request('GET', '/api/deployments/', params=params)
 
-    def get_deployment(self, name: str) -> Dict[str, Any]:
-        """Get deployment details by name."""
+    def get_deployment(self: Self, name: str) -> Dict[str, Any]:
+        """Get deployment details by name.
+        
+        Args:
+            name: Deployment name.
+            
+        Returns:
+            Dictionary containing deployment details.
+        """
         return self._request('GET', f'/api/deployments/{name}/')
 
     def create_deployment(
-        self,
+        self: Self,
         name: str,
         repo_url: str,
         branch: str = 'main',
         domain: str = '',
         env_vars: Optional[Dict[str, str]] = None
     ) -> Dict[str, Any]:
-        """Create new deployment."""
+        """Create new deployment.
+        
+        Args:
+            name: Deployment name.
+            repo_url: Git repository URL.
+            branch: Git branch to deploy.
+            domain: Custom domain name.
+            env_vars: Environment variables dictionary.
+            
+        Returns:
+            Dictionary containing created deployment details.
+        """
         data = {
             'name': name,
             'repo_url': repo_url,
@@ -105,68 +134,115 @@ class WebOpsAPIClient:
         }
         return self._request('POST', '/api/deployments/create/', json=data)
 
-    def start_deployment(self, name: str) -> Dict[str, Any]:
-        """Start deployment."""
+    def start_deployment(self: Self, name: str) -> Dict[str, Any]:
+        """Start a deployment.
+        
+        Args:
+            name: Deployment name.
+            
+        Returns:
+            Dictionary containing operation result.
+        """
         return self._request('POST', f'/api/deployments/{name}/start/')
 
-    def stop_deployment(self, name: str) -> Dict[str, Any]:
-        """Stop deployment."""
+    def stop_deployment(self: Self, name: str) -> Dict[str, Any]:
+        """Stop a deployment.
+        
+        Args:
+            name: Deployment name.
+            
+        Returns:
+            Dictionary containing operation result.
+        """
         return self._request('POST', f'/api/deployments/{name}/stop/')
 
-    def restart_deployment(self, name: str) -> Dict[str, Any]:
-        """Restart deployment."""
+    def restart_deployment(self: Self, name: str) -> Dict[str, Any]:
+        """Restart a deployment.
+        
+        Args:
+            name: Deployment name.
+            
+        Returns:
+            Dictionary containing operation result.
+        """
         return self._request('POST', f'/api/deployments/{name}/restart/')
 
-    def delete_deployment(self, name: str) -> Dict[str, Any]:
-        """Delete deployment."""
-        return self._request('DELETE', f'/api/deployments/{name}/delete/')
+    def delete_deployment(self: Self, name: str) -> Dict[str, Any]:
+        """Delete a deployment.
+        
+        Args:
+            name: Deployment name.
+            
+        Returns:
+            Dictionary containing operation result.
+        """
+        return self._request('DELETE', f'/api/deployments/{name}/')
 
     def get_deployment_logs(
-        self,
+        self: Self,
         name: str,
         tail: Optional[int] = None
     ) -> Dict[str, Any]:
-        """Get deployment logs."""
+        """Get deployment logs.
+        
+        Args:
+            name: Deployment name.
+            tail: Number of lines to retrieve from end of log.
+            
+        Returns:
+            Dictionary containing log data.
+        """
         params = {}
         if tail:
             params['tail'] = tail
         return self._request('GET', f'/api/deployments/{name}/logs/', params=params)
 
     # Databases
-    def list_databases(self) -> Dict[str, Any]:
-        """List all databases."""
+    def list_databases(self: Self) -> Dict[str, Any]:
+        """List all databases.
+        
+        Returns:
+            Dictionary containing database list.
+        """
         return self._request('GET', '/api/databases/')
 
-    def get_database(self, name: str) -> Dict[str, Any]:
-        """Get database details."""
+    def get_database(self: Self, name: str) -> Dict[str, Any]:
+        """Get database details by name.
+        
+        Args:
+            name: Database name.
+            
+        Returns:
+            Dictionary containing database details.
+        """
         return self._request('GET', f'/api/databases/{name}/')
 
     # Environment Variables
     def generate_env(
-        self,
+        self: Self,
         deployment_name: str,
         debug: bool = False,
         domain: Optional[str] = None,
         custom_vars: Optional[Dict[str, str]] = None
     ) -> Dict[str, Any]:
-        """
-        Generate .env file from .env.example for a deployment.
-
+        """Generate environment file for deployment.
+        
         Args:
-            deployment_name: Name of the deployment
-            debug: Enable debug mode
-            domain: Custom domain name
-            custom_vars: Custom environment variables to set
-
+            deployment_name: Name of the deployment.
+            debug: Enable debug mode.
+            domain: Custom domain name.
+            custom_vars: Additional environment variables.
+            
         Returns:
-            API response
+            Dictionary containing generated environment configuration.
         """
         data = {
             'debug': debug,
-            'custom_vars': custom_vars or {}
         }
         if domain:
             data['domain'] = domain
+        if custom_vars:
+            data['custom_vars'] = custom_vars
 
         return self._request(
             'POST',
@@ -174,30 +250,28 @@ class WebOpsAPIClient:
             json=data
         )
 
-    def validate_env(self, deployment_name: str) -> Dict[str, Any]:
-        """
-        Validate .env file for a deployment.
-
+    def validate_env(self: Self, deployment_name: str) -> Dict[str, Any]:
+        """Validate environment configuration for deployment.
+        
         Args:
-            deployment_name: Name of the deployment
-
+            deployment_name: Name of the deployment.
+            
         Returns:
-            Validation result with 'valid' (bool) and 'missing' (list)
+            Dictionary containing validation results.
         """
         return self._request(
-            'GET',
+            'POST',
             f'/api/deployments/{deployment_name}/env/validate/'
         )
 
-    def get_env_vars(self, deployment_name: str) -> Dict[str, Any]:
-        """
-        Get all environment variables for a deployment.
-
+    def get_env_vars(self: Self, deployment_name: str) -> Dict[str, Any]:
+        """Get environment variables for deployment.
+        
         Args:
-            deployment_name: Name of the deployment
-
+            deployment_name: Name of the deployment.
+            
         Returns:
-            Dictionary with 'env_vars' containing key-value pairs
+            Dictionary containing environment variables.
         """
         return self._request(
             'GET',
@@ -205,23 +279,25 @@ class WebOpsAPIClient:
         )
 
     def set_env_var(
-        self,
+        self: Self,
         deployment_name: str,
         key: str,
         value: str
     ) -> Dict[str, Any]:
-        """
-        Set an environment variable for a deployment.
-
+        """Set environment variable for deployment.
+        
         Args:
-            deployment_name: Name of the deployment
-            key: Variable name
-            value: Variable value
-
+            deployment_name: Name of the deployment.
+            key: Environment variable key.
+            value: Environment variable value.
+            
         Returns:
-            API response
+            Dictionary containing operation result.
         """
-        data = {'key': key, 'value': value}
+        data = {
+            'key': key,
+            'value': value
+        }
         return self._request(
             'POST',
             f'/api/deployments/{deployment_name}/env/set/',
@@ -229,23 +305,24 @@ class WebOpsAPIClient:
         )
 
     def unset_env_var(
-        self,
+        self: Self,
         deployment_name: str,
         key: str
     ) -> Dict[str, Any]:
-        """
-        Remove an environment variable from a deployment.
-
+        """Remove environment variable from deployment.
+        
         Args:
-            deployment_name: Name of the deployment
-            key: Variable name to remove
-
+            deployment_name: Name of the deployment.
+            key: Environment variable key to remove.
+            
         Returns:
-            API response
+            Dictionary containing operation result.
         """
-        data = {'key': key}
+        data = {
+            'key': key
+        }
         return self._request(
-            'DELETE',
+            'POST',
             f'/api/deployments/{deployment_name}/env/unset/',
             json=data
         )

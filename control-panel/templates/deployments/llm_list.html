@@ -101,24 +101,24 @@
 </div>
 
 {% if deployments %}
-<div class="webops-card" style="margin-top: var(--webops-space-xl);">
+<div class="webops-card" style="margin-top: var(--webops-space-3);">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-sm);">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
             <span class="material-icons" style="color: var(--webops-color-info);">info</span>
             <h3 class="webops-h3" style="margin: 0;">About vLLM Deployments</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-lg); color: var(--webops-color-text-secondary); line-height: 1.6;">
-        <p style="margin-bottom: var(--webops-space-md);">
+    <div style="padding: var(--webops-space-3); color: var(--webops-color-text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: var(--webops-space-3);">
             All LLM models are deployed using <strong>vLLM</strong>, a high-performance inference engine optimized for large language models.
         </p>
-        <ul style="margin: var(--webops-space-md) 0; padding-left: var(--webops-space-xl);">
+        <ul style="margin: var(--webops-space-3) 0; padding-left: var(--webops-space-3);">
             <li>OpenAI-compatible API endpoints for easy integration</li>
             <li>Automatic tensor parallelism for multi-GPU deployments</li>
             <li>Support for quantization (AWQ, GPTQ, SqueezeLLM) to reduce memory usage</li>
             <li>Continuous batching for high throughput</li>
         </ul>
-        <p style="margin-top: var(--webops-space-md);">
+        <p style="margin-top: var(--webops-space-3);">
             <strong>GPU Requirements:</strong> Most models require at least one GPU. Memory requirements vary by model size.
         </p>
     </div>

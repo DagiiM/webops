@@ -229,7 +229,7 @@ run_diagnostics() {
 
         # Python packages
         echo "[Python Packages]"
-        $CONTROL_PANEL_DIR/venv/bin/pip list
+    $CONTROL_PANEL_DIR/venv/bin/python -m pip list
         echo ""
 
         # Database connectivity

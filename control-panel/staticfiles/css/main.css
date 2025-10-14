@@ -3,6 +3,7 @@
  * Graph-inspired green aesthetic - Ultra-sleek, high-end graphics
  */
 
+ /*
 :root {
     --webops-color-primary: #00ff88;
     --webops-color-primary-dark: #00cc6a;
@@ -73,13 +74,13 @@
     --webops-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --webops-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
+*/
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 body {
-    font-family: var(--webops-font-family-sans);
+    font-family: var(--webops-font-family-primary);
     font-size: var(--webops-font-size-base);
     line-height: 1.6;
     color: var(--webops-color-text-primary);
@@ -100,7 +101,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
     background: var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     border: 2px solid var(--webops-color-bg-secondary);
 }
 
@@ -166,14 +167,14 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-h2 {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--font-weight-bold);
     color: var(--webops-color-text-primary);
-    margin-bottom: var(--webops-space-sm);
+    margin-bottom: var(--webops-space-1-5);
 }
 
 .webops-h3 {
@@ -197,7 +198,7 @@ body {
 }
 
 /* WebOps Grid System */
-.webops-grid { display: grid; gap: var(--webops-space-lg); }
+.webops-grid { display: grid; gap: var(--webops-space-3); }
 .webops-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 .webops-grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 
@@ -205,7 +206,7 @@ body {
 /* This simplified version is kept for backward compatibility */
 .webops-container {
     max-width: 1280px;
-    padding: var(--webops-space-2xl) var(--webops-space-lg);
+    padding: var(--webops-space-3) var(--webops-space-3);
 }
 
 /* Accessibility: Skip link */
@@ -285,15 +286,15 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--webops-space-2xl);
-    gap: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
+    gap: var(--webops-space-3);
 }
 
 .webops-page-title {
     font-size: var(--webops-font-size-2xl);
     font-weight: var(--webops-font-weight-bold);
     color: var(--webops-color-text-primary);
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
 }
 
 .webops-text-muted {
@@ -305,16 +306,16 @@ select:focus {
 .webops-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--webops-space-lg);
-    margin-bottom: var(--webops-space-2xl);
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-stat-card {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-3);
     transition: all var(--webops-transition-base);
 }
 
@@ -328,11 +329,11 @@ select:focus {
     width: 48px;
     height: 48px;
     background: var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
     color: var(--webops-color-primary);
     font-size: 24px;
 }
@@ -341,7 +342,7 @@ select:focus {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--font-weight-bold);
     color: var(--webops-color-text-primary);
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
 }
 
 .webops-stat-label {
@@ -352,10 +353,12 @@ select:focus {
     letter-spacing: 0.05em;
 }
 
-/* Table Responsive */
+/* Enhanced Table Responsive System */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
 }
 
 /* WebOps Responsive Breakpoints */
@@ -368,16 +371,27 @@ select:focus {
         flex-direction: column;
         align-items: flex-start;
     }
+    
+    /* Make tables more responsive on tablets */
+    .webops-table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Reduce table min-width for medium screens */
+    .webops-table {
+        min-width: 500px;
+    }
 }
 
 @media (max-width: 768px) {
     .webops-stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: var(--webops-space-md);
+        gap: var(--webops-space-3);
     }
 
     .webops-stat-card {
-        padding: var(--webops-space-md);
+        padding: var(--webops-space-3);
     }
 
     .webops-stat-value {
@@ -387,11 +401,49 @@ select:focus {
     .webops-card-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--webops-space-sm);
+        gap: var(--webops-space-1-5);
     }
 
     .webops-grid-2, .webops-grid-3 {
         grid-template-columns: 1fr;
+    }
+    
+    /* Enhanced table responsiveness for mobile */
+    .webops-table {
+        min-width: 100%;
+        font-size: var(--webops-font-size-sm);
+    }
+    
+    .webops-table thead th {
+        padding: var(--webops-space-2) var(--webops-space-1-5);
+        font-size: var(--webops-font-size-xs);
+        white-space: nowrap;
+    }
+    
+    .webops-table tbody td {
+        padding: var(--webops-space-2) var(--webops-space-1-5);
+    }
+    
+    /* Improve scrolling for tables on mobile */
+    .webops-table-responsive::after {
+        content: '→';
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--webops-color-primary);
+        color: var(--webops-color-bg-primary);
+        padding: var(--webops-space-1) var(--webops-space-0-5);
+        border-radius: var(--webops-radius-sm);
+        font-size: var(--webops-font-size-xs);
+        opacity: 0.7;
+        pointer-events: none;
+        animation: webopsTableScrollHint 2s infinite;
+    }
+    
+    @keyframes webopsTableScrollHint {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 0.3; }
     }
 }
 
@@ -401,17 +453,71 @@ select:focus {
     }
 
     .webops-container {
-        padding: var(--webops-space-lg) var(--webops-space-md);
+        padding: var(--webops-space-2) var(--webops-space-1-5);
+    }
+    
+    /* Make tables even more mobile-friendly */
+    .webops-table {
+        font-size: var(--webops-font-size-xs);
+    }
+    
+    .webops-table thead th {
+        padding: var(--webops-space-1-5) var(--webops-space-1);
+        font-size: 10px;
+    }
+    
+    .webops-table tbody td {
+        padding: var(--webops-space-1-5) var(--webops-space-1);
+    }
+    
+    /* Stack table content on very small screens */
+    .webops-table-container.small-screen .webops-table {
+        min-width: 100%;
+    }
+    
+    .webops-table-container.small-screen .webops-table thead {
+        display: none;
+    }
+    
+    .webops-table-container.small-screen .webops-table tbody tr {
+        display: block;
+        margin-bottom: var(--webops-space-3);
+        background: var(--webops-color-bg-elevated);
+        border-radius: var(--webops-radius-md);
+        border: 1px solid var(--webops-color-primary-alpha-10);
+        padding: var(--webops-space-2);
+    }
+    
+    .webops-table-container.small-screen .webops-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--webops-space-1) 0;
+        border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    }
+    
+    .webops-table-container.small-screen .webops-table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    .webops-table-container.small-screen .webops-table tbody td:before {
+        content: attr(data-label);
+        font-weight: var(--webops-font-weight-semibold);
+        color: var(--webops-color-text-primary);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 }
 
 /* WebOps Tables */
 .webops-table-container {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     overflow: hidden;
+    position: relative;
 }
 
 .webops-table-responsive {
@@ -431,7 +537,7 @@ select:focus {
 }
 
 .webops-table thead th {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     text-align: left;
     font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-semibold);
@@ -456,11 +562,11 @@ select:focus {
 }
 
 .webops-table tbody td {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     color: var(--webops-color-text-secondary);
 }
 
-/* Mobile Table Cards */
+/* Enhanced Mobile Table Cards */
 @media (max-width: 768px) {
     .webops-table-responsive.webops-mobile-cards .webops-table {
         min-width: 100%;
@@ -472,18 +578,26 @@ select:focus {
 
     .webops-table-responsive.webops-mobile-cards .webops-table tbody tr {
         display: block;
-        margin-bottom: var(--webops-space-md);
-        background: var(--webops-color-bg-card-mobile);
-        border-radius: var(--webops-border-radius-md);
+        margin-bottom: var(--webops-space-3);
+        background: var(--webops-color-bg-elevated);
+        border-radius: var(--webops-radius-md);
         border: 1px solid var(--webops-color-primary-alpha-10);
-        padding: var(--webops-space-md);
+        padding: var(--webops-space-3);
+        box-shadow: var(--webops-shadow-sm);
+        transition: all var(--webops-transition-fast);
+    }
+    
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody tr:hover {
+        border-color: var(--webops-color-primary-alpha-20);
+        box-shadow: var(--webops-shadow-md);
+        transform: translateY(-1px);
     }
 
     .webops-table-responsive.webops-mobile-cards .webops-table tbody td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: var(--webops-space-sm) 0;
+        padding: var(--webops-space-1-5) 0;
         border-bottom: 1px solid var(--webops-color-primary-alpha-05);
     }
 
@@ -498,7 +612,117 @@ select:focus {
         font-size: var(--webops-font-size-xs);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        min-width: 100px;
     }
+    
+    /* Make buttons in table cards more mobile-friendly */
+    .webops-table-responsive.webops-mobile-cards .webops-table tbody td .webops-btn {
+        padding: var(--webops-space-1) var(--webops-space-2);
+        font-size: var(--webops-font-size-xs);
+    }
+}
+
+/* Auto-apply mobile card layout to all tables on small screens */
+@media (max-width: 480px) {
+    .webops-table-responsive {
+        overflow-x: visible;
+    }
+    
+    .webops-table {
+        min-width: 100%;
+    }
+    
+    .webops-table thead {
+        display: none;
+    }
+    
+    .webops-table tbody tr {
+        display: block;
+        margin-bottom: var(--webops-space-2);
+        background: var(--webops-color-bg-elevated);
+        border-radius: var(--webops-radius-md);
+        border: 1px solid var(--webops-color-primary-alpha-10);
+        padding: var(--webops-space-2);
+        box-shadow: var(--webops-shadow-sm);
+    }
+    
+    .webops-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--webops-space-1) 0;
+        border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+    }
+    
+    .webops-table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    .webops-table tbody td:before {
+        content: attr(data-label);
+        font-weight: var(--webops-font-weight-semibold);
+        color: var(--webops-color-text-primary);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        min-width: 80px;
+    }
+    
+    /* Improve button layout in table cards */
+    .webops-table tbody td .webops-btn {
+        padding: var(--webops-space-1) var(--webops-space-1-5);
+        font-size: 10px;
+        flex-shrink: 0;
+    }
+}
+
+/* JavaScript-based table detection for better responsive behavior */
+.webops-table-responsive[data-responsive] {
+    position: relative;
+}
+
+.webops-table-responsive[data-responsive="mobile"] {
+    overflow-x: visible;
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table {
+    min-width: 100%;
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table thead {
+    display: none;
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table tbody tr {
+    display: block;
+    margin-bottom: var(--webops-space-2);
+    background: var(--webops-color-bg-elevated);
+    border-radius: var(--webops-radius-md);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-2);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-1) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-05);
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table tbody td:last-child {
+    border-bottom: none;
+}
+
+.webops-table-responsive[data-responsive="mobile"] .webops-table tbody td:before {
+    content: attr(data-label);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 80px;
 }
 
 /* WebOps Button Icon */
@@ -515,9 +739,9 @@ select:focus {
 .webops-status-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--webops-space-xs);
-    padding: var(--webops-space-xs) var(--webops-space-md);
-    border-radius: var(--webops-border-radius-sm);
+    gap: var(--webops-space-0-5);
+    padding: var(--webops-space-0-5) var(--webops-space-3);
+    border-radius: var(--webops-radius-sm);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
     text-transform: uppercase;
@@ -581,7 +805,7 @@ select:focus {
 .webops-code-editor {
     background: var(--webops-color-bg-secondary);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     overflow: hidden;
 }
 
@@ -589,7 +813,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     background: var(--webops-color-primary-alpha-05);
     border-bottom: 1px solid var(--webops-color-primary-alpha-20);
 }
@@ -605,7 +829,7 @@ select:focus {
 }
 
 .webops-code-editor-lines {
-    padding: var(--webops-space-md) var(--webops-space-sm);
+    padding: var(--webops-space-3) var(--webops-space-1-5);
     background: var(--webops-color-primary-alpha-03);
     border-right: 1px solid var(--webops-color-primary-alpha-20);
     font-family: var(--webops-font-family-mono);
@@ -617,7 +841,7 @@ select:focus {
 
 .webops-code-editor-content {
     flex: 1;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
 }
 
 .webops-code-editor-content textarea {
@@ -635,24 +859,24 @@ select:focus {
 /* WebOps Empty State */
 .webops-empty-state {
     text-align: center;
-    padding: var(--webops-space-2xl);
+    padding: var(--webops-space-3);
     color: var(--webops-color-text-tertiary);
 }
 
 .webops-empty-state-icon {
     display: block;
-    margin: 0 auto var(--webops-space-lg);
+    margin: 0 auto var(--webops-space-3);
 }
 
 .webops-empty-state-title {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--font-weight-semibold);
     color: var(--webops-color-text-secondary);
-    margin-bottom: var(--webops-space-sm);
+    margin-bottom: var(--webops-space-1-5);
 }
 
 .webops-empty-state-description {
-    margin-bottom: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
     color: var(--webops-color-text-tertiary);
 }
 
@@ -660,7 +884,7 @@ select:focus {
 .webops-actions {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
 }
 
 /* WebOps Compact View */
@@ -675,7 +899,7 @@ select:focus {
 
 :root.webops-compact-view .webops-stat-card,
 :root.webops-compact-view .webops-card {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
 }
 
 /* WebOps No Animations */
@@ -699,7 +923,7 @@ select:focus {
     z-index: 2000;
     opacity: 0;
     transition: opacity var(--webops-transition-base);
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
     overflow-y: auto;
 }
 
@@ -711,10 +935,10 @@ select:focus {
 }
 
 .webops-modal-content {
-    background: var(--webops-color-bg-secondary);
+    background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     width: 100%;
     max-width: 500px;
     max-height: 85vh;
@@ -735,7 +959,7 @@ select:focus {
 }
 
 .webops-modal-header {
-    padding: var(--webops-space-lg) var(--webops-space-xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-15);
     display: flex;
     align-items: center;
@@ -747,7 +971,7 @@ select:focus {
 .webops-modal-close {
     width: 36px;
     height: 36px;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     background: var(--webops-color-primary-alpha-05);
     border: 1px solid var(--webops-color-primary-alpha-10);
     color: var(--webops-color-text-secondary);
@@ -767,13 +991,14 @@ select:focus {
 }
 
 .webops-modal-body {
-    padding: var(--webops-space-xl);
+    max-height: 50vh;
+    padding: var(--webops-space-3);
     overflow-y: auto;
     flex: 1;
 }
 
 .webops-modal-footer {
-    padding: var(--webops-space-lg) var(--webops-space-xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
     border-top: 1px solid var(--webops-color-primary-alpha-15);
     background: var(--webops-color-primary-alpha-03);
     flex-shrink: 0;
@@ -786,12 +1011,12 @@ select:focus {
 
 .webops-modal-body::-webkit-scrollbar-track {
     background: var(--webops-color-primary-alpha-05);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
 }
 
 .webops-modal-body::-webkit-scrollbar-thumb {
     background: var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
 }
 
 .webops-modal-body::-webkit-scrollbar-thumb:hover {
@@ -800,10 +1025,10 @@ select:focus {
 
 /* WebOps Modal Content (BEM Methodology) */
 .webops-modal__content {
-    background: var(--webops-color-bg-secondary);
+    background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
@@ -825,7 +1050,7 @@ select:focus {
 /* Modal content sections */
 .webops-modal__content .webops-modal-header,
 .webops-modal__content .webops-modal__header {
-    padding: var(--webops-space-lg) var(--webops-space-xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-15);
     display: flex;
     align-items: center;
@@ -837,7 +1062,7 @@ select:focus {
 
 .webops-modal__content .webops-modal-body,
 .webops-modal__content .webops-modal__body {
-    padding: var(--webops-space-xl);
+    padding: var(--webops-space-3);
     overflow-y: auto;
     flex: 1;
     line-height: 1.6;
@@ -845,14 +1070,14 @@ select:focus {
 
 .webops-modal__content .webops-modal-footer,
 .webops-modal__content .webops-modal__footer {
-    padding: var(--webops-space-lg) var(--webops-space-xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
     border-top: 1px solid var(--webops-color-primary-alpha-15);
     background: var(--webops-color-primary-alpha-03);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: var(--webops-space-md);
+    gap: var(--webops-space-3);
     min-height: 60px;
 }
 
@@ -865,7 +1090,7 @@ select:focus {
 .webops-modal__content h6 {
     color: var(--webops-color-text-primary);
     font-weight: var(--webops-font-weight-semibold);
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
     line-height: 1.3;
 }
 
@@ -878,7 +1103,7 @@ select:focus {
 
 .webops-modal__content p {
     color: var(--webops-color-text-secondary);
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
     line-height: 1.6;
 }
 
@@ -888,7 +1113,7 @@ select:focus {
 
 /* Modal content form elements */
 .webops-modal__content .webops-form-group {
-    margin-bottom: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-modal__content .webops-form-group:last-child {
@@ -899,7 +1124,7 @@ select:focus {
     display: block;
     color: var(--webops-color-text-primary);
     font-weight: var(--webops-font-weight-medium);
-    margin-bottom: var(--webops-space-sm);
+    margin-bottom: var(--webops-space-1-5);
     font-size: var(--webops-font-size-sm);
 }
 
@@ -907,10 +1132,10 @@ select:focus {
 .webops-modal__content textarea,
 .webops-modal__content select {
     width: 100%;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
     transition: all var(--webops-transition-fast);
@@ -927,13 +1152,13 @@ select:focus {
 /* Modal content lists */
 .webops-modal__content ul,
 .webops-modal__content ol {
-    margin-bottom: var(--webops-space-md);
-    padding-left: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
+    padding-left: var(--webops-space-3);
 }
 
 .webops-modal__content li {
     color: var(--webops-color-text-secondary);
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
     line-height: 1.6;
 }
 
@@ -941,8 +1166,8 @@ select:focus {
 .webops-modal__content code {
     background: var(--webops-color-surface);
     color: var(--webops-color-primary);
-    padding: var(--webops-space-xs) var(--webops-space-sm);
-    border-radius: var(--webops-border-radius-sm);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
+    border-radius: var(--webops-radius-sm);
     font-family: var(--webops-font-family-mono);
     font-size: var(--webops-font-size-xs);
 }
@@ -950,9 +1175,9 @@ select:focus {
 .webops-modal__content pre {
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-md);
-    padding: var(--webops-space-md);
-    margin-bottom: var(--webops-space-md);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
     overflow-x: auto;
     font-family: var(--webops-font-family-mono);
     font-size: var(--webops-font-size-sm);
@@ -967,13 +1192,13 @@ select:focus {
 .webops-modal__content .webops-modal-body::-webkit-scrollbar-track,
 .webops-modal__content .webops-modal__body::-webkit-scrollbar-track {
     background: var(--webops-color-primary-alpha-05);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
 }
 
 .webops-modal__content .webops-modal-body::-webkit-scrollbar-thumb,
 .webops-modal__content .webops-modal__body::-webkit-scrollbar-thumb {
     background: var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
 }
 
 .webops-modal__content .webops-modal-body::-webkit-scrollbar-thumb:hover,
@@ -986,30 +1211,30 @@ select:focus {
     .webops-modal__content {
         max-width: 95vw;
         max-height: 95vh;
-        margin: var(--webops-space-sm);
-        border-radius: var(--webops-border-radius-md);
+        margin: var(--webops-space-1-5);
+        border-radius: var(--webops-radius-md);
     }
     
     .webops-modal__content .webops-modal-header,
     .webops-modal__content .webops-modal__header {
-        padding: var(--webops-space-md) var(--webops-space-lg);
+        padding: var(--webops-space-3) var(--webops-space-3);
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--webops-space-sm);
+        gap: var(--webops-space-1-5);
         min-height: auto;
     }
     
     .webops-modal__content .webops-modal-body,
     .webops-modal__content .webops-modal__body {
-        padding: var(--webops-space-lg);
+        padding: var(--webops-space-3);
     }
     
     .webops-modal__content .webops-modal-footer,
     .webops-modal__content .webops-modal__footer {
-        padding: var(--webops-space-md) var(--webops-space-lg);
+        padding: var(--webops-space-3) var(--webops-space-3);
         flex-direction: column;
         align-items: stretch;
-        gap: var(--webops-space-sm);
+        gap: var(--webops-space-1-5);
         min-height: auto;
     }
     
@@ -1034,8 +1259,8 @@ select:focus {
     .webops-modal__content .webops-modal__body,
     .webops-modal__content .webops-modal-footer,
     .webops-modal__content .webops-modal__footer {
-        padding-left: var(--webops-space-md);
-        padding-right: var(--webops-space-md);
+        padding-left: var(--webops-space-3);
+        padding-right: var(--webops-space-3);
     }
 }
 
@@ -1076,13 +1301,13 @@ select:focus {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--webops-space-sm);
-    padding: var(--webops-space-sm) var(--webops-space-lg);
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
-    font-family: var(--webops-font-family-sans);
+    font-family: var(--webops-font-family-primary);
     border: none;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     cursor: pointer;
     transition: all var(--webops-transition-base);
     text-decoration: none;
@@ -1124,25 +1349,25 @@ select:focus {
 }
 
 .webops-btn-sm {
-    padding: var(--webops-space-xs) var(--webops-space-sm);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
     font-size: var(--webops-font-size-sm);
 }
 
 .webops-btn-lg {
-    padding: var(--webops-space-md) var(--webops-space-xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
     font-size: var(--webops-font-size-sm);
 }
 
 /* WebOps Input Fields */
 .webops-input {
     width: 100%;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
-    font-family: var(--webops-font-family-sans);
+    font-family: var(--webops-font-family-primary);
     color: var(--webops-color-text-primary);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     transition: all var(--webops-transition-base);
     outline: none;
 }
@@ -1167,13 +1392,13 @@ select:focus {
 .webops-textarea {
     width: 100%;
     min-height: 120px;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
-    font-family: var(--webops-font-family-sans);
+    font-family: var(--webops-font-family-primary);
     color: var(--webops-color-text-primary);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     transition: all var(--webops-transition-base);
     outline: none;
     resize: vertical;
@@ -1188,13 +1413,13 @@ select:focus {
 /* WebOps Select */
 .webops-select {
     width: 100%;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
-    font-family: var(--webops-font-family-sans);
+    font-family: var(--webops-font-family-primary);
     color: var(--webops-color-text-primary);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     transition: all var(--webops-transition-base);
     outline: none;
     cursor: pointer;
@@ -1211,7 +1436,7 @@ select:focus {
     width: 20px;
     height: 20px;
     border: 2px solid var(--webops-color-primary-alpha-30);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
 }
@@ -1228,12 +1453,12 @@ select:focus {
 
 /* WebOps Form Group */
 .webops-form-group {
-    margin-bottom: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-label {
     display: block;
-    margin-bottom: var(--webops-space-sm);
+    margin-bottom: var(--webops-space-1-5);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
     color: var(--webops-color-text-primary);
@@ -1242,19 +1467,19 @@ select:focus {
 .webops-label-required::after {
     content: '*';
     color: var(--webops-color-error);
-    margin-left: var(--webops-space-xs);
+    margin-left: var(--webops-space-0-5);
 }
 
 .webops-input-help {
     display: block;
-    margin-top: var(--webops-space-xs);
+    margin-top: var(--webops-space-0-5);
     font-size: var(--webops-font-size-xs);
     color: var(--webops-color-text-tertiary);
 }
 
 .webops-input-error {
     display: block;
-    margin-top: var(--webops-space-xs);
+    margin-top: var(--webops-space-0-5);
     font-size: var(--webops-font-size-xs);
     color: var(--webops-color-error);
 }
@@ -1262,10 +1487,10 @@ select:focus {
 /* WebOps Cards */
 .webops-card {
     margin: 1rem auto;
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
-    border-radius: var(--webops-border-radius-lg);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-3);
     box-shadow: var(--webops-shadow-sm);
     transition: all var(--webops-transition-base);
     border: 1px solid var(--webops-color-primary-alpha-20);
@@ -1282,16 +1507,16 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .webops-card-body {
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
 }
 
 .webops-card-footer {
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
     border-top: 1px solid var(--webops-color-primary-alpha-10);
 }
 
@@ -1299,9 +1524,9 @@ select:focus {
 .webops-badge {
     display: inline-flex;
     align-items: center;
-    gap: var(--webops-space-xs);
-    padding: var(--webops-space-xs) var(--webops-space-md);
-    border-radius: var(--webops-border-radius-sm);
+    gap: var(--webops-space-0-5);
+    padding: var(--webops-space-0-5) var(--webops-space-3);
+    border-radius: var(--webops-radius-sm);
     font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-medium);
     text-transform: uppercase;
@@ -1372,29 +1597,29 @@ select:focus {
     justify-content: center;
 }
 
-.webops-gap-xs { gap: var(--webops-space-xs); }
-.webops-gap-sm { gap: var(--webops-space-sm); }
-.webops-gap-md { gap: var(--webops-space-md); }
-.webops-gap-lg { gap: var(--webops-space-lg); }
+.webops-gap-xs { gap: var(--webops-space-0-5); }
+.webops-gap-sm { gap: var(--webops-space-1-5); }
+.webops-gap-md { gap: var(--webops-space-3); }
+.webops-gap-lg { gap: var(--webops-space-3); }
 
 /* WebOps Spacing Utilities */
-.webops-mt-xs { margin-top: var(--webops-space-xs); }
-.webops-mt-sm { margin-top: var(--webops-space-sm); }
-.webops-mt-md { margin-top: var(--webops-space-md); }
-.webops-mt-lg { margin-top: var(--webops-space-lg); }
-.webops-mt-xl { margin-top: var(--webops-space-xl); }
+.webops-mt-xs { margin-top: var(--webops-space-0-5); }
+.webops-mt-sm { margin-top: var(--webops-space-1-5); }
+.webops-mt-md { margin-top: var(--webops-space-3); }
+.webops-mt-lg { margin-top: var(--webops-space-3); }
+.webops-mt-xl { margin-top: var(--webops-space-3); }
 
-.webops-mb-xs { margin-bottom: var(--webops-space-xs); }
-.webops-mb-sm { margin-bottom: var(--webops-space-sm); }
-.webops-mb-md { margin-bottom: var(--webops-space-md); }
-.webops-mb-lg { margin-bottom: var(--webops-space-lg); }
-.webops-mb-xl { margin-bottom: var(--webops-space-xl); }
+.webops-mb-xs { margin-bottom: var(--webops-space-0-5); }
+.webops-mb-sm { margin-bottom: var(--webops-space-1-5); }
+.webops-mb-md { margin-bottom: var(--webops-space-3); }
+.webops-mb-lg { margin-bottom: var(--webops-space-3); }
+.webops-mb-xl { margin-bottom: var(--webops-space-3); }
 
-.webops-p-xs { padding: var(--webops-space-xs); }
-.webops-p-sm { padding: var(--webops-space-sm); }
-.webops-p-md { padding: var(--webops-space-md); }
-.webops-p-lg { padding: var(--webops-space-lg); }
-.webops-p-xl { padding: var(--webops-space-xl); }
+.webops-p-xs { padding: var(--webops-space-0-5); }
+.webops-p-sm { padding: var(--webops-space-1-5); }
+.webops-p-md { padding: var(--webops-space-3); }
+.webops-p-lg { padding: var(--webops-space-3); }
+.webops-p-xl { padding: var(--webops-space-3); }
 
 /* WebOps Text Utilities */
 .webops-text-primary { color: var(--webops-color-primary); }
@@ -1432,14 +1657,14 @@ select:focus {
     width: 100%;
     height: 6px;
     background: var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     overflow: hidden;
 }
 
 .webops-progress-fill {
     height: 100%;
     background: var(--webops-color-primary);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     transition: width var(--webops-transition-base);
 }
 
@@ -1692,8 +1917,8 @@ select:focus {
 
 .webops-sidebar-toggle {
     position: fixed;
-    top: var(--webops-space-lg);
-    left: var(--webops-space-lg);
+    top: var(--webops-space-3);
+    left: var(--webops-space-3);
     z-index: 1001;
     display: none;
     align-items: center;
@@ -1702,7 +1927,7 @@ select:focus {
     height: 48px;
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     color: var(--webops-color-primary);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
@@ -1746,7 +1971,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
     background: var(--webops-color-bg-secondary);
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
     backdrop-filter: blur(10px);
@@ -1761,7 +1986,7 @@ select:focus {
 .webops-header__actions {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
+    gap: var(--webops-space-3);
 }
 
 /* ============================================================================
@@ -1775,11 +2000,11 @@ select:focus {
 .webops-theme-toggle {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
@@ -1854,12 +2079,12 @@ select:focus {
 
 .webops-theme-dropdown {
     position: absolute;
-    top: calc(100% + var(--webops-space-sm));
+    top: calc(100% + var(--webops-space-1-5));
     right: 0;
     min-width: 200px;
     background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     box-shadow: var(--webops-shadow-lg);
     backdrop-filter: blur(20px);
     opacity: 0;
@@ -1867,7 +2092,7 @@ select:focus {
     transform: translateY(-8px);
     transition: all var(--webops-transition-fast);
     z-index: 1000;
-    padding: var(--webops-space-sm);
+    padding: var(--webops-space-1-5);
 }
 
 .webops-theme-dropdown.webops-theme-dropdown--open {
@@ -1879,12 +2104,12 @@ select:focus {
 .webops-theme-option {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
+    gap: var(--webops-space-3);
     width: 100%;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: transparent;
     border: none;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
@@ -1940,7 +2165,7 @@ select:focus {
     height: 40px;
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-secondary);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
@@ -1972,11 +2197,11 @@ select:focus {
 .webops-user-menu__trigger {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
-    padding: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
     transition: all var(--webops-transition-fast);
@@ -2023,12 +2248,12 @@ select:focus {
 
 .webops-user-menu__dropdown {
     position: absolute;
-    top: calc(100% + var(--webops-space-sm));
+    top: calc(100% + var(--webops-space-1-5));
     right: 0;
     min-width: 280px;
     background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     box-shadow: var(--webops-shadow-lg);
     backdrop-filter: blur(20px);
     opacity: 0;
@@ -2036,7 +2261,7 @@ select:focus {
     transform: translateY(-8px);
     transition: all var(--webops-transition-fast);
     z-index: 1000;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
 }
 
 .webops-user-menu__dropdown.webops-user-menu__dropdown--open {
@@ -2048,8 +2273,8 @@ select:focus {
 .webops-user-menu__header {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
-    padding-bottom: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    padding-bottom: var(--webops-space-3);
 }
 
 .webops-user-menu__avatar--large {
@@ -2084,18 +2309,18 @@ select:focus {
 .webops-user-menu__divider {
     height: 1px;
     background: var(--webops-color-primary-alpha-10);
-    margin: var(--webops-space-md) 0;
+    margin: var(--webops-space-3) 0;
 }
 
 .webops-user-menu__item {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
+    gap: var(--webops-space-3);
     width: 100%;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: transparent;
     border: none;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     text-decoration: none;
     cursor: pointer;
@@ -2139,11 +2364,11 @@ select:focus {
 .webops-tabs {
     display: flex;
     border-bottom: 1px solid var(--webops-color-primary-alpha-20);
-    margin-bottom: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-tab {
-    padding: var(--webops-space-md) var(--webops-space-lg);
+    padding: var(--webops-space-3) var(--webops-space-3);
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -2174,9 +2399,9 @@ select:focus {
 
 /* WebOps File Browser */
 .webops-file-browser {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     overflow: hidden;
 }
 
@@ -2184,7 +2409,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: var(--webops-color-primary-alpha-05);
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
@@ -2192,7 +2417,7 @@ select:focus {
 .webops-breadcrumb {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-xs);
+    gap: var(--webops-space-0-5);
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-secondary);
 }
@@ -2220,8 +2445,8 @@ select:focus {
 .webops-file-item {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
-    padding: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-05);
     cursor: pointer;
     transition: background var(--webops-transition-fast);
@@ -2236,9 +2461,9 @@ select:focus {
 }
 
 .webops-file-viewer {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     overflow: hidden;
 }
 
@@ -2246,16 +2471,16 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: var(--webops-color-primary-alpha-05);
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 /* WebOps Logs */
 .webops-logs-container {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     max-height: 500px;
     overflow-y: auto;
     font-family: var(--webops-font-family-mono);
@@ -2264,8 +2489,8 @@ select:focus {
 .webops-log-entry {
     display: flex;
     align-items: flex-start;
-    gap: var(--webops-space-md);
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-05);
     font-size: var(--webops-font-size-sm);
     line-height: 1.5;
@@ -2313,9 +2538,9 @@ select:focus {
 
 /* WebOps Alerts */
 .webops-alert {
-    padding: var(--webops-space-md);
-    border-radius: var(--webops-border-radius-md);
-    margin-bottom: var(--webops-space-md);
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
     border-left: 4px solid;
 }
 
@@ -2347,14 +2572,14 @@ select:focus {
 .webops-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--webops-space-lg);
-    margin-bottom: var(--webops-space-xl);
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-info-item {
-    background: var(--webops-color-bg-card);
-    padding: var(--webops-space-lg);
-    border-radius: var(--webops-border-radius-lg);
+    background: var(--webops-color-bg-elevated);
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-lg);
     border: 1px solid var(--webops-color-primary-alpha-10);
     transition: all var(--webops-transition-medium);
     position: relative;
@@ -2391,7 +2616,7 @@ select:focus {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
 }
 
 .webops-info-item p {
@@ -2403,11 +2628,11 @@ select:focus {
 .webops-info-value {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
-    margin-top: var(--webops-space-sm);
-    padding: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
     background: var(--webops-color-primary-alpha-05);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border: 1px solid var(--webops-color-primary-alpha-10);
     transition: all var(--webops-transition-fast);
 }
@@ -2450,14 +2675,14 @@ select:focus {
     color: var(--webops-color-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
 }
 
 /* WebOps Environment Variables */
 .webops-env-vars-list {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     overflow: hidden;
 }
 
@@ -2465,7 +2690,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-05);
 }
 
@@ -2485,28 +2710,28 @@ select:focus {
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-secondary);
     background: var(--webops-color-primary-alpha-05);
-    padding: var(--webops-space-xs) var(--webops-space-sm);
-    border-radius: var(--webops-border-radius-sm);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
+    border-radius: var(--webops-radius-sm);
 }
 
 .webops-env-editor-controls {
     display: flex;
-    gap: var(--webops-space-md);
-    margin-bottom: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-env-inputs {
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-border-radius-lg);
-    padding: var(--webops-space-md);
-    margin-bottom: var(--webops-space-md);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-env-input-row {
     display: flex;
-    gap: var(--webops-space-md);
-    margin-bottom: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
     align-items: center;
 }
 
@@ -2517,17 +2742,17 @@ select:focus {
 .webops-env-help {
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-tertiary);
-    margin-top: var(--webops-space-sm);
+    margin-top: var(--webops-space-1-5);
 }
 
 /* WebOps Validation Results */
 .webops-validation-result-item {
     display: flex;
     align-items: flex-start;
-    gap: var(--webops-space-md);
-    padding: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-05);
-    background: var(--webops-color-bg-card);
+    background: var(--webops-color-bg-elevated);
 }
 
 .webops-validation-result-item:last-child {
@@ -2555,16 +2780,16 @@ select:focus {
 
 .webops-validation-summary {
     background: var(--webops-color-primary-alpha-05);
-    padding: var(--webops-space-md);
-    border-radius: var(--webops-border-radius-md);
-    margin-bottom: var(--webops-space-lg);
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
 }
 
 .webops-validation-stat {
     display: inline-flex;
     align-items: center;
-    gap: var(--webops-space-xs);
-    margin-right: var(--webops-space-md);
+    gap: var(--webops-space-0-5);
+    margin-right: var(--webops-space-3);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
 }
@@ -2585,14 +2810,14 @@ select:focus {
 .webops-code-examples {
     display: flex;
     flex-direction: column;
-    gap: var(--webops-space-lg);
-    margin-top: var(--webops-space-lg);
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-3);
 }
 
 .webops-code-example {
     background: var(--webops-color-bg-secondary);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    border-radius: var(--webops-border-radius-lg);
+    border-radius: var(--webops-radius-lg);
     overflow: hidden;
     transition: all var(--webops-transition-base);
 }
@@ -2607,14 +2832,13 @@ select:focus {
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
     margin: 0;
-    padding: var(--webops-space-md) var(--webops-space-lg);
-    background: var(--webops-color-primary-alpha-05);
+    padding: var(--webops-space-3) var(--webops-space-1-5);
     border-bottom: 1px solid var(--webops-color-primary-alpha-15);
 }
 
 .webops-code-block {
     margin: 0;
-    padding: var(--webops-space-lg);
+    padding: var(--webops-space-3);
     background: var(--webops-color-bg-primary);
     font-family: var(--webops-font-family-mono);
     font-size: var(--webops-font-size-sm);
@@ -2639,13 +2863,149 @@ select:focus {
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-primary);
     background: var(--webops-color-primary-alpha-10);
-    padding: var(--webops-space-xs) var(--webops-space-sm);
-    border-radius: var(--webops-border-radius-sm);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
+    border-radius: var(--webops-radius-sm);
     border: 1px solid var(--webops-color-primary-alpha-15);
 }
 
-/* Responsive Design for Deployment Detail Components */
+/* WebOps Sidebar Styles */
+.webops-app-layout {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+.webops-sidebar {
+    width: 280px;
+    background: var(--webops-color-bg-elevated);
+    border-right: 1px solid var(--webops-color-primary-alpha-10);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform var(--webops-transition-base);
+    transform: translateX(0);
+}
+
+.webops-sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: var(--webops-space-3);
+    left: var(--webops-space-3);
+    z-index: 1001;
+    background: var(--webops-color-primary);
+    color: var(--webops-color-text-inverse);
+    border: none;
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-2);
+    cursor: pointer;
+    transition: all var(--webops-transition-base);
+    box-shadow: 0 2px 8px var(--webops-color-primary-alpha-20);
+}
+
+.webops-sidebar-toggle:hover {
+    background: var(--webops-color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-30);
+}
+
+.webops-sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.webops-main-content {
+    flex: 1;
+    margin-left: 280px;
+    min-height: 100vh;
+    background: var(--webops-color-bg-primary);
+    transition: margin-left var(--webops-transition-base);
+}
+
+.webops-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-sidebar-overlay.active {
+    opacity: 1;
+}
+
+/* Sidebar Navigation Styles */
+.webops-sidebar .webops-nav {
+    padding: var(--webops-space-4) 0;
+}
+
+.webops-sidebar .webops-nav-item {
+    display: block;
+    padding: var(--webops-space-2-5) var(--webops-space-4);
+    color: var(--webops-color-text-secondary);
+    text-decoration: none;
+    transition: all var(--webops-transition-base);
+    border-left: 3px solid transparent;
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-sidebar .webops-nav-item:hover {
+    background: var(--webops-color-primary-alpha-05);
+    color: var(--webops-color-text-primary);
+    border-left-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-sidebar .webops-nav-item.active {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
+    border-left-color: var(--webops-color-primary);
+}
+
+.webops-sidebar .webops-nav-section {
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-sidebar .webops-nav-section-title {
+    padding: var(--webops-space-2) var(--webops-space-4);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--webops-color-text-tertiary);
+    margin-bottom: var(--webops-space-1);
+}
+
+/* Responsive Design for Sidebar and Components */
 @media (max-width: 768px) {
+    .webops-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .webops-sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .webops-sidebar-toggle {
+        display: block;
+    }
+    
+    .webops-main-content {
+        margin-left: 0;
+    }
+    
+    .webops-sidebar-overlay {
+        display: block;
+    }
+    
+    /* Existing responsive styles */
     .webops-tabs {
         flex-direction: column;
     }
@@ -2672,15 +3032,278 @@ select:focus {
     .webops-browser-toolbar {
         flex-direction: column;
         align-items: stretch;
-        gap: var(--webops-space-sm);
+        gap: var(--webops-space-1-5);
     }
     
     .webops-code-examples {
-        gap: var(--webops-space-md);
+        gap: var(--webops-space-3);
     }
     
     .webops-code-block {
-        padding: var(--webops-space-md);
+        padding: var(--webops-space-3);
         font-size: var(--webops-font-size-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-sidebar {
+        width: 100%;
+    }
+    
+    .webops-sidebar-toggle {
+        top: var(--webops-space-2);
+        left: var(--webops-space-2);
+        padding: var(--webops-space-1-5);
+    }
+    
+    .webops-sidebar-toggle svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* Theme Preview Components */
+.webops-theme-previews {
+    margin-bottom: var(--webops-space-6);
+}
+
+.webops-preview-title {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-4);
+    padding-bottom: var(--webops-space-2);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--webops-space-4);
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-theme-card {
+    background: var(--webops-color-bg-card);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-border-radius-lg);
+    overflow: hidden;
+    transition: all var(--webops-transition-base);
+    cursor: pointer;
+    position: relative;
+}
+
+.webops-theme-card:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-md);
+    transform: translateY(-2px);
+}
+
+.webops-theme-card.selected {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 2px var(--webops-color-primary-alpha-20);
+}
+
+.webops-theme-header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-theme-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.webops-theme-logo {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-bold);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    position: relative;
+}
+
+.webops-theme-content {
+    padding: var(--webops-space-4);
+}
+
+.webops-theme-colors {
+    display: flex;
+    gap: var(--webops-space-2);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-theme-color {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--webops-border-radius-sm);
+    border: 2px solid var(--webops-color-bg-secondary);
+    box-shadow: var(--webops-shadow-sm);
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-theme-color:hover {
+    transform: scale(1.1);
+}
+
+.webops-theme-description {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Responsive adjustments for theme previews */
+@media (max-width: 768px) {
+    .webops-theme-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-theme-card {
+        border-radius: var(--webops-border-radius-md);
+    }
+    
+    .webops-theme-header {
+        height: 50px;
+    }
+    
+    .webops-theme-logo {
+        font-size: var(--webops-font-size-base);
+    }
+    
+    .webops-theme-content {
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-theme-color {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-theme-grid {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-2);
+    }
+    
+    .webops-theme-card {
+        margin-bottom: var(--webops-space-2);
+    }
+}
+
+/* Responsive styles for main content area */
+@media (max-width: 1024px) {
+    .webops-main-content {
+        margin-left: 200px; /* Reduced sidebar width on tablets */
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-main-content {
+        margin-left: 0 !important; /* Remove sidebar margin on mobile */
+        padding: var(--webops-space-2);
+    }
+    
+    .webops-container {
+        padding: var(--webops-space-2);
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Adjust header spacing on mobile */
+    .webops-header {
+        padding: var(--webops-space-2) var(--webops-space-3);
+        margin-bottom: var(--webops-space-2);
+    }
+    
+    /* Make forms more mobile-friendly */
+    .webops-form-group {
+        margin-bottom: var(--webops-space-3);
+    }
+    
+    .webops-form-control {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Adjust card spacing on mobile */
+    .webops-card {
+        margin-bottom: var(--webops-space-3);
+        padding: var(--webops-space-3);
+    }
+    
+    /* Make tables responsive */
+    .webops-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Adjust button sizes on mobile */
+    .webops-btn {
+        padding: var(--webops-space-2) var(--webops-space-3);
+        font-size: var(--webops-font-size-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-main-content {
+        margin-left: 0 !important; /* Ensure no margin on small screens */
+        padding: var(--webops-space-1);
+    }
+    
+    .webops-container {
+        padding: var(--webops-space-1);
+    }
+    
+    .webops-header {
+        padding: var(--webops-space-1-5) var(--webops-space-2);
+        flex-direction: column;
+        gap: var(--webops-space-2);
+        text-align: center;
+    }
+    
+    .webops-card {
+        padding: var(--webops-space-2);
+        margin-bottom: var(--webops-space-2);
+    }
+    
+    /* Stack form elements vertically on small screens */
+    .webops-form-row {
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+    
+    .webops-form-col {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Adjust typography for small screens */
+    .webops-page-title {
+        font-size: var(--webops-font-size-xl);
+        margin-bottom: var(--webops-space-2);
+    }
+    
+    .webops-section-title {
+        font-size: var(--webops-font-size-lg);
+        margin-bottom: var(--webops-space-1-5);
     }
 }

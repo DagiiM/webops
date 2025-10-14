@@ -12,11 +12,11 @@
     <div class="login-container" style="padding: 2rem 1rem;">
         <div class="webops-card" style="max-width: 480px; margin: 0 auto;">
             <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-xs);">WebOps</h1>
+                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">WebOps</h1>
                 <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Create Your Account</h2>
 
                 {% if form.non_field_errors %}
-                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-radius-md);">
                     {% for error in form.non_field_errors %}
                     <span class="webops-text-error">{{ error }}</span>
                     {% endfor %}

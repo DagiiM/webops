@@ -213,7 +213,7 @@ body {
     top: var(--navbar-height);
     width: var(--sidebar-width);
     height: calc(100vh - var(--navbar-height));
-    background: var(--webops-color-bg-secondary);
+    background: var(--webops-color-bg-elevated);
     border-right: 1px solid var(--color-border-light);
     overflow-y: auto;
     padding: var(--space-6);

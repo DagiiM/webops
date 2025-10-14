@@ -17,9 +17,9 @@
 
 {% if github_connected and github_repos %}
 <!-- GitHub Repository Browser -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
     <div class="webops-card-header" style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-md);">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
             <span class="material-icons" style="color: var(--webops-color-primary);">folder_special</span>
             <h3 class="webops-h3" style="margin: 0;">Select from Your GitHub Repositories</h3>
         </div>
@@ -27,7 +27,7 @@
     </div>
     <div class="webops-card-body">
         <!-- Search Box -->
-        <div class="webops-form-group" style="margin-bottom: var(--webops-space-lg);">
+        <div class="webops-form-group" style="margin-bottom: var(--webops-space-3);">
             <div style="position: relative;">
                 <span class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--webops-color-text-tertiary); font-size: 20px;">search</span>
                 <input type="text" id="repoSearch" class="webops-input" placeholder="Search repositories..." style="padding-left: 40px;" autocomplete="off">
@@ -35,14 +35,14 @@
         </div>
 
         <!-- Repository Grid -->
-        <div id="repoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--webops-space-md); max-height: 500px; overflow-y: auto; padding: 2px;">
+        <div id="repoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--webops-space-3); max-height: 500px; overflow-y: auto; padding: 2px;">
             {% for repo in github_repos %}
             <div class="repo-card" data-repo-name="{{ repo.name|lower }}" data-repo-desc="{{ repo.description|lower }}" data-repo-fullname="{{ repo.full_name }}">
-                <div style="padding: var(--webops-space-lg); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-border-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: all var(--webops-transition-fast); height: 100%;">
+                <div style="padding: var(--webops-space-3); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: all var(--webops-transition-fast); height: 100%;">
                     <!-- Header -->
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-md);">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
                         <div style="flex: 1; min-width: 0;">
-                            <h4 class="webops-h4" style="margin: 0 0 var(--webops-space-xs) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <h4 class="webops-h4" style="margin: 0 0 var(--webops-space-0-5) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {{ repo.name }}
                             </h4>
                             <p class="webops-text-xs webops-text-tertiary" style="margin: 0;">{{ repo.full_name }}</p>
@@ -62,28 +62,28 @@
 
                     <!-- Description -->
                     {% if repo.description %}
-                    <p class="webops-text-sm webops-text-secondary" style="margin: 0 0 var(--webops-space-md) 0; height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                    <p class="webops-text-sm webops-text-secondary" style="margin: 0 0 var(--webops-space-3) 0; height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
                         {{ repo.description }}
                     </p>
                     {% else %}
-                    <p class="webops-text-sm webops-text-tertiary" style="margin: 0 0 var(--webops-space-md) 0; height: 40px; font-style: italic;">
+                    <p class="webops-text-sm webops-text-tertiary" style="margin: 0 0 var(--webops-space-3) 0; height: 40px; font-style: italic;">
                         No description provided
                     </p>
                     {% endif %}
 
                     <!-- Metadata -->
-                    <div style="display: flex; align-items: center; gap: var(--webops-space-md); flex-wrap: wrap; margin-bottom: var(--webops-space-md);">
+                    <div style="display: flex; align-items: center; gap: var(--webops-space-3); flex-wrap: wrap; margin-bottom: var(--webops-space-3);">
                         {% if repo.language %}
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                             <span class="material-icons webops-text-tertiary" style="font-size: 16px;">code</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.language }}</span>
                         </div>
                         {% endif %}
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                             <span class="material-icons webops-text-tertiary" style="font-size: 16px;">star</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.stargazers_count }}</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                             <span class="material-icons webops-text-tertiary" style="font-size: 16px;">call_split</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.forks_count }}</span>
                         </div>
@@ -99,36 +99,36 @@
             {% endfor %}
         </div>
 
-        <div id="noResults" style="display: none; text-align: center; padding: var(--webops-space-2xl); color: var(--webops-color-text-tertiary);">
+        <div id="noResults" style="display: none; text-align: center; padding: var(--webops-space-3); color: var(--webops-color-text-tertiary);">
             <span class="material-icons" style="font-size: 48px; opacity: 0.5;">search_off</span>
-            <p class="webops-text-secondary" style="margin-top: var(--webops-space-md);">No repositories match your search</p>
+            <p class="webops-text-secondary" style="margin-top: var(--webops-space-3);">No repositories match your search</p>
         </div>
     </div>
 </div>
 
-<div class="webops-flex webops-gap-sm" style="align-items: center; margin-bottom: var(--webops-space-xl); padding: var(--webops-space-md); background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.2);">
+<div class="webops-flex webops-gap-sm" style="align-items: center; margin-bottom: var(--webops-space-3); padding: var(--webops-space-3); background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.2);">
     <span class="material-icons webops-text-success">check_circle</span>
     <span class="webops-text-sm webops-text-secondary">Select a repository above or manually enter repository details below</span>
 </div>
 {% elif github_connected %}
 <!-- No repositories found -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
-    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-2xl);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-3);">
         <span class="material-icons" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.5;">folder_off</span>
-        <h3 class="webops-h3" style="margin-top: var(--webops-space-lg); color: var(--webops-color-text-secondary);">No Repositories Found</h3>
+        <h3 class="webops-h3" style="margin-top: var(--webops-space-3); color: var(--webops-color-text-secondary);">No Repositories Found</h3>
         <p class="webops-text-secondary">Your GitHub account doesn't have any repositories yet, or they couldn't be fetched.</p>
-        <p class="webops-text-sm webops-text-tertiary" style="margin-top: var(--webops-space-md);">You can still manually enter a repository URL below.</p>
+        <p class="webops-text-sm webops-text-tertiary" style="margin-top: var(--webops-space-3);">You can still manually enter a repository URL below.</p>
     </div>
 </div>
 {% else %}
 <!-- GitHub not connected -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
-    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-2xl);">
-        <div style="width: 64px; height: 64px; border-radius: var(--webops-border-radius-lg); background: linear-gradient(135deg, #24292e, #6e5494); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-lg);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-3);">
+        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: linear-gradient(135deg, #24292e, #6e5494); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
             <span class="material-icons" style="font-size: 36px; color: white;">code</span>
         </div>
-        <h3 class="webops-h3" style="margin-bottom: var(--webops-space-sm);">Connect GitHub for Quick Deploy</h3>
-        <p class="webops-text-secondary" style="margin-bottom: var(--webops-space-lg);">Connect your GitHub account to browse and select repositories directly from this page.</p>
+        <h3 class="webops-h3" style="margin-bottom: var(--webops-space-1-5);">Connect GitHub for Quick Deploy</h3>
+        <p class="webops-text-secondary" style="margin-bottom: var(--webops-space-3);">Connect your GitHub account to browse and select repositories directly from this page.</p>
         <a href="{% url 'integrations_dashboard' %}" class="webops-btn webops-btn-primary">
             <span class="material-icons">link</span>
             Connect GitHub
@@ -227,7 +227,7 @@
                         <div class="webops-spinner" style="width: 20px; height: 20px;"></div>
                     </div>
                 </div>
-                <div id="branchSelector" style="display: none; margin-top: var(--webops-space-sm);">
+                <div id="branchSelector" style="display: none; margin-top: var(--webops-space-1-5);">
                     <select id="branchSelect" class="webops-input" style="cursor: pointer;">
                         <option value="">Select a branch...</option>
                     </select>
@@ -243,7 +243,7 @@
                 <small class="webops-input-help">Leave empty to use IP address and port</small>
             </div>
 
-            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-info);">
+            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
                 <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
                     <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
                     <div class="webops-text-sm">

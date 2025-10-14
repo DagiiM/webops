@@ -11,19 +11,19 @@ Welcome to the comprehensive documentation for WebOps - the production-ready hos
 ## 🎯 **Quick Navigation**
 
 ### **Getting Started**
-- [🚀 **Quick Start Guide**](QUICKSTART.md) - Get WebOps running in 5 minutes
-- [💻 **Development Setup**](DEVELOPMENT.md) - Local development environment
+- [🚀 **Quick Start Guide**](quick-start-guide.md) - Get WebOps running in 5 minutes
+- [💻 **Development Setup**](development.md) - Local development environment
 - [🏗️ **Production Installation**](installation.md) - Full production deployment
 
 ### **User Guides**
-- [📦 **Deployment Guide**](DEPLOYMENT-GUIDE.md) - Deploy your applications
+- [📦 **Deployment Guide**](deployment-guide.md) - Deploy your applications
 - [🔧 **Configuration**](configuration.md) - System configuration options
 - [👥 **User Management**](user-management.md) - Multi-user setup and permissions
 
 ### **Technical Documentation**
 - [🔌 **API Reference**](api-reference.md) - Complete REST API documentation
-- [🎨 **Design System**](DESIGN-SYSTEM-V2.md) - Frontend architecture and components
-- [🛡️ **Security Features**](SECURITY-FEATURES.md) - Security implementation details
+- [🎨 **Design System**](design-system-v2.md) - Frontend architecture and components
+- [🛡️ **Security Features**](security-features.md) - Security implementation details
 
 ### **Operations**
 - [📊 **Monitoring & Analytics**](monitoring.md) - System health and performance
@@ -55,7 +55,7 @@ Welcome to the comprehensive documentation for WebOps - the production-ready hos
 - ✅ **Auto-recovery** - Intelligent error handling and retry mechanisms
 
 ### **Technology Stack**
-- **Backend**: Python 3.13+, Django 5.2.6+, PostgreSQL, Redis, Celery
+- **Backend**: Python 3.11+, Django 5.0+, PostgreSQL, Redis, Celery
 - **Frontend**: Vanilla HTML5/CSS3/ES6+ (zero frameworks, maximum performance)
 - **Infrastructure**: Nginx, systemd, Ubuntu/Debian Linux
 - **Security**: Built-in 2FA, encryption, audit logging
@@ -103,10 +103,10 @@ See [Monitoring Guide](monitoring.md) for health checks and maintenance.
 
 ## 📞 **Getting Help**
 
-- 📖 **Documentation**: Start with [Quick Start Guide](QUICKSTART.md)
+- 📖 **Documentation**: Start with [Quick Start Guide](quick-start-guide.md)
 - 🐛 **Issues**: Check [Troubleshooting Guide](troubleshooting.md)
 - 🔧 **Configuration**: See [Configuration Reference](configuration.md)
-- 🛡️ **Security**: Review [Security Features](SECURITY-FEATURES.md)
+- 🛡️ **Security**: Review [Security Features](security-features.md)
 
 ---
 

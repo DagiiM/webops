@@ -24,12 +24,14 @@ def generate_secret_key(length: int = 50) -> str:
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
-def generate_port(used_ports: Set[int] = None) -> int:
+def generate_port(used_ports: Set[int] = None, min_port: int = None, max_port: int = None) -> int:
     """
     Generate available port number for deployment.
 
     Args:
         used_ports: Set of already used ports
+        min_port: Minimum port number (optional, defaults to settings.MIN_PORT)
+        max_port: Maximum port number (optional, defaults to settings.MAX_PORT)
 
     Returns:
         Available port number
@@ -40,8 +42,11 @@ def generate_port(used_ports: Set[int] = None) -> int:
     if used_ports is None:
         used_ports = set()
 
-    min_port = settings.MIN_PORT
-    max_port = settings.MAX_PORT
+    # Use provided values or fall back to settings
+    if min_port is None:
+        min_port = settings.MIN_PORT
+    if max_port is None:
+        max_port = settings.MAX_PORT
 
     available_ports = set(range(min_port, max_port + 1)) - used_ports
 

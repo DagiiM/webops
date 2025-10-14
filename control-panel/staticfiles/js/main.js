@@ -1,62 +1,346 @@
-/*
-WebOps Control Panel JavaScript
-Pure Vanilla ES6+ - No frameworks (CLAUDE.md compliance)
-*/
+/**
+ * WebOps Control Panel - Premium JavaScript
+ * Pure vanilla ES6+ - zero frameworks
+ */
 
 'use strict';
 
-// CSRF Token handling
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+class GraphBackground {
+    constructor() {
+        this.nodes = [];
+        this.nodeCount = 20;
+        this.init();
+    }
+
+    init() {
+        const bg = document.querySelector('.app-background');
+        if (!bg) return;
+
+        const container = document.createElement('div');
+        container.className = 'graph-nodes';
+        bg.appendChild(container);
+
+        for (let i = 0; i < this.nodeCount; i++) {
+            const node = document.createElement('div');
+            node.className = 'graph-node';
+            node.style.left = Math.random() * 100 + '%';
+            node.style.top = Math.random() * 100 + '%';
+            node.style.animationDelay = Math.random() * 20 + 's';
+            container.appendChild(node);
         }
     }
-    return cookieValue;
 }
 
-const csrftoken = getCookie('csrftoken');
+class Loader {
+    static timeout = null;
+    static maxDuration = 30000; // 30 seconds max
 
-// Auto-dismiss messages after 5 seconds
-document.addEventListener('DOMContentLoaded', () => {
-    const messages = document.querySelectorAll('.alert');
-    messages.forEach(message => {
+    static show(message = 'Loading') {
+        const loader = document.getElementById('webopsLoader');
+        const text = loader?.querySelector('.webops-loader-text');
+
+        if (loader) {
+            if (text) text.textContent = message;
+            loader.classList.add('active');
+
+            // Auto-hide after max duration to prevent stuck loaders
+            if (this.timeout) clearTimeout(this.timeout);
+            this.timeout = setTimeout(() => {
+                this.hide();
+                console.warn('Loader auto-hidden after timeout');
+            }, this.maxDuration);
+        }
+    }
+
+    static hide() {
+        const loader = document.getElementById('webopsLoader');
+        if (loader) {
+            loader.classList.remove('active');
+        }
+
+        // Clear timeout
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+        }
+    }
+
+    static async wrap(promise, message = 'Loading') {
+        this.show(message);
+        try {
+            const result = await promise;
+            return result;
+        } finally {
+            this.hide();
+        }
+    }
+}
+
+class Toast {
+    static show(message, type = 'info', duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;top:24px;right:24px;background:rgba(20,26,23,0.95);backdrop-filter:blur(20px);border:1px solid var(--color-' + (type === 'error' ? 'error' : 'success') + ');border-radius:8px;padding:16px 24px;color:var(--webops-color-text-primary);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:9999;opacity:0;transform:translateX(400px);transition:all 0.3s';
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
         setTimeout(() => {
-            message.style.opacity = '0';
-            setTimeout(() => message.remove(), 300);
-        }, 5000);
-    });
-});
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(400px)';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
 
-// Form validation
-document.addEventListener('DOMContentLoaded', () => {
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', (e) => {
-            const requiredFields = form.querySelectorAll('[required]');
-            let valid = true;
+    static success(msg) { this.show(msg, 'success'); }
+    static error(msg) { this.show(msg, 'error'); }
+}
 
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    valid = false;
-                    field.style.borderColor = 'var(--danger)';
-                } else {
-                    field.style.borderColor = 'var(--webops-gray-300)';
-                }
+class APIClient {
+    constructor(baseURL = '/api') {
+        this.baseURL = baseURL;
+    }
+
+    async request(endpoint, options = {}) {
+        const url = this.baseURL + endpoint;
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                },
             });
 
-            if (!valid) {
-                e.preventDefault();
-                alert('Please fill in all required fields');
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return await response.json();
+        } catch (error) {
+            Toast.error(error.message);
+            throw error;
+        }
+    }
+
+    get(endpoint) { return this.request(endpoint); }
+    post(endpoint, data) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(data) }); }
+}
+
+// Global error handlers for "no broken windows" philosophy
+class ErrorBoundary {
+    static init() {
+        // Handle uncaught JavaScript errors
+        window.addEventListener('error', (event) => {
+            console.error('Uncaught error:', event.error);
+            ErrorBoundary.handleError(event.error || new Error(event.message));
+            event.preventDefault();
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            ErrorBoundary.handleError(event.reason);
+            event.preventDefault();
+        });
+    }
+
+    static handleError(error) {
+        const message = error.message || 'An unexpected error occurred';
+
+        // Show user-friendly error toast
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.error('Something went wrong. Please try again.');
+        }
+
+        // Log to server (optional - could add endpoint)
+        ErrorBoundary.logErrorToServer(error);
+    }
+
+    static logErrorToServer(error) {
+        // Optional: Send error to server for logging
+        const errorData = {
+            message: error.message,
+            stack: error.stack,
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        };
+
+        // Could implement server-side error logging endpoint
+        // fetch('/api/errors/log/', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(errorData)
+        // }).catch(() => {}); // Silent fail
+    }
+}
+
+class SidebarManager {
+    constructor() {
+        this.sidebar = null;
+        this.toggle = null;
+        this.overlay = null;
+        this.isOpen = false;
+        this.init();
+    }
+
+    init() {
+        this.sidebar = document.querySelector('.webops-sidebar');
+        this.toggle = document.querySelector('.webops-sidebar-toggle');
+        this.overlay = document.querySelector('.webops-sidebar-overlay');
+
+        if (!this.sidebar || !this.toggle || !this.overlay) {
+            console.warn('Sidebar elements not found');
+            return;
+        }
+
+        this.bindEvents();
+        this.handleResize();
+    }
+
+    bindEvents() {
+        // Toggle button click
+        this.toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleSidebar();
+        });
+
+        // Overlay click to close
+        this.overlay.addEventListener('click', () => {
+            this.closeSidebar();
+        });
+
+        // Escape key to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) {
+                this.closeSidebar();
             }
         });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+
+        // Close sidebar when clicking nav links on mobile
+        const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    this.closeSidebar();
+                }
+            });
+        });
+    }
+
+    toggleSidebar() {
+        if (this.isOpen) {
+            this.closeSidebar();
+        } else {
+            this.openSidebar();
+        }
+    }
+
+    openSidebar() {
+        this.sidebar.classList.add('active');
+        this.overlay.classList.add('active');
+        this.isOpen = true;
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+
+    closeSidebar() {
+        this.sidebar.classList.remove('active');
+        this.overlay.classList.remove('active');
+        this.isOpen = false;
+        document.body.style.overflow = ''; // Restore scroll
+    }
+
+    handleResize() {
+        // Auto-close sidebar on desktop
+        if (window.innerWidth > 768 && this.isOpen) {
+            this.closeSidebar();
+        }
+    }
+}
+
+// Retry mechanism for failed requests
+class RetryManager {
+    static async withRetry(fn, maxRetries = 3, delay = 1000) {
+        let lastError;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                return await fn();
+            } catch (error) {
+                lastError = error;
+
+                if (attempt < maxRetries - 1) {
+                    // Wait before retrying (exponential backoff)
+                    await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
+                }
+            }
+        }
+
+        throw lastError;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize error boundary
+    ErrorBoundary.init();
+
+    // Initialize components
+    try {
+        new GraphBackground();
+        const sidebarManager = new SidebarManager();
+        
+        window.WebOps = {
+            API: new APIClient(),
+            Loader,
+            Toast,
+            ErrorBoundary,
+            RetryManager,
+            Sidebar: sidebarManager
+        };
+        console.log('%cWebOps', 'color: #00ff88; font-size: 24px; font-weight: bold;');
+    } catch (error) {
+        console.error('Failed to initialize WebOps:', error);
+        ErrorBoundary.handleError(error);
+    }
+
+    // Loader escape key handler
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const loader = document.getElementById('webopsLoader');
+            if (loader && loader.classList.contains('active')) {
+                Loader.hide();
+            }
+        }
     });
+
+    // Loader click-to-dismiss (click on overlay, not the loader itself)
+    const loaderOverlay = document.getElementById('webopsLoader');
+    if (loaderOverlay) {
+        loaderOverlay.addEventListener('click', (e) => {
+            if (e.target === loaderOverlay) {
+                Loader.hide();
+            }
+        });
+    }
 });
 
-console.log('WebOps Control Panel loaded');
+// Global helper functions for convenience
+function showLoader(message) {
+    if (window.WebOps && window.WebOps.Loader) {
+        window.WebOps.Loader.show(message);
+    }
+}
+
+function hideLoader() {
+    if (window.WebOps && window.WebOps.Loader) {
+        window.WebOps.Loader.hide();
+    }
+}

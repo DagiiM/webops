@@ -12,7 +12,7 @@
         <h3 class="webops-h3 webops-text-error webops-mb-md">⚠️ Warning</h3>
         <p>You are about to delete the deployment <strong>{{ deployment.name }}</strong>.</p>
         <p class="webops-mb-sm">This action will:</p>
-        <ul style="margin-left: var(--webops-space-lg); margin-bottom: var(--webops-space-md);">
+        <ul style="margin-left: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
             <li>Stop the running service (if running)</li>
             <li>Remove all deployed files</li>
             <li>Delete the systemd service</li>
@@ -28,7 +28,7 @@
         <h3 class="webops-h3">Deployment Details</h3>
     </div>
     <div class="webops-card-body">
-        <dl class="webops-grid webops-grid-2" style="gap: var(--webops-space-md);">
+        <dl class="webops-grid webops-grid-2" style="gap: var(--webops-space-3);">
             <div>
                 <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Repository:</dt>
                 <dd><code class="webops-text-sm">{{ deployment.repo_url }}</code></dd>

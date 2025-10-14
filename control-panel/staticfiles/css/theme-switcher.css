@@ -11,19 +11,19 @@
 
 .webops-theme-switcher-floating {
     position: fixed;
-    top: var(--webops-space-lg);
-    right: var(--webops-space-lg);
+    top: var(--webops-space-3);
+    right: var(--webops-space-3);
     z-index: 9999;
 }
 
 .webops-theme-toggle {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     background: var(--webops-color-surface);
     border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
@@ -58,12 +58,12 @@
 
 .webops-theme-dropdown {
     position: absolute;
-    top: calc(100% + var(--webops-space-xs));
+    top: calc(100% + var(--webops-space-0-5));
     right: 0;
     min-width: 160px;
     background: var(--webops-color-bg-elevated);
     border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     box-shadow: var(--webops-shadow-lg);
     backdrop-filter: blur(20px);
     opacity: 0;
@@ -82,9 +82,9 @@
 .webops-theme-option {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
     width: 100%;
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     background: transparent;
     border: none;
     color: var(--webops-color-text-secondary);
@@ -107,11 +107,11 @@
 }
 
 .webops-theme-option:first-child {
-    border-radius: var(--webops-border-radius-md) var(--webops-border-radius-md) 0 0;
+    border-radius: var(--webops-radius-md) var(--webops-radius-md) 0 0;
 }
 
 .webops-theme-option:last-child {
-    border-radius: 0 0 var(--webops-border-radius-md) var(--webops-border-radius-md);
+    border-radius: 0 0 var(--webops-radius-md) var(--webops-radius-md);
 }
 
 .webops-theme-preview {
@@ -148,12 +148,12 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .webops-theme-switcher-floating {
-        top: var(--webops-space-md);
-        right: var(--webops-space-md);
+        top: var(--webops-space-3);
+        right: var(--webops-space-3);
     }
     
     .webops-theme-toggle {
-        padding: var(--webops-space-xs) var(--webops-space-sm);
+        padding: var(--webops-space-0-5) var(--webops-space-1-5);
     }
     
     .webops-theme-label {

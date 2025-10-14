@@ -9,7 +9,7 @@
         <h2 class="webops-page-title">{{ deployment.name }}</h2>
         <p class="webops-text-muted">Deployment details and configuration</p>
     </div>
-    <div style="display: flex; gap: var(--webops-space-sm);">
+    <div style="display: flex; gap: var(--webops-space-1-5);">
         <a href="{% url 'deployments:deployment_monitoring' deployment.pk %}" class="webops-btn webops-btn-info">
             <span class="material-icons">monitor_heart</span>
             Monitoring
@@ -64,7 +64,7 @@
 </div>
 
 <!-- Status Banner -->
-<div class="webops-status-banner webops-status-{{ deployment.status }}" style="display: flex; align-items: center; gap: var(--webops-space-md); padding: var(--webops-space-lg); margin-bottom: var(--webops-space-xl); border-radius: var(--webops-border-radius-lg); background: var(--webops-color-bg-elevated); border-left: 4px solid var(--webops-color-primary);">
+<div class="webops-status-banner webops-status-{{ deployment.status }}" style="display: flex; align-items: center; gap: var(--webops-space-3); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3); border-radius: var(--webops-radius-lg); background: var(--webops-color-bg-elevated); border-left: 4px solid var(--webops-color-primary);">
     <span class="material-icons" style="font-size: 24px; color: var(--webops-color-primary);">
         {% if deployment.status == 'running' %}check_circle{% elif deployment.status == 'stopped' %}pause_circle{% elif deployment.status == 'failed' %}error{% else %}pending{% endif %}
     </span>
@@ -87,7 +87,7 @@
         </h3>
     </div>
     <div class="webops-card-body">
-        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-lg);">
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-3);">
             <div class="webops-info-item">
                 <label class="webops-label">Repository</label>
                 <div class="webops-info-value">
@@ -311,7 +311,7 @@
     display: flex;
     align-items: center;
     padding: 1rem 1.5rem;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     margin-bottom: 2rem;
     font-size: 0.9375rem;
 }
@@ -362,7 +362,7 @@
     gap: 0.5rem;
     padding: 0.75rem;
     background: var(--webops-color-bg-tertiary);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border: 1px solid var(--webops-color-bg-tertiary);
 }
 
@@ -394,7 +394,7 @@
     gap: 1rem;
     padding: 0.75rem;
     background: var(--webops-gray-50);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border: 1px solid var(--webops-gray-200);
 }
 
@@ -435,7 +435,7 @@
 .webops-env-input-row input {
     padding: 0.5rem;
     border: 2px solid var(--webops-gray-300);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
     font-size: 0.875rem;
 }
@@ -450,7 +450,7 @@
     color: white;
     border: none;
     padding: 0.5rem;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -462,7 +462,7 @@
     align-items: flex-start;
     padding: 1rem;
     background: var(--primary-light);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--primary);
 }
 
@@ -471,7 +471,7 @@
     overflow-y: auto;
     background: var(--webops-gray-900);
     padding: 1rem;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
@@ -577,7 +577,7 @@
 .webops-browser-toolbar {
     background: var(--webops-color-bg-tertiary);
     padding: 0.75rem;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     margin-bottom: 1rem;
     border: 1px solid var(--webops-color-bg-tertiary);
 }
@@ -618,7 +618,7 @@
     padding: 0.75rem;
     background: var(--webops-gray-50);
     border: 1px solid var(--webops-gray-200);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -653,7 +653,7 @@
 
 .webops-file-viewer {
     border: 1px solid var(--webops-gray-300);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     overflow: hidden;
 }
 
@@ -685,7 +685,7 @@
     align-items: flex-start;
     gap: 0.75rem;
     padding: 1rem;
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     margin-bottom: 0.75rem;
 }
 
@@ -739,7 +739,7 @@
     margin-bottom: 1.5rem;
     padding: 1rem;
     background: var(--webops-gray-50);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
 }
 
 .webops-validation-stat {
@@ -876,7 +876,7 @@ function showNotification(message, type = 'success') {
         background: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
         color: white;
         padding: 1rem 1.5rem;
-        border-radius: var(--webops-border-radius-md);
+        border-radius: var(--webops-radius-md);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 10000;
         animation: slideIn 0.3s ease;

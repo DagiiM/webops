@@ -240,8 +240,8 @@ path('llm/<int:pk>/playground/', llm_views.llm_playground, name='llm_playground'
 cd control-panel
 rm -rf venv
 python3 -m venv venv
-./venv/bin/pip install --upgrade pip
-./venv/bin/pip install -r requirements.txt
+./venv/bin/python -m pip install --upgrade pip
+./venv/bin/python -m pip install -r requirements.txt
 ```
 
 ### Step 2: Run Migrations (2 min)

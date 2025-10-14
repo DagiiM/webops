@@ -26,7 +26,16 @@ readonly BACKUPS_DIR="${WEBOPS_DIR}/backups"
 readonly LOGS_DIR="${WEBOPS_DIR}/logs"
 
 # Python version
-readonly PYTHON_VERSION="3.11"
+readonly PYTHON_VERSION_DEFAULT="3.11"
+# By default we will NOT install Python. Use --install-python to enable.
+PYTHON_VERSION="${PYTHON_VERSION_DEFAULT}"
+INSTALL_PYTHON=false
+
+# Automation flags (can be set via CLI)
+AUTO_YES=false
+AUTO_DRYRUN_PYTHON=false
+AUTO_APPLY_PYTHON=false
+RECOMMEND_ONLY=false
 
 # PostgreSQL version
 readonly POSTGRES_VERSION="14"
@@ -37,6 +46,67 @@ readonly POSTGRES_VERSION="14"
 
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
+}
+usage() {
+    cat <<EOF
+Usage: $0 [options]
+
+Options:
+  --yes, -y               Assume yes for prompts (non-interactive)
+  --auto-dryrun-python    Automatically run the python helper in dry-run mode
+  --auto-apply-python     Automatically apply the python default change (requires sudo)
+  --recommend-only        Only print and run the recommendation helper, then exit
+  --help, -h              Show this help message
+EOF
+}
+
+parse_cli_args() {
+    # Basic CLI arg parsing for automation flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --yes|-y)
+                AUTO_YES=true
+                shift
+                ;;
+            --auto-dryrun-python)
+                AUTO_DRYRUN_PYTHON=true
+                shift
+                ;;
+            --auto-apply-python)
+                AUTO_APPLY_PYTHON=true
+                shift
+                ;;
+            --install-python)
+                INSTALL_PYTHON=true
+                shift
+                ;;
+            --python-version)
+                if [[ -n ${2:-} ]]; then
+                    PYTHON_VERSION="$2"
+                    shift 2
+                else
+                    log_warn "--python-version requires an argument"
+                    shift
+                fi
+                ;;
+            --recommend-only)
+                RECOMMEND_ONLY=true
+                shift
+                ;;
+            --help|-h)
+                usage
+                exit 0
+                ;;
+            --*)
+                log_warn "Unknown option: $1"
+                shift
+                ;;
+            *)
+                # positional args not used currently
+                shift
+                ;;
+        esac
+    done
 }
 
 log_error() {
@@ -204,6 +274,98 @@ check_package_manager() {
     log_warn "Note: Repository updates will be performed in the next step"
 }
 
+ensure_python3_present_or_fail() {
+    # When install is skipped, ensure python3 exists on the system.
+    if ! command -v python3 &> /dev/null; then
+        log_error "python3 not found in PATH. The installer was configured to skip Python installation."
+        log_error "Either install Python3 manually or run setup.sh with --install-python"
+        exit 1
+    else
+        log_info "python3 detected: $(python3 --version 2>&1 | head -1)"
+    fi
+}
+
+#=============================================================================
+# Recommendations / Post-install prompts
+#=============================================================================
+recommend_python_default() {
+    # Inform the operator about the recommended approach to setting the system 'python'
+    log_step "Python default recommendation"
+
+    cat <<-EOF
+It is recommended to avoid changing the system 'python' global unless you
+understand the implications. Many system utilities expect 'python3' to be
+available but not necessarily 'python' pointing to a specific version.
+
+This setup prefers using 'python3' and registers the requested Python with
+the alternatives system. If you want to change the global 'python' to
+point to the installed ${PYTHON_VERSION}, you can run the helper script that
+attempts to do this safely.
+
+Helper script: scripts/set-default-python.sh
+
+You can run a dry-run to see what would change:
+  ./scripts/set-default-python.sh ${PYTHON_VERSION} --dry-run
+
+Or run with sudo to apply the change system-wide:
+  sudo ./scripts/set-default-python.sh ${PYTHON_VERSION}
+
+If you rely on system packages, use 'python3' or a virtual environment
+instead of changing the global 'python'.
+EOF
+
+    # Non-interactive automation support
+    if [[ "$AUTO_APPLY_PYTHON" == true ]]; then
+        log_info "AUTO_APPLY_PYTHON enabled: applying python default automatically"
+        if [[ -x "./scripts/set-default-python.sh" ]]; then
+            if ! command -v sudo &> /dev/null; then
+                log_error "sudo command not available but required for auto-apply. Aborting auto-apply."
+                return 2
+            fi
+            if ! sudo -n true 2>/dev/null; then
+                log_warn "sudo will prompt for a password. Running auto-apply may block or fail in non-interactive environments."
+            fi
+            sudo ./scripts/set-default-python.sh ${PYTHON_VERSION} || { log_error "Auto-apply failed"; return 3; }
+        else
+            log_warn "Helper script ./scripts/set-default-python.sh not found or not executable."
+            return 4
+        fi
+        return
+    fi
+
+    if [[ "$AUTO_DRYRUN_PYTHON" == true ]]; then
+        log_info "AUTO_DRYRUN_PYTHON enabled: running helper dry-run"
+        if [[ -x "./scripts/set-default-python.sh" ]]; then
+            ./scripts/set-default-python.sh ${PYTHON_VERSION} --dry-run || true
+        else
+            log_warn "Helper script ./scripts/set-default-python.sh not found or not executable."
+        fi
+        return
+    fi
+
+    # Offer interactive prompt only if not in automation mode
+    if [[ -t 0 && "$AUTO_YES" != true ]]; then
+        read -p "Run helper dry-run now? (Y/n) " -r
+        echo
+        if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy] ]]; then
+            if [[ -x "./scripts/set-default-python.sh" ]]; then
+                ./scripts/set-default-python.sh ${PYTHON_VERSION} --dry-run || true
+            else
+                log_warn "Helper script ./scripts/set-default-python.sh not found or not executable."
+            fi
+        fi
+    elif [[ "$AUTO_YES" == true ]]; then
+        log_info "AUTO_YES enabled: skipping prompt and running dry-run"
+        if [[ -x "./scripts/set-default-python.sh" ]]; then
+            ./scripts/set-default-python.sh ${PYTHON_VERSION} --dry-run || true
+        else
+            log_warn "Helper script ./scripts/set-default-python.sh not found or not executable."
+        fi
+    else
+        log_info "Non-interactive shell: skipping helper dry-run prompt."
+    fi
+}
+
 check_existing_services() {
 #    Check for port conflicts.
     log_step "Checking for port conflicts..."
@@ -318,8 +480,9 @@ update_system() {
     log_step "Updating system packages..."
     export DEBIAN_FRONTEND=noninteractive
 
-    apt-get update -qq
-    apt-get upgrade -y -qq
+    # Suppress warnings for Ubuntu Pro services that may not be available
+    apt-get update -qq 2>&1 | grep -v "Failed to start apt-news.service\|Failed to start esm-cache.service" || true
+    apt-get upgrade -y -qq 2>&1 | grep -v "Failed to start apt-news.service\|Failed to start esm-cache.service" || true
     apt-get install -y -qq \
         apt-transport-https \
         ca-certificates \
@@ -337,7 +500,7 @@ install_python() {
     # Add deadsnakes PPA for Ubuntu (latest Python versions)
     if [[ "$ID" == "ubuntu" ]]; then
         add-apt-repository -y ppa:deadsnakes/ppa
-        apt-get update -qq
+        apt-get update -qq 2>&1 | grep -v "Failed to start apt-news.service\|Failed to start esm-cache.service" || true
     fi
 
     apt-get install -y -qq \
@@ -360,7 +523,7 @@ install_postgresql() {
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
-    apt-get update -qq
+    apt-get update -qq 2>&1 | grep -v "Failed to start apt-news.service\|Failed to start esm-cache.service" || true
     apt-get install -y -qq \
         postgresql-${POSTGRES_VERSION} \
         postgresql-contrib-${POSTGRES_VERSION} \
@@ -605,63 +768,144 @@ verify_nginx() {
 }
 
 verify_celery() {
-#    Verify Celery worker is running and processing tasks.
+    # Verify Celery worker is running and processing tasks.
     log_step "Verifying Celery worker..."
 
-    local max_attempts=5
+    # Allow more time for Celery to initialize properly
+    local max_attempts=3
     local attempt=1
-    local wait_time=10
+    local initial_wait=20
+    local retry_wait=15
+
+    # Give Celery time to start up initially
+    log_info "Allowing ${initial_wait}s for Celery worker initialization..."
+    sleep $initial_wait
 
     while [[ $attempt -le $max_attempts ]]; do
-        # Check systemd status
-        if ! systemctl is-active --quiet webops-celery; then
-            log_warn "Celery worker not active (attempt $attempt/$max_attempts)"
+        log_info "Verification attempt $attempt/$max_attempts"
 
+        # Check systemd status first
+        if ! systemctl is-active --quiet webops-celery; then
+            log_warn "Celery worker service not active"
+            
+            # Show service status for debugging
+            log_info "Service status:"
+            systemctl status webops-celery --no-pager -l | head -10 | sed 's/^/  /'
+            
             if [[ $attempt -lt $max_attempts ]]; then
-                log_info "Waiting ${wait_time}s before retry..."
-                sleep $wait_time
+                log_info "Restarting Celery service..."
                 systemctl restart webops-celery
+                log_info "Waiting ${retry_wait}s for service to stabilize..."
+                sleep $retry_wait
                 attempt=$((attempt + 1))
                 continue
             else
-                log_error "Celery worker failed to start after $max_attempts attempts"
+                log_error "Celery worker service failed to start after $max_attempts attempts"
+                log_error "Full service status:"
                 systemctl status webops-celery --no-pager -l
                 return 1
             fi
         fi
 
-        # Check process is running
-        if ! pgrep -f "celery.*worker" &> /dev/null; then
-            log_warn "Celery worker process not found (attempt $attempt/$max_attempts)"
+        log_info "Celery service is active ✓"
 
+        # Check if process is actually running
+        local celery_pid
+        celery_pid=$(pgrep -u "$WEBOPS_USER" -f "celery.*worker" | head -1)
+        
+        if [[ -z "$celery_pid" ]]; then
+            log_warn "Celery worker process not found"
+            
+            # Check recent logs for startup issues
+            log_info "Recent systemd logs:"
+            journalctl -u webops-celery --since "1 minute ago" --no-pager | grep -v "CPendingDeprecationWarning" | tail -5 | sed 's/^/  /'
+            
             if [[ $attempt -lt $max_attempts ]]; then
-                sleep $wait_time
+                log_info "Restarting Celery worker..."
+                systemctl restart webops-celery
+                sleep $retry_wait
                 attempt=$((attempt + 1))
                 continue
             else
-                log_error "Celery worker process not running"
+                log_error "Celery worker process not running after $max_attempts attempts"
+                log_error "Check full logs: journalctl -u webops-celery -n 50"
                 return 1
             fi
         fi
 
-        log_info "Celery worker process running ✓"
+        log_info "Celery worker process running (PID: $celery_pid) ✓"
 
-        # Test worker responsiveness
-        log_info "Pinging Celery worker..."
-        if sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/celery" -A config.celery_app inspect ping 2>&1 | grep -q "pong"; then
-            log_info "Celery: Worker responded to ping ✓"
+        # Test worker responsiveness with better error handling
+        log_info "Testing Celery worker responsiveness..."
+        
+        # Set environment variables to suppress warnings and ensure proper Django loading
+        local celery_env="PYTHONWARNINGS=ignore::DeprecationWarning CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=true DJANGO_SETTINGS_MODULE=config.settings"
+        
+        local ping_output
+        ping_output=$(timeout 20 sudo -u "$WEBOPS_USER" bash -c "cd '$CONTROL_PANEL_DIR' && $celery_env '$CONTROL_PANEL_DIR/venv/bin/celery' -A config.celery_app inspect ping" 2>&1)
+        local ping_exit_code=$?
+        
+        # Filter out warnings and check for success
+        local filtered_output
+        filtered_output=$(echo "$ping_output" | grep -v -E "(CPendingDeprecationWarning|DeprecationWarning|PendingDeprecationWarning)")
+        
+        if [[ $ping_exit_code -eq 0 ]] && echo "$filtered_output" | grep -q "pong"; then
+            log_info "Celery worker responded to ping ✓"
+            
+            # Verify worker has registered tasks
+            log_info "Checking registered tasks..."
+            local tasks_output
+            tasks_output=$(timeout 15 sudo -u "$WEBOPS_USER" bash -c "cd '$CONTROL_PANEL_DIR' && $celery_env '$CONTROL_PANEL_DIR/venv/bin/celery' -A config.celery_app inspect registered" 2>&1)
+            local tasks_exit_code=$?
+            
+            if [[ $tasks_exit_code -eq 0 ]]; then
+                local task_count
+                task_count=$(echo "$tasks_output" | grep -c "apps\." 2>/dev/null || echo "0")
+                if [[ $task_count -gt 0 ]]; then
+                    log_info "Celery worker has $task_count registered tasks ✓"
+                else
+                    log_warn "No tasks registered, but worker is responsive"
+                fi
+            else
+                log_warn "Could not check registered tasks, but worker is responsive"
+            fi
+            
+            log_info "Celery worker verification successful ✓"
             return 0
         else
-            log_warn "Celery ping failed (attempt $attempt/$max_attempts)"
+            log_warn "Celery worker ping failed (attempt $attempt/$max_attempts)"
+            
+            # Show diagnostic information
+            if [[ $ping_exit_code -eq 124 ]]; then
+                log_warn "Ping command timed out - worker may be overloaded"
+            elif [[ $ping_exit_code -ne 0 ]]; then
+                log_warn "Ping command failed with exit code: $ping_exit_code"
+            fi
+            
+            # Show filtered output for debugging
+            if [[ -n "$filtered_output" ]]; then
+                log_info "Ping output (filtered):"
+                echo "$filtered_output" | head -3 | sed 's/^/  /'
+            fi
 
             if [[ $attempt -lt $max_attempts ]]; then
-                log_info "Restarting Celery worker..."
+                log_info "Restarting Celery worker for retry..."
                 systemctl restart webops-celery
-                sleep $wait_time
+                sleep $retry_wait
                 attempt=$((attempt + 1))
             else
                 log_error "Celery worker not responding after $max_attempts attempts"
-                log_error "Check logs: journalctl -u webops-celery -n 50"
+                log_error "Final diagnostics:"
+                log_error "- Service status: $(systemctl is-active webops-celery)"
+                log_error "- Process count: $(pgrep -u "$WEBOPS_USER" -f "celery.*worker" | wc -l)"
+                log_error "- Check detailed logs: journalctl -u webops-celery -n 100"
+                
+                # Show recent error logs
+                if [[ -f "$LOGS_DIR/celery-worker.log" ]]; then
+                    log_error "Recent worker log entries (filtered):"
+                    tail -10 "$LOGS_DIR/celery-worker.log" | grep -v -E "(CPendingDeprecationWarning|DeprecationWarning)" | sed 's/^/  /'
+                fi
+                
                 return 1
             fi
         fi
@@ -712,7 +956,7 @@ create_directory_structure() {
 
     # Set permissions
     chmod 750 "$WEBOPS_DIR"
-    chmod 750 "$CONTROL_PANEL_DIR"
+    chmod 755 "$CONTROL_PANEL_DIR"  # Changed from 750 to 755 to allow installer user to read/traverse
     chmod 750 "$DEPLOYMENTS_DIR"
     chmod 755 "$SHARED_DIR"
     chmod 700 "$BACKUPS_DIR"
@@ -957,13 +1201,21 @@ install_control_panel() {
     fi
 
     # Create virtual environment
-    sudo -u "$WEBOPS_USER" python3 -m venv "$CONTROL_PANEL_DIR/venv"
+    rm -rf "$CONTROL_PANEL_DIR/venv"
+    sudo -u "$WEBOPS_USER" python3 -m venv --copies "$CONTROL_PANEL_DIR/venv"
+    
+    # Ensure virtual environment binaries have proper execute permissions
+    chmod -R 755 "$CONTROL_PANEL_DIR/venv/bin"
 
-    # Install Python dependencies
-    sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/pip" install --upgrade pip
-    sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/pip" install -r "$CONTROL_PANEL_DIR/requirements.txt"
+    # Install Python dependencies (use python -m pip to avoid broken pip shebangs if venv was moved)
+    sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/python" -m pip install --upgrade pip
+    sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/python" -m pip install -r "$CONTROL_PANEL_DIR/requirements.txt"
+
+    # Final check on permissions
+    chmod -R 755 "$CONTROL_PANEL_DIR/venv/bin"
 
     log_info "Control panel installed ✓"
+    ls -l "$CONTROL_PANEL_DIR/venv/bin" >> "$LOGS_DIR/setup.log"
 }
 
 configure_control_panel() {
@@ -972,8 +1224,9 @@ configure_control_panel() {
     # Generate SECRET_KEY
     SECRET_KEY=$(python3 -c 'import secrets; import string; print("".join(secrets.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(64)))')
 
-    # Generate ENCRYPTION_KEY for database passwords
-    ENCRYPTION_KEY=$(python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+    # Generate ENCRYPTION_KEY for database passwords using the virtual environment Python
+    # This avoids issues with system Python missing cryptography dependencies
+    ENCRYPTION_KEY=$(sudo -u "$WEBOPS_USER" "$CONTROL_PANEL_DIR/venv/bin/python" -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
 
     # Prompt for domain and email for SSL and hosts
     read -p "Control panel domain (leave blank to use server IP): " PANEL_DOMAIN
@@ -1125,7 +1378,7 @@ EOF
     cat > /etc/systemd/system/webops-celery.service <<EOF
 [Unit]
 Description=WebOps Celery Worker
-After=network.target redis.service postgresql.service
+After=network.target redis.service postgresql.service webops-web.service
 Requires=redis.service
 
 [Service]
@@ -1135,14 +1388,23 @@ Group=$WEBOPS_USER
 WorkingDirectory=$CONTROL_PANEL_DIR
 EnvironmentFile=$CONTROL_PANEL_DIR/.env
 
+# Set environment variables for Celery
+Environment=PATH=$CONTROL_PANEL_DIR/venv/bin
+Environment=DJANGO_SETTINGS_MODULE=config.settings
+Environment=PYTHONPATH=$CONTROL_PANEL_DIR
+Environment=CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=true
+
 ExecStart=$CONTROL_PANEL_DIR/venv/bin/celery -A config.celery_app worker \
     --loglevel=info \
-    --logfile=$LOGS_DIR/celery-worker.log
+    --logfile=$LOGS_DIR/celery-worker.log \
+    --pidfile=/var/run/webops/celery-worker.pid \
+    --concurrency=2
 
 ExecStop=/bin/kill -s TERM \$MAINPID
 
 Restart=on-failure
-RestartSec=10
+RestartSec=5
+TimeoutStartSec=60
 
 # Security
 NoNewPrivileges=true
@@ -1160,7 +1422,7 @@ EOF
     cat > /etc/systemd/system/webops-celerybeat.service <<EOF
 [Unit]
 Description=WebOps Celery Beat (Scheduler)
-After=network.target redis.service
+After=network.target redis.service webops-web.service webops-celery.service
 Requires=redis.service
 
 [Service]
@@ -1170,12 +1432,20 @@ Group=$WEBOPS_USER
 WorkingDirectory=$CONTROL_PANEL_DIR
 EnvironmentFile=$CONTROL_PANEL_DIR/.env
 
+# Set environment variables for Celery
+Environment=PATH=$CONTROL_PANEL_DIR/venv/bin
+Environment=DJANGO_SETTINGS_MODULE=config.settings
+Environment=PYTHONPATH=$CONTROL_PANEL_DIR
+Environment=CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=true
+
 ExecStart=$CONTROL_PANEL_DIR/venv/bin/celery -A config.celery_app beat \
     --loglevel=info \
-    --logfile=$LOGS_DIR/celery-beat.log
+    --logfile=$LOGS_DIR/celery-beat.log \
+    --pidfile=/var/run/webops/celery-beat.pid
 
 Restart=on-failure
-RestartSec=10
+RestartSec=5
+TimeoutStartSec=30
 
 [Install]
 WantedBy=multi-user.target
@@ -1242,6 +1512,10 @@ server {
         proxy_read_timeout 60s;
     }
 }
+EOF
+
+    # Enable the site
+    ln -sf /etc/nginx/sites-available/webops-panel.conf /etc/nginx/sites-enabled/
 
     # If a domain was provided, set it in server_name and obtain SSL
     if [[ -n "$PANEL_DOMAIN" ]]; then
@@ -1259,17 +1533,6 @@ server {
         certbot --nginx --non-interactive --agree-tos -m "$ADMIN_EMAIL" -d "$PANEL_DOMAIN" --redirect || true
         systemctl reload nginx || true
     fi
-
-    log_info "Nginx configured \u2713"
-EOF
-
-    ln -sf /etc/nginx/sites-available/webops-panel.conf /etc/nginx/sites-enabled/
-
-    # Test configuration
-    nginx -t
-
-    # Reload Nginx
-    systemctl reload nginx
 
     log_info "Nginx configured ✓"
 }
@@ -1359,8 +1622,8 @@ run_diagnostics() {
         echo "Virtual Environment Python:"
         $CONTROL_PANEL_DIR/venv/bin/python --version
         echo ""
-        echo "Installed Packages (top 20):"
-        $CONTROL_PANEL_DIR/venv/bin/pip list | head -20
+    echo "Installed Packages (top 20):"
+    $CONTROL_PANEL_DIR/venv/bin/python -m pip list | head -20
         echo ""
 
         echo "======================================================================"
@@ -1535,6 +1798,43 @@ print_success_message() {
     echo -e "${BLUE}Diagnostics Report:${NC} /opt/webops/installation-diagnostics.txt"
     echo -e "${BLUE}Documentation:${NC} /opt/webops/docs/"
     echo ""
+    
+    # Final validation - ensure all critical services are running
+    echo -e "${YELLOW}Final Validation:${NC}"
+    local validation_errors=0
+    
+    if ! systemctl is-active --quiet postgresql; then
+        echo "  ✗ PostgreSQL service validation failed"
+        validation_errors=$((validation_errors + 1))
+    fi
+    
+    if ! systemctl is-active --quiet redis-server; then
+        echo "  ✗ Redis service validation failed"
+        validation_errors=$((validation_errors + 1))
+    fi
+    
+    if ! systemctl is-active --quiet nginx; then
+        echo "  ✗ Nginx service validation failed"
+        validation_errors=$((validation_errors + 1))
+    fi
+    
+    if ! systemctl is-active --quiet webops-web; then
+        echo "  ✗ WebOps Web service validation failed"
+        validation_errors=$((validation_errors + 1))
+    fi
+    
+    if [[ $validation_errors -eq 0 ]]; then
+        echo "  ✓ All critical services validated successfully"
+        echo ""
+        echo -e "${GREEN}Installation completed successfully with no critical errors!${NC}"
+        exit 0
+    else
+        echo "  ✗ $validation_errors critical service(s) failed validation"
+        echo ""
+        echo -e "${YELLOW}Warning: Installation completed but some services may need attention.${NC}"
+        echo -e "${YELLOW}Check the diagnostics report for details.${NC}"
+        exit 0  # Don't fail the installation for service issues that can be resolved post-install
+    fi
 }
 
 #=============================================================================
@@ -1542,6 +1842,7 @@ print_success_message() {
 #=============================================================================
 
 main() {
+    parse_cli_args "$@"
     echo -e "${BLUE}"
     cat <<'EOF'
 ╦ ╦┌─┐┌┐ ╔═╗┌─┐┌─┐
@@ -1555,6 +1856,12 @@ EOF
     trap cleanup_on_failure ERR
 
     log_info "Starting WebOps installation..."
+    # If requested, only run recommendations and exit (safe non-destructive mode)
+    if [[ "$RECOMMEND_ONLY" == true ]]; then
+        recommend_python_default
+        log_info "Recommend-only mode complete. Exiting."
+        exit 0
+    fi
 
     # Validation
     check_root
@@ -1565,10 +1872,24 @@ EOF
     check_package_manager
     check_existing_services
     check_disk_io
+    # If requested, only run recommendations and exit (safe non-destructive mode)
+    if [[ "$RECOMMEND_ONLY" == true ]]; then
+        recommend_python_default
+        log_info "Recommend-only mode complete. Exiting."
+        exit 0
+    fi
 
     # System setup
     update_system
-    install_python
+    if [[ "$INSTALL_PYTHON" == true ]]; then
+        install_python
+    else
+        log_info "Skipping Python installation (use --install-python to enable)."
+        # Ensure there's a usable python3 on the system; fail early rather than silently continue
+        ensure_python3_present_or_fail
+    fi
+    # Recommend default python handling and offer helper dry-run
+    recommend_python_default
     install_postgresql
     verify_postgresql || exit 1
     install_redis

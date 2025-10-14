@@ -29,12 +29,7 @@
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
     <style>
-        :root {
-            --webops-color-primary: {{ branding.primary_color }};
-            --webops-color-secondary: {{ branding.secondary_color }};
-            --webops-color-accent: {{ branding.accent_color }};
-            --webops-header-bg: {{ branding.header_bg_color }};
-        }
+{{ branding.generate_css_variables|safe }}
     </style>
     <style>
         .webops-app-layout {
@@ -46,27 +41,27 @@
 
         .webops-sidebar {
             width: 260px;
-            background: var(--webops-header-bg);
+            background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(0, 255, 136, 0.1);
-            padding: var(--webops-space-lg);
+            padding: var(--webops-space-3);
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
             overflow-y: auto;
-            transition: transform var(--webops-transition-normal);
+            transition: transform var(--webops-transition-base);
             z-index: 1000;
         }
 
         .webops-sidebar-header {
-            margin-bottom: var(--webops-space-2xl);
+            margin-bottom: var(--webops-space-3);
         }
 
         .webops-sidebar-brand {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-sm);
+            gap: var(--webops-space-1-5);
             font-size: var(--webops-font-size-xl);
             font-weight: var(--webops-font-weight-bold);
             color: var(--webops-color-primary);
@@ -74,7 +69,7 @@
         }
 
         .webops-nav-section {
-            margin-bottom: var(--webops-space-xl);
+            margin-bottom: var(--webops-space-6);
         }
 
         .webops-nav-section-title {
@@ -83,19 +78,19 @@
             color: var(--webops-color-text-tertiary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: var(--webops-space-sm);
+            margin-bottom: var(--webops-space-1-5);
         }
 
         .webops-nav-item {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-sm);
-            padding: var(--webops-space-sm) var(--webops-space-md);
+            gap: var(--webops-space-1-5);
+            padding: var(--webops-space-1-5) var(--webops-space-3);
             color: var(--webops-color-text-secondary);
             text-decoration: none;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             transition: all var(--webops-transition-fast);
-            margin-bottom: var(--webops-space-xs);
+            margin-bottom: var(--webops-space-0-5);
         }
 
         .webops-nav-item:hover {
@@ -117,10 +112,10 @@
         }
 
         .webops-header {
-            background: var(--webops-header-bg);
+            background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
-            padding: var(--webops-space-lg) var(--webops-space-xl);
+            padding: var(--webops-space-3) var(--webops-space-3);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -141,7 +136,7 @@
         .webops-user-menu {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-sm);
+            gap: var(--webops-space-1-5);
             color: var(--webops-color-text);
         }
 
@@ -160,7 +155,7 @@
         .webops-theme-toggle {
             width: 40px;
             height: 40px;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid rgba(0, 255, 136, 0.2);
             color: var(--webops-color-primary);
@@ -179,7 +174,7 @@
         .webops-settings-button {
             width: 40px;
             height: 40px;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid rgba(0, 255, 136, 0.2);
             color: var(--webops-color-primary);
@@ -203,13 +198,13 @@
         .webops-user-menu-trigger {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-sm);
+            gap: var(--webops-space-1-5);
             background: transparent;
             border: none;
             color: var(--webops-color-text);
             cursor: pointer;
-            padding: var(--webops-space-sm) var(--webops-space-md);
-            border-radius: var(--webops-border-radius-md);
+            padding: var(--webops-space-1-5) var(--webops-space-3);
+            border-radius: var(--webops-radius-md);
             transition: all var(--webops-transition-fast);
             font-family: inherit;
             font-size: inherit;
@@ -236,17 +231,17 @@
             position: absolute;
             top: 100%;
             right: 0;
-            margin-top: var(--webops-space-sm);
-            background: var(--webops-header-bg);
+            margin-top: var(--webops-space-1-5);
+            background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 255, 136, 0.2);
-            border-radius: var(--webops-border-radius-lg);
+            border-radius: var(--webops-radius-lg);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             min-width: 280px;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-10px);
-            transition: all var(--webops-transition-normal);
+            transition: all var(--webops-transition-base);
             z-index: 1000;
         }
 
@@ -259,8 +254,8 @@
         .webops-user-dropdown-header {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-md);
-            padding: var(--webops-space-lg);
+            gap: var(--webops-space-3);
+            padding: var(--webops-space-3);
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
         }
 
@@ -284,7 +279,7 @@
         .webops-user-name {
             font-weight: var(--webops-font-weight-semibold);
             color: var(--webops-color-text);
-            margin-bottom: var(--webops-space-xs);
+            margin-bottom: var(--webops-space-0-5);
         }
 
         .webops-user-email {
@@ -295,14 +290,14 @@
         .webops-user-dropdown-divider {
             height: 1px;
             background: rgba(0, 255, 136, 0.1);
-            margin: var(--webops-space-sm) 0;
+            margin: var(--webops-space-1-5) 0;
         }
 
         .webops-user-dropdown-item {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-sm);
-            padding: var(--webops-space-md) var(--webops-space-lg);
+            gap: var(--webops-space-1-5);
+            padding: var(--webops-space-3) var(--webops-space-3);
             color: var(--webops-color-text-secondary);
             text-decoration: none;
             background: transparent;
@@ -347,7 +342,7 @@
             justify-content: center;
             z-index: 2000;
             opacity: 0;
-            transition: opacity var(--webops-transition-normal);
+            transition: opacity var(--webops-transition-base);
         }
 
         .modal-overlay.active {
@@ -359,7 +354,7 @@
             background: var(--header-bg);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: var(--webops-border-radius-lg);
+            border-radius: var(--webops-radius-lg);
             width: 90%;
             max-width: 500px;
             max-height: 80vh;
@@ -373,7 +368,7 @@
         }
 
         .modal-header {
-            padding: var(--webops-space-lg);
+            padding: var(--webops-space-3);
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
             display: flex;
             align-items: center;
@@ -389,7 +384,7 @@
         .modal-close {
             width: 32px;
             height: 32px;
-            border-radius: var(--webops-border-radius-sm);
+            border-radius: var(--webops-radius-sm);
             background: transparent;
             border: none;
             color: var(--webops-color-text-secondary);
@@ -407,14 +402,14 @@
         }
 
         .modal-body {
-            padding: var(--webops-space-lg);
+            padding: var(--webops-space-3);
         }
 
         .setting-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--webops-space-md) 0;
+            padding: var(--webops-space-3) 0;
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
         }
 
@@ -426,7 +421,7 @@
             font-size: var(--webops-font-size-sm);
             font-weight: var(--webops-font-weight-medium);
             color: var(--webops-color-text-primary);
-            margin-bottom: var(--webops-space-xs);
+            margin-bottom: var(--webops-space-0-5);
         }
 
         .setting-info p {
@@ -484,17 +479,17 @@
 
         .container {
             flex: 1;
-            padding: var(--webops-space-2xl) var(--webops-space-xl);
+            padding: var(--webops-space-3) var(--webops-space-3);
         }
 
         .messages {
-            margin-bottom: var(--webops-space-lg);
+            margin-bottom: var(--webops-space-3);
         }
 
         .alert {
-            padding: var(--webops-space-md) var(--webops-space-lg);
-            border-radius: var(--webops-border-radius-md);
-            margin-bottom: var(--webops-space-sm);
+            padding: var(--webops-space-3) var(--webops-space-3);
+            border-radius: var(--webops-radius-md);
+            margin-bottom: var(--webops-space-1-5);
             border-left: 3px solid;
         }
 
@@ -523,7 +518,7 @@
         }
 
         footer {
-            padding: var(--webops-space-lg) var(--webops-space-xl);
+            padding: var(--webops-space-3) var(--webops-space-3);
             border-top: 1px solid rgba(0, 255, 136, 0.1);
             color: var(--webops-color-text-tertiary);
             text-align: center;
@@ -545,15 +540,15 @@
         .sidebar-toggle {
             display: none;
             position: fixed;
-            top: var(--webops-space-md);
-            left: var(--webops-space-md);
+            top: var(--webops-space-3);
+            left: var(--webops-space-3);
             z-index: 1001;
             background: var(--header-bg);
             border: 1px solid rgba(0, 255, 136, 0.3);
             color: var(--webops-color-primary);
             width: 40px;
             height: 40px;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             cursor: pointer;
             font-size: 20px;
         }
@@ -914,6 +909,7 @@
     </div>
 
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/responsive-tables.js' %}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar toggle for mobile
@@ -935,20 +931,33 @@
 
             // Theme Management
             const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
+            const themeLabel = document.querySelector('.webops-theme-toggle__label');
             const darkModeToggle = document.getElementById('darkModeToggle');
+            const themeSwitcher = document.querySelector('.webops-theme-switcher');
+            const themeDropdown = document.getElementById('themeDropdown');
+            const themeOptions = document.querySelectorAll('.webops-theme-option');
 
             // Load saved theme
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeUI(savedTheme);
+            
+            // Set initial active theme option
+            themeOptions.forEach(option => {
+                if (option.getAttribute('data-theme') === savedTheme) {
+                    option.classList.add('active');
+                    if (themeLabel) {
+                        themeLabel.textContent = option.querySelector('.webops-theme-option__label').textContent;
+                    }
+                }
+            });
 
             function updateThemeUI(theme) {
                 if (theme === 'light') {
-                    themeIcon.textContent = 'dark_mode';
+                    if (themeLabel) themeLabel.textContent = 'Light';
                     if (darkModeToggle) darkModeToggle.checked = false;
                 } else {
-                    themeIcon.textContent = 'light_mode';
+                    if (themeLabel) themeLabel.textContent = 'Dark';
                     if (darkModeToggle) darkModeToggle.checked = true;
                 }
             }
@@ -961,9 +970,48 @@
                 updateThemeUI(newTheme);
             }
 
-            if (themeToggle) {
-                themeToggle.addEventListener('click', toggleTheme);
+            // Theme dropdown functionality
+
+            if (themeToggle && themeDropdown) {
+                themeToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = themeSwitcher.classList.contains('open');
+                    themeSwitcher.classList.toggle('open', !isOpen);
+                    themeToggle.setAttribute('aria-expanded', !isOpen);
+                });
             }
+
+            // Handle theme option selection
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedTheme = this.getAttribute('data-theme');
+                    document.documentElement.setAttribute('data-theme', selectedTheme);
+                    localStorage.setItem('theme', selectedTheme);
+                    
+                    // Update active state
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update label
+                    if (themeLabel) {
+                        themeLabel.textContent = this.querySelector('.webops-theme-option__label').textContent;
+                    }
+                    
+                    // Close dropdown
+                    if (themeSwitcher) {
+                        themeSwitcher.classList.remove('open');
+                        themeToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (themeSwitcher && !themeToggle.contains(e.target) && !themeDropdown.contains(e.target)) {
+                    themeSwitcher.classList.remove('open');
+                    themeToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
 
             if (darkModeToggle) {
                 darkModeToggle.addEventListener('change', function() {

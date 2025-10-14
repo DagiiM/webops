@@ -140,7 +140,7 @@
             </h3>
         </div>
         <div class="webops-card-body">
-            <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-md); margin-bottom: 1rem;">
+            <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); margin-bottom: 1rem;">
                 <div class="webops-stat-value" style="font-size: 2rem;">{{ recent_deployments }}</div>
                 <div class="webops-text-secondary" style="font-size: 0.875rem;">deployments in last 7 days</div>
             </div>
@@ -165,7 +165,7 @@
     <div class="webops-card-body">
         <div class="webops-grid webops-grid-3">
             {% for pt in project_types %}
-            <div class="webops-flex webops-items-center webops-gap-md webops-p-md" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
+            <div class="webops-flex webops-items-center webops-gap-md webops-p-md" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="webops-text-primary">
                     {% if pt.project_type == 'django' %}
                         <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-3.09 3.08L4.09 19l4.24-4.24 2.1 2.1c.74.74 1.62 1.16 2.54 1.54l-1.89 2.49 1.39 1.39L19 13l-1.39-1.39L16.89 15.07z" fill="currentColor"/>
@@ -215,8 +215,8 @@
             <tbody>
                 {% for deployment in deployments %}
                 <tr>
-                    <td><strong>{{ deployment.name }}</strong></td>
-                    <td>
+                    <td data-label="Name"><strong>{{ deployment.name }}</strong></td>
+                    <td data-label="Status">
                         {% if deployment.status == 'running' %}
                             <span class="webops-badge webops-badge-success">Running</span>
                         {% elif deployment.status == 'stopped' %}
@@ -229,8 +229,8 @@
                             <span class="webops-badge webops-badge-info">{{ deployment.get_status_display }}</span>
                         {% endif %}
                     </td>
-                    <td>{{ deployment.get_project_type_display }}</td>
-                    <td>
+                    <td data-label="Type">{{ deployment.get_project_type_display }}</td>
+                    <td data-label="Domain">
                         {% if deployment.domain %}
                             <a href="http://{{ deployment.domain }}" target="_blank" class="webops-text-primary">
                                 {{ deployment.domain }}
@@ -239,15 +239,15 @@
                             <span class="webops-text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Port">
                         {% if deployment.port %}
                             <code class="webops-text-sm">:{{ deployment.port }}</code>
                         {% else %}
                             <span class="webops-text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td>{{ deployment.created_at|date:"M j, g:i A" }}</td>
-                    <td>
+                    <td data-label="Created">{{ deployment.created_at|date:"M j, g:i A" }}</td>
+                    <td data-label="Actions">
                         <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
                     </td>
                 </tr>

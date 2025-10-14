@@ -11,14 +11,14 @@
         .webops-docs-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: var(--webops-space-2xl);
+            padding: var(--webops-space-3);
             background: var(--webops-color-bg-primary);
             min-height: 100vh;
         }
 
         .webops-docs-header {
             text-align: center;
-            margin-bottom: var(--webops-space-2xl);
+            margin-bottom: var(--webops-space-3);
         }
 
         .webops-docs-header h1 {
@@ -31,11 +31,11 @@
 
         .webops-docs-sidebar {
             position: sticky;
-            top: var(--webops-space-xl);
+            top: var(--webops-space-3);
             height: fit-content;
             background: var(--webops-color-bg-secondary);
-            border-radius: var(--webops-border-radius-lg);
-            padding: var(--webops-space-lg);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-3);
             border: 1px solid rgba(0, 255, 136, 0.1);
             backdrop-filter: blur(10px);
         }
@@ -43,13 +43,13 @@
         .webops-docs-nav {
             display: flex;
             flex-direction: column;
-            gap: var(--webops-space-lg);
+            gap: var(--webops-space-3);
         }
 
         .webops-docs-nav__group {
             display: flex;
             flex-direction: column;
-            gap: var(--webops-space-sm);
+            gap: var(--webops-space-1-5);
         }
 
         .webops-docs-nav__title {
@@ -58,14 +58,14 @@
             color: var(--webops-color-primary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: var(--webops-space-xs);
+            margin-bottom: var(--webops-space-0-5);
         }
 
         .webops-docs-nav__item {
-            padding: var(--webops-space-sm);
+            padding: var(--webops-space-1-5);
             color: var(--webops-color-text-secondary);
             cursor: pointer;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             transition: all var(--webops-transition-fast);
             font-size: var(--webops-font-size-sm);
         }
@@ -83,13 +83,13 @@
         .webops-docs-content {
             display: flex;
             flex-direction: column;
-            gap: var(--webops-space-2xl);
+            gap: var(--webops-space-3);
         }
 
         .webops-endpoint-card {
             background: var(--webops-color-bg-secondary);
-            border-radius: var(--webops-border-radius-lg);
-            padding: var(--webops-space-2xl);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-3);
             border: 1px solid rgba(0, 255, 136, 0.1);
             backdrop-filter: blur(10px);
         }
@@ -97,13 +97,13 @@
         .webops-endpoint-header {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-md);
-            margin-bottom: var(--webops-space-lg);
+            gap: var(--webops-space-3);
+            margin-bottom: var(--webops-space-3);
         }
 
         .webops-method-badge {
-            padding: var(--webops-space-xs) var(--webops-space-sm);
-            border-radius: var(--webops-border-radius-sm);
+            padding: var(--webops-space-0-5) var(--webops-space-1-5);
+            border-radius: var(--webops-radius-sm);
             font-size: var(--webops-font-size-xs);
             font-weight: var(--webops-font-weight-semibold);
             text-transform: uppercase;
@@ -143,18 +143,18 @@
         .webops-auth-badge {
             display: inline-flex;
             align-items: center;
-            gap: var(--webops-space-xs);
-            padding: var(--webops-space-xs) var(--webops-space-sm);
+            gap: var(--webops-space-0-5);
+            padding: var(--webops-space-0-5) var(--webops-space-1-5);
             background: rgba(255, 170, 0, 0.1);
             border: 1px solid rgba(255, 170, 0, 0.3);
-            border-radius: var(--webops-border-radius-sm);
+            border-radius: var(--webops-radius-sm);
             font-size: var(--webops-font-size-xs);
             color: #ffaa00;
         }
 
         .webops-endpoint-description {
             color: var(--webops-color-text-secondary);
-            margin-bottom: var(--webops-space-lg);
+            margin-bottom: var(--webops-space-3);
             line-height: 1.6;
         }
 
@@ -162,15 +162,15 @@
             font-size: var(--webops-font-size-base);
             font-weight: var(--webops-font-weight-semibold);
             color: var(--webops-color-primary);
-            margin-bottom: var(--webops-space-md);
-            margin-top: var(--webops-space-lg);
+            margin-bottom: var(--webops-space-3);
+            margin-top: var(--webops-space-3);
         }
 
         .webops-code-block {
             background: var(--webops-color-bg-secondary);
             border: 1px solid rgba(0, 255, 136, 0.2);
-            border-radius: var(--webops-border-radius-md);
-            padding: var(--webops-space-md);
+            border-radius: var(--webops-radius-md);
+            padding: var(--webops-space-3);
             font-family: var(--webops-font-family-mono);
             font-size: var(--webops-font-size-sm);
             overflow-x: auto;
@@ -184,12 +184,12 @@
 
         .webops-copy-button {
             position: absolute;
-            top: var(--webops-space-sm);
-            right: var(--webops-space-sm);
-            padding: var(--webops-space-xs) var(--webops-space-sm);
+            top: var(--webops-space-1-5);
+            right: var(--webops-space-1-5);
+            padding: var(--webops-space-0-5) var(--webops-space-1-5);
             background: rgba(0, 255, 136, 0.1);
             border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: var(--webops-border-radius-sm);
+            border-radius: var(--webops-radius-sm);
             color: var(--webops-color-primary);
             font-size: var(--webops-font-size-xs);
             cursor: pointer;
@@ -202,13 +202,13 @@
 
         .webops-tabs {
             display: flex;
-            gap: var(--webops-space-sm);
-            margin-bottom: var(--webops-space-md);
+            gap: var(--webops-space-1-5);
+            margin-bottom: var(--webops-space-3);
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
         }
 
         .webops-tab {
-            padding: var(--webops-space-sm) var(--webops-space-md);
+            padding: var(--webops-space-1-5) var(--webops-space-3);
             cursor: pointer;
             border-bottom: 2px solid transparent;
             color: var(--webops-color-text-secondary);
@@ -239,7 +239,7 @@
 
         .webops-param-table th {
             background: rgba(0, 255, 136, 0.1);
-            padding: var(--webops-space-sm);
+            padding: var(--webops-space-1-5);
             text-align: left;
             font-size: var(--webops-font-size-xs);
             font-weight: var(--webops-font-weight-semibold);
@@ -249,7 +249,7 @@
         }
 
         .webops-param-table td {
-            padding: var(--webops-space-sm);
+            padding: var(--webops-space-1-5);
             border-bottom: 1px solid rgba(0, 255, 136, 0.1);
             color: var(--webops-color-text-secondary);
             font-size: var(--webops-font-size-sm);
@@ -266,18 +266,18 @@
             color: #ff4444;
             font-size: 10px;
             border-radius: 3px;
-            margin-left: var(--webops-space-xs);
+            margin-left: var(--webops-space-0-5);
         }
 
         .webops-try-it-button {
             display: inline-flex;
             align-items: center;
-            gap: var(--webops-space-sm);
-            padding: var(--webops-space-sm) var(--webops-space-lg);
+            gap: var(--webops-space-1-5);
+            padding: var(--webops-space-1-5) var(--webops-space-3);
             background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
             color: var(--webops-color-bg-primary);
             border: none;
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
             font-weight: var(--webops-font-weight-medium);
             cursor: pointer;
             transition: all var(--webops-transition-base);
@@ -290,11 +290,11 @@
         }
 
         .webops-response-display {
-            margin-top: var(--webops-space-md);
-            padding: var(--webops-space-md);
+            margin-top: var(--webops-space-3);
+            padding: var(--webops-space-3);
             background: var(--webops-color-bg-secondary);
             border: 1px solid rgba(0, 255, 136, 0.2);
-            border-radius: var(--webops-border-radius-md);
+            border-radius: var(--webops-radius-md);
         }
 
         .webops-loading {
@@ -318,12 +318,12 @@
     <div class="webops-docs-container">
         <div class="webops-docs-header">
             <h1>API Documentation</h1>
-            <p class="webops-text--secondary" style="font-size: var(--webops-font-size-sm); margin-top: var(--webops-space-sm);">
+            <p class="webops-text--secondary" style="font-size: var(--webops-font-size-sm); margin-top: var(--webops-space-1-5);">
                 Complete reference for WebOps REST API with live examples
             </p>
         </div>
 
-        <div style="display: grid; grid-template-columns: 250px 1fr; gap: var(--webops-space-2xl);">
+        <div style="display: grid; grid-template-columns: 250px 1fr; gap: var(--webops-space-3);">
             <aside class="webops-docs-sidebar">
                 <nav class="webops-docs-nav" id="docsNav">
                     <div class="webops-docs-nav__group">
@@ -343,7 +343,7 @@
                         <button class="webops-copy-button" onclick="copyCode(this)">Copy</button>
                         <pre>Authorization: Bearer YOUR_API_TOKEN</pre>
                     </div>
-                    <p class="webops-endpoint-description" style="margin-top: var(--webops-space-md);">
+                    <p class="webops-endpoint-description" style="margin-top: var(--webops-space-3);">
                         You can generate API tokens from the <a href="/api/tokens/" style="color: var(--webops-color-primary);">API Tokens</a> page in the control panel.
                     </p>
                 </section>
@@ -607,14 +607,14 @@
 
                 errors.forEach(error => {
                     const errorDiv = document.createElement('div');
-                    errorDiv.style.marginBottom = 'var(--webops-space-md)';
+                    errorDiv.style.marginBottom = 'var(--webops-space-3)';
 
                     errorDiv.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-sm); margin-bottom: var(--webops-space-xs);">
+                        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-0-5);">
                             <span class="webops-method-badge webops-method-badge--delete">${error.status}</span>
                             <strong style="color: var(--webops-color-text-primary);">${error.title}</strong>
                         </div>
-                        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-sm);">${error.description}</p>
+                        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-1-5);">${error.description}</p>
                         ${this.createCodeBlock(JSON.stringify(error.example, null, 2)).outerHTML}
                     `;
 

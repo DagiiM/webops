@@ -21,7 +21,7 @@ This guide covers:
 
 ### Prerequisites
 
-- Python 3.13 or higher
+- Python 3.11 or higher
 - Git
 - 2GB RAM minimum
 
@@ -41,8 +41,8 @@ python manage.py runserver
 
 ### Access the Control Panel
 
-- **Control Panel**: http://127.0.0.1:8000
-- **Admin Interface**: http://127.0.0.1:8000/admin/
+- **Control Panel**: Start the development server and access at the default port
+- **Admin Interface**: Access the admin interface after starting the server
 
 **Login Credentials:**
 - Username: `admin`
@@ -60,7 +60,7 @@ python manage.py runserver
 - Admin interface for managing data
 
 ✅ **Technology Stack**
-- Python 3.13+ with Django 5.2.6+
+- Python 3.11+ with Django 5.0+
 - SQLite database (for development)
 - Pure HTML5/CSS3/JavaScript (no npm, no build tools)
 - Virtual environment for dependencies

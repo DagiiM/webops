@@ -2,7 +2,8 @@
 
 import sys
 import time
-from typing import Optional
+import asyncio
+from typing import Optional, Tuple
 
 import click
 from rich.console import Console
@@ -14,6 +15,14 @@ from rich.spinner import Spinner
 
 from .config import Config
 from .api import WebOpsAPIClient, WebOpsAPIError
+from .admin import admin
+from .system import system
+from .wizards import SetupWizard
+from .deployment_wizard import DeploymentWizard
+from .troubleshooting_wizard import TroubleshootingWizard
+from .interactive_commands import InteractiveCommands
+from .command_shortcuts import create_shortcut_commands
+from .websocket_client import DeploymentStatusMonitor, DeploymentListMonitor
 
 console = Console()
 config = Config()
@@ -34,7 +43,7 @@ def get_api_client() -> WebOpsAPIClient:
 
 @click.group()
 @click.version_option(version="0.1.0")
-def main():
+def main() -> None:
     """WebOps CLI - Manage your deployments from the command line."""
     pass
 
@@ -42,7 +51,7 @@ def main():
 @main.command()
 @click.option('--url', help='WebOps panel URL (e.g., https://panel.example.com)')
 @click.option('--token', help='API authentication token')
-def config_cmd(url: Optional[str], token: Optional[str]):
+def config_cmd(url: Optional[str], token: Optional[str]) -> None:
     """Configure WebOps CLI."""
     if not url and not token:
         # Show current configuration
@@ -76,7 +85,7 @@ def config_cmd(url: Optional[str], token: Optional[str]):
 @click.option('--status', help='Filter by status (pending, building, running, stopped, failed)')
 @click.option('--page', default=1, help='Page number')
 @click.option('--per-page', default=20, help='Results per page')
-def list_deployments(status: Optional[str], page: int, per_page: int):
+def list_deployments(status: Optional[str], page: int, per_page: int) -> None:
     """List all deployments."""
     client = get_api_client()
 
@@ -126,7 +135,7 @@ def list_deployments(status: Optional[str], page: int, per_page: int):
 
 @main.command()
 @click.argument('name')
-def info(name: str):
+def info(name: str) -> None:
     """Show deployment details."""
     client = get_api_client()
 
@@ -166,7 +175,7 @@ def info(name: str):
 @click.option('--name', required=True, help='Deployment name')
 @click.option('--branch', default='main', help='Git branch')
 @click.option('--domain', default='', help='Domain name')
-def deploy(repo: str, name: str, branch: str, domain: str):
+def deploy(repo: str, name: str, branch: str, domain: str) -> None:
     """Deploy a new application."""
     client = get_api_client()
 
@@ -192,7 +201,7 @@ def deploy(repo: str, name: str, branch: str, domain: str):
 @click.argument('name')
 @click.option('--tail', type=int, help='Number of lines to show')
 @click.option('--follow', '-f', is_flag=True, help='Follow log output')
-def logs(name: str, tail: Optional[int], follow: bool):
+def logs(name: str, tail: Optional[int], follow: bool) -> None:
     """View deployment logs."""
     client = get_api_client()
 
@@ -249,7 +258,7 @@ def logs(name: str, tail: Optional[int], follow: bool):
 
 @main.command()
 @click.argument('name')
-def start(name: str):
+def start(name: str) -> None:
     """Start a deployment."""
     client = get_api_client()
 
@@ -266,7 +275,7 @@ def start(name: str):
 
 @main.command()
 @click.argument('name')
-def stop(name: str):
+def stop(name: str) -> None:
     """Stop a deployment."""
     client = get_api_client()
 
@@ -283,7 +292,7 @@ def stop(name: str):
 
 @main.command()
 @click.argument('name')
-def restart(name: str):
+def restart(name: str) -> None:
     """Restart a deployment."""
     client = get_api_client()
 
@@ -301,7 +310,7 @@ def restart(name: str):
 @main.command()
 @click.argument('name')
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
-def delete(name: str, yes: bool):
+def delete(name: str, yes: bool) -> None:
     """Delete a deployment."""
     if not yes:
         confirm = click.confirm(f"Are you sure you want to delete '{name}'? This cannot be undone.")
@@ -413,7 +422,7 @@ def status():
 @click.option('--debug', is_flag=True, help='Enable debug mode in generated .env')
 @click.option('--domain', help='Custom domain name')
 @click.option('--set', multiple=True, help='Set custom env variable (KEY=VALUE)')
-def env_generate(name: str, debug: bool, domain: Optional[str], set: tuple):
+def env_generate(name: str, debug: bool, domain: Optional[str], set: Tuple[str, ...]) -> None:
     """
     Generate .env file from .env.example for a deployment.
 
@@ -461,7 +470,7 @@ def env_generate(name: str, debug: bool, domain: Optional[str], set: tuple):
 
 @main.command(name='env:validate')
 @click.argument('name')
-def env_validate(name: str):
+def env_validate(name: str) -> None:
     """
     Validate .env file for a deployment.
 
@@ -498,7 +507,7 @@ def env_validate(name: str):
 @main.command(name='env:show')
 @click.argument('name')
 @click.option('--show-secrets', is_flag=True, help='Show full values of secret variables')
-def env_show(name: str, show_secrets: bool):
+def env_show(name: str, show_secrets: bool) -> None:
     """
     Show environment variables for a deployment.
 
@@ -555,7 +564,7 @@ def env_show(name: str, show_secrets: bool):
 @click.argument('key')
 @click.argument('value')
 @click.option('--restart', is_flag=True, help='Restart deployment after updating')
-def env_set(name: str, key: str, value: str, restart: bool):
+def env_set(name: str, key: str, value: str, restart: bool) -> None:
     """
     Set an environment variable for a deployment.
 
@@ -594,7 +603,7 @@ def env_set(name: str, key: str, value: str, restart: bool):
 @click.argument('name')
 @click.argument('key')
 @click.option('--restart', is_flag=True, help='Restart deployment after updating')
-def env_unset(name: str, key: str, restart: bool):
+def env_unset(name: str, key: str, restart: bool) -> None:
     """
     Remove an environment variable from a deployment.
 
@@ -623,8 +632,117 @@ def env_unset(name: str, key: str, restart: bool):
         sys.exit(1)
 
 
+# Interactive wizard commands
+@main.command(name='setup')
+def setup_wizard():
+    """Run the interactive WebOps setup wizard."""
+    wizard = SetupWizard()
+    success = wizard.run()
+    
+    if success:
+        console.print("\n[green]Setup completed successfully![/green]")
+    else:
+        console.print("\n[red]Setup failed or was cancelled.[/red]")
+
+
+@main.command(name='deploy-wizard')
+def deploy_wizard():
+    """Run the interactive deployment wizard."""
+    wizard = DeploymentWizard()
+    success = wizard.run()
+    
+    if success:
+        console.print("\n[green]Deployment wizard completed successfully![/green]")
+    else:
+        console.print("\n[red]Deployment wizard failed or was cancelled.[/red]")
+
+
+@main.command(name='troubleshoot')
+def troubleshoot_wizard():
+    """Run the interactive troubleshooting wizard."""
+    wizard = TroubleshootingWizard()
+    success = wizard.run()
+    
+    if success:
+        console.print("\n[green]Troubleshooting completed successfully![/green]")
+    else:
+        console.print("\n[red]Troubleshooting failed or was cancelled.[/red]")
+
+
+@main.command()
+@click.option('--refresh-rate', default=2, help='Refresh rate in seconds')
+def interactive_status(refresh_rate: int) -> None:
+    """Display interactive system status dashboard."""
+    api_client = get_api_client()
+    config = Config()
+    interactive_cmd = InteractiveCommands(api_client, config)
+    interactive_cmd.interactive_status()
+
+
+@main.command()
+def manage() -> None:
+    """Interactive deployment management interface."""
+    api_client = get_api_client()
+    config = Config()
+    interactive_cmd = InteractiveCommands(api_client, config)
+    interactive_cmd.interactive_deployment_manager()
+
+
+@main.command(name='interactive-logs')
+@click.argument('deployment_name', required=False)
+def interactive_logs(deployment_name: str) -> None:
+    """Interactive logs viewer with real-time updates."""
+    api_client = get_api_client()
+    config = Config()
+    interactive_cmd = InteractiveCommands(api_client, config)
+    interactive_cmd.interactive_logs_viewer(deployment_name)
+
+
+@main.command(name='watch')
+@click.argument('deployment_name', required=False)
+@click.option('--all', '-a', is_flag=True, help='Watch all deployments')
+def watch_deployments(deployment_name: Optional[str], all: bool) -> None:
+    """Watch deployment status in real-time via WebSocket."""
+    if not config.is_configured():
+        console.print("[red]Error:[/red] WebOps CLI is not configured.")
+        console.print("Run: [cyan]webops config --url <URL> --token <TOKEN>[/cyan]")
+        sys.exit(1)
+
+    if all or not deployment_name:
+        console.print("[cyan]Watching all deployments...[/cyan]")
+        console.print("Press Ctrl+C to stop")
+        
+        async def run_monitor():
+            monitor = DeploymentListMonitor(config)
+            await monitor.monitor_deployments()
+        
+        try:
+            asyncio.run(run_monitor())
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Stopped watching deployments[/yellow]")
+    else:
+        console.print(f"[cyan]Watching deployment: {deployment_name}[/cyan]")
+        console.print("Press Ctrl+C to stop")
+        
+        async def run_monitor():
+            monitor = DeploymentStatusMonitor(config)
+            await monitor.monitor_deployment(deployment_name)
+        
+        try:
+            asyncio.run(run_monitor())
+        except KeyboardInterrupt:
+            console.print(f"\n[yellow]Stopped watching {deployment_name}[/yellow]")
+
+
 # Register config command with proper name
 main.add_command(config_cmd, name='config')
+
+# Register shortcut commands
+create_shortcut_commands(main)
+
+# Add command groups
+main.add_command(admin)
+main.add_command(system)
 
 
 if __name__ == '__main__':

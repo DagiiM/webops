@@ -51,6 +51,9 @@ db.sqlite3-journal
 # AI/Development tools
 .trae/
 .claude/
+CLAUDE.md
+QWEN.md
+GEMINI.md
 
 # Testing
 .coverage

@@ -14,7 +14,7 @@ source venv/bin/activate
 python manage.py runserver
 ```
 
-Visit: http://127.0.0.1:8000
+Visit: Start the development server and access at the default port
 Login: `admin` / `admin123`
 
 ## Project Status

@@ -17,19 +17,19 @@
     <div class="login-container">
         <div class="webops-card" style="max-width: 420px; margin: 0 auto;">
             <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-xs);">WebOps</h1>
+                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">WebOps</h1>
                 <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Control Panel Login</h2>
 
                 {% if messages %}
                     {% for message in messages %}
-                    <div class="webops-mb-md webops-p-md" style="background: rgba({% if message.tags == 'error' %}255, 68, 68{% else %}0, 255, 136{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if message.tags == 'error' %}error{% else %}success{% endif %}); border-radius: var(--webops-border-radius-md);">
+                    <div class="webops-mb-md webops-p-md" style="background: rgba({% if message.tags == 'error' %}255, 68, 68{% else %}0, 255, 136{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if message.tags == 'error' %}error{% else %}success{% endif %}); border-radius: var(--webops-radius-md);">
                         <span class="webops-text-{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
                     </div>
                     {% endfor %}
                 {% endif %}
 
                 {% if form.errors %}
-                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-border-radius-md);">
+                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-radius-md);">
                     <span class="webops-text-error">Invalid username or password.</span>
                 </div>
                 {% endif %}

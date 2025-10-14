@@ -7,7 +7,7 @@
 <style>
 .env-table-container {
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     box-shadow: var(--webops-shadow-sm);
     overflow: hidden;
 }
@@ -22,7 +22,7 @@
 }
 
 .env-table th {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     text-align: left;
     font-weight: 600;
     font-size: var(--webops-font-size-sm);
@@ -31,7 +31,7 @@
 }
 
 .env-table td {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-border);
 }
 
@@ -59,14 +59,14 @@
 
 .env-actions-cell {
     display: flex;
-    gap: var(--webops-space-xs);
+    gap: var(--webops-space-0-5);
 }
 
 .btn-icon {
-    padding: var(--webops-space-xs);
+    padding: var(--webops-space-0-5);
     background: transparent;
     border: 1px solid var(--color-border);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     cursor: pointer;
     transition: all 0.2s;
     color: var(--webops-color-text-secondary);
@@ -79,13 +79,13 @@
 
 .empty-state {
     text-align: center;
-    padding: var(--webops-space-3xl) var(--webops-space-md);
+    padding: var(--webops-space-3xl) var(--webops-space-3);
     color: var(--webops-color-text-secondary);
 }
 
 .empty-state-icon {
     font-size: 3rem;
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
     opacity: 0.3;
 }
 
@@ -108,8 +108,8 @@
 
 .modal-content {
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
     max-width: 500px;
     width: 90%;
     max-height: 80vh;
@@ -120,7 +120,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--webops-space-lg);
+    margin-bottom: var(--webops-space-3);
 }
 
 .modal-title {
@@ -148,12 +148,12 @@
 }
 
 .form-group {
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
 }
 
 .form-label {
     display: block;
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
     font-weight: 500;
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
@@ -161,9 +161,9 @@
 
 .form-input {
     width: 100%;
-    padding: var(--webops-space-sm);
+    padding: var(--webops-space-1-5);
     border: 1px solid var(--color-border);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     font-size: var(--webops-font-size-sm);
     font-family: var(--font-mono);
 }
@@ -175,16 +175,16 @@
 }
 
 .form-help {
-    margin-top: var(--webops-space-xs);
+    margin-top: var(--webops-space-0-5);
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-secondary);
 }
 
 .modal-actions {
     display: flex;
-    gap: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
     justify-content: flex-end;
-    margin-top: var(--webops-space-lg);
+    margin-top: var(--webops-space-3);
 }
 
 .loading {
@@ -213,7 +213,7 @@
                 Deployment: <strong>{{ deployment.name }}</strong>
             </p>
         </div>
-        <div style="display: flex; gap: var(--webops-space-sm);">
+        <div style="display: flex; gap: var(--webops-space-1-5);">
             <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">
                 ← Back
             </a>
@@ -229,9 +229,9 @@
     </div>
 
     <!-- Status -->
-    <div class="webops-status-banner" style="margin-bottom: var(--webops-space-lg);">
-        <div style="display: flex; gap: var(--webops-space-lg); padding: var(--webops-space-md); align-items: center;">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+    <div class="webops-status-banner" style="margin-bottom: var(--webops-space-3);">
+        <div style="display: flex; gap: var(--webops-space-3); padding: var(--webops-space-3); align-items: center;">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                 {% if repo_exists %}
                 <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
                 {% else %}
@@ -239,7 +239,7 @@
                 {% endif %}
                 <span class="webops-text-sm">Repository: {% if repo_exists %}Cloned{% else %}Not cloned{% endif %}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                 {% if env_file_exists %}
                 <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
                 {% else %}
@@ -247,7 +247,7 @@
                 {% endif %}
                 <span class="webops-text-sm">.env file: {% if env_file_exists %}Exists{% else %}Not found{% endif %}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                 {% if env_example_exists %}
                 <span class="material-icons" style="color: var(--webops-color-success); font-size: 20px;">check_circle</span>
                 {% else %}
@@ -255,7 +255,7 @@
                 {% endif %}
                 <span class="webops-text-sm">.env.example: {% if env_example_exists %}Found{% else %}Not found{% endif %}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: var(--webops-space-xs);">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
                 <span class="material-icons" style="color: var(--webops-color-primary); font-size: 20px;">settings</span>
                 <span class="webops-text-sm webops-text-primary">{{ env_vars_count }} variables</span>
             </div>
@@ -264,15 +264,15 @@
 
     <!-- Alerts -->
     {% if not repo_exists %}
-    <div class="webops-alert webops-alert-warning" style="margin-bottom: var(--webops-space-lg);">
+    <div class="webops-alert webops-alert-warning" style="margin-bottom: var(--webops-space-3);">
         <strong>Repository not cloned yet.</strong> Please wait for the deployment to complete before managing environment variables.
     </div>
     {% elif not env_file_exists and not env_example_exists %}
-    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-lg);">
+    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-3);">
         <strong>No environment file found.</strong> You can manually add variables or create a .env file in your repository.
     </div>
     {% elif not env_file_exists and env_example_exists %}
-    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-lg);">
+    <div class="webops-alert webops-alert-info" style="margin-bottom: var(--webops-space-3);">
         <strong>.env.example found!</strong> Click "Generate from .env.example" to automatically create your .env file with generated values.
     </div>
     {% endif %}

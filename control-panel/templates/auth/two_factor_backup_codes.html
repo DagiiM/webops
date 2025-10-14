@@ -9,7 +9,7 @@
         <h2 class="webops-h2">2FA Enabled Successfully!</h2>
     </div>
     <div class="webops-card-body">
-        <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 255, 136, 0.1); border-left: 4px solid var(--webops-color-success); border-radius: var(--webops-border-radius-md);">
+        <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 255, 136, 0.1); border-left: 4px solid var(--webops-color-success); border-radius: var(--webops-radius-md);">
             <p class="webops-text-success">
                 <strong>Two-Factor Authentication is now active on your account.</strong>
             </p>
@@ -20,10 +20,10 @@
             Each backup code can be used once. Store them in a safe place - you'll need them if you lose access to your authenticator app.
         </p>
 
-        <div class="webops-mb-lg webops-p-lg" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
+        <div class="webops-mb-lg webops-p-lg" style="background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.1);">
             <div class="webops-grid webops-grid-2 webops-gap-md" style="font-family: var(--webops-font-family-mono);">
                 {% for code in backup_codes %}
-                <div class="webops-p-sm" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-border-radius-sm); text-align: center;">
+                <div class="webops-p-sm" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-sm); text-align: center;">
                     <code style="color: var(--webops-color-primary); font-size: 1.1rem;">{{ code }}</code>
                 </div>
                 {% endfor %}
@@ -38,7 +38,7 @@
             💾 Download as Text File
         </button>
 
-        <div class="webops-p-md webops-mb-lg" style="background: rgba(255, 170, 0, 0.1); border-left: 4px solid var(--webops-color-warning); border-radius: var(--webops-border-radius-md);">
+        <div class="webops-p-md webops-mb-lg" style="background: rgba(255, 170, 0, 0.1); border-left: 4px solid var(--webops-color-warning); border-radius: var(--webops-radius-md);">
             <p class="webops-text-warning webops-text-sm">
                 <strong>Warning:</strong> These codes will not be shown again. Make sure to save them now!
             </p>

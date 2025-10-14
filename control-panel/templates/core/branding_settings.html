@@ -5,142 +5,748 @@
 
 {% block header_title %}Branding Settings{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/color-variables.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="webops-page-header">
     <div>
         <h1 class="webops-page-title">Branding Settings</h1>
-        <p class="webops-page-description">Customize the appearance of your WebOps control panel</p>
+        <p class="webops-page-description">Customize your WebOps control panel with HSL-based color generation and accessibility validation</p>
     </div>
 </div>
 
-<div class="webops-card">
-    <div class="webops-card-header">
-        <h2 class="webops-card-title">Customize Branding</h2>
-        <p class="webops-card-description">Upload your logo, customize colors, and set your site name</p>
+<div class="webops-branding-container">
+    <!-- Main Settings Form -->
+    <div class="webops-card webops-settings-card">
+        <div class="webops-card-header">
+            <h2 class="webops-card-title">Branding Configuration</h2>
+            <p class="webops-card-description">Configure your site identity and generate color palettes</p>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" enctype="multipart/form-data" id="brandingForm">
+                {% csrf_token %}
+
+                <!-- General Settings -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">General Settings</h3>
+
+                    <div class="webops-form-group">
+                        <label for="id_theme_preset" class="webops-label">Theme Preset</label>
+                        {{ form.theme_preset }}
+                        {% if form.theme_preset.help_text %}
+                        <p class="webops-help-text">{{ form.theme_preset.help_text }}</p>
+                        {% endif %}
+                        {% if form.theme_preset.errors %}
+                        <p class="webops-error-text">{{ form.theme_preset.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="id_site_name" class="webops-label">Site Name</label>
+                        {{ form.site_name }}
+                        {% if form.site_name.help_text %}
+                        <p class="webops-help-text">{{ form.site_name.help_text }}</p>
+                        {% endif %}
+                        {% if form.site_name.errors %}
+                        <p class="webops-error-text">{{ form.site_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Logo & Favicon -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Logo & Favicon</h3>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_logo" class="webops-label">Logo</label>
+                            {% if settings.logo %}
+                            <div class="webops-image-preview">
+                                <img src="{{ settings.logo.url }}" alt="Current logo" class="webops-logo-preview">
+                                <p class="webops-help-text">Current logo</p>
+                            </div>
+                            {% endif %}
+                            {{ form.logo }}
+                            {% if form.logo.help_text %}
+                            <p class="webops-help-text">{{ form.logo.help_text }}</p>
+                            {% endif %}
+                            {% if form.logo.errors %}
+                            <p class="webops-error-text">{{ form.logo.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_favicon" class="webops-label">Favicon</label>
+                            {% if settings.favicon %}
+                            <div class="webops-image-preview">
+                                <img src="{{ settings.favicon.url }}" alt="Current favicon" class="webops-favicon-preview">
+                                <p class="webops-help-text">Current favicon</p>
+                            </div>
+                            {% endif %}
+                            {{ form.favicon }}
+                            {% if form.favicon.help_text %}
+                            <p class="webops-help-text">{{ form.favicon.help_text }}</p>
+                            {% endif %}
+                            {% if form.favicon.errors %}
+                            <p class="webops-error-text">{{ form.favicon.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HSL Color Generation -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Color Palette Generation</h3>
+                    <p class="webops-section-description">Generate a complete color palette using HSL values and color harmony principles</p>
+
+                    <div class="webops-hsl-controls">
+                        <div class="webops-form-group">
+                            <label for="id_primary_hue" class="webops-label">Hue (0-360°)</label>
+                            {{ form.primary_hue }}
+                            <div class="webops-hue-slider" id="hueSlider"></div>
+                            {% if form.primary_hue.help_text %}
+                            <p class="webops-help-text">{{ form.primary_hue.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_primary_saturation" class="webops-label">Saturation (0-100%)</label>
+                            {{ form.primary_saturation }}
+                            <div class="webops-saturation-slider" id="saturationSlider"></div>
+                            {% if form.primary_saturation.help_text %}
+                            <p class="webops-help-text">{{ form.primary_saturation.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_primary_lightness" class="webops-label">Lightness (0-100%)</label>
+                            {{ form.primary_lightness }}
+                            <div class="webops-lightness-slider" id="lightnessSlider"></div>
+                            {% if form.primary_lightness.help_text %}
+                            <p class="webops-help-text">{{ form.primary_lightness.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_color_harmony" class="webops-label">Color Harmony</label>
+                            {{ form.color_harmony }}
+                            {% if form.color_harmony.help_text %}
+                            <p class="webops-help-text">{{ form.color_harmony.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accessibility Options -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Accessibility & Compliance</h3>
+                    <p class="webops-section-description">Ensure your color palette meets WCAG accessibility standards</p>
+
+                    <div class="webops-checkbox-group">
+                        <div class="webops-checkbox-item">
+                            {{ form.enforce_wcag_aa }}
+                            <label for="id_enforce_wcag_aa" class="webops-checkbox-label">WCAG AA Compliance (4.5:1)</label>
+                            {% if form.enforce_wcag_aa.help_text %}
+                            <p class="webops-help-text">{{ form.enforce_wcag_aa.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-checkbox-item">
+                            {{ form.enforce_wcag_aaa }}
+                            <label for="id_enforce_wcag_aaa" class="webops-checkbox-label">WCAG AAA Compliance (7:1)</label>
+                            {% if form.enforce_wcag_aaa.help_text %}
+                            <p class="webops-help-text">{{ form.enforce_wcag_aaa.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-checkbox-item">
+                            {{ form.supports_dark_mode }}
+                            <label for="id_supports_dark_mode" class="webops-checkbox-label">Dark Mode Support</label>
+                            {% if form.supports_dark_mode.help_text %}
+                            <p class="webops-help-text">{{ form.supports_dark_mode.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generated Colors (Read-only) -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Generated Colors</h3>
+                    <p class="webops-section-description">These colors are automatically generated from your HSL settings</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_primary_color" class="webops-label">Primary Color</label>
+                            {{ form.primary_color }}
+                            {% if form.primary_color.help_text %}
+                            <p class="webops-help-text">{{ form.primary_color.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_secondary_color" class="webops-label">Secondary Color</label>
+                            {{ form.secondary_color }}
+                            {% if form.secondary_color.help_text %}
+                            <p class="webops-help-text">{{ form.secondary_color.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_accent_color" class="webops-label">Accent Color</label>
+                            {{ form.accent_color }}
+                            {% if form.accent_color.help_text %}
+                            <p class="webops-help-text">{{ form.accent_color.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_header_bg_color" class="webops-label">Header Background</label>
+                            {{ form.header_bg_color }}
+                            {% if form.header_bg_color.help_text %}
+                            <p class="webops-help-text">{{ form.header_bg_color.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography System -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Typography</h3>
+                    <p class="webops-section-description">Configure fonts, sizes, weights, and text spacing</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_font_family_primary" class="webops-label">Primary Font Family</label>
+                            {{ form.font_family_primary }}
+                            {% if form.font_family_primary.help_text %}
+                            <p class="webops-help-text">{{ form.font_family_primary.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_font_family_mono" class="webops-label">Monospace Font Family</label>
+                            {{ form.font_family_mono }}
+                            {% if form.font_family_mono.help_text %}
+                            <p class="webops-help-text">{{ form.font_family_mono.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_font_size_base" class="webops-label">Base Font Size</label>
+                            {{ form.font_size_base }}
+                            {% if form.font_size_base.help_text %}
+                            <p class="webops-help-text">{{ form.font_size_base.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_font_weight_normal" class="webops-label">Normal Weight</label>
+                            {{ form.font_weight_normal }}
+                            {% if form.font_weight_normal.help_text %}
+                            <p class="webops-help-text">{{ form.font_weight_normal.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_font_weight_medium" class="webops-label">Medium Weight</label>
+                            {{ form.font_weight_medium }}
+                            {% if form.font_weight_medium.help_text %}
+                            <p class="webops-help-text">{{ form.font_weight_medium.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_font_weight_bold" class="webops-label">Bold Weight</label>
+                            {{ form.font_weight_bold }}
+                            {% if form.font_weight_bold.help_text %}
+                            <p class="webops-help-text">{{ form.font_weight_bold.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_line_height_tight" class="webops-label">Tight Line Height</label>
+                            {{ form.line_height_tight }}
+                            {% if form.line_height_tight.help_text %}
+                            <p class="webops-help-text">{{ form.line_height_tight.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_line_height_normal" class="webops-label">Normal Line Height</label>
+                            {{ form.line_height_normal }}
+                            {% if form.line_height_normal.help_text %}
+                            <p class="webops-help-text">{{ form.line_height_normal.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_line_height_relaxed" class="webops-label">Relaxed Line Height</label>
+                            {{ form.line_height_relaxed }}
+                            {% if form.line_height_relaxed.help_text %}
+                            <p class="webops-help-text">{{ form.line_height_relaxed.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spacing System -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Spacing & Layout</h3>
+                    <p class="webops-section-description">Control spacing units and layout dimensions</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_spacing_base_unit" class="webops-label">Base Spacing Unit</label>
+                            {{ form.spacing_base_unit }}
+                            {% if form.spacing_base_unit.help_text %}
+                            <p class="webops-help-text">{{ form.spacing_base_unit.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_border_radius_small" class="webops-label">Small Border Radius</label>
+                            {{ form.border_radius_small }}
+                            {% if form.border_radius_small.help_text %}
+                            <p class="webops-help-text">{{ form.border_radius_small.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_border_radius_medium" class="webops-label">Medium Border Radius</label>
+                            {{ form.border_radius_medium }}
+                            {% if form.border_radius_medium.help_text %}
+                            <p class="webops-help-text">{{ form.border_radius_medium.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_border_radius_large" class="webops-label">Large Border Radius</label>
+                            {{ form.border_radius_large }}
+                            {% if form.border_radius_large.help_text %}
+                            <p class="webops-help-text">{{ form.border_radius_large.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_component_spacing_compact" class="webops-label">Compact Component Spacing</label>
+                            {{ form.component_spacing_compact }}
+                            {% if form.component_spacing_compact.help_text %}
+                            <p class="webops-help-text">{{ form.component_spacing_compact.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_component_spacing_normal" class="webops-label">Normal Component Spacing</label>
+                            {{ form.component_spacing_normal }}
+                            {% if form.component_spacing_normal.help_text %}
+                            <p class="webops-help-text">{{ form.component_spacing_normal.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_component_spacing_relaxed" class="webops-label">Relaxed Component Spacing</label>
+                            {{ form.component_spacing_relaxed }}
+                            {% if form.component_spacing_relaxed.help_text %}
+                            <p class="webops-help-text">{{ form.component_spacing_relaxed.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shadow System -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Shadows & Depth</h3>
+                    <p class="webops-section-description">Configure shadow blur levels and depth effects</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_shadow_blur_small" class="webops-label">Small Shadow Blur</label>
+                            {{ form.shadow_blur_small }}
+                            {% if form.shadow_blur_small.help_text %}
+                            <p class="webops-help-text">{{ form.shadow_blur_small.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_shadow_blur_medium" class="webops-label">Medium Shadow Blur</label>
+                            {{ form.shadow_blur_medium }}
+                            {% if form.shadow_blur_medium.help_text %}
+                            <p class="webops-help-text">{{ form.shadow_blur_medium.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_shadow_blur_large" class="webops-label">Large Shadow Blur</label>
+                            {{ form.shadow_blur_large }}
+                            {% if form.shadow_blur_large.help_text %}
+                            <p class="webops-help-text">{{ form.shadow_blur_large.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_shadow_intensity" class="webops-label">Shadow Intensity</label>
+                            {{ form.shadow_intensity }}
+                            {% if form.shadow_intensity.help_text %}
+                            <p class="webops-help-text">{{ form.shadow_intensity.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-checkbox-item">
+                            {{ form.enable_themed_shadows }}
+                            <label for="id_enable_themed_shadows" class="webops-checkbox-label">Enable Themed Shadows</label>
+                            {% if form.enable_themed_shadows.help_text %}
+                            <p class="webops-help-text">{{ form.enable_themed_shadows.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Animation & Interaction -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Animation & Interaction</h3>
+                    <p class="webops-section-description">Configure animation speeds and interactive states</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_animation_duration_fast" class="webops-label">Fast Animation Duration</label>
+                            {{ form.animation_duration_fast }}
+                            {% if form.animation_duration_fast.help_text %}
+                            <p class="webops-help-text">{{ form.animation_duration_fast.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_animation_duration_normal" class="webops-label">Normal Animation Duration</label>
+                            {{ form.animation_duration_normal }}
+                            {% if form.animation_duration_normal.help_text %}
+                            <p class="webops-help-text">{{ form.animation_duration_normal.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_animation_duration_slow" class="webops-label">Slow Animation Duration</label>
+                            {{ form.animation_duration_slow }}
+                            {% if form.animation_duration_slow.help_text %}
+                            <p class="webops-help-text">{{ form.animation_duration_slow.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_hover_opacity" class="webops-label">Hover Opacity</label>
+                            {{ form.hover_opacity }}
+                            {% if form.hover_opacity.help_text %}
+                            <p class="webops-help-text">{{ form.hover_opacity.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_hover_scale" class="webops-label">Hover Scale</label>
+                            {{ form.hover_scale }}
+                            {% if form.hover_scale.help_text %}
+                            <p class="webops-help-text">{{ form.hover_scale.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_focus_ring_width" class="webops-label">Focus Ring Width</label>
+                            {{ form.focus_ring_width }}
+                            {% if form.focus_ring_width.help_text %}
+                            <p class="webops-help-text">{{ form.focus_ring_width.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_focus_ring_offset" class="webops-label">Focus Ring Offset</label>
+                            {{ form.focus_ring_offset }}
+                            {% if form.focus_ring_offset.help_text %}
+                            <p class="webops-help-text">{{ form.focus_ring_offset.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-checkbox-item">
+                            {{ form.respect_reduced_motion }}
+                            <label for="id_respect_reduced_motion" class="webops-checkbox-label">Respect Reduced Motion Preference</label>
+                            {% if form.respect_reduced_motion.help_text %}
+                            <p class="webops-help-text">{{ form.respect_reduced_motion.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Dimensions -->
+                <div class="webops-form-section">
+                    <h3 class="webops-form-section-title">Layout Dimensions</h3>
+                    <p class="webops-section-description">Configure component sizes and layout constraints</p>
+
+                    <div class="webops-form-grid">
+                        <div class="webops-form-group">
+                            <label for="id_header_height_desktop" class="webops-label">Header Height (Desktop)</label>
+                            {{ form.header_height_desktop }}
+                            {% if form.header_height_desktop.help_text %}
+                            <p class="webops-help-text">{{ form.header_height_desktop.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_header_height_mobile" class="webops-label">Header Height (Mobile)</label>
+                            {{ form.header_height_mobile }}
+                            {% if form.header_height_mobile.help_text %}
+                            <p class="webops-help-text">{{ form.header_height_mobile.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_sidebar_width_desktop" class="webops-label">Sidebar Width (Desktop)</label>
+                            {{ form.sidebar_width_desktop }}
+                            {% if form.sidebar_width_desktop.help_text %}
+                            <p class="webops-help-text">{{ form.sidebar_width_desktop.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_sidebar_width_collapsed" class="webops-label">Sidebar Width (Collapsed)</label>
+                            {{ form.sidebar_width_collapsed }}
+                            {% if form.sidebar_width_collapsed.help_text %}
+                            <p class="webops-help-text">{{ form.sidebar_width_collapsed.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_content_max_width" class="webops-label">Content Max Width</label>
+                            {{ form.content_max_width }}
+                            {% if form.content_max_width.help_text %}
+                            <p class="webops-help-text">{{ form.content_max_width.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_container_padding_desktop" class="webops-label">Container Padding (Desktop)</label>
+                            {{ form.container_padding_desktop }}
+                            {% if form.container_padding_desktop.help_text %}
+                            <p class="webops-help-text">{{ form.container_padding_desktop.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_container_padding_mobile" class="webops-label">Container Padding (Mobile)</label>
+                            {{ form.container_padding_mobile }}
+                            {% if form.container_padding_mobile.help_text %}
+                            <p class="webops-help-text">{{ form.container_padding_mobile.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_input_height_small" class="webops-label">Input Height (Small)</label>
+                            {{ form.input_height_small }}
+                            {% if form.input_height_small.help_text %}
+                            <p class="webops-help-text">{{ form.input_height_small.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_input_height_medium" class="webops-label">Input Height (Medium)</label>
+                            {{ form.input_height_medium }}
+                            {% if form.input_height_medium.help_text %}
+                            <p class="webops-help-text">{{ form.input_height_medium.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_input_height_large" class="webops-label">Input Height (Large)</label>
+                            {{ form.input_height_large }}
+                            {% if form.input_height_large.help_text %}
+                            <p class="webops-help-text">{{ form.input_height_large.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_button_height_small" class="webops-label">Button Height (Small)</label>
+                            {{ form.button_height_small }}
+                            {% if form.button_height_small.help_text %}
+                            <p class="webops-help-text">{{ form.button_height_small.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_button_height_medium" class="webops-label">Button Height (Medium)</label>
+                            {{ form.button_height_medium }}
+                            {% if form.button_height_medium.help_text %}
+                            <p class="webops-help-text">{{ form.button_height_medium.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="id_button_height_large" class="webops-label">Button Height (Large)</label>
+                            {{ form.button_height_large }}
+                            {% if form.button_height_large.help_text %}
+                            <p class="webops-help-text">{{ form.button_height_large.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="webops-form-actions">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <svg class="webops-btn-icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Save Changes
+                    </button>
+                    <button type="button" class="webops-btn webops-btn-secondary" id="resetBtn">
+                        <svg class="webops-btn-icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                        </svg>
+                        Reset to Defaults
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="webops-card-body">
-        <form method="post" enctype="multipart/form-data" id="brandingForm">
-            {% csrf_token %}
 
-            <div class="webops-form-section">
-                <h3 class="webops-form-section-title">General</h3>
-
-                <div class="webops-form-group">
-                    <label for="id_site_name" class="webops-label">Site Name</label>
-                    {{ form.site_name }}
-                    {% if form.site_name.help_text %}
-                    <p class="webops-help-text">{{ form.site_name.help_text }}</p>
-                    {% endif %}
-                    {% if form.site_name.errors %}
-                    <p class="webops-error-text">{{ form.site_name.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="webops-form-section">
-                <h3 class="webops-form-section-title">Logo & Favicon</h3>
-
-                <div class="webops-form-group">
-                    <label for="id_logo" class="webops-label">Logo</label>
-                    {% if settings.logo %}
-                    <div class="webops-image-preview" style="margin-bottom: var(--webops-space-md);">
-                        <img src="{{ settings.logo.url }}" alt="Current logo" style="max-height: 60px; border-radius: var(--webops-border-radius-md); background: rgba(255,255,255,0.1); padding: var(--webops-space-sm);">
-                        <p class="webops-help-text">Current logo</p>
+    <!-- Live Preview Panel -->
+    <div class="webops-card webops-preview-card">
+        <div class="webops-card-header">
+            <h2 class="webops-card-title">Live Preview</h2>
+            <p class="webops-card-description">See your color palette in action</p>
+        </div>
+        <div class="webops-card-body">
+            <!-- Theme Preview Cards -->
+            <div class="webops-theme-previews" id="themePreviewCards">
+                <h4 class="webops-preview-title">Theme Previews</h4>
+                <div class="webops-theme-grid">
+                    <div class="webops-theme-card" data-theme="forest">
+                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #2D5016, #4A7C59);">
+                            <div class="webops-theme-logo">Forest</div>
+                        </div>
+                        <div class="webops-theme-content">
+                            <div class="webops-theme-colors">
+                                <div class="webops-theme-color" style="background: #4A7C59;" title="Primary"></div>
+                                <div class="webops-theme-color" style="background: #8B5A2B;" title="Accent"></div>
+                                <div class="webops-theme-color" style="background: #2D5016;" title="Header"></div>
+                            </div>
+                            <p class="webops-theme-description">Nature-inspired greens and earth tones</p>
+                        </div>
                     </div>
-                    {% endif %}
-                    {{ form.logo }}
-                    {% if form.logo.help_text %}
-                    <p class="webops-help-text">{{ form.logo.help_text }}</p>
-                    {% endif %}
-                    {% if form.logo.errors %}
-                    <p class="webops-error-text">{{ form.logo.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="webops-form-group">
-                    <label for="id_favicon" class="webops-label">Favicon</label>
-                    {% if settings.favicon %}
-                    <div class="webops-image-preview" style="margin-bottom: var(--webops-space-md);">
-                        <img src="{{ settings.favicon.url }}" alt="Current favicon" style="width: 32px; height: 32px; border-radius: var(--webops-border-radius-sm);">
-                        <p class="webops-help-text">Current favicon</p>
+                    
+                    <div class="webops-theme-card" data-theme="ocean">
+                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #1E3A8A, #3B82F6);">
+                            <div class="webops-theme-logo">Ocean</div>
+                        </div>
+                        <div class="webops-theme-content">
+                            <div class="webops-theme-colors">
+                                <div class="webops-theme-color" style="background: #3B82F6;" title="Primary"></div>
+                                <div class="webops-theme-color" style="background: #20B2AA;" title="Accent"></div>
+                                <div class="webops-theme-color" style="background: #1E3A8A;" title="Header"></div>
+                            </div>
+                            <p class="webops-theme-description">Cool aquatic blues and teals</p>
+                        </div>
                     </div>
-                    {% endif %}
-                    {{ form.favicon }}
-                    {% if form.favicon.help_text %}
-                    <p class="webops-help-text">{{ form.favicon.help_text }}</p>
-                    {% endif %}
-                    {% if form.favicon.errors %}
-                    <p class="webops-error-text">{{ form.favicon.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="webops-form-section">
-                <h3 class="webops-form-section-title">Colors</h3>
-
-                <div class="webops-form-grid">
-                    <div class="webops-form-group">
-                        <label for="id_primary_color" class="webops-label">Primary Color</label>
-                        {{ form.primary_color }}
-                        {% if form.primary_color.help_text %}
-                        <p class="webops-help-text">{{ form.primary_color.help_text }}</p>
-                        {% endif %}
-                        {% if form.primary_color.errors %}
-                        <p class="webops-error-text">{{ form.primary_color.errors.0 }}</p>
-                        {% endif %}
+                    
+                    <div class="webops-theme-card" data-theme="dark">
+                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #111827, #374151);">
+                            <div class="webops-theme-logo">Dark</div>
+                        </div>
+                        <div class="webops-theme-content">
+                            <div class="webops-theme-colors">
+                                <div class="webops-theme-color" style="background: #6B7280;" title="Primary"></div>
+                                <div class="webops-theme-color" style="background: #10B981;" title="Accent"></div>
+                                <div class="webops-theme-color" style="background: #111827;" title="Header"></div>
+                            </div>
+                            <p class="webops-theme-description">Low-light interface with high contrast</p>
+                        </div>
                     </div>
-
-                    <div class="webops-form-group">
-                        <label for="id_secondary_color" class="webops-label">Secondary Color</label>
-                        {{ form.secondary_color }}
-                        {% if form.secondary_color.help_text %}
-                        <p class="webops-help-text">{{ form.secondary_color.help_text }}</p>
-                        {% endif %}
-                        {% if form.secondary_color.errors %}
-                        <p class="webops-error-text">{{ form.secondary_color.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="webops-form-group">
-                        <label for="id_accent_color" class="webops-label">Accent Color</label>
-                        {{ form.accent_color }}
-                        {% if form.accent_color.help_text %}
-                        <p class="webops-help-text">{{ form.accent_color.help_text }}</p>
-                        {% endif %}
-                        {% if form.accent_color.errors %}
-                        <p class="webops-error-text">{{ form.accent_color.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="webops-form-group">
-                        <label for="id_header_bg_color" class="webops-label">Header Background</label>
-                        {{ form.header_bg_color }}
-                        {% if form.header_bg_color.help_text %}
-                        <p class="webops-help-text">{{ form.header_bg_color.help_text }}</p>
-                        {% endif %}
-                        {% if form.header_bg_color.errors %}
-                        <p class="webops-error-text">{{ form.header_bg_color.errors.0 }}</p>
-                        {% endif %}
+                    
+                    <div class="webops-theme-card" data-theme="premium">
+                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #1F2937, #7C3AED);">
+                            <div class="webops-theme-logo">Premium</div>
+                        </div>
+                        <div class="webops-theme-content">
+                            <div class="webops-theme-colors">
+                                <div class="webops-theme-color" style="background: #7C3AED;" title="Primary"></div>
+                                <div class="webops-theme-color" style="background: #F59E0B;" title="Accent"></div>
+                                <div class="webops-theme-color" style="background: #1F2937;" title="Header"></div>
+                            </div>
+                            <p class="webops-theme-description">High-contrast accessibility theme</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="webops-form-actions">
-                <button type="submit" class="webops-btn webops-btn-primary">
-                    Save Changes
-                </button>
-                <button type="button" class="webops-btn webops-btn-secondary" id="resetBtn">
-                    Reset to Defaults
-                </button>
+            <!-- Color Palette -->
+            <div class="webops-palette-preview" id="palettePreview">
+                <h4 class="webops-preview-title">Color Palette</h4>
+                <div class="webops-color-scales" id="colorScales"></div>
             </div>
-        </form>
+
+            <!-- Accessibility Report -->
+            <div class="webops-accessibility-report" id="accessibilityReport">
+                <h4 class="webops-preview-title">Accessibility Report</h4>
+                <div class="webops-contrast-checks" id="contrastChecks"></div>
+            </div>
+
+            <!-- Color Blindness Simulation -->
+            <div class="webops-colorblind-simulation" id="colorblindSimulation">
+                <h4 class="webops-preview-title">Color Blindness Simulation</h4>
+                <div class="webops-simulation-grid" id="simulationGrid"></div>
+            </div>
+
+            <!-- UI Preview -->
+            <div class="webops-ui-preview" id="uiPreview">
+                <h4 class="webops-preview-title">Interface Preview</h4>
+                <div class="webops-preview-interface" id="previewInterface">
+                    <div class="webops-preview-header">
+                        <div class="webops-preview-logo">WebOps</div>
+                        <div class="webops-preview-nav">
+                            <span class="webops-preview-nav-item active">Dashboard</span>
+                            <span class="webops-preview-nav-item">Deployments</span>
+                            <span class="webops-preview-nav-item">Settings</span>
+                        </div>
+                    </div>
+                    <div class="webops-preview-content">
+                        <div class="webops-preview-card">
+                            <h5>Sample Card</h5>
+                            <p>This is how your interface will look with the selected colors.</p>
+                            <button class="webops-preview-btn">Primary Button</button>
+                            <button class="webops-preview-btn secondary">Secondary Button</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
+    .webops-branding-container {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: var(--webops-space-4);
+        margin-bottom: var(--webops-space-4);
+    }
+
+    @media (max-width: 1200px) {
+        .webops-branding-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .webops-settings-card {
+        height: fit-content;
+    }
+
+    .webops-preview-card {
+        position: sticky;
+        top: var(--webops-space-4);
+        height: fit-content;
+        max-height: calc(100vh - var(--webops-space-8));
+        overflow-y: auto;
+    }
+
     .webops-form-section {
-        margin-bottom: var(--webops-space-2xl);
-        padding-bottom: var(--webops-space-xl);
+        margin-bottom: var(--webops-space-4);
+        padding-bottom: var(--webops-space-4);
         border-bottom: 1px solid rgba(0, 255, 136, 0.1);
     }
 
@@ -149,20 +755,32 @@
     }
 
     .webops-form-section-title {
-        font-size: var(--webops-font-size-sm);
-        font-weight: var(--font-weight-semibold);
+        font-size: var(--webops-font-size-lg);
+        font-weight: var(--webops-font-weight-semibold);
         color: var(--webops-color-text-primary);
-        margin-bottom: var(--webops-space-lg);
+        margin-bottom: var(--webops-space-2);
+    }
+
+    .webops-section-description {
+        font-size: var(--webops-font-size-sm);
+        color: var(--webops-color-text-tertiary);
+        margin-bottom: var(--webops-space-3);
     }
 
     .webops-form-group {
-        margin-bottom: var(--webops-space-lg);
+        margin-bottom: var(--webops-space-3);
     }
 
     .webops-form-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--webops-space-lg);
+        gap: var(--webops-space-3);
+    }
+
+    .webops-hsl-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--webops-space-3);
     }
 
     .webops-label {
@@ -170,16 +788,15 @@
         font-size: var(--webops-font-size-sm);
         font-weight: var(--webops-font-weight-medium);
         color: var(--webops-color-text-secondary);
-        margin-bottom: var(--webops-space-sm);
+        margin-bottom: var(--webops-space-1-5);
     }
 
-    .webops-input,
-    .webops-file-input {
+    .webops-input {
         width: 100%;
-        padding: var(--webops-space-sm) var(--webops-space-md);
+        padding: var(--webops-space-1-5) var(--webops-space-3);
         background: rgba(0, 255, 136, 0.05);
         border: 1px solid rgba(0, 255, 136, 0.2);
-        border-radius: var(--webops-border-radius-md);
+        border-radius: var(--webops-radius-md);
         color: var(--webops-color-text-primary);
         font-size: var(--webops-font-size-sm);
         transition: all var(--webops-transition-fast);
@@ -190,41 +807,110 @@
         cursor: pointer;
     }
 
-    .webops-input:focus,
-    .webops-file-input:focus {
+    .webops-input[readonly] {
+        background: rgba(0, 255, 136, 0.02);
+        cursor: not-allowed;
+    }
+
+    .webops-input:focus {
         outline: none;
         border-color: var(--webops-color-primary);
         background: rgba(0, 255, 136, 0.1);
     }
 
-    .webops-help-text {
+    .webops-hue-slider,
+    .webops-saturation-slider,
+    .webops-lightness-slider {
+        height: 8px;
+        border-radius: 4px;
+        margin-top: var(--webops-space-1);
+        cursor: pointer;
+        position: relative;
+    }
+
+    .webops-hue-slider {
+        background: linear-gradient(to right, 
+            hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), 
+            hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), 
+            hsl(360, 100%, 50%));
+    }
+
+    .webops-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-checkbox-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-checkbox {
+        margin-top: 2px;
+    }
+
+    .webops-checkbox-label {
         font-size: var(--webops-font-size-sm);
+        font-weight: var(--webops-font-weight-medium);
+        color: var(--webops-color-text-secondary);
+        cursor: pointer;
+    }
+
+    .webops-help-text {
+        font-size: var(--webops-font-size-xs);
         color: var(--webops-color-text-tertiary);
-        margin-top: var(--webops-space-xs);
-        margin-bottom: 0;
+        margin-top: var(--webops-space-0-5);
     }
 
     .webops-error-text {
-        font-size: var(--webops-font-size-sm);
+        font-size: var(--webops-font-size-xs);
         color: var(--webops-color-error);
-        margin-top: var(--webops-space-xs);
-        margin-bottom: 0;
+        margin-top: var(--webops-space-0-5);
+    }
+
+    .webops-image-preview {
+        margin-bottom: var(--webops-space-2);
+    }
+
+    .webops-logo-preview {
+        max-height: 60px;
+        border-radius: var(--webops-radius-md);
+        background: rgba(255, 255, 255, 0.1);
+        padding: var(--webops-space-1-5);
+    }
+
+    .webops-favicon-preview {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--webops-radius-sm);
     }
 
     .webops-form-actions {
         display: flex;
-        gap: var(--webops-space-md);
-        margin-top: var(--webops-space-xl);
+        gap: var(--webops-space-3);
+        margin-top: var(--webops-space-4);
+        padding-top: var(--webops-space-4);
+        border-top: 1px solid rgba(0, 255, 136, 0.1);
     }
 
     .webops-btn {
-        padding: var(--webops-space-sm) var(--webops-space-lg);
-        border-radius: var(--webops-border-radius-md);
+        display: flex;
+        align-items: center;
+        gap: var(--webops-space-1-5);
+        padding: var(--webops-space-2) var(--webops-space-4);
+        border-radius: var(--webops-radius-md);
         font-size: var(--webops-font-size-sm);
         font-weight: var(--webops-font-weight-medium);
         cursor: pointer;
         transition: all var(--webops-transition-fast);
         border: none;
+    }
+
+    .webops-btn-icon {
+        width: 16px;
+        height: 16px;
     }
 
     .webops-btn-primary {
@@ -246,12 +932,531 @@
     .webops-btn-secondary:hover {
         background: rgba(0, 255, 136, 0.2);
     }
+
+    /* Preview Panel Styles */
+    .webops-preview-title {
+        font-size: var(--webops-font-size-md);
+        font-weight: var(--webops-font-weight-semibold);
+        color: var(--webops-color-text-primary);
+        margin-bottom: var(--webops-space-3);
+    }
+
+    .webops-palette-preview,
+    .webops-accessibility-report,
+    .webops-colorblind-simulation,
+    .webops-ui-preview {
+        margin-bottom: var(--webops-space-4);
+        padding-bottom: var(--webops-space-4);
+        border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    }
+
+    .webops-palette-preview:last-child,
+    .webops-accessibility-report:last-child,
+    .webops-colorblind-simulation:last-child,
+    .webops-ui-preview:last-child {
+        border-bottom: none;
+    }
+
+    .webops-color-scales {
+        display: flex;
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-color-scale {
+        display: flex;
+        border-radius: var(--webops-radius-md);
+        overflow: hidden;
+        height: 40px;
+    }
+
+    .webops-color-swatch {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--webops-font-size-xs);
+        font-weight: var(--webops-font-weight-medium);
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .webops-contrast-checks {
+        display: flex;
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-contrast-check {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--webops-space-2);
+        background: rgba(0, 255, 136, 0.05);
+        border-radius: var(--webops-radius-sm);
+        font-size: var(--webops-font-size-sm);
+    }
+
+    .webops-contrast-ratio {
+        font-weight: var(--webops-font-weight-semibold);
+    }
+
+    .webops-contrast-grade {
+        padding: var(--webops-space-0-5) var(--webops-space-1);
+        border-radius: var(--webops-radius-sm);
+        font-size: var(--webops-font-size-xs);
+        font-weight: var(--webops-font-weight-semibold);
+    }
+
+    .webops-contrast-grade.aaa {
+        background: #10b981;
+        color: white;
+    }
+
+    .webops-contrast-grade.aa {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .webops-contrast-grade.fail {
+        background: #ef4444;
+        color: white;
+    }
+
+    .webops-simulation-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: var(--webops-space-2);
+    }
+
+    .webops-simulation-item {
+        text-align: center;
+    }
+
+    .webops-simulation-swatches {
+        display: flex;
+        gap: 2px;
+        margin-bottom: var(--webops-space-1);
+    }
+    
+    .webops-mini-swatch {
+        flex: 1;
+        height: 40px;
+        border-radius: var(--webops-radius-sm);
+        min-width: 20px;
+    }
+    
+    .webops-simulation-swatch {
+        width: 100%;
+        height: 60px;
+        border-radius: var(--webops-radius-md);
+        margin-bottom: var(--webops-space-1);
+    }
+
+    .webops-simulation-label {
+        font-size: var(--webops-font-size-xs);
+        color: var(--webops-color-text-tertiary);
+    }
+
+    .webops-preview-interface {
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: var(--webops-radius-md);
+        overflow: hidden;
+        background: var(--webops-color-bg-primary);
+    }
+
+    .webops-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--webops-space-2) var(--webops-space-3);
+        background: var(--webops-header-bg);
+        color: white;
+    }
+
+    .webops-preview-logo {
+        font-weight: var(--webops-font-weight-bold);
+        font-size: var(--webops-font-size-lg);
+    }
+
+    .webops-preview-nav {
+        display: flex;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-preview-nav-item {
+        padding: var(--webops-space-1) var(--webops-space-2);
+        border-radius: var(--webops-radius-sm);
+        font-size: var(--webops-font-size-sm);
+        cursor: pointer;
+        transition: all var(--webops-transition-fast);
+    }
+
+    .webops-preview-nav-item.active {
+        background: var(--webops-color-primary);
+    }
+
+    .webops-preview-content {
+        padding: var(--webops-space-3);
+    }
+
+    .webops-preview-card {
+        background: rgba(0, 255, 136, 0.05);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        border-radius: var(--webops-radius-md);
+        padding: var(--webops-space-3);
+    }
+
+    .webops-preview-card h5 {
+        margin: 0 0 var(--webops-space-2) 0;
+        color: var(--webops-color-text-primary);
+    }
+
+    .webops-preview-card p {
+        margin: 0 0 var(--webops-space-3) 0;
+        color: var(--webops-color-text-secondary);
+        font-size: var(--webops-font-size-sm);
+    }
+
+    .webops-preview-btn {
+        padding: var(--webops-space-1-5) var(--webops-space-3);
+        border-radius: var(--webops-radius-sm);
+        font-size: var(--webops-font-size-sm);
+        font-weight: var(--webops-font-weight-medium);
+        cursor: pointer;
+        transition: all var(--webops-transition-fast);
+        border: none;
+        margin-right: var(--webops-space-2);
+    }
+
+    .webops-preview-btn:not(.secondary) {
+        background: var(--webops-color-primary);
+        color: white;
+    }
+
+    .webops-preview-btn.secondary {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: var(--webops-color-primary);
+    }
 </style>
 
+<script src="{% static 'js/color-engine.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const resetBtn = document.getElementById('resetBtn');
+    // Initialize color engine
+    const colorEngine = new WebOpsColorEngine();
+    
+    // Theme card click handlers
+    document.querySelectorAll('.webops-theme-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            
+            // Update the theme preset select
+            const themeSelect = document.getElementById('id_theme_preset');
+            if (themeSelect) {
+                themeSelect.value = theme;
+                
+                // Trigger change event to apply the theme
+                const changeEvent = new Event('change', { bubbles: true });
+                themeSelect.dispatchEvent(changeEvent);
+            }
+            
+            // Update visual selection
+            document.querySelectorAll('.webops-theme-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
 
+    // Initialize theme card selection based on current value
+    function updateThemeCardSelection() {
+        const currentTheme = document.getElementById('id_theme_preset')?.value || 'custom';
+        document.querySelectorAll('.webops-theme-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.theme === currentTheme);
+        });
+    }
+
+    // Call on page load
+    updateThemeCardSelection();
+
+    // Update selection when theme preset changes
+    document.getElementById('id_theme_preset')?.addEventListener('change', updateThemeCardSelection);
+    
+    // Get form elements
+    const themePresetSelect = document.getElementById('id_theme_preset');
+    const hueInput = document.getElementById('id_primary_hue');
+    const saturationInput = document.getElementById('id_primary_saturation');
+    const lightnessInput = document.getElementById('id_primary_lightness');
+    const harmonySelect = document.getElementById('id_color_harmony');
+    const wcagAACheckbox = document.getElementById('id_enforce_wcag_aa');
+    const wcagAAACheckbox = document.getElementById('id_enforce_wcag_aaa');
+    const darkModeCheckbox = document.getElementById('id_supports_dark_mode');
+    
+    // Get generated color inputs
+    const primaryColorInput = document.getElementById('id_primary_color');
+    const secondaryColorInput = document.getElementById('id_secondary_color');
+    const accentColorInput = document.getElementById('id_accent_color');
+    const headerBgColorInput = document.getElementById('id_header_bg_color');
+    
+    // Get preview elements
+    const colorScales = document.getElementById('colorScales');
+    const contrastChecks = document.getElementById('contrastChecks');
+    const simulationGrid = document.getElementById('simulationGrid');
+    const previewInterface = document.getElementById('previewInterface');
+    
+    // Theme preset definitions
+    const themePresets = {
+        'forest': {
+            primary_hue: 142,
+            primary_saturation: 71,
+            primary_lightness: 45,
+            color_harmony: 'analogous',
+            supports_dark_mode: true,
+            accent_color: '#8B5A2B',
+            header_bg_color: '#2D5016',
+        },
+        'ocean': {
+            primary_hue: 200,
+            primary_saturation: 85,
+            primary_lightness: 50,
+            color_harmony: 'complementary',
+            supports_dark_mode: true,
+            accent_color: '#20B2AA',
+            header_bg_color: '#1E3A8A',
+        },
+        'dark': {
+            primary_hue: 220,
+            primary_saturation: 25,
+            primary_lightness: 65,
+            color_harmony: 'monochromatic',
+            supports_dark_mode: true,
+            accent_color: '#10B981',
+            header_bg_color: '#111827',
+        },
+        'premium': {
+            primary_hue: 260,
+            primary_saturation: 95,
+            primary_lightness: 40,
+            color_harmony: 'triadic',
+            supports_dark_mode: true,
+            accent_color: '#F59E0B',
+            header_bg_color: '#1F2937',
+            enforce_wcag_aaa: true,
+        }
+    };
+    
+    // Apply theme preset
+    function applyThemePreset(presetName) {
+        if (presetName === 'custom') return;
+        
+        const preset = themePresets[presetName];
+        if (!preset) return;
+        
+        // Update form values
+        hueInput.value = preset.primary_hue;
+        saturationInput.value = preset.primary_saturation;
+        lightnessInput.value = preset.primary_lightness;
+        harmonySelect.value = preset.color_harmony;
+        darkModeCheckbox.checked = preset.supports_dark_mode;
+        
+        if (preset.enforce_wcag_aaa) {
+            wcagAAACheckbox.checked = true;
+        }
+        
+        // Update colors and preview
+        updateColorsAndPreview();
+    }
+    
+    // Theme preset change handler
+    themePresetSelect.addEventListener('change', function() {
+        applyThemePreset(this.value);
+    });
+    
+    // Update colors and preview
+    function updateColorsAndPreview() {
+        const hue = parseInt(hueInput.value) || 220;
+        const saturation = parseInt(saturationInput.value) || 85;
+        const lightness = parseInt(lightnessInput.value) || 50;
+        const harmony = harmonySelect.value || 'monochromatic';
+        
+        // Generate palette
+        const palette = colorEngine.generateColorPalette(hue, saturation, lightness, harmony);
+        
+        // Apply theme-specific accent and header colors if not custom
+        const selectedTheme = themePresetSelect.value;
+        if (selectedTheme !== 'custom' && themePresets[selectedTheme]) {
+            const preset = themePresets[selectedTheme];
+            accentColorInput.value = preset.accent_color;
+            headerBgColorInput.value = preset.header_bg_color;
+        } else {
+            // Use generated colors for custom theme
+            accentColorInput.value = palette.success['400'];
+            headerBgColorInput.value = palette.neutral['800'];
+        }
+        
+        // Update generated color inputs
+        primaryColorInput.value = palette.primary['400'];
+        secondaryColorInput.value = palette.secondary['400'];
+        
+        // Update CSS custom properties for live preview
+        updateCSSVariables(palette);
+        
+        // Update preview panels
+        updateColorScalesPreview(palette);
+        updateAccessibilityReport(palette);
+        updateColorBlindnessSimulation(palette);
+        updateSliderBackgrounds(hue, saturation, lightness);
+    }
+    
+    function updateCSSVariables(palette) {
+        const root = document.documentElement;
+        
+        // Update primary colors
+        Object.entries(palette.primary).forEach(([shade, color]) => {
+            root.style.setProperty(`--webops-color-primary-${shade}`, color);
+        });
+        
+        // Update main color variables
+        root.style.setProperty('--webops-color-primary', palette.primary['400']);
+        root.style.setProperty('--webops-color-secondary', palette.secondary['400']);
+        root.style.setProperty('--webops-color-accent', palette.success['400']);
+        root.style.setProperty('--webops-header-bg', palette.neutral['800']);
+    }
+    
+    function updateColorScalesPreview(palette) {
+        colorScales.innerHTML = '';
+        
+        Object.entries(palette).forEach(([colorName, colorScale]) => {
+            if (typeof colorScale === 'object') {
+                const scaleDiv = document.createElement('div');
+                scaleDiv.className = 'webops-color-scale';
+                scaleDiv.innerHTML = `<div style="font-size: 12px; padding: 8px; background: rgba(0,255,136,0.1); color: var(--webops-color-text-primary); min-width: 80px; display: flex; align-items: center;">${colorName}</div>`;
+                
+                Object.entries(colorScale).forEach(([shade, hexValue]) => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'webops-color-swatch';
+                    swatch.style.backgroundColor = hexValue;
+                    swatch.textContent = shade;
+                    
+                    // Use optimal text color
+                    const textColor = colorEngine.getOptimalTextColor(hexValue);
+                    swatch.style.color = textColor;
+                    
+                    scaleDiv.appendChild(swatch);
+                });
+                
+                colorScales.appendChild(scaleDiv);
+            }
+        });
+    }
+    
+    function updateAccessibilityReport(palette) {
+        contrastChecks.innerHTML = '';
+        
+        const enforceAA = wcagAACheckbox.checked;
+        const enforceAAA = wcagAAACheckbox.checked;
+        
+        const testCombinations = [
+            { fg: palette.primary['400'], bg: '#ffffff', name: 'Primary on White' },
+            { fg: palette.primary['400'], bg: '#000000', name: 'Primary on Black' },
+            { fg: '#ffffff', bg: palette.primary['400'], name: 'White on Primary' },
+            { fg: '#000000', bg: palette.primary['400'], name: 'Black on Primary' },
+            { fg: palette.secondary['400'], bg: '#ffffff', name: 'Secondary on White' },
+            { fg: '#ffffff', bg: palette.neutral['800'], name: 'White on Header' }
+        ];
+        
+        testCombinations.forEach(combo => {
+            const result = colorEngine.validateAccessibility(combo.fg, combo.bg);
+            
+            // Determine grade based on enforcement settings
+            let grade = 'fail';
+            if (result.ratio >= 7) {
+                grade = 'aaa';
+            } else if (result.ratio >= 4.5) {
+                grade = 'aa';
+            }
+            
+            // Override grade if enforcement is enabled and requirements not met
+            if (enforceAAA && result.ratio < 7) {
+                grade = 'fail';
+            } else if (enforceAA && result.ratio < 4.5) {
+                grade = 'fail';
+            }
+            
+            const checkDiv = document.createElement('div');
+            checkDiv.className = 'webops-contrast-check';
+            checkDiv.innerHTML = `
+                <span>${combo.name}</span>
+                <div>
+                    <span class="webops-contrast-ratio">${result.ratio.toFixed(2)}:1</span>
+                    <span class="webops-contrast-grade ${grade}">${grade.toUpperCase()}</span>
+                </div>
+            `;
+            
+            contrastChecks.appendChild(checkDiv);
+        });
+    }
+    
+    function updateColorBlindnessSimulation(palette) {
+        simulationGrid.innerHTML = '';
+        
+        const colors = [
+            { color: palette.primary['400'], name: 'Primary' },
+            { color: palette.secondary['400'], name: 'Secondary' },
+            { color: palette.success['400'], name: 'Accent' }
+        ];
+        
+        const simulations = [
+            { type: 'normal', name: 'Normal' },
+            { type: 'protanopia', name: 'Protanopia' },
+            { type: 'deuteranopia', name: 'Deuteranopia' },
+            { type: 'tritanopia', name: 'Tritanopia' }
+        ];
+        
+        simulations.forEach(sim => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'webops-simulation-item';
+            
+            let swatchesHtml = '';
+            colors.forEach(({ color, name }) => {
+                const simulatedColor = sim.type === 'normal' ? color : 
+                                     colorEngine.simulateColorBlindness(color, sim.type);
+                
+                swatchesHtml += `<div class="webops-mini-swatch" style="background-color: ${simulatedColor};" title="${name}"></div>`;
+            });
+            
+            itemDiv.innerHTML = `
+                <div class="webops-simulation-swatches">${swatchesHtml}</div>
+                <div class="webops-simulation-label">${sim.name}</div>
+            `;
+            
+            simulationGrid.appendChild(itemDiv);
+        });
+    }
+    
+    function updateSliderBackgrounds(hue, saturation, lightness) {
+        const saturationSlider = document.getElementById('saturationSlider');
+        const lightnessSlider = document.getElementById('lightnessSlider');
+        
+        // Update saturation slider background
+        saturationSlider.style.background = `linear-gradient(to right, 
+            hsl(${hue}, 0%, ${lightness}%), 
+            hsl(${hue}, 100%, ${lightness}%))`;
+        
+        // Update lightness slider background
+        lightnessSlider.style.background = `linear-gradient(to right, 
+            hsl(${hue}, ${saturation}%, 0%), 
+            hsl(${hue}, ${saturation}%, 50%), 
+            hsl(${hue}, ${saturation}%, 100%))`;
+    }
+    
+    // Event listeners
+    [hueInput, saturationInput, lightnessInput, harmonySelect].forEach(element => {
+        element.addEventListener('input', updateColorsAndPreview);
+    });
+    
+    // Reset button functionality
+    const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', async function() {
             if (!confirm('Are you sure you want to reset branding to default values? This will reload the page.')) {
@@ -279,6 +1484,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Initial update
+    updateColorsAndPreview();
 });
 </script>
 {% endblock %}

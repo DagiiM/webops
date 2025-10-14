@@ -33,6 +33,10 @@ psutil==5.9.8
 # Redis Cache
 django-redis==5.4.0
 
+# WebSocket Support
+channels==4.0.0
+channels-redis==4.2.0
+
 # Testing
 coverage==7.4.0
 

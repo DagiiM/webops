@@ -61,7 +61,7 @@ For custom installations or when you need more control:
 sudo apt update && sudo apt upgrade -y
 
 # Install system dependencies
-sudo apt install -y python3.13 python3.13-venv python3-pip \
+sudo apt install -y python3.11 python3.11-venv python3-pip \
     postgresql postgresql-contrib redis-server nginx \
     git curl wget gnupg2 software-properties-common \
     ufw fail2ban certbot python3-certbot-nginx
@@ -95,7 +95,7 @@ git clone https://github.com/DagiiM/webops.git .
 cd control-panel
 
 # Create Python virtual environment
-python3.13 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 
 # Install Python dependencies
@@ -426,9 +426,9 @@ python manage.py create_user --username newuser --email user@domain.com
 ## 🎯 **What's Next?**
 
 After successful installation:
-1. **Deploy your first application** - [Deployment Guide](DEPLOYMENT-GUIDE.md)
+1. **Deploy your first application** - [Deployment Guide](deployment-guide.md)
 2. **Set up monitoring** - [Monitoring Guide](monitoring.md) 
-3. **Configure team access** - [User Management](user-management.md)
+3. **Configure team access** - [User Management](./user-management.md)
 4. **Explore enterprise features** - [Enterprise Guide](enterprise.md)
 
 ---

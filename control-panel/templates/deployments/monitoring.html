@@ -7,21 +7,21 @@
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--webops-space-lg);
-    margin-bottom: var(--webops-space-xl);
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
 }
 
 .metric-card {
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
     box-shadow: var(--webops-shadow-sm);
 }
 
 .metric-label {
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-secondary);
-    margin-bottom: var(--webops-space-xs);
+    margin-bottom: var(--webops-space-0-5);
 }
 
 .metric-value {
@@ -39,17 +39,17 @@
 
 .health-checks-section {
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
     box-shadow: var(--webops-shadow-sm);
-    margin-bottom: var(--webops-space-xl);
+    margin-bottom: var(--webops-space-3);
 }
 
 .health-check-item {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-md);
-    padding: var(--webops-space-md);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -91,10 +91,10 @@
 
 .chart-container {
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
-    padding: var(--webops-space-lg);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
     box-shadow: var(--webops-shadow-sm);
-    margin-bottom: var(--webops-space-xl);
+    margin-bottom: var(--webops-space-3);
     height: 350px;
 }
 
@@ -102,7 +102,7 @@
     font-size: var(--webops-font-size-sm);
     font-weight: 600;
     color: var(--webops-color-text-primary);
-    margin-bottom: var(--webops-space-md);
+    margin-bottom: var(--webops-space-3);
 }
 
 .history-table {
@@ -112,7 +112,7 @@
 
 .history-table th {
     text-align: left;
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     background: var(--color-background-secondary);
     font-weight: 600;
     font-size: var(--webops-font-size-sm);
@@ -121,7 +121,7 @@
 }
 
 .history-table td {
-    padding: var(--webops-space-md);
+    padding: var(--webops-space-3);
     border-bottom: 1px solid var(--color-border);
     font-size: var(--webops-font-size-sm);
 }
@@ -131,7 +131,7 @@
     height: 8px;
     border-radius: 50%;
     display: inline-block;
-    margin-right: var(--webops-space-xs);
+    margin-right: var(--webops-space-0-5);
 }
 
 .status-dot.healthy {
@@ -174,7 +174,7 @@
                 Deployment: <strong>{{ deployment.name }}</strong>
             </p>
         </div>
-        <div style="display: flex; gap: var(--webops-space-sm);">
+        <div style="display: flex; gap: var(--webops-space-1-5);">
             <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-secondary">
                 ← Back to Deployment
             </a>
@@ -188,7 +188,7 @@
     <!-- Current Status -->
     {% if latest_health_check %}
     <div class="health-checks-section">
-        <h2 class="webops-h2" style="margin-bottom: var(--webops-space-md);">Current Status</h2>
+        <h2 class="webops-h2" style="margin-bottom: var(--webops-space-3);">Current Status</h2>
         <div class="health-check-item">
             <div class="health-icon {% if latest_health_check.overall_healthy %}healthy{% else %}unhealthy{% endif %}">
                 {% if latest_health_check.overall_healthy %}✓{% else %}✗{% endif %}
@@ -261,7 +261,7 @@
         <span class="material-icons" style="font-size: 64px; opacity: 0.3;">monitor_heart</span>
         <h3 class="webops-h3">No health checks yet</h3>
         <p class="webops-text-muted">Run a health check to start monitoring this deployment</p>
-        <button onclick="document.getElementById('runHealthCheckBtn').click()" class="webops-btn webops-btn-primary" style="margin-top: var(--webops-space-md);">
+        <button onclick="document.getElementById('runHealthCheckBtn').click()" class="webops-btn webops-btn-primary" style="margin-top: var(--webops-space-3);">
             Run First Health Check
         </button>
     </div>

@@ -3,8 +3,8 @@
 > A minimal, self-hosted VPS hosting platform for deploying and managing web applications
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Django](https://img.shields.io/badge/django-5.2.6+-green.svg)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Django](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-DagiiM%2Fwebops-blue.svg)](https://github.com/DagiiM/webops)
 
 WebOps is a lightweight hosting platform that transforms a fresh VPS into a fully-functional web application deployment system with a single command. Deploy Django applications, static sites, and more through a clean web interface or CLI.
@@ -54,7 +54,7 @@ python manage.py runserver
 
 Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
 
-See **[QUICKSTART.md](QUICKSTART.md)** for detailed development setup.
+See **[docs/quick-start-guide.md](docs/quick-start-guide.md)** for detailed development setup.
 
 ### Production Installation (Coming Soon)
 
@@ -158,9 +158,9 @@ webops restart myapp
 ```
 
 **Tech Stack:**
-- **Backend**: Django 5.2.6+, Python 3.13+
+- **Backend**: Django 5.0+, Python 3.11+
 - **Frontend**: Pure HTML5/CSS3/Vanilla JavaScript (zero npm dependencies)
-- **Database**: PostgreSQL 15+
+- **Database**: PostgreSQL 14+
 - **Web Server**: Nginx
 - **Task Queue**: Celery + Redis
 - **Process Manager**: systemd
@@ -293,7 +293,7 @@ The `webops` system user provides security through:
 - **Attack Surface Reduction**: Compromised deployment ≠ root access
 - **Complete Auditability**: All operations logged and traceable
 
-See [WEBOPS-USER-README.md](WEBOPS-USER-README.md) for detailed security documentation.
+See [docs/webops-user-guide.md](docs/webops-user-guide.md) for detailed security documentation.
 
 **Validation & Monitoring:**
 ```bash
@@ -378,12 +378,12 @@ psql -h localhost -U postgres -l
 **Getting Started:**
 - [Installation Guide](docs/installation.md)
 - [Deployment Guide](docs/deployment-guide.md)
-- [Quick Start](docs/QUICKSTART.md)
+- [Quick Start Guide](docs/quick-start-guide.md)
 
 **Security:**
-- [WebOps User Guide](docs/WEBOPS-USER-GUIDE.md) - Comprehensive guide to the webops system user
-- [WebOps User README](WEBOPS-USER-README.md) - Quick reference for webops user
-- [Security Features](docs/SECURITY-FEATURES.md) - All security features and architecture
+- [WebOps User Guide](docs/webops-user-guide.md) - Comprehensive guide to the webops system user
+- [Security Features](docs/security-features.md) - All security features and architecture
+- [Security Hardening](docs/security-hardening.md) - Security best practices
 
 **Reference:**
 - [API Reference](docs/api-reference.md)

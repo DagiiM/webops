@@ -219,15 +219,15 @@ print(deployments)</code></pre>
 .webops-alert {
     display: flex;
     align-items: center;
-    padding: var(--webops-space-md) var(--webops-space-lg);
-    border-radius: var(--webops-border-radius-md);
-    margin-bottom: var(--webops-space-2xl);
+    padding: var(--webops-space-3) var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
     font-size: var(--webops-font-size-sm);
 }
 
 .webops-alert__icon {
     font-size: 24px;
-    margin-right: var(--webops-space-sm);
+    margin-right: var(--webops-space-1-5);
 }
 
 .webops-alert__content {
@@ -253,10 +253,10 @@ print(deployments)</code></pre>
 .webops-token-display {
     display: flex;
     flex-direction: column;
-    gap: var(--webops-space-md);
-    padding: var(--webops-space-lg);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
     background: var(--webops-color-surface);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border: 2px solid var(--webops-color-surface);
 }
 
@@ -264,10 +264,10 @@ print(deployments)</code></pre>
     flex: 1;
     font-size: var(--webops-font-size-sm);
     font-family: var(--webops-font-family-mono);
-    padding: var(--webops-space-sm);
+    padding: var(--webops-space-1-5);
     background: var(--webops-color-surface);
     color: var(--webops-color-text-tertiary);
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     word-break: break-all;
     transition: all var(--webops-transition-fast);
 }
@@ -279,22 +279,22 @@ print(deployments)</code></pre>
 
 .webops-token-display__controls {
     display: flex;
-    gap: var(--webops-space-sm);
+    gap: var(--webops-space-1-5);
 }
 
 /* WebOps Token Warning Component - BEM Methodology */
 .webops-token-warning {
     display: flex;
     align-items: flex-start;
-    margin-top: var(--webops-space-lg);
-    padding: var(--webops-space-md);
+    margin-top: var(--webops-space-3);
+    padding: var(--webops-space-3);
     background: linear-gradient(135deg, var(--webops-color-error-light) 0%, rgba(255, 71, 87, 0.05) 100%);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--webops-color-error);
 }
 
 .webops-token-warning__icon {
-    margin-right: var(--webops-space-sm);
+    margin-right: var(--webops-space-1-5);
     color: var(--webops-color-error);
 }
 
@@ -303,14 +303,14 @@ print(deployments)</code></pre>
 }
 
 .webops-token-warning__text {
-    margin: var(--webops-space-xs) 0 0 0;
+    margin: var(--webops-space-0-5) 0 0 0;
     font-size: var(--webops-font-size-sm);
 }
 
 /* WebOps Info List Component */
 .info-list {
     display: grid;
-    gap: var(--webops-space-md);
+    gap: var(--webops-space-3);
 }
 
 .info-list dt {
@@ -327,7 +327,7 @@ print(deployments)</code></pre>
 .webops-code-examples {
     display: flex;
     flex-direction: column;
-    gap: var(--webops-space-2xl);
+    gap: var(--webops-space-3);
 }
 
 .webops-code-example {
@@ -335,7 +335,7 @@ print(deployments)</code></pre>
 }
 
 .webops-code-example__header {
-    margin-bottom: var(--webops-space-sm);
+    margin-bottom: var(--webops-space-1-5);
     color: var(--webops-color-text-secondary);
     font-size: var(--webops-font-size-sm);
     text-transform: uppercase;
@@ -345,8 +345,8 @@ print(deployments)</code></pre>
 .webops-code-example__code {
     background: var(--webops-color-surface-elevated);
     color: var(--webops-color-text);
-    padding: var(--webops-space-md);
-    border-radius: var(--webops-border-radius-md);
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
     overflow-x: auto;
     margin: 0;
 }
@@ -358,18 +358,18 @@ print(deployments)</code></pre>
 }
 
 .webops-code-example__copy-button {
-    margin-top: var(--webops-space-sm);
-    padding: var(--webops-space-sm) var(--webops-space-md);
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5) var(--webops-space-3);
     background: var(--webops-color-primary);
     color: var(--webops-color-background);
     border: none;
-    border-radius: var(--webops-border-radius-sm);
+    border-radius: var(--webops-radius-sm);
     cursor: pointer;
     font-size: var(--webops-font-size-sm);
     transition: all var(--webops-transition-fast);
     display: inline-flex;
     align-items: center;
-    gap: var(--webops-space-xs);
+    gap: var(--webops-space-0-5);
 }
 
 .webops-code-example__copy-button:hover {
@@ -379,8 +379,8 @@ print(deployments)</code></pre>
 
 /* WebOps Badge Component - BEM Methodology */
 .webops-badge {
-    padding: var(--webops-space-xs) var(--webops-space-sm);
-    border-radius: var(--webops-border-radius-full);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
+    border-radius: var(--webops-radius-full);
     font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-semibold);
     white-space: nowrap;
@@ -448,7 +448,7 @@ function showNotification(message) {
         background: var(--success);
         color: white;
         padding: 1rem 1.5rem;
-        border-radius: var(--webops-border-radius-md);
+        border-radius: var(--webops-radius-md);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 10000;
         animation: slideIn 0.3s ease;

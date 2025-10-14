@@ -91,19 +91,19 @@
     </div>
     <div class="webops-card-body">
         <div class="webops-grid webops-grid-4 webops-mb-md">
-            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-border-radius-md);">
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
                 <div class="webops-text-2xl webops-font-bold webops-text-error">{{ summary.alerts.critical }}</div>
                 <div class="webops-text-sm webops-text-secondary">Critical</div>
             </div>
-            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-border-radius-md);">
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
                 <div class="webops-text-2xl webops-font-bold webops-text-error">{{ summary.alerts.error }}</div>
                 <div class="webops-text-sm webops-text-secondary">Error</div>
             </div>
-            <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-border-radius-md);">
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
                 <div class="webops-text-2xl webops-font-bold webops-text-warning">{{ summary.alerts.warning }}</div>
                 <div class="webops-text-sm webops-text-secondary">Warning</div>
             </div>
-            <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md);">
+            <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
                 <div class="webops-text-2xl webops-font-bold webops-text-info">{{ summary.alerts.total }}</div>
                 <div class="webops-text-sm webops-text-secondary">Total</div>
             </div>
@@ -112,7 +112,7 @@
         {% if recent_alerts %}
         <div class="webops-space-y-sm">
             {% for alert in recent_alerts %}
-            <div class="webops-p-md" style="background: rgba({% if alert.severity == 'critical' or alert.severity == 'error' %}255, 68, 68{% elif alert.severity == 'warning' %}255, 170, 0{% else %}0, 170, 255{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if alert.severity == 'critical' or alert.severity == 'error' %}error{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %}); border-radius: var(--webops-border-radius-md);">
+            <div class="webops-p-md" style="background: rgba({% if alert.severity == 'critical' or alert.severity == 'error' %}255, 68, 68{% elif alert.severity == 'warning' %}255, 170, 0{% else %}0, 170, 255{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if alert.severity == 'critical' or alert.severity == 'error' %}error{% elif alert.severity == 'warning' %}warning{% else %}info{% endif %}); border-radius: var(--webops-radius-md);">
                 <div class="webops-flex webops-justify-between webops-items-start">
                     <div>
                         <div class="webops-font-semibold">{{ alert.title }}</div>

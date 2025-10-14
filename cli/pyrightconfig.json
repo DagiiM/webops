@@ -1,0 +1,43 @@
+{
+    "typeCheckingMode": "strict",
+    "reportMissingTypeStubs": false,
+    "reportUnknownMemberType": false,
+    "reportUnknownArgumentType": false,
+    "reportUnknownVariableType": false,
+    "reportUnknownLambdaType": false,
+    "reportImplicitStringConcatenation": false,
+    "reportMissingParameterType": true,
+    "reportMissingReturnType": true,
+    "reportUntypedFunctionDecorator": false,
+    "reportUntypedClassDecorator": false,
+    "reportUntypedBaseClass": false,
+    "reportUntypedNamedTuple": false,
+    "reportPrivateUsage": false,
+    "reportConstantRedefinition": true,
+    "reportIncompatibleMethodOverride": true,
+    "reportIncompatibleVariableOverride": true,
+    "reportOverlappingOverload": true,
+    "reportUninitializedInstanceVariable": false,
+    "reportCallInDefaultInitializer": false,
+    "reportUnnecessaryIsInstance": false,
+    "reportUnnecessaryCast": true,
+    "reportUnnecessaryComparison": true,
+    "reportAssertAlwaysTrue": true,
+    "reportSelfClsParameterName": true,
+    "reportImplicitOverride": false,
+    "strictListInference": true,
+    "strictDictionaryInference": true,
+    "strictSetInference": true,
+    "strictParameterNoneValue": true,
+    "enableTypeIgnoreComments": true,
+    "pythonVersion": "3.13",
+    "include": [
+        "webops_cli"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules",
+        "**/.venv",
+        "**/venv"
+    ]
+}

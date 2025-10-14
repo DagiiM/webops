@@ -9,7 +9,7 @@
         <h2 class="webops-page-title">{{ deployment.name }}</h2>
         <p class="webops-text-muted">LLM deployment details and management</p>
     </div>
-    <div style="display: flex; gap: var(--webops-space-sm);">
+    <div style="display: flex; gap: var(--webops-space-1-5);">
         {% if deployment.status == 'running' %}
             <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-primary">
                 <span class="material-icons">api</span>
@@ -54,23 +54,23 @@
 </div>
 
 <!-- Status Banner -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl); background: {% if deployment.status == 'running' %}rgba(0, 255, 136, 0.1){% elif deployment.status == 'failed' %}rgba(255, 68, 68, 0.1){% elif deployment.status == 'stopped' %}rgba(128, 128, 128, 0.1){% else %}rgba(255, 191, 0, 0.1){% endif %};">
-    <div style="display: flex; align-items: center; gap: var(--webops-space-md); padding: var(--webops-space-lg);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3); background: {% if deployment.status == 'running' %}rgba(0, 255, 136, 0.1){% elif deployment.status == 'failed' %}rgba(255, 68, 68, 0.1){% elif deployment.status == 'stopped' %}rgba(128, 128, 128, 0.1){% else %}rgba(255, 191, 0, 0.1){% endif %};">
+    <div style="display: flex; align-items: center; gap: var(--webops-space-3); padding: var(--webops-space-3);">
         <span class="material-icons" style="font-size: 48px; color: {% if deployment.status == 'running' %}var(--webops-color-success){% elif deployment.status == 'failed' %}var(--webops-color-error){% elif deployment.status == 'stopped' %}var(--webops-color-text-tertiary){% else %}var(--webops-color-warning){% endif %};">
             {% if deployment.status == 'running' %}check_circle{% elif deployment.status == 'stopped' %}pause_circle{% elif deployment.status == 'failed' %}error{% else %}pending{% endif %}
         </span>
         <div>
             <h3 class="webops-h3" style="margin: 0;">Status: {{ deployment.get_status_display }}</h3>
             {% if deployment.status == 'running' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-xs) 0 0 0;">
+                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
                     Model is running and serving requests at <code>http://localhost:{{ deployment.port }}</code>
                 </p>
             {% elif deployment.status == 'pending' or deployment.status == 'building' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-xs) 0 0 0;">
+                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
                     Downloading model and setting up environment. This may take several minutes.
                 </p>
             {% elif deployment.status == 'failed' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-xs) 0 0 0;">
+                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
                     Deployment failed. Check logs below for details.
                 </p>
             {% endif %}
@@ -79,12 +79,12 @@
 </div>
 
 <!-- Model Information -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
     <div class="webops-card-header">
         <h3 class="webops-h3">Model Information</h3>
     </div>
-    <div style="padding: var(--webops-space-lg);">
-        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-lg);">
+    <div style="padding: var(--webops-space-3);">
+        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-3);">
             <div class="webops-info-item">
                 <label class="webops-label">Model Name</label>
                 <code class="webops-text-sm">{{ deployment.model_name }}</code>
@@ -148,47 +148,47 @@
 
 <!-- API Endpoint Info -->
 {% if deployment.status == 'running' and deployment.port %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-sm);">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
             <span class="material-icons" style="color: var(--webops-color-primary);">api</span>
             <h3 class="webops-h3" style="margin: 0;">API Endpoints</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-lg);">
-        <div style="display: flex; flex-direction: column; gap: var(--webops-space-lg);">
+    <div style="padding: var(--webops-space-3);">
+        <div style="display: flex; flex-direction: column; gap: var(--webops-space-3);">
             <div>
                 <label class="webops-label">OpenAI-Compatible API</label>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-md); background: var(--webops-color-bg-secondary); border-radius: var(--webops-border-radius-md); margin-top: var(--webops-space-xs);">
+                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
                     http://localhost:{{ deployment.port }}/v1/completions
                 </code>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-md); background: var(--webops-color-bg-secondary); border-radius: var(--webops-border-radius-md); margin-top: var(--webops-space-xs);">
+                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
                     http://localhost:{{ deployment.port }}/v1/chat/completions
                 </code>
             </div>
 
             <div>
                 <label class="webops-label">Health Check</label>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-md); background: var(--webops-color-bg-secondary); border-radius: var(--webops-border-radius-md); margin-top: var(--webops-space-xs);">
+                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
                     http://localhost:{{ deployment.port }}/health
                 </code>
             </div>
 
             <div>
                 <label class="webops-label">Interactive API Documentation</label>
-                <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary" style="margin-top: var(--webops-space-xs); width: fit-content;">
+                <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary" style="margin-top: var(--webops-space-0-5); width: fit-content;">
                     <span class="material-icons">open_in_new</span>
                     Open Swagger UI
                 </a>
             </div>
         </div>
 
-        <div style="margin-top: var(--webops-space-lg); padding: var(--webops-space-lg); background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-border-radius-md); border-left: 4px solid var(--webops-color-info);">
-            <div style="display: flex; gap: var(--webops-space-sm); align-items: flex-start;">
+        <div style="margin-top: var(--webops-space-3); padding: var(--webops-space-3); background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
+            <div style="display: flex; gap: var(--webops-space-1-5); align-items: flex-start;">
                 <span class="material-icons" style="color: var(--webops-color-info); font-size: 20px;">info</span>
                 <div>
                     <strong>Usage Example (cURL)</strong>
-                    <pre style="margin: var(--webops-space-sm) 0 0 0; padding: var(--webops-space-md); background: var(--webops-color-bg-primary); border-radius: var(--webops-border-radius-sm); overflow-x: auto; font-size: 0.75rem;">curl http://localhost:{{ deployment.port }}/v1/completions \
+                    <pre style="margin: var(--webops-space-1-5) 0 0 0; padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border-radius: var(--webops-radius-sm); overflow-x: auto; font-size: 0.75rem;">curl http://localhost:{{ deployment.port }}/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{{ deployment.model_name }}",
@@ -204,14 +204,14 @@
 
 <!-- Quick Test (if running) -->
 {% if deployment.status == 'running' %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-xl);">
+<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-sm);">
+        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
             <span class="material-icons" style="color: var(--webops-color-success);">psychology</span>
             <h3 class="webops-h3" style="margin: 0;">Quick Test</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-lg);">
+    <div style="padding: var(--webops-space-3);">
         <div class="webops-form-group">
             <label for="test-prompt" class="webops-label">Test Prompt</label>
             <textarea id="test-prompt" class="webops-input" rows="3" placeholder="Enter a prompt to test the model...">Once upon a time</textarea>
@@ -233,9 +233,9 @@
             Generate
         </button>
 
-        <div id="test-result" style="display: none; margin-top: var(--webops-space-lg); padding: var(--webops-space-lg); background: var(--webops-color-bg-secondary); border-radius: var(--webops-border-radius-md); border: 1px solid rgba(0, 255, 136, 0.3);">
+        <div id="test-result" style="display: none; margin-top: var(--webops-space-3); padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.3);">
             <label class="webops-label">Response</label>
-            <pre id="test-output" style="margin-top: var(--webops-space-sm); padding: var(--webops-space-md); background: var(--webops-color-bg-primary); border-radius: var(--webops-border-radius-sm); overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
+            <pre id="test-output" style="margin-top: var(--webops-space-1-5); padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border-radius: var(--webops-radius-sm); overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
         </div>
     </div>
 </div>
@@ -250,11 +250,11 @@
             Refresh
         </button>
     </div>
-    <div style="padding: var(--webops-space-lg);">
+    <div style="padding: var(--webops-space-3);">
         {% if logs %}
-        <div class="webops-logs" style="max-height: 500px; overflow-y: auto; background: var(--webops-color-bg-primary); padding: var(--webops-space-md); border-radius: var(--webops-border-radius-md); font-family: 'Courier New', monospace; font-size: 0.875rem;">
+        <div class="webops-logs" style="max-height: 500px; overflow-y: auto; background: var(--webops-color-bg-primary); padding: var(--webops-space-3); border-radius: var(--webops-radius-md); font-family: 'Courier New', monospace; font-size: 0.875rem;">
             {% for log in logs %}
-            <div class="webops-log-entry" style="padding: var(--webops-space-xs) 0; {% if log.level == 'error' %}color: var(--webops-color-error);{% elif log.level == 'warning' %}color: var(--webops-color-warning);{% elif log.level == 'success' %}color: var(--webops-color-success);{% else %}color: var(--webops-color-text-secondary);{% endif %}">
+            <div class="webops-log-entry" style="padding: var(--webops-space-0-5) 0; {% if log.level == 'error' %}color: var(--webops-color-error);{% elif log.level == 'warning' %}color: var(--webops-color-warning);{% elif log.level == 'success' %}color: var(--webops-color-success);{% else %}color: var(--webops-color-text-secondary);{% endif %}">
                 <span style="color: var(--webops-color-text-tertiary);">{{ log.created_at|date:"H:i:s" }}</span>
                 <span style="font-weight: 600;">[{{ log.level|upper }}]</span>
                 <span>{{ log.message }}</span>
@@ -327,7 +327,7 @@ window.addEventListener('DOMContentLoaded', () => {
 .info-item {
     display: flex;
     flex-direction: column;
-    gap: var(--webops-space-xs);
+    gap: var(--webops-space-0-5);
 }
 
 .webops-logs::-webkit-scrollbar {
@@ -336,12 +336,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 .webops-logs::-webkit-scrollbar-track {
     background: var(--webops-color-bg-secondary);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
 }
 
 .webops-logs::-webkit-scrollbar-thumb {
     background: rgba(0, 255, 136, 0.3);
-    border-radius: var(--webops-border-radius-md);
+    border-radius: var(--webops-radius-md);
 }
 
 .webops-logs::-webkit-scrollbar-thumb:hover {

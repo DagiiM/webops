@@ -27,14 +27,21 @@ def branding_settings(request):
     settings = BrandingSettings.get_settings()
 
     if request.method == 'POST':
-        form = BrandingSettingsForm(request.POST, request.FILES)
+        form = BrandingSettingsForm(request.POST, request.FILES, instance=settings)
         if form.is_valid():
-            # Update settings
+            # Update all settings including HSL fields
             settings.site_name = form.cleaned_data['site_name']
-            settings.primary_color = form.cleaned_data['primary_color']
-            settings.secondary_color = form.cleaned_data['secondary_color']
-            settings.accent_color = form.cleaned_data['accent_color']
-            settings.header_bg_color = form.cleaned_data['header_bg_color']
+            
+            # HSL color generation fields
+            settings.primary_hue = form.cleaned_data['primary_hue']
+            settings.primary_saturation = form.cleaned_data['primary_saturation']
+            settings.primary_lightness = form.cleaned_data['primary_lightness']
+            settings.color_harmony = form.cleaned_data['color_harmony']
+            
+            # Accessibility options
+            settings.enforce_wcag_aa = form.cleaned_data['enforce_wcag_aa']
+            settings.enforce_wcag_aaa = form.cleaned_data['enforce_wcag_aaa']
+            settings.supports_dark_mode = form.cleaned_data['supports_dark_mode']
 
             # Handle file uploads
             if form.cleaned_data.get('logo'):
@@ -49,6 +56,14 @@ def branding_settings(request):
         # Populate form with current settings
         form = BrandingSettingsForm(initial={
             'site_name': settings.site_name,
+            'primary_hue': settings.primary_hue,
+            'primary_saturation': settings.primary_saturation,
+            'primary_lightness': settings.primary_lightness,
+            'color_harmony': settings.color_harmony,
+            'enforce_wcag_aa': settings.enforce_wcag_aa,
+            'enforce_wcag_aaa': settings.enforce_wcag_aaa,
+            'supports_dark_mode': settings.supports_dark_mode,
+            # Legacy hex colors (auto-generated, read-only)
             'primary_color': settings.primary_color,
             'secondary_color': settings.secondary_color,
             'accent_color': settings.accent_color,
@@ -67,13 +82,21 @@ def branding_settings(request):
 def reset_branding(request):
     """Reset branding to default values."""
     settings = BrandingSettings.get_settings()
+    
+    # Reset to default HSL values
     settings.site_name = 'WebOps'
-    settings.primary_color = '#3b82f6'
-    settings.secondary_color = '#1e40af'
-    settings.accent_color = '#10b981'
-    settings.header_bg_color = '#1f2937'
+    settings.primary_hue = 210  # Blue hue
+    settings.primary_saturation = 80
+    settings.primary_lightness = 50
+    settings.color_harmony = 'complementary'
+    settings.enforce_wcag_aa = True
+    settings.enforce_wcag_aaa = False
+    settings.supports_dark_mode = True
+    
+    # Clear file uploads
     settings.logo = None
     settings.favicon = None
+    
     settings.save()
 
     return JsonResponse({'status': 'success', 'message': 'Branding reset to defaults'})

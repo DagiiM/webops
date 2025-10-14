@@ -77,8 +77,8 @@ coverage report
 
 We follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) with strict type checking using **Pyright**:
 
-* **Python Version**: 3.13+
-* **Django Version**: 5.2.6+
+* **Python Version**: 3.11+
+* **Django Version**: 5.0+
 * **Type Checking**: Pyright in strict mode
 * **Maximum line length**: 100 characters
 * **Type hints**: Required for all function signatures
