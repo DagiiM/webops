@@ -1763,7 +1763,6 @@ select:focus {
    ============================================================================ */
 
 .webops-sidebar-toggle {
-    position: fixed;
     top: var(--webops-space-3);
     left: var(--webops-space-3);
     z-index: 1001;
@@ -2736,21 +2735,7 @@ select:focus {
     transform: translateX(0);
 }
 
-.webops-sidebar-toggle {
-    display: none;
-    position: fixed;
-    top: var(--webops-space-3);
-    left: var(--webops-space-3);
-    z-index: 1001;
-    background: var(--webops-color-primary);
-    color: var(--webops-color-text-inverse);
-    border: none;
-    border-radius: var(--webops-radius-md);
-    padding: var(--webops-space-2);
-    cursor: pointer;
-    transition: all var(--webops-transition-base);
-    box-shadow: 0 2px 8px var(--webops-color-primary-alpha-20);
-}
+
 
 .webops-sidebar-toggle:hover {
     background: var(--webops-color-primary-hover);
@@ -2787,6 +2772,7 @@ select:focus {
 
 .webops-sidebar-overlay.active {
     opacity: 1;
+    display:block !important;
 }
 
 /* Sidebar Navigation Styles */
@@ -3079,7 +3065,6 @@ select:focus {
     /* Adjust header spacing on mobile */
     .webops-header {
         padding: var(--webops-space-2) var(--webops-space-3);
-        margin-bottom: var(--webops-space-2);
     }
     
     /* Make forms more mobile-friendly */
@@ -3113,7 +3098,6 @@ select:focus {
 @media (max-width: 480px) {
     .webops-main-content {
         margin-left: 0 !important; /* Ensure no margin on small screens */
-        padding: var(--webops-space-1);
     }
     
     .webops-container {

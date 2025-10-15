@@ -1,0 +1,96 @@
+    <!-- Sidebar -->
+     <aside class="webops-sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="webops-sidebar-header">
+                <a href="{% url 'dashboard' %}" class="webops-sidebar-brand" aria-label="WebOps Dashboard">
+                    {% if branding.logo %}
+                        <img src="{{ branding.logo.url }}" alt="{{ branding.site_name }} logo" style="max-height: 40px; max-width: 180px; object-fit: contain;">
+                    {% else %}
+                        {{ branding.site_name }}
+                    {% endif %}
+                </a>
+            </div>
+
+            <nav class="webops-sidebar-nav" role="menubar">
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Main</div>
+                    <a href="{% url 'dashboard' %}" class="webops-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" role="menuitem" aria-current="{% if request.resolver_match.url_name == 'dashboard' %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">dashboard</span>
+                        Dashboard
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Management</div>
+                    <a href="{% url 'deployments:deployment_list' %}" class="webops-nav-item {% if 'deployment' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'deployment' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">rocket_launch</span>
+                        Deployments
+                    </a>
+                    <a href="{% url 'database_list' %}" class="webops-nav-item {% if 'database' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'database' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">storage</span>
+                        Databases
+                    </a>
+                    <a href="{% url 'token_list' %}" class="webops-nav-item {% if 'token' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'token' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">vpn_key</span>
+                        API Tokens
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">AI & ML</div>
+                    <a href="{% url 'deployments:llm_list' %}" class="webops-nav-item {% if 'llm' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">smart_toy</span>
+                        LLM Models
+                    </a>
+                    <a href="{% url 'integrations_dashboard' %}" class="webops-nav-item {% if 'integrations' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">link</span>
+                        Integrations
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Monitoring</div>
+                    <a href="{% url 'monitoring_dashboard' %}" class="webops-nav-item {% if 'monitoring' in request.path and 'alerts' not in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">analytics</span>
+                        System Monitor
+                    </a>
+                    <a href="{% url 'alerts_list' %}" class="webops-nav-item {% if 'alerts' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">notifications</span>
+                        Alerts
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Security</div>
+                    <a href="{% url 'two_factor_setup' %}" class="webops-nav-item">
+                        <span class="material-icons" style="font-size: 20px;">lock</span>
+                        2FA Settings
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">Documentation</div>
+                    <a href="{% url 'api_docs' %}" class="webops-nav-item {% if 'docs' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">book</span>
+                        API Docs
+                    </a>
+                </div>
+
+                <div class="webops-nav-section">
+                    <div class="webops-nav-section-title">System</div>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'branding_settings' %}" class="webops-nav-item {% if 'branding' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">palette</span>
+                        Branding
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'admin:index' %}" class="webops-nav-item" target="_blank">
+                        <span class="material-icons" style="font-size: 20px;">admin_panel_settings</span>
+                        Admin Panel
+                    </a>
+                    <a href="{% url 'logout' %}" class="webops-nav-item">
+                        <span class="material-icons" style="font-size: 20px;">logout</span>
+                        Logout
+                    </a>
+                </div>
+            </nav>
+        </aside>
