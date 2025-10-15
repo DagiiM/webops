@@ -17,7 +17,7 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_USER="webops"
-readonly WEBOPS_DIR="/opt/webops"
+readonly WEBOPS_DIR="${WEBOPS_DIR:-/opt/webops}"
 
 # Counters
 PASS=0

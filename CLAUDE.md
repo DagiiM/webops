@@ -524,7 +524,7 @@ def create_deployment(request) -> JsonResponse:
 WebOps creates this structure on the VPS:
 
 ```
-/opt/webops/
+$WEBOPS_DIR/
 ├── control-panel/              # WebOps control panel
 │   ├── venv/                   # Python virtual environment
 │   ├── static/                 # Collected static files
@@ -722,7 +722,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/opt/webops/control-panel/logs/webops.log',
+            'filename': f'{os.environ.get("WEBOPS_DIR", "/opt/webops")}/control-panel/logs/webops.log',
             'maxBytes': 1024 * 1024 * 10,  # 10MB
             'backupCount': 5,
             'formatter': 'verbose',

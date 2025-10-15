@@ -370,7 +370,7 @@ find /opt/webops -name ".env" -perm /o+r
 ```bash
 # /etc/cron.daily/webops-security-check
 #!/bin/bash
-/home/douglas/webops/scripts/webops-security-check.sh > \
+$WEBOPS_DIR/scripts/webops-security-check.sh > \
   /var/log/webops-security-daily.log 2>&1
 
 if [ $? -eq 2 ]; then

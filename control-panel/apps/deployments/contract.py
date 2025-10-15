@@ -13,6 +13,8 @@ from pathlib import Path
 import yaml
 import json
 from dataclasses import dataclass, field
+import os
+from django.conf import settings
 
 
 @dataclass
@@ -357,6 +359,10 @@ class ContractParser:
 
     def _is_safe_path(self, path: str) -> bool:
         """Check if filesystem path is safe for app access."""
+        # Base install path (from settings or environment), safe default
+        base_path = Path(getattr(settings, 'WEBOPS_INSTALL_PATH', os.environ.get('WEBOPS_INSTALL_PATH', '/opt/webops')))
+        control_panel_dir = str(base_path / 'control-panel')
+
         # Prevent access to sensitive paths
         forbidden_prefixes = [
             '/etc',
@@ -364,7 +370,7 @@ class ContractParser:
             '/var/log',
             '/usr/bin',
             '/usr/sbin',
-            '/opt/webops/control-panel',
+            control_panel_dir,
         ]
 
         for prefix in forbidden_prefixes:
@@ -373,8 +379,8 @@ class ContractParser:
 
         # Only allow paths within deployment dir or shared dir
         allowed_prefixes = [
-            '/opt/webops/deployments/',
-            '/opt/webops/shared/',
+            str(base_path / 'deployments') + '/',
+            str(base_path / 'shared') + '/',
         ]
 
         return any(path.startswith(prefix) for prefix in allowed_prefixes)

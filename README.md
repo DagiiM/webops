@@ -187,7 +187,7 @@ webops/
 
 ## 🔧 Configuration
 
-WebOps uses environment variables for configuration. After installation, edit `/opt/webops/control-panel/.env`:
+WebOps uses environment variables for configuration. After installation, edit `$WEBOPS_DIR/control-panel/.env`:
 
 ```bash
 # Django
@@ -266,8 +266,8 @@ journalctl -u webops-web -f
 ```
 
 ### Log Files
-- Control panel: `/opt/webops/control-panel/logs/webops.log`
-- Applications: `/opt/webops/deployments/<app-name>/logs/`
+- Control panel: `$WEBOPS_DIR/control-panel/logs/webops.log`
+- Applications: `$WEBOPS_DIR/deployments/<app-name>/logs/`
 - Nginx: `/var/log/nginx/`
 
 ## 🔐 Security
@@ -312,7 +312,7 @@ sudo ./scripts/webops-admin.sh sudo-audit
 Update WebOps to the latest version:
 
 ```bash
-cd /opt/webops
+cd $WEBOPS_DIR
 sudo ./scripts/update.sh
 ```
 
@@ -464,10 +464,10 @@ A: Yes, you can manually configure custom certificates in Nginx.
 A: WebOps will log the error and keep your previous deployment running (if any). Check logs for details.
 
 **Q: Can I SSH into deployed applications?**  
-A: Yes, all deployments are in `/opt/webops/deployments/<app-name>/`
+A: Yes, all deployments are in `$WEBOPS_DIR/deployments/<app-name>/`
 
 **Q: How do I backup my data?**  
-A: Use the included backup script: `sudo /opt/webops/scripts/backup.sh`
+A: Use the included backup script: `sudo $WEBOPS_DIR/scripts/backup.sh`
 
 **Q: Can I use WebOps in production?**  
 A: Yes, but ensure you follow security best practices and keep the system updated.

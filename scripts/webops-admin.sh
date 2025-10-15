@@ -15,9 +15,9 @@ readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
-# Configuration
-readonly WEBOPS_USER="webops"
-readonly WEBOPS_DIR="/opt/webops"
+# Configuration (allow environment overrides with safe defaults)
+readonly WEBOPS_USER="${WEBOPS_USER:-webops}"
+readonly WEBOPS_DIR="${WEBOPS_DIR:-/opt/webops}"
 
 #=============================================================================
 # Helper Functions
@@ -185,7 +185,7 @@ cmd_sudo_audit() {
 }
 
 cmd_validate() {
-    local validate_script="/home/douglas/webops/scripts/validate-user-setup.sh"
+    local validate_script="${WEBOPS_DIR}/scripts/validate-user-setup.sh"
 
     if [[ -f "$validate_script" ]]; then
         log_info "Running validation script..."
@@ -341,8 +341,8 @@ ${BLUE}Security:${NC}
 
 ${BLUE}Documentation:${NC}
 
-  /home/douglas/webops/docs/WEBOPS-USER-GUIDE.md
-  /home/douglas/webops/docs/SECURITY-FEATURES.md
+  ${WEBOPS_DIR}/docs/webops-user-guide.md
+  ${WEBOPS_DIR}/docs/security-features.md
 
 EOF
 }

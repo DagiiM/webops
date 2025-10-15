@@ -16,8 +16,10 @@ import ipaddress
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+import os
 
 
 class SecurityValidator:
@@ -294,21 +296,50 @@ class DeploymentIsolationValidator(SecurityValidator):
     Ensures deployments cannot access other deployments or control panel.
     """
 
-    FORBIDDEN_PATHS = [
-        '/etc',
-        '/root',
-        '/var/log',
-        '/usr/bin',
-        '/usr/sbin',
-        '/opt/webops/control-panel',
-    ]
+    @classmethod
+    def _base_install_path(cls) -> Path:
+        """Return the base WebOps install path from settings or env."""
+        # Default to '/opt/webops' to preserve existing behavior if unset
+        base = getattr(settings, 'WEBOPS_INSTALL_PATH', os.environ.get('WEBOPS_INSTALL_PATH', '/opt/webops'))
+        try:
+            return Path(base)
+        except Exception:
+            # Fallback to default if invalid
+            return Path('/opt/webops')
 
-    ALLOWED_PATH_PREFIXES = [
-        '/opt/webops/deployments/',
-        '/opt/webops/shared/',
-        '/tmp',
-        '/var/tmp',
-    ]
+    @classmethod
+    def _forbidden_paths(cls) -> List[Path]:
+        """Compute forbidden absolute path prefixes dynamically (as Path objects)."""
+        base = cls._base_install_path()
+        return [
+            Path('/etc'),
+            Path('/root'),
+            Path('/var/log'),
+            Path('/usr/bin'),
+            Path('/usr/sbin'),
+            base / 'control-panel',
+        ]
+
+    @classmethod
+    def _allowed_bases(cls) -> Dict[str, List[Path]]:
+        """Compute allowed base directories dynamically (as Path objects)."""
+        import tempfile
+        base = cls._base_install_path()
+        tmp_dir = Path(tempfile.gettempdir())
+        var_tmp = Path('/var/tmp')
+        tmp_list: List[Path] = [tmp_dir]
+        # Include /var/tmp if it exists (Linux-specific but harmless check)
+        try:
+            if var_tmp.exists():
+                tmp_list.append(var_tmp)
+        except Exception:
+            pass
+
+        return {
+            'deployments': [base / 'deployments'],
+            'shared': [base / 'shared'],
+            'tmp': tmp_list,
+        }
 
     @classmethod
     def validate_file_access(cls, deployment_name: str, path: str, mode: str = 'read') -> None:
@@ -330,22 +361,51 @@ class DeploymentIsolationValidator(SecurityValidator):
         except Exception:
             raise ValidationError(f"Invalid file path: {path}")
 
-        # Check forbidden paths
-        for forbidden in cls.FORBIDDEN_PATHS:
-            if path_str.startswith(forbidden):
-                raise ValidationError(
-                    f"Access to {forbidden} is forbidden for deployments"
-                )
+        # Check forbidden paths (Path-based, platform-independent)
+        for forbidden in cls._forbidden_paths():
+            try:
+                if resolved_path == forbidden or resolved_path.is_relative_to(forbidden):
+                    raise ValidationError(
+                        f"Access to {str(forbidden)} is forbidden for deployments"
+                    )
+            except Exception:
+                # On some platforms, is_relative_to may raise for invalid combos; ignore
+                pass
 
-        # Check allowed paths
+        # Check allowed paths using base directories
+        bases = cls._allowed_bases()
         allowed = False
-        for prefix in cls.ALLOWED_PATH_PREFIXES:
-            if path_str.startswith(prefix):
-                # If accessing another deployment's dir, deny
-                if '/deployments/' in prefix and deployment_name not in path_str:
+
+        # Allow within the same deployment directory only
+        for dep_base in bases['deployments']:
+            try:
+                if resolved_path.is_relative_to(dep_base):
+                    # Must be within the specific deployment's subdir
+                    if resolved_path.is_relative_to(dep_base / deployment_name):
+                        allowed = True
+                        break
+            except Exception:
+                continue
+
+        # Allow shared resources
+        if not allowed:
+            for shared_base in bases['shared']:
+                try:
+                    if resolved_path.is_relative_to(shared_base):
+                        allowed = True
+                        break
+                except Exception:
                     continue
-                allowed = True
-                break
+
+        # Allow temp directories
+        if not allowed:
+            for tmp_base in bases['tmp']:
+                try:
+                    if resolved_path.is_relative_to(tmp_base):
+                        allowed = True
+                        break
+                except Exception:
+                    continue
 
         if not allowed:
             raise ValidationError(

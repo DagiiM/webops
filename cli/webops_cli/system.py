@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Self
+import os
 
 import click
 from rich.console import Console
@@ -29,7 +30,8 @@ class SystemMonitor:
     
     def __init__(self: Self) -> None:
         """Initialize the system monitor."""
-        self.webops_dir: Path = Path("/opt/webops")
+        # Resolve base installation path using environment with a safe default
+        self.webops_dir: Path = Path(os.environ.get("WEBOPS_INSTALL_PATH", "/opt/webops"))
         self.control_panel_dir: Path = self.webops_dir / "control-panel"
         self.services: List[str] = [
             "webops-web",

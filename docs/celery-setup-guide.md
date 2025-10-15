@@ -88,7 +88,7 @@ A comprehensive startup script is provided at `/control-panel/start_celery.sh` w
 
 #### Start Worker Manually
 ```bash
-cd /home/douglas/webops/control-panel
+cd $WEBOPS_DIR/control-panel
 source venv/bin/activate
 celery -A config worker --loglevel=info --concurrency=4 --detach --pidfile=/tmp/celery_webops.pid --logfile=/tmp/celery_webops.log
 ```
@@ -228,11 +228,11 @@ After=network.target redis.service
 Type=forking
 User=douglas
 Group=douglas
-WorkingDirectory=/home/douglas/webops/control-panel
-Environment=PATH=/home/douglas/webops/control-panel/venv/bin
-ExecStart=/home/douglas/webops/control-panel/start_celery.sh start
-ExecStop=/home/douglas/webops/control-panel/start_celery.sh stop
-ExecReload=/home/douglas/webops/control-panel/start_celery.sh restart
+WorkingDirectory=$WEBOPS_DIR/control-panel
+Environment=PATH=$WEBOPS_DIR/control-panel/venv/bin
+ExecStart=$WEBOPS_DIR/control-panel/start_celery.sh start
+ExecStop=$WEBOPS_DIR/control-panel/start_celery.sh stop
+ExecReload=$WEBOPS_DIR/control-panel/start_celery.sh restart
 PIDFile=/tmp/celery_webops.pid
 Restart=always
 

@@ -29,7 +29,7 @@ This guide covers:
 
 ```bash
 # Navigate to control panel
-cd /home/douglas/webops/control-panel
+cd $WEBOPS_DIR/control-panel
 
 # Run quick setup
 ./quickstart.sh
@@ -163,7 +163,7 @@ sudo ./scripts/webops-admin.sh sudo-audit
 sudo -u webops -i
 
 # Navigate to control panel
-cd /opt/webops/control-panel
+cd $WEBOPS_DIR/control-panel
 source venv/bin/activate
 
 # Create deployment

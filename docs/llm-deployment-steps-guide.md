@@ -46,7 +46,7 @@ Model Repository    Deployment Management    GPU Inference   Client Access
 #### Software Requirements
 ```bash
 # Verify WebOps installation
-cd /home/douglas/webops/control-panel
+cd $WEBOPS_DIR/control-panel
 ./manage.py check
 
 # Check GPU availability
@@ -108,7 +108,7 @@ http://localhost:8000/integrations/
 
 #### Method B: Django Shell
 ```bash
-cd /home/douglas/webops/control-panel
+cd $WEBOPS_DIR/control-panel
 ./manage.py shell
 ```
 
@@ -765,9 +765,9 @@ The WebOps platform handles all the complexity of:
 - ✅ API endpoint provisioning
 
 **Next Steps:**
-- Explore the <mcfile name="llm-deployment-guide.md" path="/home/douglas/webops/docs/llm-deployment-guide.md"></mcfile> for advanced configurations
-- Check the <mcfile name="troubleshooting.md" path="/home/douglas/webops/docs/troubleshooting.md"></mcfile> guide for detailed problem resolution
-- Review the <mcfile name="api-reference.md" path="/home/douglas/webops/docs/api-reference.md"></mcfile> for complete API documentation
+- Explore the <mcfile name="llm-deployment-guide.md" path="$WEBOPS_DIR/docs/llm-deployment-guide.md"></mcfile> for advanced configurations
+- Check the <mcfile name="troubleshooting.md" path="$WEBOPS_DIR/docs/troubleshooting.md"></mcfile> guide for detailed problem resolution
+- Review the <mcfile name="api-reference.md" path="$WEBOPS_DIR/docs/api-reference.md"></mcfile> for complete API documentation
 
 ---
 

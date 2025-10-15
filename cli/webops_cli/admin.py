@@ -29,9 +29,29 @@ class AdminManager:
     
     def __init__(self: Self) -> None:
         """Initialize the admin manager."""
-        self.webops_user: str = "webops"
-        self.webops_dir: Path = Path("/opt/webops")
-        self.scripts_dir: Path = Path("/home/douglas/webops/scripts")
+        # Resolve WebOps user and installation paths dynamically
+        self.webops_user: str = os.environ.get("WEBOPS_USER", "webops")
+        self.webops_dir: Path = Path(os.environ.get("WEBOPS_INSTALL_PATH", "/opt/webops"))
+
+        # Scripts directory resolution:
+        # 1) WEBOPS_SCRIPTS_PATH env var if set
+        # 2) <WEBOPS_INSTALL_PATH>/scripts
+        # 3) Fallback to repo-relative scripts directory if present
+        env_scripts_path = os.environ.get("WEBOPS_SCRIPTS_PATH")
+        if env_scripts_path:
+            self.scripts_dir = Path(env_scripts_path)
+        else:
+            self.scripts_dir = self.webops_dir / "scripts"
+
+        # Fallback: try to locate scripts relative to the CLI package if not found
+        try:
+            if not self.scripts_dir.exists():
+                repo_scripts = Path(__file__).resolve().parents[2] / "scripts"
+                if repo_scripts.exists():
+                    self.scripts_dir = repo_scripts
+        except Exception:
+            # If resolution fails, keep the default; errors will be reported when used
+            pass
     
     def check_root_privileges(self: Self) -> bool:
         """Check if running with root privileges.
@@ -60,7 +80,7 @@ class AdminManager:
         try:
             with show_progress(f"Running command as webops user") as status:
                 result = subprocess.run(
-                    ["sudo", "-u", "webops", "bash", "-c", command],
+                    ["sudo", "-u", self.webops_user, "bash", "-c", command],
                     capture_output=True,
                     text=True,
                     check=True

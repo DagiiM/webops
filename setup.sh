@@ -18,7 +18,7 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_USER="webops"
-readonly WEBOPS_DIR="/opt/webops"
+readonly WEBOPS_DIR="${WEBOPS_DIR:-/opt/webops}"
 readonly CONTROL_PANEL_DIR="${WEBOPS_DIR}/control-panel"
 readonly DEPLOYMENTS_DIR="${WEBOPS_DIR}/deployments"
 readonly SHARED_DIR="${WEBOPS_DIR}/shared"

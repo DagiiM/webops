@@ -21,7 +21,7 @@ CPU_QUOTA="${3:-50}"       # Default: 50% (0.5 cores)
 DISK_QUOTA="${4:-2}"       # Default: 2GB
 
 # Configuration
-DEPLOYMENTS_DIR="/opt/webops/deployments"
+DEPLOYMENTS_DIR="${WEBOPS_DIR:-/opt/webops}/deployments"
 APP_DIR="${DEPLOYMENTS_DIR}/${APP_NAME}"
 APP_USER="webops-${APP_NAME}"
 
@@ -160,7 +160,7 @@ ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
 ReadWritePaths=${APP_DIR}
-ReadOnlyPaths=/opt/webops/shared
+ReadOnlyPaths=${WEBOPS_DIR:-/opt/webops}/shared
 
 # Kernel restrictions
 ProtectKernelTunables=true
@@ -217,8 +217,8 @@ set_disk_quota() {
     usermod -a -G "$quota_group" "$APP_USER"
 
     # Note: Actual quota enforcement requires filesystem with quota support
-    # For ext4: mount -o usrquota,grpquota /dev/vda1 /opt/webops
-    # Then: setquota -g $quota_group ${DISK_QUOTA}000000 ${DISK_QUOTA}000000 0 0 /opt/webops
+    # For ext4: mount -o usrquota,grpquota /dev/vda1 ${WEBOPS_DIR:-/opt/webops}
+    # Then: setquota -g $quota_group ${DISK_QUOTA}000000 ${DISK_QUOTA}000000 0 0 ${WEBOPS_DIR:-/opt/webops}
 
     # For now, we'll use a monitoring approach in the deployment service
 
@@ -234,9 +234,9 @@ allocate_port() {
 
     local port=8001
     local max_port=9000
-    local port_file="/opt/webops/ports/${APP_NAME}.port"
+    local port_file="${WEBOPS_DIR:-/opt/webops}/ports/${APP_NAME}.port"
 
-    mkdir -p /opt/webops/ports
+    mkdir -p "${WEBOPS_DIR:-/opt/webops}/ports"
 
     # Find available port
     while [[ $port -le $max_port ]]; do

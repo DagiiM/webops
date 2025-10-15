@@ -18,7 +18,7 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_USER="webops"
-readonly WEBOPS_DIR="/opt/webops"
+readonly WEBOPS_DIR="${WEBOPS_DIR:-/opt/webops}"
 readonly REPORT_FILE="/var/log/webops-security-check-$(date +%Y%m%d_%H%M%S).log"
 
 # Severity counters
