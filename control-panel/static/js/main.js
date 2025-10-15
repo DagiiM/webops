@@ -202,39 +202,22 @@ class SidebarManager {
         }
     }
 
-    init() {
-        if (this.initialized) {
-            return;
-        }
+init() {
+    this.sidebar = document.querySelector('.webops-sidebar');
+    this.toggle = document.querySelector('.webops-sidebar-toggle');
+    this.overlay = document.querySelector('.webops-sidebar-overlay');
 
-        this.sidebar = document.querySelector('.webops-sidebar');
-        this.toggle = document.querySelector('.webops-sidebar-toggle');
-        this.overlay = document.querySelector('.webops-sidebar-overlay');
-
-        if (!this.sidebar || !this.toggle) {
-            console.warn('Sidebar or toggle elements not found');
-            return;
-        }
-
-        // Create overlay if it doesn't exist
-        if (!this.overlay) {
-            this.createOverlay();
-        }
-
-        // Initialize state from DOM and sync overlay
-        this.isOpen = this.sidebar.classList.contains('active');
-        if (this.isOpen && this.overlay) {
-            this.overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            if (this.toggle && this.toggle.hasAttribute('aria-expanded')) {
-                this.toggle.setAttribute('aria-expanded', 'true');
-            }
-        }
-
-        this.bindEvents();
-        this.handleResize();
-        this.initialized = true;
+    if (!this.sidebar || !this.toggle || !this.overlay) {
+        console.warn('Sidebar elements not found');
+        return;
     }
+
+    // Initialize sidebar state based on current visibility
+    this.isOpen = this.sidebar.classList.contains('active');
+    
+    this.bindEvents();
+    this.handleResize();
+}
 
     createOverlay() {
         this.overlay = document.createElement('div');
