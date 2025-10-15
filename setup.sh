@@ -494,6 +494,35 @@ update_system() {
     log_info "System updated ✓"
 }
 
+# Ensure Python venv/ensurepip is available; auto-install if missing
+ensure_python_venv_available() {
+    log_step "Checking Python venv/ensurepip availability..."
+
+    if python3 -c 'import venv, ensurepip' >/dev/null 2>&1; then
+        log_info "Python venv and ensurepip available ✓"
+        return 0
+    fi
+
+    log_warn "Python venv/ensurepip missing; installing python3-venv package..."
+
+    # Determine installed Python3 minor version (e.g., 3.11, 3.12)
+    local py_minor
+    py_minor=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+
+    # Try generic package first, then version-specific as fallback
+    install_with_retry "python3-venv" || true
+    install_with_retry "python3.${py_minor}-venv" || true
+
+    # Re-check
+    if python3 -c 'import venv, ensurepip' >/dev/null 2>&1; then
+        log_info "Python venv/ensurepip installed ✓"
+        return 0
+    else
+        log_error "python3-venv installation failed; cannot create virtual environment"
+        exit 1
+    fi
+}
+
 install_python() {
     log_step "Installing Python ${PYTHON_VERSION}..."
 
@@ -932,6 +961,9 @@ create_webops_user() {
 
     # Add to www-data group for nginx interaction
     usermod -a -G www-data "$WEBOPS_USER"
+    
+    # Add www-data user to webops group for static file access
+    usermod -a -G "$WEBOPS_USER" www-data
 
     # Add to postgres group for database operations (if postgres is installed)
     if getent group postgres >/dev/null 2>&1; then
@@ -1199,6 +1231,9 @@ install_control_panel() {
         log_error "Control panel source not found in $(pwd)/control-panel"
         exit 1
     fi
+
+    # Ensure python3 venv support is available
+    ensure_python_venv_available
 
     # Create virtual environment
     rm -rf "$CONTROL_PANEL_DIR/venv"

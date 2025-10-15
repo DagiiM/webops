@@ -2,79 +2,8 @@
  * WebOps Control Panel - Premium Design System
  * Graph-inspired green aesthetic - Ultra-sleek, high-end graphics
  */
-
- /*
-:root {
-    --webops-color-primary: #00ff88;
-    --webops-color-primary-dark: #00cc6a;
-    --webops-color-primary-darker: #009950;
-    --webops-color-primary-light: #33ffaa;
-    --webops-color-primary-glow: rgba(0, 255, 136, 0.3);
-    --webops-color-bg-primary: #0a0e0d;
-    --webops-color-bg-secondary: #111816;
-    --webops-color-bg-tertiary: #1a221e;
-    --webops-color-bg-elevated: #1f2926;
-    --webops-color-surface: #141a17;
-    --webops-color-surface-hover: #1a221e;
-    --webops-color-surface-active: #1f2926;
-    --webops-color-text-primary: #e8f5f0;
-    --webops-color-text-secondary: #a8c9bb;
-    --webops-color-text-tertiary: #6b8577;
-    --webops-color-text-disabled: #3d4a44;
-    --webops-color-success: #00ff88;
-    --webops-color-warning: #ffaa00;
-    --webops-color-error: #ff4444;
-    --webops-color-info: #00aaff;
-    --webops-color-graph-node: #00ff88;
-    --webops-color-graph-edge: rgba(0, 255, 136, 0.15);
-    --webops-color-graph-grid: rgba(0, 255, 136, 0.05);
-    --webops-color-primary-alpha-03: rgba(0, 255, 136, 0.03);
-    --webops-color-primary-alpha-05: rgba(0, 255, 136, 0.05);
-    --webops-color-primary-alpha-10: rgba(0, 255, 136, 0.1);
-    --webops-color-primary-alpha-15: rgba(0, 255, 136, 0.15);
-    --webops-color-primary-alpha-20: rgba(0, 255, 136, 0.2);
-    --webops-color-primary-alpha-35: rgba(0, 255, 136, 0.35);
-    --webops-color-primary-alpha-50: rgba(0, 255, 136, 0.5);
-    --webops-color-bg-card: rgba(20, 26, 23, 0.8);
-    --webops-color-bg-card-mobile: rgba(20, 26, 23, 0.6);
-    --webops-color-modal-backdrop: rgba(10, 14, 13, 0.85);
-    --webops-color-modal-shadow: rgba(0, 255, 136, 0.15);
-    --webops-color-warning-alpha-10: rgba(255, 170, 0, 0.1);
-    --webops-color-info-alpha-10: rgba(0, 170, 255, 0.1);
-    --webops-color-error-alpha-10: rgba(255, 68, 68, 0.1);
-    --webops-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --webops-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --webops-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
-    --webops-border-radius-sm: 4px;
-    --webops-border-radius-md: 8px;
-    --webops-border-radius-lg: 12px;
-    --webops-border-radius-xl: 16px;
-    
-    --webops-space-xs: 4px;
-    --webops-space-sm: 8px;
-    --webops-space-md: 16px;
-    --webops-space-lg: 24px;
-    --webops-space-xl: 32px;
-    --webops-space-2xl: 48px;
-    --webops-font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --webops-font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
-    --webops-font-size-xs: 0.75rem;
-    --webops-font-size-sm: 0.875rem;
-    --webops-font-size-base: 1rem;
-    --webops-font-size-lg: 1.125rem;
-    --webops-font-size-xl: 1.25rem;
-    --webops-font-size-2xl: 1.5rem;
-    --webops-font-size-3xl: 2rem;
-    --webops-font-weight-normal: 400;
-    --webops-font-weight-medium: 500;
-    --webops-font-weight-semibold: 600;
-    --webops-font-weight-bold: 700;
-    --webops-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --webops-transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    --webops-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-*/
+@import url('./variables.css');
+ 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -393,6 +322,147 @@ select:focus {
 
     .webops-grid-2, .webops-grid-3 {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================================
+   Login Page Styles
+   ============================================================================ */
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-primary);
+    position: relative;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+}
+
+.login-page .webops-app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.login-page .webops-card {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    box-shadow: 
+        var(--webops-shadow-lg),
+        0 0 40px var(--webops-color-primary-glow);
+    animation: loginCardFloat 6s ease-in-out infinite;
+}
+
+@keyframes loginCardFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.login-page .webops-h1 {
+    font-size: var(--webops-font-size-3xl);
+    font-weight: var(--webops-font-weight-bold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: var(--webops-space-1);
+}
+
+.login-page .webops-h3 {
+    color: var(--webops-color-text-secondary);
+    text-align: center;
+    margin-bottom: var(--webops-space-4);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.login-page .webops-form-group {
+    margin-bottom: var(--webops-space-3);
+}
+
+.login-page .webops-input {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    color: var(--webops-color-text-primary);
+    transition: all var(--webops-transition-fast);
+    width: 100%;
+}
+
+.login-page .webops-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+.login-page .webops-btn-primary {
+    width: 100%;
+    padding: var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    border: none;
+    border-radius: var(--webops-radius-md);
+    color: var(--webops-color-bg-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.login-page .webops-btn-primary:hover {
+    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
+    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
+    transform: translateY(-2px);
+}
+
+.login-page .webops-btn-primary:active {
+    transform: translateY(0px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.login-page .webops-checkbox {
+    accent-color: var(--webops-color-primary);
+}
+
+.login-page .webops-text-primary {
+    color: var(--webops-color-primary);
+    text-decoration: none;
+    font-weight: var(--webops-font-weight-medium);
+    transition: color var(--webops-transition-fast);
+}
+
+.login-page .webops-text-primary:hover {
+    color: var(--webops-color-primary-light);
+}
+
+/* Login page responsive adjustments */
+@media (max-width: 768px) {
+    .login-page {
+        padding: var(--webops-space-2);
+    }
+    
+    .login-container {
+        max-width: 100%;
+    }
+    
+    .login-page .webops-h1 {
+        font-size: var(--webops-font-size-2xl);
     }
 }
 
@@ -3082,5 +3152,160 @@ select:focus {
     .webops-section-title {
         font-size: var(--webops-font-size-lg);
         margin-bottom: var(--webops-space-1-5);
+    }
+}
+
+/* ============================================================================
+   Login Page Styles
+   ============================================================================ */
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-primary);
+    position: relative;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+}
+
+.login-page .webops-app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+.login-page .webops-card {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    box-shadow: 
+        var(--webops-shadow-lg),
+        0 0 40px var(--webops-color-primary-glow);
+    animation: loginCardFloat 6s ease-in-out infinite;
+}
+
+@keyframes loginCardFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.login-page .webops-h1 {
+    font-size: var(--webops-font-size-3xl);
+    font-weight: var(--webops-font-weight-bold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: var(--webops-space-1);
+}
+
+.login-page .webops-h3 {
+    color: var(--webops-color-text-secondary);
+    text-align: center;
+    margin-bottom: var(--webops-space-4);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.login-page .webops-form-group {
+    margin-bottom: var(--webops-space-3);
+}
+
+.login-page .webops-input {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    color: var(--webops-color-text-primary);
+    transition: all var(--webops-transition-fast);
+    width: 100%;
+}
+
+.login-page .webops-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+.login-page .webops-btn-primary {
+    width: 100%;
+    padding: var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    border: none;
+    border-radius: var(--webops-radius-md);
+    color: var(--webops-color-bg-primary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.login-page .webops-btn-primary:hover {
+    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
+    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
+    transform: translateY(-2px);
+}
+
+.login-page .webops-btn-primary:active {
+    transform: translateY(0px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.login-page .webops-checkbox {
+    accent-color: var(--webops-color-primary);
+}
+
+.login-page .webops-text-primary {
+    color: var(--webops-color-primary);
+    text-decoration: none;
+    font-weight: var(--webops-font-weight-medium);
+    transition: color var(--webops-transition-fast);
+}
+
+.login-page .webops-text-primary:hover {
+    color: var(--webops-color-primary-light);
+}
+
+/* Login page responsive adjustments */
+@media (max-width: 768px) {
+    .login-page {
+        padding: var(--webops-space-2);
+    }
+    
+    .login-container {
+        max-width: 100%;
+    }
+    
+    .login-page .webops-h1 {
+        font-size: var(--webops-font-size-2xl);
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page {
+        padding: var(--webops-space-1);
+    }
+    
+    .login-page .webops-card {
+        padding: var(--webops-space-3);
+    }
+    
+    .login-page .webops-h1 {
+        font-size: var(--webops-font-size-xl);
     }
 }

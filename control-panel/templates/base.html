@@ -24,12 +24,11 @@
     <link rel="manifest" href="{% static 'manifest.json' %}">
     
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
     <style>
-{{ branding.generate_css_variables|safe }}
+    {{ branding.generate_css_variables|safe }}
     </style>
     <style>
         .webops-app-layout {
