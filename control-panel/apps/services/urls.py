@@ -40,6 +40,7 @@ urlpatterns = [
     path('configuration/', control_views.configuration_list, name='configuration_list'),
     path('configuration/update/', control_views.configuration_update, name='configuration_update'),
     path('configuration/<str:key>/reset/', control_views.configuration_reset, name='configuration_reset'),
+    path('configuration/reset-all/', control_views.configuration_reset_all, name='configuration_reset_all'),
 
     # =========================================================================
     # CELERY MANAGEMENT

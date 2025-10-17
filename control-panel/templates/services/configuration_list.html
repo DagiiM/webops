@@ -212,7 +212,7 @@ function resetToDefaults() {
         return;
     }
 
-    fetch('{% url "configuration_reset" %}', {
+    fetch('{% url "configuration_reset_all" %}', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',

@@ -341,46 +341,92 @@ def configuration_list(request):
 @login_required
 @require_POST
 def configuration_update(request):
-    """Update configuration value."""
-    key = request.POST.get('key')
-    value = request.POST.get('value')
+    """Update configuration values."""
+    # Handle single key update (for AJAX requests)
+    if 'key' in request.POST and 'value' in request.POST:
+        key = request.POST.get('key')
+        value = request.POST.get('value')
 
-    if not key:
-        return JsonResponse({
-            'success': False,
-            'error': 'Key is required'
-        }, status=400)
-
-    # Get schema for type conversion
-    schema = config_manager.CONFIG_SCHEMA.get(key)
-    if schema:
-        try:
-            # Convert to correct type
-            if schema['type'] == bool:
-                value = value.lower() in ('true', '1', 'yes', 'on')
-            elif schema['type'] == int:
-                value = int(value)
-            elif schema['type'] == float:
-                value = float(value)
-        except (ValueError, AttributeError) as e:
+        if not key:
             return JsonResponse({
                 'success': False,
-                'error': f'Invalid value: {e}'
+                'error': 'Key is required'
             }, status=400)
 
-    success = config_manager.set(key, value)
+        # Get schema for type conversion
+        schema = config_manager.CONFIG_SCHEMA.get(key)
+        if schema:
+            try:
+                # Convert to correct type
+                if schema['type'] == bool:
+                    value = value.lower() in ('true', '1', 'yes', 'on')
+                elif schema['type'] == int:
+                    value = int(value)
+                elif schema['type'] == float:
+                    value = float(value)
+            except (ValueError, AttributeError) as e:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Invalid value: {e}'
+                }, status=400)
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'success': success,
-            'key': key,
-            'value': config_manager.get(key)
-        })
+        success = config_manager.set(key, value)
 
-    if success:
-        messages.success(request, f'Configuration updated: {key}')
-    else:
-        messages.error(request, f'Failed to update configuration: {key}')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': success,
+                'key': key,
+                'value': config_manager.get(key)
+            })
+
+        if success:
+            messages.success(request, f'Configuration updated: {key}')
+        else:
+            messages.error(request, f'Failed to update configuration: {key}')
+
+        return redirect('configuration_list')
+
+    # Handle multiple key updates (for form submissions)
+    updated_count = 0
+    errors = []
+    
+    # Get all configuration keys from the schema
+    for key in config_manager.CONFIG_SCHEMA.keys():
+        if key in request.POST:
+            value = request.POST.get(key)
+            
+            # Skip empty values
+            if value == '':
+                continue
+                
+            # Get schema for type conversion
+            schema = config_manager.CONFIG_SCHEMA.get(key)
+            if schema:
+                try:
+                    # Convert to correct type
+                    if schema['type'] == bool:
+                        value = value.lower() in ('true', '1', 'yes', 'on')
+                    elif schema['type'] == int:
+                        value = int(value)
+                    elif schema['type'] == float:
+                        value = float(value)
+                except (ValueError, AttributeError) as e:
+                    errors.append(f'Invalid value for {key}: {e}')
+                    continue
+
+            success = config_manager.set(key, value)
+            if success:
+                updated_count += 1
+            else:
+                errors.append(f'Failed to update {key}')
+
+    # Provide feedback
+    if updated_count > 0:
+        messages.success(request, f'Updated {updated_count} configuration(s)')
+    
+    if errors:
+        for error in errors:
+            messages.error(request, error)
 
     return redirect('configuration_list')
 
@@ -403,6 +449,23 @@ def configuration_reset(request, key):
     else:
         messages.error(request, f'Failed to reset configuration: {key}')
 
+    return redirect('configuration_list')
+
+
+@login_required
+@require_POST
+def configuration_reset_all(request):
+    """Reset all configurations to default values."""
+    count = config_manager.reset_all_to_defaults()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'count': count,
+            'message': f'Reset {count} configurations to defaults'
+        })
+
+    messages.success(request, f'Reset {count} configurations to defaults')
     return redirect('configuration_list')
 
 
