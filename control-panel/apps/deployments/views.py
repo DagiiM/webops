@@ -13,7 +13,7 @@ from .models import Deployment, DeploymentLog
 @login_required
 def deployment_list(request):
     """List all deployments."""
-    deployments = Deployment.objects.all()
+    deployments = Deployment.objects.exclude(project_type=Deployment.ProjectType.LLM)
     return render(request, 'deployments/list.html', {
         'deployments': deployments
     })

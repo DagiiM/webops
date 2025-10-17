@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Addons{% endblock %}
+{% block content %}
+<div class="webops-container">
+    <h1 class="webops-page-title">Addons</h1>
+    <div class="webops-card">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Enabled</th>
+                    <th>Description</th>
+                    <th>Success</th>
+                    <th>Failure</th>
+                    <th>Last Run</th>
+                    <th>Last Success</th>
+                    <th>Duration (ms)</th>
+                    <th>Last Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for addon in addons %}
+                <tr>
+                    <td>{{ addon.name }}</td>
+                    <td>{{ addon.version }}</td>
+                    <td>{% if addon.enabled %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ addon.description }}</td>
+                    <td>{{ addon.success_count }}</td>
+                    <td>{{ addon.failure_count }}</td>
+                    <td>{% if addon.last_run_at %}{{ addon.last_run_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+                    <td>{% if addon.last_success_at %}{{ addon.last_success_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
+                    <td>{{ addon.last_duration_ms }}</td>
+                    <td>{% if addon.last_error %}<span class="webops-text-danger">{{ addon.last_error }}</span>{% else %}-{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10">No addons found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

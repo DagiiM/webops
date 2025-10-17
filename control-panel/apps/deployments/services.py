@@ -1094,6 +1094,20 @@ PORT={deployment.port}
             Tuple of (success, error_message)
         """
         try:
+            # Trigger pre-deployment hooks
+            try:
+                from apps.addons.manager import addon_manager, HookContext
+                ctx = HookContext(
+                    event='pre_deployment',
+                    deployment_id=deployment.id,
+                    deployment_name=deployment.name,
+                    project_type=deployment.project_type,
+                    metadata={'repo_url': deployment.repo_url, 'branch': deployment.branch},
+                )
+                addon_manager.trigger('pre_deployment', ctx, fail_fast=False)
+            except Exception:
+                pass
+
             # Update status
             deployment.status = Deployment.Status.BUILDING
             deployment.save(update_fields=['status'])
@@ -1236,6 +1250,20 @@ PORT={deployment.port}
                 deployment.status = Deployment.Status.PENDING
                 deployment.save(update_fields=['status'])
 
+                # Trigger post-deployment hooks even in pending dev mode
+                try:
+                    from apps.addons.manager import addon_manager, HookContext
+                    ctx = HookContext(
+                        event='post_deployment',
+                        deployment_id=deployment.id,
+                        deployment_name=deployment.name,
+                        project_type=deployment.project_type,
+                        metadata={'port': deployment.port, 'status': deployment.status},
+                    )
+                    addon_manager.trigger('post_deployment', ctx, fail_fast=False)
+                except Exception:
+                    pass
+
                 return {
                     'success': True,
                     'deployment_id': deployment.id,
@@ -1270,6 +1298,20 @@ PORT={deployment.port}
                 "Deployment completed successfully!",
                 DeploymentLog.Level.SUCCESS
             )
+
+            # Trigger post-deployment hooks
+            try:
+                from apps.addons.manager import addon_manager, HookContext
+                ctx = HookContext(
+                    event='post_deployment',
+                    deployment_id=deployment.id,
+                    deployment_name=deployment.name,
+                    project_type=deployment.project_type,
+                    metadata={'port': deployment.port, 'status': deployment.status},
+                )
+                addon_manager.trigger('post_deployment', ctx, fail_fast=False)
+            except Exception:
+                pass
 
             return {
                 'success': True,
@@ -1306,6 +1348,20 @@ PORT={deployment.port}
                 )
                 deployment.status = Deployment.Status.PENDING
                 deployment.save(update_fields=['status'])
+
+            # Trigger post-deployment hooks
+            try:
+                from apps.addons.manager import addon_manager, HookContext
+                ctx = HookContext(
+                    event='post_deployment',
+                    deployment_id=deployment.id,
+                    deployment_name=deployment.name,
+                    project_type=deployment.project_type,
+                    metadata={'port': deployment.port, 'status': deployment.status},
+                )
+                addon_manager.trigger('post_deployment', ctx, fail_fast=False)
+            except Exception:
+                pass
 
             return {
                 'success': True,

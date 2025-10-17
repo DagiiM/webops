@@ -178,62 +178,87 @@ class ErrorBoundary {
     }
 }
 
+
 class SidebarManager {
     constructor() {
         this.sidebar = null;
         this.toggle = null;
         this.overlay = null;
         this.isOpen = false;
-        this.init();
+        this.initialized = false;
+        
+        // Bind methods to maintain context
+        this.toggleHandler = this.toggleSidebar.bind(this);
+        this.overlayHandler = this.closeSidebar.bind(this);
+        this.keydownHandler = this.handleKeydown.bind(this);
+        this.resizeHandler = this.handleResize.bind(this);
+        this.navLinkHandler = this.handleNavLinkClick.bind(this);
+        
+        // Use DOMContentLoaded or defer init if DOM might not be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
 
-    init() {
-        this.sidebar = document.querySelector('.webops-sidebar');
-        this.toggle = document.querySelector('.webops-sidebar-toggle');
-        this.overlay = document.querySelector('.webops-sidebar-overlay');
+init() {
+    this.sidebar = document.querySelector('.webops-sidebar');
+    this.toggle = document.querySelector('.webops-sidebar-toggle');
+    this.overlay = document.querySelector('.webops-sidebar-overlay');
 
-        if (!this.sidebar || !this.toggle || !this.overlay) {
-            console.warn('Sidebar elements not found');
-            return;
-        }
+    if (!this.sidebar || !this.toggle || !this.overlay) {
+        console.warn('Sidebar elements not found');
+        return;
+    }
 
-        this.bindEvents();
-        this.handleResize();
+    // Initialize sidebar state based on current visibility
+    this.isOpen = this.sidebar.classList.contains('active');
+    
+    this.bindEvents();
+    this.handleResize();
+}
+
+    createOverlay() {
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'webops-sidebar-overlay';
+        document.body.appendChild(this.overlay);
     }
 
     bindEvents() {
         // Toggle button click
-        this.toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleSidebar();
-        });
+        this.toggle.addEventListener('click', this.toggleHandler);
 
         // Overlay click to close
-        this.overlay.addEventListener('click', () => {
-            this.closeSidebar();
-        });
+        if (this.overlay) {
+            this.overlay.addEventListener('click', this.overlayHandler);
+        }
 
         // Escape key to close
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.closeSidebar();
-            }
-        });
+        document.addEventListener('keydown', this.keydownHandler);
 
         // Handle window resize
-        window.addEventListener('resize', () => {
-            this.handleResize();
-        });
+        window.addEventListener('resize', this.resizeHandler);
 
         // Close sidebar when clicking nav links on mobile
-        const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    this.closeSidebar();
-                }
+        if (this.sidebar) {
+            const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
+            navLinks.forEach(link => {
+                link.addEventListener('click', this.navLinkHandler);
             });
-        });
+        }
+    }
+
+    handleKeydown(e) {
+        if (e.key === 'Escape' && this.isOpen) {
+            this.closeSidebar();
+        }
+    }
+
+    handleNavLinkClick() {
+        if (window.innerWidth <= 768) {
+            this.closeSidebar();
+        }
     }
 
     toggleSidebar() {
@@ -245,26 +270,81 @@ class SidebarManager {
     }
 
     openSidebar() {
+        if (!this.sidebar) return;
+        
         this.sidebar.classList.add('active');
-        this.overlay.classList.add('active');
+        if (this.overlay) {
+            this.overlay.classList.add('active');
+        }
         this.isOpen = true;
-        document.body.style.overflow = 'hidden'; // Prevent background scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Update toggle button state if it has aria attributes
+        if (this.toggle && this.toggle.hasAttribute('aria-expanded')) {
+            this.toggle.setAttribute('aria-expanded', 'true');
+        }
     }
 
     closeSidebar() {
+        if (!this.sidebar) return;
+        
         this.sidebar.classList.remove('active');
-        this.overlay.classList.remove('active');
+        if (this.overlay) {
+            this.overlay.classList.remove('active');
+        }
         this.isOpen = false;
-        document.body.style.overflow = ''; // Restore scroll
+        document.body.style.overflow = '';
+        
+        // Update toggle button state if it has aria attributes
+        if (this.toggle && this.toggle.hasAttribute('aria-expanded')) {
+            this.toggle.setAttribute('aria-expanded', 'false');
+        }
     }
 
     handleResize() {
-        // Auto-close sidebar on desktop
+        // Auto-close sidebar on desktop resize
         if (window.innerWidth > 768 && this.isOpen) {
             this.closeSidebar();
         }
     }
+
+    // Public methods to control sidebar externally
+    open() {
+        this.openSidebar();
+    }
+
+    close() {
+        this.closeSidebar();
+    }
+
+    // Cleanup method to remove event listeners
+    destroy() {
+        if (this.toggle) {
+            this.toggle.removeEventListener('click', this.toggleHandler);
+        }
+        if (this.overlay) {
+            this.overlay.removeEventListener('click', this.overlayHandler);
+        }
+        
+        document.removeEventListener('keydown', this.keydownHandler);
+        window.removeEventListener('resize', this.resizeHandler);
+        
+        if (this.sidebar) {
+            const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
+            navLinks.forEach(link => {
+                link.removeEventListener('click', this.navLinkHandler);
+            });
+        }
+        
+        // Clean up overlay if it was created by this instance
+        if (this.overlay && this.overlay.parentNode) {
+            this.overlay.parentNode.removeChild(this.overlay);
+        }
+        
+        this.initialized = false;
+    }
 }
+
 
 // Retry mechanism for failed requests
 class RetryManager {

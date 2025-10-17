@@ -21,7 +21,7 @@
         <input type="text" id="search" placeholder="Search models..." class="webops-input" style="max-width: 300px;">
     </div>
 
-    {% if deployments %}
+    {% if llm_deployments %}
     <div class="webops-table-responsive">
         <table class="webops-table">
             <thead>
@@ -38,7 +38,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for deployment in deployments %}
+                {% for deployment in llm_deployments %}
                 <tr>
                     <td><strong>{{ deployment.name }}</strong></td>
                     <td>
@@ -100,7 +100,7 @@
     {% endif %}
 </div>
 
-{% if deployments %}
+{% if llm_deployments %}
 <div class="webops-card" style="margin-top: var(--webops-space-3);">
     <div class="webops-card-header">
         <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">

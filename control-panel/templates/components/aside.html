@@ -1,4 +1,4 @@
-    <!-- Sidebar -->
+<!-- Sidebar -->
      <aside class="webops-sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
             <div class="webops-sidebar-header">
                 <a href="{% url 'dashboard' %}" class="webops-sidebar-brand" aria-label="WebOps Dashboard">
@@ -32,6 +32,10 @@
                     <a href="{% url 'token_list' %}" class="webops-nav-item {% if 'token' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'token' in request.path %}page{% endif %}">
                         <span class="material-icons" style="font-size: 20px;" aria-hidden="true">vpn_key</span>
                         API Tokens
+                    </a>
+                    <a href="{% url 'addons:list' %}" class="webops-nav-item {% if 'addons' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'addons' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">extension</span>
+                        Addons
                     </a>
                 </div>
 

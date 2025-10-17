@@ -32,7 +32,7 @@
     margin: 0 0 10px;
     padding: 8px;
     text-align: center;
-    background: var(--webops-primary);
+    background: var(--primary);
     color: var(--header-link-color);
     cursor: pointer;
 }
@@ -473,7 +473,7 @@ span.clearable-file-input label {
 
 .calendar td a:focus, .timelist a:focus,
 .calendar td a:hover, .timelist a:hover {
-    background: var(--webops-primary);
+    background: var(--primary);
     color: white;
 }
 

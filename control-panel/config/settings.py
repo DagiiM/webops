@@ -39,10 +39,14 @@ INSTALLED_APPS = [
     'apps.databases',
     'apps.services',
     'apps.api',
+    'apps.addons',
     
     # WebSocket support
     'channels',
 ]
+
+# Addons discovery path (can be overridden via env)
+ADDONS_PATH = config('ADDONS_PATH', default=str(BASE_DIR / 'addons'))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
