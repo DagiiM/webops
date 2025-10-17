@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ policy|yesno:'Edit,Create' }} Restart Policy - WebOps{% endblock %}
+{% block header_title %}Restart Policy{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">{{ policy|yesno:'Edit,Create' }} Restart Policy</h2>
+        <p class="webops-text-muted">Configure automated restart behavior for {{ deployment.name }}</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to List
+        </button>
+    </div>
+</div>
+
+<div class="webops-card">
+    <form method="post" class="webops-form">
+        {% csrf_token %}
+
+        <div class="webops-card-body">
+            <!-- Basic Settings -->
+            <div class="webops-form-section">
+                <h3 class="webops-h3 webops-mb-md">Basic Settings</h3>
+
+                <div class="webops-form-group">
+                    <label class="webops-label">
+                        Deployment
+                    </label>
+                    <input type="text" class="webops-input" value="{{ deployment.name }}" disabled>
+                    <div class="webops-form-help">The deployment this policy applies to</div>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-label" for="policy_type">
+                        Policy Type
+                        <span class="webops-text-error">*</span>
+                    </label>
+                    <select name="policy_type" id="policy_type" class="webops-select" required onchange="updatePolicyDescription()">
+                        {% for value, label in policy_types %}
+                        <option value="{{ value }}" {% if policy and policy.policy_type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="webops-form-help" id="policy_description">
+                        Select how the service should be restarted on failure
+                    </div>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-checkbox-label">
+                        <input type="checkbox" name="enabled" id="enabled" class="webops-checkbox" {% if not policy or policy.enabled %}checked{% endif %}>
+                        <span>Enable automatic restarts</span>
+                    </label>
+                    <div class="webops-form-help">When disabled, services will not be automatically restarted</div>
+                </div>
+            </div>
+
+            <!-- Restart Limits -->
+            <div class="webops-form-section">
+                <h3 class="webops-h3 webops-mb-md">Restart Limits</h3>
+
+                <div class="webops-grid webops-grid-2">
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="max_restarts">
+                            Maximum Restarts
+                            <span class="webops-text-error">*</span>
+                        </label>
+                        <input type="number" name="max_restarts" id="max_restarts" class="webops-input"
+                               value="{{ policy.max_restarts|default:3 }}" min="1" max="10" required>
+                        <div class="webops-form-help">Maximum restart attempts within the time window</div>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="time_window_minutes">
+                            Time Window (minutes)
+                            <span class="webops-text-error">*</span>
+                        </label>
+                        <input type="number" name="time_window_minutes" id="time_window_minutes" class="webops-input"
+                               value="{{ policy.time_window_minutes|default:15 }}" min="5" max="60" required>
+                        <div class="webops-form-help">Time window for counting restart attempts</div>
+                    </div>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-label" for="cooldown_minutes">
+                        Cooldown Period (minutes)
+                        <span class="webops-text-error">*</span>
+                    </label>
+                    <input type="number" name="cooldown_minutes" id="cooldown_minutes" class="webops-input"
+                           value="{{ policy.cooldown_minutes|default:5 }}" min="1" max="30" required>
+                    <div class="webops-form-help">Cooldown period after maximum restarts are exceeded</div>
+                </div>
+            </div>
+
+            <!-- Backoff Configuration -->
+            <div class="webops-form-section" id="backoff_section">
+                <h3 class="webops-h3 webops-mb-md">Exponential Backoff</h3>
+
+                <div class="webops-grid webops-grid-3">
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="initial_delay_seconds">
+                            Initial Delay (seconds)
+                            <span class="webops-text-error">*</span>
+                        </label>
+                        <input type="number" name="initial_delay_seconds" id="initial_delay_seconds" class="webops-input"
+                               value="{{ policy.initial_delay_seconds|default:10 }}" min="1" max="300" required>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="max_delay_seconds">
+                            Maximum Delay (seconds)
+                            <span class="webops-text-error">*</span>
+                        </label>
+                        <input type="number" name="max_delay_seconds" id="max_delay_seconds" class="webops-input"
+                               value="{{ policy.max_delay_seconds|default:300 }}" min="10" max="600" required>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="backoff_multiplier">
+                            Backoff Multiplier
+                            <span class="webops-text-error">*</span>
+                        </label>
+                        <input type="number" name="backoff_multiplier" id="backoff_multiplier" class="webops-input"
+                               value="{{ policy.backoff_multiplier|default:2.0 }}" min="1.0" max="5.0" step="0.1" required>
+                    </div>
+                </div>
+
+                <div class="webops-alert webops-alert-info">
+                    <span class="material-icons">info</span>
+                    <div>
+                        <strong>Exponential Backoff:</strong> Delay increases with each attempt.
+                        For example, with 2.0x multiplier and 10s initial delay: 10s, 20s, 40s, 80s...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Check Integration -->
+            <div class="webops-form-section">
+                <h3 class="webops-h3 webops-mb-md">Health Check Integration</h3>
+
+                <div class="webops-form-group">
+                    <label class="webops-checkbox-label">
+                        <input type="checkbox" name="require_health_check" id="require_health_check" class="webops-checkbox"
+                               {% if not policy or policy.require_health_check %}checked{% endif %} onchange="toggleHealthCheckRetries()">
+                        <span>Require health check confirmation</span>
+                    </label>
+                    <div class="webops-form-help">Only restart if health checks confirm the service has actually failed</div>
+                </div>
+
+                <div class="webops-form-group" id="health_check_retries_group">
+                    <label class="webops-label" for="health_check_retries">
+                        Health Check Failures Required
+                        <span class="webops-text-error">*</span>
+                    </label>
+                    <input type="number" name="health_check_retries" id="health_check_retries" class="webops-input"
+                           value="{{ policy.health_check_retries|default:3 }}" min="1" max="10" required>
+                    <div class="webops-form-help">Number of consecutive health check failures before restart</div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="webops-form-section">
+                <h3 class="webops-h3 webops-mb-md">Notifications</h3>
+
+                <div class="webops-form-group">
+                    <label class="webops-checkbox-label">
+                        <input type="checkbox" name="notify_on_restart" id="notify_on_restart" class="webops-checkbox"
+                               {% if not policy or policy.notify_on_restart %}checked{% endif %}>
+                        <span>Notify on restart</span>
+                    </label>
+                    <div class="webops-form-help">Send notification when service is restarted</div>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-checkbox-label">
+                        <input type="checkbox" name="notify_on_max_restarts" id="notify_on_max_restarts" class="webops-checkbox"
+                               {% if not policy or policy.notify_on_max_restarts %}checked{% endif %}>
+                        <span>Notify when max restarts exceeded</span>
+                    </label>
+                    <div class="webops-form-help">Send notification when maximum restart attempts are reached</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="webops-card-footer">
+            <div class="webops-flex webops-justify-between">
+                <a href="{% url 'restart_policy_list' %}" class="webops-btn webops-btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">save</span>
+                    {{ policy|yesno:'Update,Create' }} Policy
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function updatePolicyDescription() {
+    const policyType = document.getElementById('policy_type').value;
+    const description = document.getElementById('policy_description');
+    const backoffSection = document.getElementById('backoff_section');
+
+    const descriptions = {
+        'always': 'Service will always be restarted regardless of failure type or count',
+        'on_failure': 'Service will be restarted only when it fails (default behavior)',
+        'never': 'Service will never be automatically restarted - manual intervention required',
+        'backoff': 'Service will be restarted with exponentially increasing delays between attempts'
+    };
+
+    description.textContent = descriptions[policyType] || 'Select how the service should be restarted on failure';
+
+    // Show/hide backoff section
+    if (policyType === 'backoff') {
+        backoffSection.style.display = 'block';
+    } else {
+        backoffSection.style.display = 'none';
+    }
+}
+
+function toggleHealthCheckRetries() {
+    const requireCheck = document.getElementById('require_health_check').checked;
+    const retriesGroup = document.getElementById('health_check_retries_group');
+
+    if (requireCheck) {
+        retriesGroup.style.display = 'block';
+    } else {
+        retriesGroup.style.display = 'none';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    updatePolicyDescription();
+    toggleHealthCheckRetries();
+});
+</script>
+
+<style>
+.webops-form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.webops-form-section:last-of-type {
+    border-bottom: none;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block title %}Celery Management - WebOps{% endblock %}
+{% block header_title %}Celery Management{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Celery Management</h2>
+        <p class="webops-text-muted">Monitor and manage background task workers</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Control
+        </button>
+        <button onclick="refreshStatus()" class="webops-btn webops-btn-info">
+            <span class="material-icons">refresh</span>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Celery Health Overview -->
+<div class="webops-stats-grid webops-mb-lg">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba({% if worker_status.healthy %}0, 255, 136{% else %}255, 68, 68{% endif %}, 0.1); color: var(--webops-color-{% if worker_status.healthy %}success{% else %}error{% endif %});">
+            <span class="material-icons">{{ worker_status.healthy|yesno:"check_circle,cancel" }}</span>
+        </div>
+        <div class="webops-stat-value">{{ worker_status.healthy|yesno:"Healthy,Unhealthy" }}</div>
+        <div class="webops-stat-label">Celery Status</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">group</span>
+        </div>
+        <div class="webops-stat-value">{{ worker_status.worker_count }}</div>
+        <div class="webops-stat-label">Active Workers</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <span class="material-icons">schedule</span>
+        </div>
+        <div class="webops-stat-value">{{ worker_status.beat_running|yesno:"Running,Stopped" }}</div>
+        <div class="webops-stat-label">Beat Scheduler</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <span class="material-icons">task</span>
+        </div>
+        <div class="webops-stat-value">{{ worker_status.scheduled_tasks|length|default:0 }}</div>
+        <div class="webops-stat-label">Scheduled Tasks</div>
+    </div>
+</div>
+
+<!-- Worker Details -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Worker Details</h3>
+        <div class="webops-text-sm webops-text-secondary">Active Celery workers and their status</div>
+    </div>
+
+    {% if worker_status.workers %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Worker Name</th>
+                    <th>Status</th>
+                    <th>Active Tasks</th>
+                    <th>Processed</th>
+                    <th>Pool</th>
+                    <th>Concurrency</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in worker_status.workers %}
+                <tr>
+                    <td>
+                        <div class="webops-font-semibold">{{ worker.name }}</div>
+                        <div class="webops-text-xs webops-text-secondary">{{ worker.hostname }}</div>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-success">
+                            <span class="material-icons webops-icon-xs">check_circle</span>
+                            Online
+                        </span>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-info">{{ worker.active|default:0 }}</span>
+                    </td>
+                    <td>{{ worker.processed|default:0 }}</td>
+                    <td><code>{{ worker.pool|default:"prefork" }}</code></td>
+                    <td>{{ worker.concurrency|default:4 }}</td>
+                    <td>
+                        <div class="webops-btn-group">
+                            <button onclick="inspectWorker('{{ worker.name }}')"
+                                    class="webops-btn webops-btn-xs webops-btn-info"
+                                    title="Inspect">
+                                <span class="material-icons">visibility</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">error_outline</span>
+        <h3 class="webops-empty-state-title">No workers detected</h3>
+        <p class="webops-empty-state-description">Start Celery workers to process background tasks</p>
+        <div class="webops-code-block webops-mt-md">
+            <code>./start_celery.sh</code>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Scheduled Tasks -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Scheduled Tasks (Beat Schedule)</h3>
+        <div class="webops-text-sm webops-text-secondary">Periodic tasks configured in Celery Beat</div>
+    </div>
+
+    {% if worker_status.scheduled_tasks %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Schedule</th>
+                    <th>Task Function</th>
+                    <th>Last Run</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in worker_status.scheduled_tasks %}
+                <tr>
+                    <td>
+                        <div class="webops-font-semibold">{{ task.name }}</div>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-secondary">
+                            {{ task.schedule }}
+                        </span>
+                    </td>
+                    <td><code>{{ task.task }}</code></td>
+                    <td>
+                        {% if task.last_run_at %}
+                            {{ task.last_run_at|timesince }} ago
+                        {% else %}
+                            <span class="webops-text-muted">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-{% if task.enabled %}success{% else %}secondary{% endif %}">
+                            {{ task.enabled|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">schedule</span>
+        <h3 class="webops-empty-state-title">No scheduled tasks</h3>
+        <p class="webops-empty-state-description">Configure periodic tasks in celery_app.py</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Task Queue Statistics -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Queue Statistics</h3>
+        <div class="webops-text-sm webops-text-secondary">Task queue metrics and performance</div>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid webops-grid-4">
+            <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-2xl webops-font-bold">{{ queue_stats.pending|default:0 }}</div>
+                <div class="webops-text-sm webops-text-secondary">Pending Tasks</div>
+            </div>
+
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-2xl webops-font-bold">{{ queue_stats.active|default:0 }}</div>
+                <div class="webops-text-sm webops-text-secondary">Active Tasks</div>
+            </div>
+
+            <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-success">{{ queue_stats.completed_24h|default:0 }}</div>
+                <div class="webops-text-sm webops-text-secondary">Completed (24h)</div>
+            </div>
+
+            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-2xl webops-font-bold webops-text-error">{{ queue_stats.failed_24h|default:0 }}</div>
+                <div class="webops-text-sm webops-text-secondary">Failed (24h)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Task Executions -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Recent Task Executions</h3>
+        <div class="webops-text-sm webops-text-secondary">Last 20 task runs</div>
+    </div>
+
+    {% if worker_status.recent_tasks %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in worker_status.recent_tasks %}
+                <tr>
+                    <td>
+                        <code>{{ task.name }}</code>
+                    </td>
+                    <td>
+                        {% if task.status == 'SUCCESS' %}
+                            <span class="webops-badge webops-badge-success">
+                                <span class="material-icons webops-icon-xs">check_circle</span>
+                                Success
+                            </span>
+                        {% elif task.status == 'FAILURE' %}
+                            <span class="webops-badge webops-badge-danger">
+                                <span class="material-icons webops-icon-xs">error</span>
+                                Failed
+                            </span>
+                        {% elif task.status == 'PENDING' %}
+                            <span class="webops-badge webops-badge-warning">
+                                <span class="material-icons webops-icon-xs">schedule</span>
+                                Pending
+                            </span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-info">{{ task.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ task.started|timesince }} ago</td>
+                    <td>
+                        {% if task.duration %}
+                            {{ task.duration|floatformat:2 }}s
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="webops-text-sm">
+                            {{ task.result|truncatechars:50 }}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">inbox</span>
+        <h3 class="webops-empty-state-title">No recent task executions</h3>
+        <p class="webops-empty-state-description">Task history will appear here once tasks start running</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function refreshStatus() {
+    location.reload();
+}
+
+function inspectWorker(workerName) {
+    fetch(`{% url 'api_celery_inspect' %}?worker=${workerName}`, {
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        let info = `Worker: ${workerName}\n\n`;
+        info += `Active Tasks: ${data.active || 0}\n`;
+        info += `Scheduled: ${data.scheduled || 0}\n`;
+        info += `Reserved: ${data.reserved || 0}\n`;
+        info += `\nConfiguration:\n`;
+        info += JSON.stringify(data.config, null, 2);
+
+        alert(info);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to inspect worker');
+    });
+}
+
+// Auto-refresh every 30 seconds
+let refreshInterval;
+
+document.addEventListener('DOMContentLoaded', () => {
+    refreshInterval = setInterval(() => {
+        console.log('Auto-refreshing Celery status...');
+        refreshStatus();
+    }, 30000);
+});
+
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+
+<style>
+.webops-btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-code-block {
+    background: var(--webops-color-bg-secondary);
+    padding: 1rem;
+    border-radius: var(--webops-radius-md);
+    border: 1px solid var(--webops-color-border);
+}
+
+.webops-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

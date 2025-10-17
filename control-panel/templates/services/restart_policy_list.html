@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Restart Policies - WebOps{% endblock %}
+{% block header_title %}Restart Policies{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Restart Policies</h2>
+        <p class="webops-text-muted">Automated service recovery configuration</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Control
+        </button>
+    </div>
+</div>
+
+{% if policy_stats %}
+<div class="webops-space-y-md">
+    {% for item in policy_stats %}
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-justify-between webops-items-center">
+                <div>
+                    <h3 class="webops-h3">{{ item.policy.deployment.name }}</h3>
+                    <div class="webops-text-sm webops-text-secondary">
+                        {{ item.policy.deployment.get_project_type_display }} deployment
+                    </div>
+                </div>
+                <div class="webops-flex webops-gap-sm">
+                    <span class="webops-badge webops-badge-{{ item.policy.enabled|yesno:'success,secondary' }}">
+                        {{ item.policy.enabled|yesno:'Enabled,Disabled' }}
+                    </span>
+                    <span class="webops-badge webops-badge-primary">
+                        {{ item.policy.get_policy_type_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="webops-card-body">
+            <div class="webops-grid webops-grid-4 webops-mb-md">
+                <!-- Restart Statistics -->
+                <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold">{{ item.stats.total_attempts }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Total Restarts (24h)</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold webops-text-success">{{ item.stats.successful }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Successful</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold webops-text-error">{{ item.stats.failed }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Failed</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold">{{ item.stats.success_rate|floatformat:0 }}%</div>
+                    <div class="webops-text-sm webops-text-secondary">Success Rate</div>
+                </div>
+            </div>
+
+            <!-- Policy Configuration Summary -->
+            <div class="webops-grid webops-grid-3 webops-mb-md">
+                <div class="webops-flex webops-items-center webops-gap-sm">
+                    <span class="material-icons webops-text-info">loop</span>
+                    <div>
+                        <div class="webops-text-sm webops-text-secondary">Max Restarts</div>
+                        <div class="webops-font-semibold">{{ item.policy.max_restarts }} in {{ item.policy.time_window_minutes }}min</div>
+                    </div>
+                </div>
+
+                <div class="webops-flex webops-items-center webops-gap-sm">
+                    <span class="material-icons webops-text-warning">timer</span>
+                    <div>
+                        <div class="webops-text-sm webops-text-secondary">Initial Delay</div>
+                        <div class="webops-font-semibold">{{ item.policy.initial_delay_seconds }}s</div>
+                    </div>
+                </div>
+
+                <div class="webops-flex webops-items-center webops-gap-sm">
+                    <span class="material-icons webops-text-secondary">ac_unit</span>
+                    <div>
+                        <div class="webops-text-sm webops-text-secondary">Cooldown</div>
+                        <div class="webops-font-semibold">{{ item.policy.cooldown_minutes }}min</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if item.policy.policy_type == 'backoff' %}
+            <div class="webops-p-md webops-mb-md" style="background: rgba(0, 170, 255, 0.05); border-left: 3px solid var(--webops-color-info); border-radius: var(--webops-radius-md);">
+                <div class="webops-flex webops-items-center webops-gap-sm">
+                    <span class="material-icons webops-text-info">trending_up</span>
+                    <div class="webops-text-sm">
+                        <strong>Exponential Backoff:</strong> Delay increases by {{ item.policy.backoff_multiplier }}x per attempt (max {{ item.policy.max_delay_seconds }}s)
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Health Check Requirements -->
+            {% if item.policy.require_health_check %}
+            <div class="webops-p-md webops-mb-md" style="background: rgba(0, 255, 136, 0.05); border-left: 3px solid var(--webops-color-success); border-radius: var(--webops-radius-md);">
+                <div class="webops-flex webops-items-center webops-gap-sm">
+                    <span class="material-icons webops-text-success">health_and_safety</span>
+                    <div class="webops-text-sm">
+                        <strong>Health Check Enabled:</strong> Requires {{ item.policy.health_check_retries }} consecutive failures before restart
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="webops-flex webops-gap-sm webops-justify-end">
+                <a href="{% url 'restart_policy_edit' item.policy.deployment.id %}" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">edit</span>
+                    Edit Policy
+                </a>
+                <form method="post" action="{% url 'restart_policy_delete' item.policy.deployment.id %}" class="inline-form" onsubmit="return confirm('Delete restart policy for {{ item.policy.deployment.name }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="webops-btn webops-btn-danger">
+                        <span class="material-icons">delete</span>
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="webops-card">
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">policy</span>
+        <h3 class="webops-empty-state-title">No restart policies configured</h3>
+        <p class="webops-empty-state-description">Create restart policies to enable automated service recovery</p>
+        <a href="{% url 'service_control_dashboard' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">arrow_back</span>
+            Go to Service Control
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+</style>
+{% endblock %}

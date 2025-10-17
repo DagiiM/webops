@@ -25,6 +25,10 @@
                         <span class="material-icons" style="font-size: 20px;" aria-hidden="true">rocket_launch</span>
                         Deployments
                     </a>
+                    <a href="{% url 'service_control_dashboard' %}" class="webops-nav-item {% if 'service' in request.path or 'control' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'service' in request.path or 'control' in request.path %}page{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;" aria-hidden="true">settings</span>
+                        Services
+                    </a>
                     <a href="{% url 'database_list' %}" class="webops-nav-item {% if 'database' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'database' in request.path %}page{% endif %}">
                         <span class="material-icons" style="font-size: 20px;" aria-hidden="true">storage</span>
                         Databases

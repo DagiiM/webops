@@ -30,18 +30,70 @@ app.autodiscover_tasks()
 
 # Celery Beat Schedule - Periodic Tasks
 app.conf.beat_schedule = {
-    # Health checks every 5 minutes
+    # =========================================================================
+    # DEPLOYMENT HEALTH CHECKS
+    # =========================================================================
     'run-health-checks-every-5-minutes': {
         'task': 'apps.deployments.tasks.run_all_health_checks',
         'schedule': 300.0,  # 5 minutes in seconds
         'kwargs': {'auto_restart': True}
     },
 
-    # Cleanup old health records daily at 2 AM
     'cleanup-health-records-daily': {
         'task': 'apps.deployments.tasks.cleanup_old_health_records',
         'schedule': crontab(hour=2, minute=0),
         'kwargs': {'days': 30}
+    },
+
+    # =========================================================================
+    # SERVICE MONITORING (apps.services.tasks)
+    # =========================================================================
+    'collect-system-metrics-every-5-minutes': {
+        'task': 'services.collect_system_metrics',
+        'schedule': 300.0,  # 5 minutes
+    },
+
+    'check-service-statuses-every-2-minutes': {
+        'task': 'services.check_all_service_statuses',
+        'schedule': 120.0,  # 2 minutes
+    },
+
+    'perform-health-checks-every-5-minutes': {
+        'task': 'services.perform_health_checks',
+        'schedule': 300.0,  # 5 minutes
+        'kwargs': {'auto_restart': True}
+    },
+
+    'auto-recover-failed-services-every-5-minutes': {
+        'task': 'services.auto_recover_failed_services',
+        'schedule': 300.0,  # 5 minutes
+    },
+
+    'check-celery-health-every-10-minutes': {
+        'task': 'services.check_celery_health',
+        'schedule': 600.0,  # 10 minutes
+    },
+
+    'check-system-services-every-10-minutes': {
+        'task': 'services.check_system_services',
+        'schedule': 600.0,  # 10 minutes
+    },
+
+    # =========================================================================
+    # DATA CLEANUP
+    # =========================================================================
+    'cleanup-monitoring-data-daily': {
+        'task': 'services.cleanup_old_monitoring_data',
+        'schedule': crontab(hour=3, minute=0),  # 3 AM daily
+        'kwargs': {'days': 7}
+    },
+
+    # =========================================================================
+    # REPORTING
+    # =========================================================================
+    'generate-daily-report': {
+        'task': 'services.generate_daily_report',
+        'schedule': crontab(hour=0, minute=5),  # 12:05 AM daily
     },
 }
 

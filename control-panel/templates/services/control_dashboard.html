@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Control - WebOps{% endblock %}
+{% block header_title %}Service Control{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Service Control Dashboard</h2>
+        <p class="webops-text-muted">Manage and monitor all deployment services</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">settings</span>
+            Restart Policies
+        </button>
+        <button onclick="location.href='{% url 'configuration_list' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">tune</span>
+            Configuration
+        </button>
+    </div>
+</div>
+
+<!-- System Health Overview -->
+<div class="webops-stats-grid webops-mb-lg">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba({% if system_health.healthy %}0, 255, 136{% else %}255, 68, 68{% endif %}, 0.1); color: var(--webops-color-{% if system_health.healthy %}success{% else %}error{% endif %});">
+            <span class="material-icons">{{ system_health.healthy|yesno:"check_circle,cancel" }}</span>
+        </div>
+        <div class="webops-stat-value">{{ system_health.healthy|yesno:"Healthy,Unhealthy" }}</div>
+        <div class="webops-stat-label">System Status</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">dns</span>
+        </div>
+        <div class="webops-stat-value">{{ system_health.deployments.healthy }} / {{ system_health.deployments.total_checked }}</div>
+        <div class="webops-stat-label">Services Healthy</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <span class="material-icons">{{ celery_status.healthy|yesno:"check_circle,warning" }}</span>
+        </div>
+        <div class="webops-stat-value">{{ celery_status.worker_count }}</div>
+        <div class="webops-stat-label">Celery Workers</div>
+        <div class="webops-text-xs webops-text-secondary webops-mt-xs">
+            Beat: {{ celery_status.beat_running|yesno:"Running,Stopped" }}
+        </div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+            <span class="material-icons">notifications_active</span>
+        </div>
+        <div class="webops-stat-value">{{ system_health.alerts.total }}</div>
+        <div class="webops-stat-label">Active Alerts</div>
+        <div class="webops-text-xs webops-text-secondary webops-mt-xs">
+            {{ system_health.alerts.critical }} critical
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Bulk Operations</h3>
+        <div class="webops-text-sm webops-text-secondary">Apply actions to all services</div>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-flex webops-gap-md webops-flex-wrap">
+            <form method="post" action="{% url 'bulk_start_services' %}" onsubmit="return confirm('Start all stopped services?');" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-success">
+                    <span class="material-icons">play_arrow</span>
+                    Start All
+                </button>
+            </form>
+
+            <form method="post" action="{% url 'bulk_stop_services' %}" onsubmit="return confirm('Stop all running services? This will cause downtime.');" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-danger">
+                    <span class="material-icons">stop</span>
+                    Stop All
+                </button>
+            </form>
+
+            <form method="post" action="{% url 'bulk_restart_services' %}" onsubmit="return confirm('Restart all running services? This may cause brief downtime.');" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-warning">
+                    <span class="material-icons">restart_alt</span>
+                    Restart All
+                </button>
+            </form>
+
+            <a href="{% url 'celery_status' %}" class="webops-btn webops-btn-info">
+                <span class="material-icons">settings_applications</span>
+                Manage Celery
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Service List -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Deployment Services</h3>
+        <div class="webops-text-sm webops-text-secondary">
+            {{ service_statuses|length }} total services
+        </div>
+    </div>
+
+    {% if service_statuses %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>PID</th>
+                    <th>CPU</th>
+                    <th>Memory</th>
+                    <th>Uptime</th>
+                    <th>Policy</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in service_statuses %}
+                <tr id="service-{{ item.deployment.id }}">
+                    <td>
+                        <div class="webops-font-semibold">{{ item.deployment.name }}</div>
+                        {% if item.deployment.domain %}
+                        <div class="webops-text-xs webops-text-secondary">{{ item.deployment.domain }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.status.status == 'running' %}
+                            <span class="webops-badge webops-badge-success">
+                                <span class="material-icons webops-icon-xs">check_circle</span>
+                                Running
+                            </span>
+                        {% elif item.status.status == 'stopped' %}
+                            <span class="webops-badge webops-badge-info">
+                                <span class="material-icons webops-icon-xs">stop_circle</span>
+                                Stopped
+                            </span>
+                        {% elif item.status.status == 'failed' %}
+                            <span class="webops-badge webops-badge-danger">
+                                <span class="material-icons webops-icon-xs">error</span>
+                                Failed
+                            </span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-warning">
+                                {{ item.status.get_status_display }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-secondary">
+                            {{ item.deployment.get_project_type_display }}
+                        </span>
+                    </td>
+                    <td><code>{{ item.status.pid|default:"—" }}</code></td>
+                    <td>
+                        <span class="{% if item.status.cpu_percent > 80 %}webops-text-error{% elif item.status.cpu_percent > 60 %}webops-text-warning{% endif %}">
+                            {{ item.status.cpu_percent|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td>
+                        <span class="{% if item.status.memory_mb > 1000 %}webops-text-warning{% endif %}">
+                            {{ item.status.memory_mb|floatformat:0 }} MB
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.status.uptime_seconds %}
+                            {% widthratio item.status.uptime_seconds 3600 1 %}h {% widthratio item.status.uptime_seconds 60 1|add:"-60"|add:"-1" %}m
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.policy %}
+                            <a href="{% url 'restart_policy_edit' item.deployment.id %}" class="webops-link">
+                                <span class="webops-badge webops-badge-{{ item.policy.enabled|yesno:'primary,secondary' }}">
+                                    {{ item.policy.get_policy_type_display }}
+                                </span>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'restart_policy_edit' item.deployment.id %}" class="webops-link webops-text-muted">
+                                <span class="material-icons webops-icon-sm">add</span>
+                                Add
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="webops-btn-group">
+                            {% if item.status.status != 'running' %}
+                            <form method="post" action="{% url 'start_service' item.deployment.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="webops-btn webops-btn-xs webops-btn-success" title="Start">
+                                    <span class="material-icons">play_arrow</span>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {% if item.status.status == 'running' %}
+                            <form method="post" action="{% url 'restart_service' item.deployment.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <button type="submit" class="webops-btn webops-btn-xs webops-btn-warning" title="Restart">
+                                    <span class="material-icons">restart_alt</span>
+                                </button>
+                            </form>
+
+                            <form method="post" action="{% url 'stop_service' item.deployment.id %}" class="inline-form" onsubmit="return confirm('Stop {{ item.deployment.name }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="webops-btn webops-btn-xs webops-btn-danger" title="Stop">
+                                    <span class="material-icons">stop</span>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            <a href="{% url 'service_status_detail' item.deployment.id %}" class="webops-btn webops-btn-xs webops-btn-info" title="Details">
+                                <span class="material-icons">info</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">rocket_launch</span>
+        <h3 class="webops-empty-state-title">No deployments yet</h3>
+        <p class="webops-empty-state-description">Deploy your first application to start managing services</p>
+        <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Deployment
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-icon-sm {
+    font-size: 16px;
+}
+</style>
+
+<script>
+// Auto-refresh service status
+let refreshInterval;
+
+function refreshServiceStatus() {
+    fetch('{% url 'api_system_health' %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update without full page reload if needed
+            console.log('System health updated:', data);
+        })
+        .catch(error => console.error('Error refreshing status:', error));
+}
+
+// Refresh every 30 seconds
+document.addEventListener('DOMContentLoaded', () => {
+    refreshInterval = setInterval(refreshServiceStatus, 30000);
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+{% endblock %}

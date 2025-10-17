@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuration - WebOps{% endblock %}
+{% block header_title %}Configuration{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">System Configuration</h2>
+        <p class="webops-text-muted">Manage monitoring intervals, thresholds, and system settings</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Control
+        </button>
+        <button onclick="resetToDefaults()" class="webops-btn webops-btn-warning">
+            <span class="material-icons">restore</span>
+            Reset to Defaults
+        </button>
+    </div>
+</div>
+
+<!-- Configuration Categories -->
+<div class="webops-space-y-md">
+    <!-- Monitoring Configuration -->
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-items-center webops-gap-sm">
+                <span class="material-icons webops-text-info">monitor</span>
+                <div>
+                    <h3 class="webops-h3">Monitoring Settings</h3>
+                    <div class="webops-text-sm webops-text-secondary">Configure monitoring intervals and thresholds</div>
+                </div>
+            </div>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+                {% csrf_token %}
+                <input type="hidden" name="category" value="monitoring">
+
+                <div class="webops-grid webops-grid-2">
+                    {% for key, data in categories.monitoring.items %}
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="{{ key|slugify }}">
+                            {{ key|title|slice:"11:" }}
+                            {% if data.schema.required|default:False %}
+                            <span class="webops-text-error">*</span>
+                            {% endif %}
+                        </label>
+                        <input type="number" name="{{ key }}" id="{{ key|slugify }}"
+                               class="webops-input" value="{{ data.value }}"
+                               min="{{ data.schema.min|default:'' }}"
+                               max="{{ data.schema.max|default:'' }}"
+                               {% if data.schema.type == 'float' %}step="0.1"{% endif %}>
+                        <div class="webops-form-help">{{ data.schema.description|default:"" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="webops-flex webops-justify-end webops-mt-md">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Monitoring Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Retention Configuration -->
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-items-center webops-gap-sm">
+                <span class="material-icons webops-text-warning">delete_sweep</span>
+                <div>
+                    <h3 class="webops-h3">Data Retention Settings</h3>
+                    <div class="webops-text-sm webops-text-secondary">Configure how long to keep historical data</div>
+                </div>
+            </div>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+                {% csrf_token %}
+                <input type="hidden" name="category" value="data_retention">
+
+                <div class="webops-grid webops-grid-3">
+                    {% for key, data in categories.data_retention.items %}
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="{{ key|slugify }}">
+                            {{ key|title|slice:"15:" }}
+                        </label>
+                        <input type="number" name="{{ key }}" id="{{ key|slugify }}"
+                               class="webops-input" value="{{ data.value }}"
+                               min="{{ data.schema.min|default:'' }}"
+                               max="{{ data.schema.max|default:'' }}">
+                        <div class="webops-form-help">{{ data.schema.description|default:"" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="webops-flex webops-justify-end webops-mt-md">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Retention Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Configuration -->
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-items-center webops-gap-sm">
+                <span class="material-icons webops-text-error">notifications_active</span>
+                <div>
+                    <h3 class="webops-h3">Notification Settings</h3>
+                    <div class="webops-text-sm webops-text-secondary">Configure alert notifications</div>
+                </div>
+            </div>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+                {% csrf_token %}
+                <input type="hidden" name="category" value="notifications">
+
+                <div class="webops-grid webops-grid-2">
+                    {% for key, data in categories.notifications.items %}
+                    <div class="webops-form-group">
+                        {% if data.schema.type == 'bool' %}
+                        <label class="webops-checkbox-label">
+                            <input type="checkbox" name="{{ key }}" class="webops-checkbox"
+                                   {% if data.value %}checked{% endif %}>
+                            <span>{{ key|title|slice:"15:" }}</span>
+                        </label>
+                        {% else %}
+                        <label class="webops-label" for="{{ key|slugify }}">
+                            {{ key|title|slice:"15:" }}
+                        </label>
+                        <input type="text" name="{{ key }}" id="{{ key|slugify }}"
+                               class="webops-input" value="{{ data.value|default:'' }}">
+                        {% endif %}
+                        <div class="webops-form-help">{{ data.schema.description|default:"" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="webops-flex webops-justify-end webops-mt-md">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Notification Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Celery Configuration -->
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-items-center webops-gap-sm">
+                <span class="material-icons webops-text-success">settings_applications</span>
+                <div>
+                    <h3 class="webops-h3">Celery Settings</h3>
+                    <div class="webops-text-sm webops-text-secondary">Configure background task processing</div>
+                </div>
+            </div>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+                {% csrf_token %}
+                <input type="hidden" name="category" value="celery">
+
+                <div class="webops-grid webops-grid-2">
+                    {% for key, data in categories.celery.items %}
+                    <div class="webops-form-group">
+                        {% if data.schema.type == 'bool' %}
+                        <label class="webops-checkbox-label">
+                            <input type="checkbox" name="{{ key }}" class="webops-checkbox"
+                                   {% if data.value %}checked{% endif %}>
+                            <span>{{ key|title|slice:"7:" }}</span>
+                        </label>
+                        {% else %}
+                        <label class="webops-label" for="{{ key|slugify }}">
+                            {{ key|title|slice:"7:" }}
+                        </label>
+                        <input type="number" name="{{ key }}" id="{{ key|slugify }}"
+                               class="webops-input" value="{{ data.value }}"
+                               min="{{ data.schema.min|default:'' }}"
+                               max="{{ data.schema.max|default:'' }}">
+                        {% endif %}
+                        <div class="webops-form-help">{{ data.schema.description|default:"" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="webops-flex webops-justify-end webops-mt-md">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Celery Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function resetToDefaults() {
+    if (!confirm('Reset all configuration to default values? This cannot be undone.')) {
+        return;
+    }
+
+    fetch('{% url "configuration_reset" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Configuration reset to defaults successfully!');
+            window.location.reload();
+        } else {
+            alert('Failed to reset configuration: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to reset configuration');
+    });
+}
+</script>
+
+<style>
+.webops-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.webops-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid-2,
+    .webops-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
