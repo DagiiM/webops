@@ -1,12 +1,31 @@
-# LLM Deployment Steps Guide: From Hugging Face to vLLM
+# LLM Deployment Guide
 
-**WebOps LLM Deployment - Complete Step-by-Step Process**
+**WebOps Large Language Model Deployment Platform - Complete Guide**
 
 ---
 
-## 📋 Overview
+## 📋 Table of Contents
 
-This guide provides detailed steps for deploying Large Language Models (LLMs) from Hugging Face using vLLM in the WebOps platform. The system automates the entire process from model selection to running inference server with OpenAI-compatible API.
+1. [Overview](#overview)
+2. [System Requirements](#system-requirements)
+3. [Prerequisites Setup](#prerequisites-setup)
+4. [Hugging Face Authentication](#hugging-face-authentication)
+5. [Quick Start Deployment](#quick-start-deployment)
+6. [Production Deployments](#production-deployments)
+7. [Model Configuration](#model-configuration)
+8. [Monitoring and Management](#monitoring-and-management)
+9. [API Usage](#api-usage)
+10. [Popular Models](#popular-models)
+11. [Troubleshooting](#troubleshooting)
+12. [Performance Optimization](#performance-optimization)
+13. [Security & Production](#security--production)
+14. [Advanced Scenarios](#advanced-scenarios)
+
+---
+
+## 🎯 Overview
+
+WebOps provides a complete platform for deploying and serving Large Language Models (LLMs) using vLLM for efficient inference. This comprehensive guide covers everything from initial setup to production deployment and management.
 
 ### Architecture Overview
 
@@ -15,6 +34,16 @@ Hugging Face Model → WebOps Control Panel → vLLM Service → OpenAI API
      ↓                      ↓                    ↓            ↓
 Model Repository    Deployment Management    GPU Inference   Client Access
 ```
+
+### Key Features
+
+- **Platform Integrations**: GitHub OAuth and Hugging Face API connections
+- **vLLM Engine**: High-performance LLM inference with OpenAI-compatible API
+- **Multi-GPU Support**: Tensor parallelism for large models
+- **Model Quantization**: AWQ, GPTQ, and SqueezeLLM support
+- **Automatic Service Management**: SystemD and Nginx configuration
+- **Background Processing**: Celery-based deployment tasks
+- **Secure Token Storage**: Encrypted API token management
 
 **Key Components:**
 - **Hugging Face Integration**: Secure token management for model access
@@ -25,11 +54,10 @@ Model Repository    Deployment Management    GPU Inference   Client Access
 
 ---
 
-## 🔧 Prerequisites
+## 🖥️ System Requirements
 
-### System Requirements
+### Hardware Requirements
 
-#### Hardware Requirements
 ```bash
 # GPU Requirements (NVIDIA with CUDA)
 - 7B models:  ~14GB VRAM (RTX 3090, RTX 4090, A100-40GB)
@@ -43,7 +71,8 @@ Model Repository    Deployment Management    GPU Inference   Client Access
 - Network: Stable internet for model downloads
 ```
 
-#### Software Requirements
+### Software Requirements
+
 ```bash
 # Verify WebOps installation
 cd $WEBOPS_DIR/control-panel
@@ -58,6 +87,10 @@ nvcc --version
 # Check Python version (3.10+ required)
 python3 --version
 ```
+
+---
+
+## 🔧 Prerequisites Setup
 
 ### Service Dependencies
 
@@ -76,11 +109,31 @@ sudo systemctl status redis
 sudo systemctl status nginx
 ```
 
+### System Validation
+
+```bash
+# Pre-deployment validation
+cd $WEBOPS_DIR/control-panel
+./manage.py shell
+```
+
+```python
+# Verify system readiness
+import torch
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"CUDA devices: {torch.cuda.device_count()}")
+
+# Check disk space
+import shutil
+free_space = shutil.disk_usage('/opt/webops/llm-deployments').free
+print(f"Free disk space: {free_space / (1024**3):.1f} GB")
+```
+
 ---
 
-## 🔑 Step 1: Hugging Face Authentication Setup
+## 🔑 Hugging Face Authentication
 
-### 1.1 Get Hugging Face API Token
+### Step 1: Get Hugging Face API Token
 
 1. **Visit Hugging Face Settings**:
    ```
@@ -95,7 +148,7 @@ sudo systemctl status nginx
 
 3. **Copy Token**: Save the token (format: `hf_xxxxxxxxxxxx`)
 
-### 1.2 Connect Token to WebOps
+### Step 2: Connect Token to WebOps
 
 #### Method A: Web Interface
 ```bash
@@ -143,9 +196,9 @@ print(f"🔍 Connection test: {'✅ PASSED' if test_result['success'] else '❌ 
 
 ---
 
-## 🚀 Step 2: Deploy Your First Model
+## 🚀 Quick Start Deployment
 
-### 2.1 Quick Test Deployment (GPT-2)
+### Step 1: Deploy Test Model (GPT-2)
 
 Start with a small model to verify your setup:
 
@@ -176,7 +229,7 @@ task = deploy_llm_model.delay(deployment.id)
 print(f"🔄 Deployment queued with task ID: {task.id}")
 ```
 
-### 2.2 Monitor Deployment Progress
+### Step 2: Monitor Deployment Progress
 
 ```python
 # Check deployment status
@@ -194,7 +247,7 @@ elif deployment.status == Deployment.Status.FAILED:
     print("❌ Deployment failed. Check logs above.")
 ```
 
-### 2.3 Test the Deployed Model
+### Step 3: Test the Deployed Model
 
 Once deployment status is `RUNNING`:
 
@@ -230,9 +283,9 @@ Expected response:
 
 ---
 
-## 🎯 Step 3: Deploy Production Models
+## 🎯 Production Deployments
 
-### 3.1 Popular Model Configurations
+### Popular Model Configurations
 
 #### Llama 2 7B Chat
 ```python
@@ -276,7 +329,34 @@ deployment = Deployment.objects.create(
 )
 ```
 
-### 3.2 Advanced Configuration Options
+---
+
+## ⚙️ Model Configuration
+
+### Basic Configuration Options
+
+```python
+# Minimal setup (good for testing)
+deployment = Deployment.objects.create(
+    name='model-name',
+    project_type=Deployment.ProjectType.LLM,
+    model_name='gpt2',
+    deployed_by=user
+)
+
+# Standard configuration
+deployment = Deployment.objects.create(
+    name='llama-2-7b',
+    project_type=Deployment.ProjectType.LLM,
+    model_name='meta-llama/Llama-2-7b-chat-hf',
+    tensor_parallel_size=1,
+    gpu_memory_utilization=0.9,
+    dtype='float16',
+    deployed_by=user
+)
+```
+
+### Advanced Configuration
 
 ```python
 # Full configuration example
@@ -307,11 +387,22 @@ deployment = Deployment.objects.create(
 )
 ```
 
+### Configuration Parameters
+
+| Parameter | Description | Default | Options |
+|-----------|-------------|---------|---------|
+| `model_name` | Hugging Face model ID | Required | Any HF model |
+| `tensor_parallel_size` | Number of GPUs | 1 | 1, 2, 4, 8 |
+| `gpu_memory_utilization` | GPU memory usage | 0.9 | 0.1 - 1.0 |
+| `max_model_len` | Maximum context length | Auto | 512 - 32768 |
+| `quantization` | Quantization method | None | awq, gptq, squeezellm |
+| `dtype` | Model data type | auto | auto, float16, bfloat16, float32 |
+
 ---
 
-## 📊 Step 4: Monitoring and Management
+## 📊 Monitoring and Management
 
-### 4.1 Check Deployment Status
+### Check Deployment Status
 
 ```python
 # List all deployments
@@ -327,7 +418,7 @@ print(f"Port: {deployment.port}")
 print(f"GPUs: {deployment.tensor_parallel_size}")
 ```
 
-### 4.2 View Deployment Logs
+### View Deployment Logs
 
 ```python
 # Recent logs
@@ -342,7 +433,7 @@ for log in error_logs:
     print(f"❌ {log.message}")
 ```
 
-### 4.3 Health Checks
+### Health Checks
 
 ```python
 # Manual health check
@@ -363,7 +454,7 @@ for record in health_records:
         print(f"  CPU usage: {record.cpu_percent}%")
 ```
 
-### 4.4 Service Management
+### Service Management
 
 ```bash
 # Check SystemD service status
@@ -384,23 +475,200 @@ curl -s http://localhost:9001/health | jq
 
 ---
 
-## 🔧 Step 5: Troubleshooting
+## 🔌 API Usage
 
-### 5.1 Common Issues and Solutions
+### OpenAI-Compatible API
+
+Once deployed, models are accessible via OpenAI-compatible endpoints:
+
+#### Text Completion
+```bash
+curl http://localhost:9001/v1/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-2-7b-chat-hf",
+    "prompt": "Explain quantum computing:",
+    "max_tokens": 200,
+    "temperature": 0.7,
+    "top_p": 0.9
+  }'
+```
+
+#### Chat Completion
+```bash
+curl http://localhost:9001/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-2-7b-chat-hf",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What is machine learning?"}
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7
+  }'
+```
+
+### Python Client Examples
+
+#### Using Requests
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:9001/v1/completions",
+    headers={"Content-Type": "application/json"},
+    json={
+        "model": "meta-llama/Llama-2-7b-chat-hf",
+        "prompt": "Write a Python function to calculate fibonacci:",
+        "max_tokens": 200,
+        "temperature": 0.3,
+    }
+)
+
+result = response.json()
+print(result['choices'][0]['text'])
+```
+
+#### Using OpenAI Library
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:9001/v1",
+    api_key="not-needed"
+)
+
+response = client.chat.completions.create(
+    model="meta-llama/Llama-2-7b-chat-hf",
+    messages=[
+        {"role": "user", "content": "Explain the theory of relativity"}
+    ],
+    max_tokens=300
+)
+
+print(response.choices[0].message.content)
+```
+
+### Streaming Responses
+
+```python
+import requests
+import json
+
+response = requests.post(
+    "http://localhost:9001/v1/completions",
+    headers={"Content-Type": "application/json"},
+    json={
+        "model": "meta-llama/Llama-2-7b-chat-hf",
+        "prompt": "Write a story about space exploration:",
+        "max_tokens": 500,
+        "stream": True
+    },
+    stream=True
+)
+
+for line in response.iter_lines():
+    if line:
+        data = json.loads(line.decode('utf-8').replace('data: ', ''))
+        if 'choices' in data:
+            print(data['choices'][0]['text'], end='', flush=True)
+```
+
+---
+
+## 🤖 Popular Models
+
+### Small Models (Testing & Development)
+
+```python
+# GPT-2 (124M parameters, ~500MB)
+model_name = 'gpt2'
+
+# DistilGPT-2 (82M parameters)
+model_name = 'distilgpt2'
+
+# Phi-2 (2.7B parameters, ~6GB VRAM)
+model_name = 'microsoft/phi-2'
+```
+
+### Medium Models (Production Ready)
+
+```python
+# Llama 2 7B Chat (7B parameters, ~14GB VRAM)
+model_name = 'meta-llama/Llama-2-7b-chat-hf'
+
+# Mistral 7B Instruct (7B parameters, ~14GB VRAM)
+model_name = 'mistralai/Mistral-7B-Instruct-v0.2'
+
+# Zephyr 7B Beta (7B parameters, ~14GB VRAM)
+model_name = 'HuggingFaceH4/zephyr-7b-beta'
+
+# Code Llama 7B (7B parameters, ~14GB VRAM)
+model_name = 'codellama/CodeLlama-7b-Instruct-hf'
+```
+
+### Large Models (Multi-GPU Required)
+
+```python
+# Llama 2 13B Chat (13B parameters, ~26GB VRAM)
+model_name = 'meta-llama/Llama-2-13b-chat-hf'
+tensor_parallel_size = 2
+
+# Llama 2 70B Chat (70B parameters, ~140GB VRAM)
+model_name = 'meta-llama/Llama-2-70b-chat-hf'
+tensor_parallel_size = 4
+
+# Code Llama 34B (34B parameters, ~68GB VRAM)
+model_name = 'codellama/CodeLlama-34b-Instruct-hf'
+tensor_parallel_size = 4
+```
+
+### Quantized Models (Reduced VRAM)
+
+```python
+# AWQ Quantized (4-bit, ~50% VRAM reduction)
+model_name = 'TheBloke/Llama-2-7B-Chat-AWQ'
+quantization = 'awq'
+
+model_name = 'TheBloke/Mistral-7B-Instruct-v0.2-AWQ'
+quantization = 'awq'
+
+# GPTQ Quantized (4-bit)
+model_name = 'TheBloke/Llama-2-13B-Chat-GPTQ'
+quantization = 'gptq'
+
+model_name = 'TheBloke/CodeLlama-7B-Instruct-GPTQ'
+quantization = 'gptq'
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
 
 #### Issue: Deployment Stuck in "BUILDING" Status
-```python
-# Check deployment logs
-deployment = Deployment.objects.get(name='your-deployment')
-for log in deployment.logs.filter(level='error'):
-    print(log.message)
 
-# Common causes:
-# 1. Insufficient GPU memory
-# 2. Model download failure
-# 3. CUDA driver issues
-# 4. Network connectivity problems
+**Check Celery Worker:**
+```bash
+cd control-panel
+./venv/bin/celery -A config inspect active
 ```
+
+**Check Deployment Logs:**
+```python
+from apps.deployments.models import Deployment
+d = Deployment.objects.get(name='your-model')
+for log in d.logs.all():
+    print(f"[{log.level}] {log.message}")
+```
+
+**Common causes:**
+- Insufficient GPU memory
+- Model download failure
+- CUDA driver issues
+- Network connectivity problems
 
 **Solutions:**
 ```bash
@@ -418,8 +686,9 @@ sudo systemctl restart webops-celery
 ```
 
 #### Issue: "CUDA Out of Memory" Error
+
+**Reduce GPU Memory Utilization:**
 ```python
-# Reduce GPU memory utilization
 deployment.gpu_memory_utilization = 0.7  # Reduce from 0.9
 deployment.save()
 
@@ -428,12 +697,14 @@ deployment.quantization = 'awq'
 deployment.save()
 
 # Redeploy
-task = deploy_llm_model.delay(deployment.id)
+from apps.deployments.tasks import deploy_llm_model
+deploy_llm_model.delay(deployment.id)
 ```
 
-#### Issue: Model Download Fails
+#### Issue: Model Download Failed
+
+**Check HF Connection:**
 ```python
-# Check Hugging Face connection
 from apps.core.integration_services import HuggingFaceIntegrationService
 hf_service = HuggingFaceIntegrationService()
 result = hf_service.test_connection(user)
@@ -444,8 +715,9 @@ print(result)
 ```
 
 #### Issue: Port Already in Use
+
+**Check Port Allocation:**
 ```python
-# Check port allocation
 from apps.deployments.llm_service import LLMDeploymentService
 service = LLMDeploymentService()
 used_ports = service.get_used_ports()
@@ -456,107 +728,221 @@ deployment.port = 9002  # Choose unused port
 deployment.save()
 ```
 
-### 5.2 Performance Optimization
+#### Issue: Service Won't Start
 
-#### GPU Memory Optimization
-```python
-# For large models, use tensor parallelism
-deployment.tensor_parallel_size = 2  # Use 2 GPUs
-
-# Reduce memory usage
-deployment.gpu_memory_utilization = 0.8
-deployment.dtype = 'float16'  # Use half precision
-
-# Enable quantization for memory savings
-deployment.quantization = 'awq'  # or 'gptq'
+**Check SystemD Status:**
+```bash
+sudo systemctl status your-model-name.service
 ```
 
-#### Context Length Optimization
-```python
-# Reduce context length for better performance
-deployment.max_model_len = 2048  # Reduce from default 4096
+**Check Port Conflicts:**
+```bash
+sudo netstat -tulpn | grep 9001
+```
 
-# For chat applications, shorter contexts are often sufficient
-deployment.max_model_len = 1024
+**View Service Logs:**
+```bash
+sudo journalctl -u your-model-name.service --no-pager
+```
+
+#### Issue: API Connection Refused
+
+**Check Service Status:**
+```bash
+curl http://localhost:9001/health
+```
+
+**Check Nginx Configuration:**
+```bash
+sudo nginx -t
+sudo systemctl status nginx
+```
+
+**Check Firewall:**
+```bash
+sudo ufw status
+```
+
+### Debugging Commands
+
+#### Monitor GPU Usage
+```bash
+nvidia-smi -l 1
+```
+
+#### Check CUDA Availability
+```python
+import torch
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"CUDA devices: {torch.cuda.device_count()}")
+```
+
+#### Monitor System Resources
+```bash
+htop
+iotop
+```
+
+#### Check Disk Space
+```bash
+df -h
+du -sh /opt/webops/llm-deployments/*
 ```
 
 ---
 
-## 🌐 Step 6: API Usage Examples
+## ⚡ Performance Optimization
 
-### 6.1 OpenAI-Compatible API
+### GPU Optimization
 
-Once deployed, your model provides an OpenAI-compatible API:
-
-#### Text Completion
-```bash
-curl http://localhost:9001/v1/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama2-7b-chat",
-    "prompt": "Explain quantum computing in simple terms:",
-    "max_tokens": 150,
-    "temperature": 0.7,
-    "top_p": 0.9
-  }'
-```
-
-#### Chat Completion (for chat models)
-```bash
-curl http://localhost:9001/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "llama2-7b-chat",
-    "messages": [
-      {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": "What is machine learning?"}
-    ],
-    "max_tokens": 150,
-    "temperature": 0.7
-  }'
-```
-
-### 6.2 Python Client Example
-
+#### 1. Memory Management
 ```python
-import requests
-import json
+# Start conservative, increase gradually
+gpu_memory_utilization = 0.8  # Start with 80%
 
-# Configuration
-API_BASE = "http://localhost:9001/v1"
-MODEL_NAME = "llama2-7b-chat"
+# Monitor GPU memory usage
+# nvidia-smi
+# If stable, increase to 0.9 or 0.95
+```
 
-def generate_text(prompt, max_tokens=100):
-    """Generate text using the deployed model."""
-    response = requests.post(
-        f"{API_BASE}/completions",
-        headers={"Content-Type": "application/json"},
-        json={
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "max_tokens": max_tokens,
-            "temperature": 0.7
-        }
-    )
-    
-    if response.status_code == 200:
-        result = response.json()
-        return result["choices"][0]["text"]
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-        return None
+#### 2. Tensor Parallelism
+```python
+# For large models, distribute across GPUs
+# Rule of thumb: 1 GPU per 7-13B parameters
 
-# Example usage
-prompt = "The benefits of renewable energy include:"
-generated_text = generate_text(prompt)
-print(f"Generated: {generated_text}")
+# 7B model: 1 GPU
+tensor_parallel_size = 1
+
+# 13B model: 1-2 GPUs
+tensor_parallel_size = 2
+
+# 70B model: 4-8 GPUs
+tensor_parallel_size = 4
+```
+
+#### 3. Data Types
+```python
+# FP16 is fastest for most models
+dtype = 'float16'
+
+# BF16 for newer architectures
+dtype = 'bfloat16'
+
+# FP32 only if required (slower)
+dtype = 'float32'
+```
+
+### Model Optimization
+
+#### 1. Quantization
+```python
+# AWQ: Best quality/speed balance
+quantization = 'awq'
+
+# GPTQ: Good compression
+quantization = 'gptq'
+
+# SqueezeLLM: Experimental
+quantization = 'squeezellm'
+```
+
+#### 2. Context Length
+```python
+# Reduce if you don't need long contexts
+max_model_len = 2048  # Instead of default 4096
+
+# Memory usage scales quadratically with context length
+# 2048 tokens = 4x less memory than 4096 tokens
+```
+
+### System Optimization
+
+#### 1. CPU Configuration
+```bash
+# Set CPU governor to performance
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+```
+
+#### 2. Memory Settings
+```bash
+# Increase shared memory for large models
+echo 'kernel.shmmax = 68719476736' | sudo tee -a /etc/sysctl.conf
+echo 'kernel.shmall = 4294967296' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
+#### 3. Storage Optimization
+```bash
+# Use SSD for model cache
+# Mount with noatime for better performance
+# /dev/ssd /opt/webops/llm-cache ext4 defaults,noatime 0 2
 ```
 
 ---
 
-## 📚 Step 7: Advanced Deployment Scenarios
+## 🔒 Security & Production
 
-### 7.1 Multi-Model Deployment
+### Security Best Practices
+
+```python
+# Use environment variables for sensitive configuration
+deployment = Deployment.objects.create(
+    name='secure-llm',
+    project_type=Deployment.ProjectType.LLM,
+    model_name='private-org/private-model',
+    env_vars={
+        'API_KEY_REQUIRED': 'true',
+        'RATE_LIMIT_ENABLED': 'true',
+        'LOG_LEVEL': 'INFO'
+    },
+    deployed_by=user
+)
+```
+
+### Resource Monitoring
+
+```bash
+# Set up monitoring scripts
+cat > /opt/webops/scripts/monitor-llm.sh << 'EOF'
+#!/bin/bash
+# Monitor LLM deployments
+
+echo "=== GPU Usage ==="
+nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv
+
+echo "=== Active Deployments ==="
+systemctl list-units --type=service --state=running | grep webops-llm
+
+echo "=== Disk Usage ==="
+du -sh /opt/webops/llm-deployments/*
+
+echo "=== API Health ==="
+for port in $(ss -tlnp | grep :90 | awk '{print $4}' | cut -d: -f2); do
+    curl -s http://localhost:$port/health > /dev/null && echo "Port $port: OK" || echo "Port $port: FAIL"
+done
+EOF
+
+chmod +x /opt/webops/scripts/monitor-llm.sh
+```
+
+### Backup and Recovery
+
+```bash
+# Backup deployment configurations
+./manage.py dumpdata deployments.Deployment --indent 2 > deployments_backup.json
+
+# Backup model cache (optional - models can be re-downloaded)
+tar -czf model_cache_backup.tar.gz /opt/webops/llm-deployments/*/model_cache/
+
+# Restore deployments
+./manage.py loaddata deployments_backup.json
+```
+
+---
+
+## 📈 Advanced Scenarios
+
+### Multi-Model Deployment
 
 Deploy multiple models simultaneously:
 
@@ -593,7 +979,7 @@ for deployment, task in deployments:
     print(f"{deployment.name}: {deployment.status}")
 ```
 
-### 7.2 Load Balancing Setup
+### Load Balancing Setup
 
 For high-traffic scenarios, deploy the same model multiple times:
 
@@ -618,7 +1004,7 @@ for i in range(3):
     print(f"Deployed instance {i+1}")
 ```
 
-### 7.3 Custom Domain Setup
+### Custom Domain Setup
 
 Deploy with custom domain:
 
@@ -636,71 +1022,9 @@ deployment = Deployment.objects.create(
 # The system will automatically configure Nginx with SSL
 ```
 
----
+### Performance Benchmarking
 
-## 🔒 Step 8: Security and Production Considerations
-
-### 8.1 Security Best Practices
-
-```python
-# Use environment variables for sensitive configuration
-deployment = Deployment.objects.create(
-    name='secure-llm',
-    project_type=Deployment.ProjectType.LLM,
-    model_name='private-org/private-model',
-    env_vars={
-        'API_KEY_REQUIRED': 'true',
-        'RATE_LIMIT_ENABLED': 'true',
-        'LOG_LEVEL': 'INFO'
-    },
-    deployed_by=user
-)
-```
-
-### 8.2 Resource Monitoring
-
-```bash
-# Set up monitoring scripts
-cat > /opt/webops/scripts/monitor-llm.sh << 'EOF'
-#!/bin/bash
-# Monitor LLM deployments
-
-echo "=== GPU Usage ==="
-nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv
-
-echo "=== Active Deployments ==="
-systemctl list-units --type=service --state=running | grep webops-llm
-
-echo "=== Disk Usage ==="
-du -sh /opt/webops/llm-deployments/*
-
-echo "=== API Health ==="
-for port in $(ss -tlnp | grep :90 | awk '{print $4}' | cut -d: -f2); do
-    curl -s http://localhost:$port/health > /dev/null && echo "Port $port: OK" || echo "Port $port: FAIL"
-done
-EOF
-
-chmod +x /opt/webops/scripts/monitor-llm.sh
-```
-
-### 8.3 Backup and Recovery
-
-```bash
-# Backup deployment configurations
-./manage.py dumpdata deployments.Deployment --indent 2 > deployments_backup.json
-
-# Backup model cache (optional - models can be re-downloaded)
-tar -czf model_cache_backup.tar.gz /opt/webops/llm-deployments/*/model_cache/
-
-# Restore deployments
-./manage.py loaddata deployments_backup.json
-```
-
----
-
-## 📈 Performance Benchmarking
-
-### Test Model Performance
+Test model performance:
 
 ```python
 import time
@@ -765,9 +1089,9 @@ The WebOps platform handles all the complexity of:
 - ✅ API endpoint provisioning
 
 **Next Steps:**
-- Explore the <mcfile name="llm-deployment-guide.md" path="$WEBOPS_DIR/docs/llm-deployment-guide.md"></mcfile> for advanced configurations
-- Check the <mcfile name="troubleshooting.md" path="$WEBOPS_DIR/docs/troubleshooting.md"></mcfile> guide for detailed problem resolution
-- Review the <mcfile name="api-reference.md" path="$WEBOPS_DIR/docs/api-reference.md"></mcfile> for complete API documentation
+- Explore the troubleshooting guide for detailed problem resolution
+- Review the API reference for complete API documentation
+- Check the performance optimization section for production tuning
 
 ---
 

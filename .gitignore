@@ -63,6 +63,7 @@ htmlcov/
 
 # Deployment test apps
 /deployments/
+llm-deployments/
 
 # Celery
 celerybeat-schedule

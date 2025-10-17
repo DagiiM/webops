@@ -10,30 +10,42 @@ Welcome to the comprehensive documentation for WebOps - the production-ready hos
 
 ## 🎯 **Quick Navigation**
 
-### **Getting Started**
-- [🚀 **Quick Start Guide**](quick-start-guide.md) - Get WebOps running in 5 minutes
-- [💻 **Development Setup**](development.md) - Local development environment
-- [🏗️ **Production Installation**](installation.md) - Full production deployment
+### **📚 Getting Started**
+- [🚀 **Quick Start Guide**](getting-started/quick-start-guide.md) - Get WebOps running in 5 minutes
+- [🏗️ **Production Installation**](getting-started/installation.md) - Full production deployment
+- [👋 **Onboarding Guide**](getting-started/onboarding.md) - New user onboarding
 
-### **User Guides**
-- [📦 **Deployment Guide**](deployment-guide.md) - Deploy your applications
-- [🔧 **Configuration**](configuration.md) - System configuration options
-- [👥 **User Management**](user-management.md) - Multi-user setup and permissions
+### **🚀 Deployment**
+- [📦 **Deployment Guide**](deployment/deployment-guide.md) - Deploy your applications
+- [🤖 **LLM Deployment Guide**](deployment/llm-deployment-guide.md) - Comprehensive Large Language Model deployment
+- [🚀 **Migration Guide**](deployment/migration.md) - Migrating from other platforms
 
-### **Technical Documentation**
-- [🔌 **API Reference**](api-reference.md) - Complete REST API documentation
-- [🎨 **Design System**](design-system-v2.md) - Frontend architecture and components
-- [🛡️ **Security Features**](security-features.md) - Security implementation details
+### **💻 Development**
+- [💻 **Development Setup**](development/development.md) - Local development environment
+- [📋 **Implementation Guide**](development/implementation-guide.md) - Implementation details
+- [📝 **Implementation Plan**](development/implementation-plan.md) - Development roadmap
+- [🖥️ **Terminal Enhancement Plan**](development/terminal-experience-enhancement-plan.md) - Terminal UX improvements
 
-### **Operations**
-- [📊 **Monitoring & Analytics**](monitoring.md) - System health and performance
-- [🔧 **Troubleshooting**](troubleshooting.md) - Common issues and solutions
-- [📈 **Performance Optimization**](performance.md) - Scaling and optimization
+### **🔒 Security**
+- [🛡️ **Security Features**](security/security-features.md) - Security implementation details
+- [🔐 **Security Hardening**](security/security-hardening.md) - Advanced security configuration
 
-### **Advanced Topics**
-- [🏢 **Enterprise Features**](enterprise.md) - Enterprise deployment and features
-- [🔐 **Security Hardening**](security-hardening.md) - Advanced security configuration
-- [🚀 **Migration Guide**](migration.md) - Migrating from other platforms
+### **⚙️ Operations**
+- [🔧 **Configuration**](operations/configuration.md) - System configuration options
+- [📊 **Monitoring & Analytics**](operations/monitoring.md) - System health and performance
+- [🔧 **Troubleshooting**](operations/troubleshooting.md) - Common issues and solutions
+- [📈 **Performance Optimization**](operations/performance.md) - Scaling and optimization
+
+### **🏢 Advanced Topics**
+- [🏢 **Enterprise Features**](advanced/enterprise.md) - Enterprise deployment and features
+- [🔄 **Celery Setup Guide**](advanced/celery-setup-guide.md) - Background task processing
+
+### **📖 Reference**
+- [🔌 **API Reference**](reference/api-reference.md) - Complete REST API documentation
+- [🎨 **Design System**](reference/design-system-v2.md) - Frontend architecture and components
+- [📚 **User Guide**](reference/webops-user-guide.md) - Complete user documentation with management features
+- [📋 **App Contract**](reference/app-contract.md) - Application deployment contract
+- [📝 **Changelog**](reference/changelog.md) - Version history and updates
 
 ---
 

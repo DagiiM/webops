@@ -92,7 +92,8 @@ def llm_create(request):
                 request,
                 f"LLM deployment '{sanitized_name}' created and queued successfully."
             )
-            return redirect('deployments:deployment_detail', pk=deployment.id)
+            # Redirect directly to the dedicated LLM detail view
+            return redirect('deployments:llm_detail', pk=deployment.id)
 
         except Exception as e:
             messages.error(request, f"Failed to create LLM deployment: {str(e)}")

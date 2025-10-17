@@ -18,10 +18,12 @@
             <span class="material-icons">settings</span>
             Environment
         </a>
+        {% if deployment.project_type != 'llm' %}
         <a href="{% url 'deployments:deployment_editor' deployment.pk %}" class="webops-btn webops-btn-primary">
             <span class="material-icons">code</span>
             Code Editor
         </a>
+        {% endif %}
         {% if deployment.status == 'running' %}
             <form method="POST" action="{% url 'deployments:deployment_stop' deployment.pk %}" style="display: inline;">
                 {% csrf_token %}
@@ -220,6 +222,7 @@
 </div>
 
 <!-- Validation & File Browser Card -->
+{% if deployment.project_type != 'llm' %}
 <div class="webops-card">
     <div class="webops-card-header">
         <h3>
@@ -276,6 +279,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Deployment Logs Card -->
 <div class="webops-card">

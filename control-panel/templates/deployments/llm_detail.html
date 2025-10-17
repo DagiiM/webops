@@ -251,19 +251,27 @@
         </button>
     </div>
     <div style="padding: var(--webops-space-3);">
-        {% if logs %}
-        <div class="webops-logs" style="max-height: 500px; overflow-y: auto; background: var(--webops-color-bg-primary); padding: var(--webops-space-3); border-radius: var(--webops-radius-md); font-family: 'Courier New', monospace; font-size: 0.875rem;">
-            {% for log in logs %}
-            <div class="webops-log-entry" style="padding: var(--webops-space-0-5) 0; {% if log.level == 'error' %}color: var(--webops-color-error);{% elif log.level == 'warning' %}color: var(--webops-color-warning);{% elif log.level == 'success' %}color: var(--webops-color-success);{% else %}color: var(--webops-color-text-secondary);{% endif %}">
-                <span style="color: var(--webops-color-text-tertiary);">{{ log.created_at|date:"H:i:s" }}</span>
-                <span style="font-weight: 600;">[{{ log.level|upper }}]</span>
-                <span>{{ log.message }}</span>
-            </div>
-            {% endfor %}
+        <div class="webops-logs" id="deployment-logs" style="max-height: 500px; overflow-y: auto; background: var(--webops-color-bg-primary); padding: var(--webops-space-3); border-radius: var(--webops-radius-md); font-family: 'Monaco','Menlo','Consolas', monospace; font-size: 0.85rem; line-height: 1.5;">
+            {% if logs %}
+                {% for log in logs %}
+                <div class="webops-log-entry" style="padding: var(--webops-space-0-5) 0; {% if log.level == 'error' %}color: var(--webops-color-error);{% elif log.level == 'warning' %}color: var(--webops-color-warning);{% elif log.level == 'success' %}color: var(--webops-color-success);{% else %}color: var(--webops-color-text-secondary);{% endif %}">
+                    <span style="color: var(--webops-color-text-tertiary);">{{ log.created_at|date:"H:i:s" }}</span>
+                    <span style="font-weight: 600;">[{{ log.level|upper }}]</span>
+                    <span>{{ log.message }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="webops-text-muted">No logs yet. Live logs will stream here.</div>
+            {% endif %}
         </div>
-        {% else %}
-        <p class="webops-text-muted">No logs available yet. Logs will appear here as the deployment progresses.</p>
-        {% endif %}
+        <div style="display:flex; gap: var(--webops-space-1); align-items:center; margin-top: var(--webops-space-1-5);">
+            <label class="webops-label" style="display:flex; align-items:center; gap: 0.5rem;">
+                <input type="checkbox" id="auto-scroll-toggle" checked>
+                Auto-scroll
+            </label>
+            <button class="webops-btn webops-btn-sm" id="pause-resume-btn">Pause</button>
+            <button class="webops-btn webops-btn-sm" id="clear-logs-btn">Clear</button>
+        </div>
     </div>
 </div>
 
@@ -316,11 +324,98 @@ async function testModel() {
 
 // Auto-scroll logs to bottom
 window.addEventListener('DOMContentLoaded', () => {
-    const logsContainer = document.querySelector('.webops-logs');
+    const logsContainer = document.getElementById('deployment-logs');
     if (logsContainer) {
         logsContainer.scrollTop = logsContainer.scrollHeight;
     }
+    initLiveLogs();
 });
+
+function initLiveLogs() {
+    const logsEl = document.getElementById('deployment-logs');
+    const autoScrollEl = document.getElementById('auto-scroll-toggle');
+    const pauseBtn = document.getElementById('pause-resume-btn');
+    const clearBtn = document.getElementById('clear-logs-btn');
+    if (!logsEl) return;
+
+    const MAX_LINES = 1000;
+    const wsProto = (location.protocol === 'https:') ? 'wss' : 'ws';
+    const wsUrl = `${wsProto}://${location.host}/ws/deployments/${deploymentId}/`;
+    let ws;
+    let buffer = [];
+    let flushing = false;
+    let autoScroll = true;
+    let paused = false;
+    let reconnectDelay = 1000;
+
+    function normalizeLogs(logs) {
+        return logs.map(l => {
+            if (typeof l === 'string') return l;
+            const level = (l.level || 'info').toUpperCase();
+            const ts = l.created_at ? new Date(l.created_at).toLocaleTimeString() : '';
+            return `[${ts}] [${level}] ${l.message}`;
+        });
+    }
+
+    function appendLine(text) {
+        const line = document.createElement('div');
+        line.textContent = text;
+        line.style.padding = '4px 0';
+        line.style.color = 'var(--webops-color-text-secondary)';
+        logsEl.appendChild(line);
+        while (logsEl.childNodes.length > MAX_LINES) {
+            logsEl.removeChild(logsEl.firstChild);
+        }
+    }
+
+    function flush() {
+        if (flushing || paused) return;
+        flushing = true;
+        requestAnimationFrame(() => {
+            while (buffer.length) appendLine(buffer.shift());
+            if (autoScroll) logsEl.scrollTop = logsEl.scrollHeight;
+            flushing = false;
+        });
+    }
+
+    function enqueue(logs) {
+        buffer.push(...normalizeLogs(logs));
+        flush();
+    }
+
+    function connect() {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => { reconnectDelay = 1000; };
+        ws.onmessage = (evt) => {
+            try {
+                const msg = JSON.parse(evt.data);
+                if (msg.type === 'deployment_logs' && Array.isArray(msg.logs)) {
+                    enqueue(msg.logs);
+                }
+            } catch (e) { /* ignore */ }
+        };
+        ws.onclose = () => {
+            setTimeout(() => {
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+                connect();
+            }, reconnectDelay);
+        };
+        ws.onerror = () => { try { ws.close(); } catch(e) {} };
+    }
+
+    // Controls
+    if (autoScrollEl) autoScrollEl.addEventListener('change', (e) => { autoScroll = e.target.checked; });
+    if (pauseBtn) pauseBtn.addEventListener('click', () => {
+        paused = !paused;
+        pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+        if (!paused) flush();
+    });
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+        logsEl.innerHTML = '';
+    });
+
+    connect();
+}
 </script>
 
 <style>

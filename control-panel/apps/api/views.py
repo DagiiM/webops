@@ -325,6 +325,10 @@ def deployment_files_tree(request, deployment_id: int) -> JsonResponse:
         deployed_by=request.user
     )
 
+    # Block file operations for LLM deployments
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
+
     from apps.deployments.services import DeploymentService
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
@@ -389,6 +393,10 @@ def deployment_file_read(request, deployment_id: int) -> JsonResponse:
         id=deployment_id,
         deployed_by=request.user
     )
+
+    # Block file operations for LLM deployments
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
 
     from apps.deployments.services import DeploymentService
     service = DeploymentService()
@@ -467,6 +475,10 @@ def deployment_file_write(request, deployment_id: int) -> JsonResponse:
         id=deployment_id,
         deployed_by=request.user
     )
+
+    # Block file operations for LLM deployments
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
 
     from apps.deployments.services import DeploymentService
     service = DeploymentService()

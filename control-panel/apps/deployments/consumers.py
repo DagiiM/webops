@@ -15,14 +15,20 @@ class DeploymentConsumer(AsyncWebsocketConsumer):
     
     async def connect(self) -> None:
         """Handle WebSocket connection."""
+        # Require authenticated user (TokenAuthMiddleware sets scope['user'])
+        user = self.scope.get('user')
+        if not user or not getattr(user, 'is_authenticated', False):
+            await self.close()
+            return
+
         self.room_group_name = 'deployments'
-        
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
-        
+
         await self.accept()
     
     async def disconnect(self, close_code: int) -> None:
@@ -51,11 +57,17 @@ class DeploymentConsumer(AsyncWebsocketConsumer):
             }))
     
     async def deployment_update(self, event: Dict[str, Any]) -> None:
-        """Send deployment update to WebSocket."""
-        await self.send(text_data=json.dumps({
+        """Normalize broadcast payloads to client format used by CLI/UI."""
+        payload = event.get('message', {})
+        deployment = payload.get('deployment', {})
+        normalized = {
             'type': 'deployment_update',
-            'deployment': event['deployment']
-        }))
+            'deployment': deployment,
+        }
+        # Preserve timestamp if present
+        if 'timestamp' in payload:
+            normalized['timestamp'] = payload['timestamp']
+        await self.send(text_data=json.dumps(normalized))
     
     async def deployment_status(self, event: Dict[str, Any]) -> None:
         """Send deployment status update to WebSocket."""
@@ -73,19 +85,37 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.deployment_id: str = ""
+        self.deployment_name: str = ""
         self.room_group_name: str = ""
     
     async def connect(self) -> None:
         """Handle WebSocket connection."""
+        # Require authenticated user
+        user = self.scope.get('user')
+        if not user or not getattr(user, 'is_authenticated', False):
+            await self.close()
+            return
+
         self.deployment_id = self.scope['url_route']['kwargs']['deployment_id']
-        self.room_group_name = f'deployment_{self.deployment_id}'
-        
-        # Check if deployment exists
+
+        # Check if deployment exists and user has permission
         deployment_exists = await self.check_deployment_exists(self.deployment_id)
         if not deployment_exists:
             await self.close()
             return
-        
+
+        has_access = await self.user_can_access_deployment(self.deployment_id, user)
+        if not has_access:
+            await self.close()
+            return
+
+        # Resolve deployment name for group subscription; signals use name-based groups
+        self.deployment_name = await self.get_deployment_name(self.deployment_id)
+        if not self.deployment_name:
+            await self.close()
+            return
+        self.room_group_name = f'deployment_{self.deployment_name}'
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -152,6 +182,42 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
             'logs': event['logs'],
             'timestamp': event.get('timestamp')
         }))
+
+    async def deployment_update(self, event: Dict[str, Any]) -> None:
+        """Normalize broadcast payloads to client format used by CLI/UI."""
+        payload = event.get('message', {})
+        event_type = payload.get('type')
+        # Map specific payload types to expected client event names
+        if event_type == 'log_entry':
+            logs = payload.get('log')
+            await self.send(text_data=json.dumps({
+                'type': 'deployment_logs',
+                'deployment_id': self.deployment_id,
+                'logs': [logs] if logs else [],
+                'timestamp': payload.get('timestamp'),
+            }))
+            return
+
+        if event_type in ('deployment_created', 'deployment_updated'):
+            dep = payload.get('deployment', {})
+            await self.send(text_data=json.dumps({
+                'type': 'deployment_status_update',
+                'deployment_id': self.deployment_id,
+                'status': dep.get('status'),
+                'message': '',
+                'timestamp': payload.get('timestamp'),
+            }))
+            return
+
+        # Fallback: forward as generic deployment_update with deployment object
+        deployment = payload.get('deployment', {})
+        normalized = {
+            'type': 'deployment_update',
+            'deployment': deployment,
+        }
+        if 'timestamp' in payload:
+            normalized['timestamp'] = payload['timestamp']
+        await self.send(text_data=json.dumps(normalized))
     
     @database_sync_to_async
     def check_deployment_exists(self, deployment_id: str) -> bool:
@@ -161,7 +227,7 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
             return True
         except Deployment.DoesNotExist:
             return False
-    
+
     @database_sync_to_async
     def get_deployment_data(self, deployment_id: str) -> Dict[str, Any] | None:
         """Get deployment data from database."""
@@ -171,10 +237,29 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
                 'id': str(deployment.id),
                 'name': deployment.name,
                 'status': deployment.status,
-                'url': deployment.url,
+                'domain': deployment.domain,
                 'port': deployment.port,
                 'created_at': deployment.created_at.isoformat(),
                 'updated_at': deployment.updated_at.isoformat(),
             }
+        except Deployment.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def user_can_access_deployment(self, deployment_id: str, user: User) -> bool:
+        """Check if user can access specific deployment."""
+        try:
+            deployment = Deployment.objects.get(id=deployment_id)
+            if getattr(user, 'is_superuser', False):
+                return True
+            return deployment.deployed_by_id == user.id
+        except Deployment.DoesNotExist:
+            return False
+
+    @database_sync_to_async
+    def get_deployment_name(self, deployment_id: str) -> str | None:
+        """Resolve deployment name by id."""
+        try:
+            return Deployment.objects.get(id=deployment_id).name
         except Deployment.DoesNotExist:
             return None

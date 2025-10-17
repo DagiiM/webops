@@ -34,8 +34,8 @@ class LLMDeploymentService:
         self.base_path = Path(settings.WEBOPS_INSTALL_PATH) / "llm-deployments"
         self.hf_service = HuggingFaceIntegrationService()
 
-        # Set up Jinja2 for template rendering
-        template_path = Path(__file__).parent.parent.parent.parent / "system-templates"
+        # Set up Jinja2 for template rendering (use control-panel templates)
+        template_path = Path(__file__).parent.parent.parent / "system-templates"
         self.jinja_env = Environment(loader=FileSystemLoader(str(template_path)))
 
     def ensure_base_path(self) -> bool:
@@ -142,7 +142,7 @@ class LLMDeploymentService:
             self.log(deployment, "Virtual environment already exists")
             return True
 
-        self.log(deployment, "Creating vLLM virtual environment")
+        self.log(deployment, "Creating vLLM virtual environment (CPU build)")
 
         try:
             # Create virtual environment
@@ -163,20 +163,110 @@ class LLMDeploymentService:
                 timeout=300
             )
 
-            self.log(deployment, "Installing vLLM and dependencies (this may take several minutes)")
+            self.log(deployment, "Installing CPU PyTorch and building vLLM from source")
 
-            # Install vLLM (this will install PyTorch and other dependencies)
-            result = subprocess.run(
-                [str(pip_path), "install", "vllm", "huggingface_hub"],
+            # Install CPU-only PyTorch and torchvision from the CPU wheel index
+            subprocess.run(
+                [str(pip_path), "install", "--upgrade", "pip"],
                 check=True,
                 capture_output=True,
                 text=True,
-                timeout=1800  # 30 minutes for first-time install
+                timeout=600
+            )
+
+            subprocess.run(
+                [str(pip_path), "install", "--extra-index-url", "https://download.pytorch.org/whl/cpu", "torch", "torchvision"],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=1800
+            )
+
+            # Hugging Face utilities
+            subprocess.run(
+                [str(pip_path), "install", "huggingface_hub"],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=600
+            )
+
+            # Clone vLLM source and build for CPU
+            deployment_path = self.get_deployment_path(deployment)
+            repo_dir = deployment_path / "vllm_source"
+
+            if not repo_dir.exists():
+                subprocess.run(
+                    ["git", "clone", "https://github.com/vllm-project/vllm.git", str(repo_dir)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=600
+                )
+
+            # Install build requirements for CPU (prefer repo's cpu requirements if present)
+            req_dir = repo_dir / "requirements"
+            cpu_build_req = req_dir / "cpu-build.txt"
+            cpu_req = req_dir / "cpu.txt"
+
+            if cpu_build_req.exists():
+                subprocess.run(
+                    [str(pip_path), "install", "-v", "-r", str(cpu_build_req), "--extra-index-url", "https://download.pytorch.org/whl/cpu"],
+                    cwd=str(repo_dir),
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=1800
+                )
+            else:
+                # Fallback: install baseline build toolchain commonly required
+                subprocess.run(
+                    [str(pip_path), "install", "setuptools", "wheel", "numpy", "pybind11", "protobuf", "cmake", "ninja"],
+                    cwd=str(repo_dir),
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=1200
+                )
+
+            if cpu_req.exists():
+                subprocess.run(
+                    [str(pip_path), "install", "-v", "-r", str(cpu_req), "--extra-index-url", "https://download.pytorch.org/whl/cpu"],
+                    cwd=str(repo_dir),
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=1800
+                )
+            else:
+                # Fallback: install minimal runtime deps typically needed
+                subprocess.run(
+                    [str(pip_path), "install", "fastapi", "uvicorn", "pydantic", "transformers", "sentencepiece"],
+                    cwd=str(repo_dir),
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=1200
+                )
+
+            # Build and install vLLM for CPU, disabling CUDA detection
+            build_env = os.environ.copy()
+            build_env["VLLM_TARGET_DEVICE"] = "cpu"
+            build_env["CMAKE_DISABLE_FIND_PACKAGE_CUDA"] = "ON"
+
+            subprocess.run(
+                [str(pip_path), "install", ".", "--no-build-isolation"],
+                cwd=str(repo_dir),
+                env=build_env,
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=3600
             )
 
             self.log(
                 deployment,
-                "vLLM environment created successfully",
+                "vLLM CPU environment created successfully from source",
                 DeploymentLog.Level.SUCCESS
             )
             return True
@@ -311,25 +401,55 @@ except Exception as e:
         """
         venv_path = self.get_venv_path(deployment)
         model_cache_path = self.get_model_cache_path(deployment)
-        template = self.jinja_env.get_template('systemd/vllm.service.j2')
+        template = self.jinja_env.get_template('systemd/vllm_cpu.service.j2')
 
-        # Build vLLM command arguments
+        # Build vLLM command arguments (CPU runtime)
+        # Use a safe default dtype for CPU if 'auto' is selected
+        dtype = deployment.dtype if deployment.dtype != 'auto' else 'float32'
+
         vllm_args = [
             f"--model {deployment.model_name}",
             f"--port {deployment.port}",
-            f"--tensor-parallel-size {deployment.tensor_parallel_size}",
-            f"--gpu-memory-utilization {deployment.gpu_memory_utilization}",
-            f"--dtype {deployment.dtype}",
+            "--device cpu",
+            f"--dtype {dtype}",
         ]
 
         if deployment.max_model_len:
             vllm_args.append(f"--max-model-len {deployment.max_model_len}")
 
+        # Quantization methods like AWQ/GPTQ are GPU-focused; skip on CPU
         if deployment.quantization:
-            vllm_args.append(f"--quantization {deployment.quantization}")
+            self.log(
+                deployment,
+                f"Quantization '{deployment.quantization}' is not applied for CPU runtime",
+                DeploymentLog.Level.WARNING
+            )
 
         # Add trust-remote-code for certain models
         vllm_args.append("--trust-remote-code")
+
+        # Detect allocator library for better CPU performance (optional)
+        def _find_allocator() -> Optional[str]:
+            candidates = [
+                "/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4",
+                "/usr/lib/x86_64-linux-gnu/libjemalloc.so.2",
+                "/usr/lib/x86_64-linux-gnu/libjemalloc.so.1",
+                "/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4",
+                "/lib/x86_64-linux-gnu/libjemalloc.so.2",
+                "/usr/lib/libjemalloc.so",
+                "/usr/lib/libtcmalloc_minimal.so",
+                "/lib/libjemalloc.so",
+                "/lib/libtcmalloc_minimal.so",
+            ]
+            for p in candidates:
+                try:
+                    if os.path.exists(p):
+                        return p
+                except Exception:
+                    continue
+            return None
+
+        ld_preload = _find_allocator()
 
         context = {
             'app_name': deployment.name,
@@ -341,6 +461,9 @@ except Exception as e:
             'model_cache_path': str(model_cache_path),
             'vllm_args': ' '.join(vllm_args),
             'log_path': str(self.get_deployment_path(deployment) / 'logs'),
+            'logging_level': 'DEBUG',
+            'work_dir': str(self.get_deployment_path(deployment)),
+            'ld_preload': ld_preload,
         }
 
         return template.render(**context)

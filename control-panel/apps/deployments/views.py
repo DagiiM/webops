@@ -23,6 +23,9 @@ def deployment_list(request):
 def deployment_detail(request, pk):
     """Show deployment details and logs."""
     deployment = get_object_or_404(Deployment, pk=pk)
+    # Redirect LLM deployments to their dedicated detail view
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        return redirect('deployments:llm_detail', pk=pk)
     logs = deployment.logs.all()[:100]  # Last 100 logs
 
     # Get service status
@@ -479,6 +482,12 @@ def deployment_files(request, pk):
     import os
 
     deployment = get_object_or_404(Deployment, pk=pk)
+    # Block file browsing for LLM deployments
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        return JsonResponse({
+            'success': False,
+            'error': 'File browsing is not available for LLM deployments'
+        }, status=400)
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
 
@@ -579,6 +588,10 @@ def deployment_files(request, pk):
 def deployment_editor(request, pk):
     """Open code editor for deployment."""
     deployment = get_object_or_404(Deployment, pk=pk)
+    # Prevent LLM deployments from accessing the code editor
+    if deployment.project_type == Deployment.ProjectType.LLM:
+        messages.error(request, 'Code editor is not available for LLM deployments.')
+        return redirect('deployments:llm_detail', pk=pk)
     return render(request, 'deployments/editor.html', {
         'deployment': deployment
     })
