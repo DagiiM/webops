@@ -264,6 +264,20 @@ class WebOpsAPIClient:
             f'/api/deployments/{deployment_name}/env/validate/'
         )
 
+    def validate_project(self: Self, deployment_name: str) -> Dict[str, Any]:
+        """Validate project structure and requirements.
+        
+        Args:
+            deployment_name: Name of the deployment.
+            
+        Returns:
+            Dictionary containing validation results.
+        """
+        return self._request(
+            'GET',
+            f'/api/deployments/{deployment_name}/project/validate/'
+        )
+
     def get_env_vars(self: Self, deployment_name: str) -> Dict[str, Any]:
         """Get environment variables for deployment.
         

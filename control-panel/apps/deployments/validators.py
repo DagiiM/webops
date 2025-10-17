@@ -152,6 +152,33 @@ class ProjectValidator:
                     details={'suggestion': 'Add gunicorn>=20.0 to requirements.txt'}
                 ))
 
+            # ASGI detection: require uvicorn if asgi.py is present
+            try:
+                asgi_files = list(self.repo_path.rglob("asgi.py"))
+                excluded_dirs = {'migrations', 'tests', 'test', 'venv', 'env', '__pycache__', '.git'}
+                valid_asgi = [f for f in asgi_files if not any(part in excluded_dirs for part in f.relative_to(self.repo_path).parts)]
+
+                if valid_asgi:
+                    if 'uvicorn' not in deps:
+                        self.results.append(ValidationResult(
+                            passed=False,
+                            message="ASGI detected but 'uvicorn' missing in requirements.txt",
+                            level='error',
+                            details={'suggestion': "Add uvicorn[standard]>=0.22 to requirements.txt"}
+                        ))
+                    else:
+                        self.results.append(ValidationResult(
+                            passed=True,
+                            message="ASGI detected and uvicorn present",
+                            level='info'
+                        ))
+            except Exception as e:
+                self.results.append(ValidationResult(
+                    passed=False,
+                    message=f"Error checking ASGI/uvicorn: {str(e)}",
+                    level='warning'
+                ))
+
         except Exception as e:
             self.results.append(ValidationResult(
                 passed=False,

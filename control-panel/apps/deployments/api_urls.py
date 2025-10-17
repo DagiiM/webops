@@ -19,6 +19,9 @@ urlpatterns = [
     path('deployments/<str:name>/restart/', api_views.restart_deployment_api, name='restart_deployment'),
     path('deployments/<str:name>/delete/', api_views.delete_deployment_api, name='delete_deployment'),
 
+    # Project Validation
+    path('deployments/<str:name>/project/validate/', api_views.validate_project_api, name='validate_project'),
+
     # Environment Variables
     path('deployments/<str:name>/env/', api_views.get_env_vars_api, name='get_env_vars'),
     path('deployments/<str:name>/env/generate/', api_views.generate_env_api, name='generate_env'),

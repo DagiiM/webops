@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Google OAuth Configuration - {{ branding.site_name }}{% endblock %}
+
+{% block content %}
+<body data-oauth-configured="{% if oauth_configured %}true{% else %}false{% endif %}">
+<div class="webops-oauth-config">
+    <div class="webops-oauth-config__container">
+        <div class="webops-oauth-config__header">
+            <h1 class="webops-oauth-config__title">Google OAuth Configuration</h1>
+            <p class="webops-oauth-config__subtitle">Configure Google OAuth credentials for Single Sign-On and integrations</p>
+        </div>
+        
+        <!-- OAuth Status Display -->
+        {% if oauth_configured %}
+            <div class="webops-oauth-config__status-box {% if connection_status.is_valid %}webops-oauth-config__status-box--success{% else %}webops-oauth-config__status-box--warning{% endif %}">
+                <div class="webops-oauth-config__status-header">
+                    <h3 class="webops-oauth-config__status-title">
+                        {% if connection_status.is_valid %}
+                            ✅ OAuth Configuration Active
+                        {% else %}
+                            ⚠️ OAuth Configuration Issues
+                        {% endif %}
+                    </h3>
+                    <div class="webops-oauth-config__status-actions">
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="test_connection">
+                            <button type="submit" class="webops-oauth-config__btn-test">
+                                🔄 Test Connection
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="webops-oauth-config__status-details">
+                    <p><strong>Status:</strong> {{ connection_status.message }}</p>
+                    {% if connection_status.client_id_partial %}
+                        <p><strong>Client ID:</strong> {{ connection_status.client_id_partial }}</p>
+                    {% endif %}
+                    <p><strong>Redirect URI:</strong> <code>{{ request.build_absolute_uri|slice:":-1" }}{% url 'google_login_callback' %}</code></p>
+                </div>
+            </div>
+        {% else %}
+            <div class="webops-oauth-config__status-box webops-oauth-config__status-box--info">
+                <div class="webops-oauth-config__status-header">
+                    <h3 class="webops-oauth-config__status-title">
+                        🔧 OAuth Not Configured
+                    </h3>
+                </div>
+                <div class="webops-oauth-config__status-details">
+                    <p>Google OAuth is not currently configured. Complete the setup below to enable Single Sign-On and Google integrations.</p>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="webops-oauth-config__info-box">
+            <h3 class="webops-oauth-config__info-title">
+                {% if oauth_configured %}
+                    Update Configuration
+                {% else %}
+                    Setup Instructions
+                {% endif %}
+            </h3>
+            {% if not oauth_configured %}
+                <ul class="webops-oauth-config__info-list">
+                    <li class="webops-oauth-config__info-item">Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                    <li class="webops-oauth-config__info-item">Create a new project or select an existing one</li>
+                    <li class="webops-oauth-config__info-item">Enable the Google+ API and/or Google OAuth2 API</li>
+                    <li class="webops-oauth-config__info-item">Go to "Credentials" and create an "OAuth 2.0 Client ID"</li>
+                    <li class="webops-oauth-config__info-item">Set the authorized redirect URI to: <code>{{ request.build_absolute_uri|slice:":-1" }}{% url 'google_login_callback' %}</code></li>
+                    <li class="webops-oauth-config__info-item">Copy the Client ID and Client Secret below</li>
+                </ul>
+            {% else %}
+                <p class="webops-oauth-config__info-text">
+                    Update your Google OAuth credentials below. Changes require an application restart to take effect.
+                </p>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="webops-oauth-config__form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            {% if form.non_field_errors %}
+                <div class="webops-oauth-config__non-field-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="webops-oauth-config__form-group">
+                <label for="{{ form.google_oauth_client_id.id_for_label }}" class="webops-oauth-config__label">
+                    Google OAuth Client ID
+                    {% if oauth_configured %}<span class="webops-oauth-config__label-status">✅ Configured</span>{% endif %}
+                </label>
+                <input type="text" 
+                       name="{{ form.google_oauth_client_id.name }}" 
+                       id="{{ form.google_oauth_client_id.id_for_label }}"
+                       class="webops-oauth-config__input"
+                       placeholder="{% if oauth_configured %}Update Client ID{% else %}Enter Google OAuth Client ID{% endif %}"
+                       autocomplete="off"
+                       value="{{ form.google_oauth_client_id.value|default:'' }}">
+                {% if form.google_oauth_client_id.help_text %}
+                    <div class="webops-oauth-config__help-text">{{ form.google_oauth_client_id.help_text }}</div>
+                {% endif %}
+                {% if form.google_oauth_client_id.errors %}
+                    <ul class="webops-oauth-config__error-list">
+                        {% for error in form.google_oauth_client_id.errors %}
+                            <li class="webops-oauth-config__error-item">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="webops-oauth-config__form-group">
+                <label for="{{ form.google_oauth_client_secret.id_for_label }}" class="webops-oauth-config__label">
+                    Google OAuth Client Secret
+                    {% if oauth_configured %}<span class="webops-oauth-config__label-status">✅ Configured</span>{% endif %}
+                </label>
+                <input type="password" 
+                       name="{{ form.google_oauth_client_secret.name }}" 
+                       id="{{ form.google_oauth_client_secret.id_for_label }}"
+                       class="webops-oauth-config__input"
+                       placeholder="{% if oauth_configured %}Update Client Secret{% else %}Enter Google OAuth Client Secret{% endif %}"
+                       autocomplete="off"
+                       value="{{ form.google_oauth_client_secret.value|default:'' }}">
+                {% if form.google_oauth_client_secret.help_text %}
+                    <div class="webops-oauth-config__help-text">{{ form.google_oauth_client_secret.help_text }}</div>
+                {% endif %}
+                {% if form.google_oauth_client_secret.errors %}
+                    <ul class="webops-oauth-config__error-list">
+                        {% for error in form.google_oauth_client_secret.errors %}
+                            <li class="webops-oauth-config__error-item">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="webops-oauth-config__form-group">
+                <label for="{{ form.google_oauth_redirect_uri.id_for_label }}" class="webops-oauth-config__label">
+                    Redirect URI (Configure this in Google Cloud Console)
+                </label>
+                <input type="url" 
+                       name="{{ form.google_oauth_redirect_uri.name }}" 
+                       id="{{ form.google_oauth_redirect_uri.id_for_label }}"
+                       class="webops-oauth-config__input"
+                       placeholder="{{ request.build_absolute_uri|slice:":-1" }}{% url 'google_login_callback' %}"
+                       readonly
+                       value="{{ form.google_oauth_redirect_uri.value|default:'' }}">
+                <div class="webops-oauth-config__help-text">
+                    Redirect URI configured in Google Cloud Console (auto-generated)<br>
+                    <strong>Use this exact URL in your Google Cloud Console OAuth configuration:</strong><br>
+                    <code>{{ request.build_absolute_uri|slice:":-1" }}{% url 'google_login_callback' %}</code>
+                </div>
+                {% if form.google_oauth_redirect_uri.errors %}
+                    <ul class="webops-oauth-config__error-list">
+                        {% for error in form.google_oauth_redirect_uri.errors %}
+                            <li class="webops-oauth-config__error-item">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="webops-oauth-config__form-actions">
+                <div>
+                    <a href="{% url 'integrations_dashboard' %}" class="webops-oauth-config__btn-secondary">
+                        Back to Integrations
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="webops-oauth-config__btn-primary">
+                        {% if oauth_configured %}
+                            Update Configuration
+                        {% else %}
+                            Save Configuration
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* OAuth Status Box Styles */
+.webops-oauth-config__status-box {
+    background: var(--card-background);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.webops-oauth-config__status-box--success {
+    border-color: var(--success-color, #10b981);
+    background: var(--success-background, #f0fdf4);
+}
+
+.webops-oauth-config__status-box--warning {
+    border-color: var(--warning-color, #f59e0b);
+    background: var(--warning-background, #fffbeb);
+}
+
+.webops-oauth-config__status-box--info {
+    border-color: var(--info-color, #3b82f6);
+    background: var(--info-background, #eff6ff);
+}
+
+.webops-oauth-config__status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.webops-oauth-config__status-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.webops-oauth-config__status-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.webops-oauth-config__btn-test {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.webops-oauth-config__btn-test:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.webops-oauth-config__status-details {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.webops-oauth-config__status-details p {
+    margin: 0.5rem 0;
+}
+
+.webops-oauth-config__status-details code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.8rem;
+}
+
+.webops-oauth-config__label-status {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--success-color, #10b981);
+    font-weight: 500;
+}
+
+.webops-oauth-config__info-text {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .webops-oauth-config__status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .webops-oauth-config__status-actions {
+        width: 100%;
+    }
+    
+    .webops-oauth-config__btn-test {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate redirect URI based on current domain
+    const redirectUriField = document.getElementById('id_google_oauth_redirect_uri');
+    if (redirectUriField && !redirectUriField.value) {
+        const currentOrigin = window.location.origin;
+        redirectUriField.value = currentOrigin + '{% url "google_login_callback" %}';
+    }
+    
+    // Client-side validation
+    const clientIdField = document.getElementById('id_google_oauth_client_id');
+    const clientSecretField = document.getElementById('id_google_oauth_client_secret');
+    
+    // Real-time validation for Client ID
+    if (clientIdField) {
+        clientIdField.addEventListener('blur', function() {
+            const value = this.value.trim();
+            const errorContainer = this.parentNode.querySelector('.client-error') || 
+                                 document.createElement('div');
+            errorContainer.className = 'client-error';
+            errorContainer.style.color = 'var(--error-color)';
+            errorContainer.style.fontSize = '0.875rem';
+            errorContainer.style.marginTop = '0.25rem';
+            
+            if (value && !value.endsWith('.apps.googleusercontent.com')) {
+                errorContainer.textContent = 'Client ID must end with .apps.googleusercontent.com';
+                if (!this.parentNode.querySelector('.client-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else if (value && value.length < 50) {
+                errorContainer.textContent = 'Client ID appears to be too short';
+                if (!this.parentNode.querySelector('.client-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else {
+                const existingError = this.parentNode.querySelector('.client-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                this.style.borderColor = 'var(--border-color)';
+            }
+        });
+    }
+    
+    // Real-time validation for Client Secret
+    if (clientSecretField) {
+        clientSecretField.addEventListener('blur', function() {
+            const value = this.value.trim();
+            const errorContainer = this.parentNode.querySelector('.secret-error') || 
+                                 document.createElement('div');
+            errorContainer.className = 'secret-error';
+            errorContainer.style.color = 'var(--error-color)';
+            errorContainer.style.fontSize = '0.875rem';
+            errorContainer.style.marginTop = '0.25rem';
+            
+            if (value && value.length < 20) {
+                errorContainer.textContent = 'Client Secret appears to be too short';
+                if (!this.parentNode.querySelector('.secret-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else if (value && ['your_client_secret', 'client_secret', 'secret'].includes(value.toLowerCase())) {
+                errorContainer.textContent = 'Please enter a valid Client Secret';
+                if (!this.parentNode.querySelector('.secret-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else {
+                const existingError = this.parentNode.querySelector('.secret-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                this.style.borderColor = 'var(--border-color)';
+            }
+        });
+    }
+    
+    // Real-time validation for Redirect URI
+    if (redirectUriField) {
+        redirectUriField.addEventListener('blur', function() {
+            const value = this.value.trim();
+            const errorContainer = this.parentNode.querySelector('.uri-error') || 
+                                 document.createElement('div');
+            errorContainer.className = 'uri-error';
+            errorContainer.style.color = 'var(--error-color)';
+            errorContainer.style.fontSize = '0.875rem';
+            errorContainer.style.marginTop = '0.25rem';
+            
+            if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                errorContainer.textContent = 'Redirect URI must start with http:// or https://';
+                if (!this.parentNode.querySelector('.uri-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else if (value && !value.includes('/auth/google/callback/')) {
+                errorContainer.textContent = 'Redirect URI must contain the callback path: /auth/google/callback/';
+                if (!this.parentNode.querySelector('.uri-error')) {
+                    this.parentNode.appendChild(errorContainer);
+                }
+                this.style.borderColor = 'var(--error-color)';
+            } else {
+                const existingError = this.parentNode.querySelector('.uri-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                this.style.borderColor = 'var(--border-color)';
+            }
+        });
+    }
+    
+    // Form submission validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const clientId = clientIdField ? clientIdField.value.trim() : '';
+            const clientSecret = clientSecretField ? clientSecretField.value.trim() : '';
+            
+            // Check if both are provided or both are empty
+            if ((clientId && !clientSecret) || (!clientId && clientSecret)) {
+                e.preventDefault();
+                alert('Both Client ID and Client Secret must be provided together.');
+                return false;
+            }
+            
+            // Check for validation errors
+            const errors = document.querySelectorAll('.client-error, .secret-error, .uri-error');
+            if (errors.length > 0) {
+                e.preventDefault();
+                alert('Please fix the validation errors before submitting.');
+                return false;
+            }
+        });
+    }
+    
+    // Show/hide help text on focus
+    const inputs = document.querySelectorAll('.webops-input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            const helpText = this.parentNode.querySelector('.help-text');
+            if (helpText) {
+                helpText.style.opacity = '1';
+            }
+        });
+        
+        input.addEventListener('blur', function() {
+            const helpText = this.parentNode.querySelector('.help-text');
+            if (helpText) {
+                helpText.style.opacity = '0.7';
+            }
+        });
+    });
+    
+    // Enhanced form behavior
+    updateFormBehavior();
+    
+    // Add test connection button event listener
+    const testBtn = document.getElementById('test-connection-btn');
+    if (testBtn) {
+        testBtn.addEventListener('click', testConnection);
+    }
+});
+
+// Test connection functionality
+function testConnection() {
+    const testBtn = document.getElementById('test-connection-btn');
+    const originalText = testBtn.innerHTML;
+    
+    // Show loading state
+    testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    testBtn.disabled = true;
+    
+    // Create form data for test
+    const formData = new FormData();
+    formData.append('action', 'test_connection');
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+        
+        // Update status display
+        const statusBox = document.querySelector('.webops-oauth-config__status-box');
+        const statusDetails = statusBox.querySelector('.webops-oauth-config__status-details');
+        
+        if (data.success) {
+            statusBox.className = 'webops-oauth-config__status-box webops-oauth-config__status-box--success';
+            statusDetails.innerHTML = `
+                <p><strong>✓ Connection successful!</strong></p>
+                <p>OAuth configuration is working properly.</p>
+                <p><small>Last tested: ${new Date().toLocaleString()}</small></p>
+            `;
+        } else {
+            statusBox.className = 'webops-oauth-config__status-box webops-oauth-config__status-box--warning';
+            statusDetails.innerHTML = `
+                <p><strong>⚠ Connection failed</strong></p>
+                <p>${data.error || 'Unable to connect to Google OAuth service.'}</p>
+                <p><small>Please check your credentials and try again.</small></p>
+            `;
+        }
+    })
+    .catch(error => {
+        // Reset button
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+        
+        // Show error
+        const statusBox = document.querySelector('.webops-oauth-config__status-box');
+        const statusDetails = statusBox.querySelector('.webops-oauth-config__status-details');
+        statusBox.className = 'webops-oauth-config__status-box webops-oauth-config__status-box--warning';
+        statusDetails.innerHTML = `
+            <p><strong>⚠ Test failed</strong></p>
+            <p>Network error occurred while testing connection.</p>
+            <p><small>Please try again later.</small></p>
+        `;
+    });
+}
+
+// Enhanced form behavior
+function updateFormBehavior() {
+    const isConfigured = document.body.dataset.oauthConfigured === 'true';
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    if (isConfigured) {
+        // Change submit button text for updates
+        if (submitBtn && submitBtn.textContent.includes('Save')) {
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Configuration';
+        }
+        
+        // Add confirmation for updates
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to update the OAuth configuration? This may affect existing integrations.')) {
+                e.preventDefault();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

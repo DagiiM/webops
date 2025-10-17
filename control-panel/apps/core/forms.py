@@ -11,6 +11,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, Pass
 from django.core.exceptions import ValidationError
 from apps.core.models import BrandingSettings
 import re
+import os
+from django.conf import settings
 
 
 class WebOpsLoginForm(AuthenticationForm):
@@ -1187,3 +1189,140 @@ class NotificationChannelForm(forms.ModelForm):
             instance.save()
 
         return instance
+
+
+class GoogleOAuthConfigForm(forms.Form):
+    """Form for configuring Google OAuth credentials."""
+    
+    google_oauth_client_id = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'webops-input',
+            'placeholder': 'Enter Google OAuth Client ID',
+            'autocomplete': 'off'
+        }),
+        help_text='Google OAuth Client ID from Google Cloud Console'
+    )
+    
+    google_oauth_client_secret = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'webops-input',
+            'placeholder': 'Enter Google OAuth Client Secret',
+            'autocomplete': 'off'
+        }),
+        help_text='Google OAuth Client Secret from Google Cloud Console'
+    )
+    
+    google_oauth_redirect_uri = forms.URLField(
+        max_length=500,
+        required=False,
+        widget=forms.URLInput(attrs={
+            'class': 'webops-input',
+            'placeholder': 'http://localhost:8000/auth/integrations/google/callback',
+            'readonly': True
+        }),
+        help_text='Redirect URI configured in Google Cloud Console (auto-generated)'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-populate with current settings
+        self.fields['google_oauth_client_id'].initial = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', '')
+        self.fields['google_oauth_client_secret'].initial = getattr(settings, 'GOOGLE_OAUTH_CLIENT_SECRET', '')
+        self.fields['google_oauth_redirect_uri'].initial = getattr(settings, 'GOOGLE_OAUTH_REDIRECT_URI', 'http://localhost:8000/auth/login/google/callback/')
+    
+    def clean_google_oauth_client_id(self):
+        client_id = self.cleaned_data.get('google_oauth_client_id', '').strip()
+        if client_id and not client_id.endswith('.apps.googleusercontent.com'):
+            raise ValidationError('Google OAuth Client ID should end with .apps.googleusercontent.com')
+        return client_id
+    
+    def clean_google_oauth_client_secret(self):
+        client_secret = self.cleaned_data.get('google_oauth_client_secret', '').strip()
+        if client_secret and len(client_secret) < 24:
+            raise ValidationError('Google OAuth Client Secret appears to be too short')
+        return client_secret
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        client_id = cleaned_data.get('google_oauth_client_id')
+        client_secret = cleaned_data.get('google_oauth_client_secret')
+        
+        # Both should be provided together or both empty
+        if bool(client_id) != bool(client_secret):
+            raise ValidationError('Both Client ID and Client Secret must be provided together, or both left empty to disable Google OAuth.')
+        
+        return cleaned_data
+    
+    def clean_google_oauth_client_id(self):
+        client_id = self.cleaned_data.get('google_oauth_client_id')
+        if client_id:
+            # Basic format validation for Google OAuth Client ID
+            if not client_id.endswith('.apps.googleusercontent.com'):
+                raise forms.ValidationError(
+                    'Google OAuth Client ID must end with .apps.googleusercontent.com'
+                )
+            if len(client_id) < 50:
+                raise forms.ValidationError(
+                    'Google OAuth Client ID appears to be too short'
+                )
+        return client_id
+    
+    def clean_google_oauth_client_secret(self):
+        client_secret = self.cleaned_data.get('google_oauth_client_secret')
+        if client_secret:
+            # Basic format validation for Google OAuth Client Secret
+            if len(client_secret) < 20:
+                raise forms.ValidationError(
+                    'Google OAuth Client Secret appears to be too short'
+                )
+            # Check for common patterns that indicate it's not a real secret
+            if client_secret.lower() in ['your_client_secret', 'client_secret', 'secret']:
+                raise forms.ValidationError(
+                    'Please enter a valid Google OAuth Client Secret'
+                )
+        return client_secret
+    
+    def clean_google_oauth_redirect_uri(self):
+        redirect_uri = self.cleaned_data.get('google_oauth_redirect_uri')
+        if redirect_uri:
+            # Basic URL validation
+            if not redirect_uri.startswith(('http://', 'https://')):
+                raise forms.ValidationError(
+                    'Redirect URI must start with http:// or https://'
+                )
+            # Check if it contains the callback path
+            if '/auth/login/google/callback/' not in redirect_uri:
+                raise forms.ValidationError(
+                    'Redirect URI must contain the callback path: /auth/login/google/callback/'
+                )
+        return redirect_uri
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        client_id = cleaned_data.get('google_oauth_client_id')
+        client_secret = cleaned_data.get('google_oauth_client_secret')
+        
+        # Both client ID and secret should be provided together
+        if client_id and not client_secret:
+            raise forms.ValidationError(
+                'Google OAuth Client Secret is required when Client ID is provided'
+            )
+        if client_secret and not client_id:
+            raise forms.ValidationError(
+                'Google OAuth Client ID is required when Client Secret is provided'
+            )
+        
+        return cleaned_data
+    
+    def save_to_env(self):
+        """Save the configuration to environment variables or settings."""
+        # This is a placeholder - in a real implementation, you might:
+        # 1. Update a .env file
+        # 2. Update database settings
+        # 3. Use Django's dynamic settings
+        # For now, we'll just validate the form
+        pass

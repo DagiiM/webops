@@ -19,15 +19,16 @@ Environment="PYTHONPATH={{ repo_path }}"
 Environment="{{ key }}={{ value }}"
 {% endfor %}
 
-# Gunicorn configuration
+# Gunicorn configuration (ASGI/WSGI auto-detected)
 ExecStart={{ venv_path }}/bin/gunicorn \
     --bind 127.0.0.1:{{ port }} \
     --workers {{ workers }} \
-    --timeout 60 \
+    {% if extra_gunicorn_args %}{{ extra_gunicorn_args }} \
+    {% endif %}--timeout 60 \
     --access-logfile {{ log_path }}/access.log \
     --error-logfile {{ log_path }}/error.log \
     --log-level info \
-    {{ wsgi_module }}
+    {{ app_module }}
 
 # Restart policy
 Restart=always

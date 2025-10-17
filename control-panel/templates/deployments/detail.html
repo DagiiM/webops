@@ -243,12 +243,12 @@
     <div class="webops-card-body">
         <!-- Tabs -->
         <div class="webops-tabs">
-            <button class="webops-tab webops-tab--active" onclick="switchTab('files')">Files</button>
-            <button class="webops-tab" onclick="switchTab('validation')">Validation</button>
+            <button class="webops-tab active" onclick="switchTab('files', this)">Files</button>
+            <button class="webops-tab" onclick="switchTab('validation', this)">Validation</button>
         </div>
 
         <!-- Files Tab -->
-        <div id="files-tab" class="webops-tab-content webops-tab-content--active">
+        <div id="files-tab" class="webops-tab-content active">
             <div id="file-browser" class="webops-file-browser">
                 <div class="webops-browser-toolbar">
                     <div class="webops-breadcrumb" id="breadcrumb">
@@ -903,13 +903,15 @@ if (logsContainer) {
 // File browser and validation functions
 let currentPath = '';
 
-function switchTab(tabName) {
+function switchTab(tabName, tabEl) {
     // Update tab buttons
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    event.target.classList.add('active');
+    document.querySelectorAll('.webops-tab').forEach(tab => tab.classList.remove('active'));
+    if (tabEl) {
+        tabEl.classList.add('active');
+    }
 
     // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('.webops-tab-content').forEach(content => content.classList.remove('active'));
     document.getElementById(`${tabName}-tab`).classList.add('active');
 
     // Load initial content for tabs
@@ -1029,20 +1031,30 @@ async function runValidation() {
     btn.innerHTML = '<span class="material-icons" style="font-size: 16px;">hourglass_empty</span> Validating...';
 
     try {
-        const response = await fetch(`/deployments/${deploymentId}/validate/`);
+        // Prefer API route (requires token) if available via global API base
+        let response;
+        if (window.WEBOPS_API_BASE && window.WEBOPS_API_TOKEN) {
+            response = await fetch(`${window.WEBOPS_API_BASE}/deployments/{{ deployment.name }}/project/validate/`, {
+                headers: { 'Authorization': `Bearer ${window.WEBOPS_API_TOKEN}` }
+            });
+        } else {
+            // Fallback to server-rendered view by PK
+            response = await fetch(`/deployments/${deploymentId}/validate/`);
+        }
         const data = await response.json();
 
         if (!data.success) {
-            showNotification(data.error, 'error');
+            showNotification(data.error || 'Validation failed', 'error');
             return;
         }
 
         displayValidationResults(data);
 
         // Switch to validation tab
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab')[1].classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        const tabs = document.querySelectorAll('.webops-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector(".webops-tab[onclick*='validation']").classList.add('active');
+        document.getElementById('files-tab').classList.remove('active');
         document.getElementById('validation-tab').classList.add('active');
 
     } catch (error) {

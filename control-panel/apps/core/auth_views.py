@@ -24,6 +24,7 @@ import pyotp
 import qrcode
 import io
 import base64
+import secrets
 
 from .forms import (
     WebOpsLoginForm,
@@ -35,6 +36,7 @@ from .forms import (
 )
 from .models import TwoFactorAuth, SecurityAuditLog
 from apps.core.models import BrandingSettings
+from apps.core.integration_services import GoogleIntegrationService
 
 
 def get_client_ip(request: HttpRequest) -> str:
@@ -450,4 +452,144 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
+    return redirect('login')
+
+
+@never_cache
+@require_http_methods(["GET"]) 
+def google_login_start(request: HttpRequest) -> HttpResponse:
+    """Start Google OAuth for SSO login."""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    from config.dynamic_settings import dynamic_settings
+    if not dynamic_settings.GOOGLE_OAUTH_CLIENT_ID or not dynamic_settings.GOOGLE_OAUTH_CLIENT_SECRET:
+        messages.error(request, 'Google OAuth is not configured.')
+        return redirect('login')
+
+    state = secrets.token_urlsafe(32)
+    request.session['google_login_state'] = state
+
+    redirect_uri = request.build_absolute_uri(reverse('google_login_callback'))
+    service = GoogleIntegrationService()
+    auth_url = service.get_authorization_url(redirect_uri, state)
+    return redirect(auth_url)
+
+
+@never_cache
+@require_http_methods(["GET"]) 
+def google_login_callback(request: HttpRequest) -> HttpResponse:
+    """Handle Google OAuth callback for SSO login."""
+    state = request.GET.get('state')
+    session_state = request.session.get('google_login_state')
+    if not state or state != session_state:
+        messages.error(request, 'Invalid OAuth state. Please try again.')
+        return redirect('login')
+
+    if 'google_login_state' in request.session:
+        del request.session['google_login_state']
+
+    code = request.GET.get('code')
+    if not code:
+        error = request.GET.get('error', 'Unknown error')
+        messages.error(request, f'Google authorization failed: {error}')
+        return redirect('login')
+
+    service = GoogleIntegrationService()
+    redirect_uri = request.build_absolute_uri(reverse('google_login_callback'))
+    token_data = service.exchange_code_for_token(code, redirect_uri)
+
+    if not token_data:
+        messages.error(request, 'Failed to exchange authorization code for tokens.')
+        return redirect('login')
+
+    access_token = token_data.get('access_token')
+    user_info = service.get_user_info(access_token) if access_token else None
+    if not user_info or not user_info.get('email'):
+        messages.error(request, 'Failed to retrieve Google user information.')
+        return redirect('login')
+
+    email = user_info.get('email')
+    # Try to find existing user by email
+    try:
+        user = User.objects.get(email=email)
+        # Save Google connection
+        service.save_connection(user, token_data, user_info)
+
+        # Handle 2FA if enabled
+        try:
+            two_factor = TwoFactorAuth.objects.get(user=user, is_enabled=True)
+            request.session['pre_2fa_user_id'] = user.id
+            request.session['remember_me'] = True
+
+            SecurityAuditLog.objects.create(
+                user=user,
+                event_type=SecurityAuditLog.EventType.LOGIN_SUCCESS,
+                severity=SecurityAuditLog.Severity.INFO,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+                description=f'Google SSO login successful, 2FA required for {user.username}'
+            )
+
+            return redirect('two_factor_verify')
+        except TwoFactorAuth.DoesNotExist:
+            # No 2FA; login directly
+            login(request, user)
+            request.session.set_expiry(1209600)
+            SecurityAuditLog.objects.create(
+                user=user,
+                event_type=SecurityAuditLog.EventType.LOGIN_SUCCESS,
+                severity=SecurityAuditLog.Severity.INFO,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+                description=f'Login via Google SSO for {user.username}'
+            )
+            messages.success(request, f'Welcome back, {user.username}!')
+            return redirect('dashboard')
+    except User.DoesNotExist:
+        # Create a new user
+        base_username = (email.split('@')[0] or 'user').lower()
+        candidate = base_username
+        idx = 1
+        while User.objects.filter(username=candidate).exists():
+            candidate = f"{base_username}{idx}"
+            idx += 1
+
+        user = User(username=candidate, email=email)
+        user.set_unusable_password()
+        # Set first/last name if available
+        full_name = user_info.get('name', '')
+        if full_name:
+            parts = full_name.split(' ')
+            user.first_name = parts[0]
+            user.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+        user.save()
+
+        SecurityAuditLog.objects.create(
+            user=user,
+            event_type=SecurityAuditLog.EventType.LOGIN_SUCCESS,
+            severity=SecurityAuditLog.Severity.INFO,
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+            description=f'New user created via Google SSO: {user.username}'
+        )
+
+        # Save Google connection
+        service.save_connection(user, token_data, user_info)
+
+        # Login new user
+        login(request, user)
+        request.session.set_expiry(1209600)
+        messages.success(request, f'Welcome to WebOps, {user.username}! Your account was created via Google.')
+        return redirect('dashboard')
+
+    # Fallback
+    messages.error(request, 'Unable to log in with Google at this time.')
+    SecurityAuditLog.objects.create(
+        event_type=SecurityAuditLog.EventType.LOGIN_FAILED,
+        severity=SecurityAuditLog.Severity.WARNING,
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+        description='Google SSO login failed after token exchange'
+    )
     return redirect('login')

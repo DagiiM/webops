@@ -109,6 +109,36 @@ class HuggingFaceConnection(models.Model):
         return f"{self.user.username} → Hugging Face @{self.username}"
 
 
+class GoogleConnection(models.Model):
+    """Google OAuth connection for SSO and integrations."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='google_connection'
+    )
+    google_user_id = models.CharField(max_length=100, unique=True)
+    email = models.EmailField()
+    name = models.CharField(max_length=150, blank=True)
+    access_token = models.CharField(max_length=500)  # Encrypted
+    refresh_token = models.CharField(max_length=500, blank=True)  # Encrypted
+    id_token = models.CharField(max_length=1024, blank=True)  # Encrypted
+    token_expires_at = models.DateTimeField(null=True, blank=True)
+    scopes = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_synced = models.DateTimeField(null=True, blank=True)
+    is_valid = models.BooleanField(default=True)
+    last_validation_error = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'core_google_connection'
+        verbose_name = 'Google Connection'
+        verbose_name_plural = 'Google Connections'
+
+    def __str__(self) -> str:
+        return f"{self.user.username} → Google {self.email}"
+
+
 class SecurityAuditLog(BaseModel):
     """Security audit log for all security-relevant events."""
 
@@ -1307,3 +1337,106 @@ class NotificationLog(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.channel.name} - {self.event_type} ({self.status})"
+
+
+class Configuration(BaseModel):
+    """Dynamic configuration settings stored in database."""
+    
+    class ConfigType(models.TextChoices):
+        OAUTH = 'oauth', 'OAuth Configuration'
+        INTEGRATION = 'integration', 'Integration Settings'
+        SYSTEM = 'system', 'System Settings'
+        NOTIFICATION = 'notification', 'Notification Settings'
+        SECURITY = 'security', 'Security Settings'
+    
+    key = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text='Configuration key (e.g., google_oauth_client_id)'
+    )
+    value = models.TextField(
+        blank=True,
+        help_text='Configuration value (encrypted for sensitive data)'
+    )
+    config_type = models.CharField(
+        max_length=20,
+        choices=ConfigType.choices,
+        default=ConfigType.SYSTEM,
+        help_text='Type of configuration'
+    )
+    is_sensitive = models.BooleanField(
+        default=False,
+        help_text='Whether this value should be encrypted'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text='Whether this configuration is active'
+    )
+    description = models.TextField(
+        blank=True,
+        help_text='Description of what this configuration does'
+    )
+    default_value = models.TextField(
+        blank=True,
+        help_text='Default value if not set'
+    )
+    
+    class Meta:
+        db_table = 'core_configuration'
+        verbose_name = 'Configuration'
+        verbose_name_plural = 'Configurations'
+        indexes = [
+            models.Index(fields=['key']),
+            models.Index(fields=['config_type', 'is_active']),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.key} ({self.config_type})"
+    
+    def get_value(self) -> str:
+        """Get the configuration value, decrypting if necessary."""
+        if self.is_sensitive and self.value:
+            # TODO: Implement decryption using the existing encryption service
+            from apps.core.security_services import EncryptionService
+            encryption_service = EncryptionService()
+            try:
+                return encryption_service.decrypt(self.value)
+            except Exception:
+                return self.default_value
+        return self.value or self.default_value
+    
+    def set_value(self, value: str) -> None:
+        """Set the configuration value, encrypting if necessary."""
+        if self.is_sensitive and value:
+            # TODO: Implement encryption using the existing encryption service
+            from apps.core.security_services import EncryptionService
+            encryption_service = EncryptionService()
+            self.value = encryption_service.encrypt(value)
+        else:
+            self.value = value
+    
+    @classmethod
+    def get_config(cls, key: str, default: str = '') -> str:
+        """Get a configuration value by key."""
+        try:
+            config = cls.objects.get(key=key, is_active=True)
+            return config.get_value()
+        except cls.DoesNotExist:
+            return default
+    
+    @classmethod
+    def set_config(cls, key: str, value: str, config_type: str = ConfigType.SYSTEM, 
+                   is_sensitive: bool = False, description: str = '') -> 'Configuration':
+        """Set a configuration value by key."""
+        config, created = cls.objects.get_or_create(
+            key=key,
+            defaults={
+                'value': '',
+                'config_type': config_type,
+                'is_sensitive': is_sensitive,
+                'description': description,
+            }
+        )
+        config.set_value(value)
+        config.save()
+        return config

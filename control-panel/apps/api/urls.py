@@ -41,6 +41,8 @@ urlpatterns = [
     path('deployments/<str:name>/env/validate/', views.deployment_env_validate, name='api_deployment_env_validate'),
     path('deployments/<str:name>/env/set/', views.deployment_env_set, name='api_deployment_env_set'),
     path('deployments/<str:name>/env/unset/', views.deployment_env_unset, name='api_deployment_env_unset'),
+    # Project validation
+    path('deployments/<str:name>/project/validate/', views.deployment_project_validate, name='api_deployment_project_validate'),
 
     # Databases
     path('databases/', views.database_list, name='api_database_list'),

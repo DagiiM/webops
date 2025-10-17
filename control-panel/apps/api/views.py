@@ -601,6 +601,24 @@ def deployment_env_validate(request, name: str) -> JsonResponse:
 
 
 @csrf_exempt
+@require_http_methods(["GET"])
+@api_authentication_required
+def deployment_project_validate(request, name: str) -> JsonResponse:
+    """Validate project structure and requirements for a deployment."""
+    from apps.deployments import api_views as deploy_api
+
+    # Ensure the requesting user owns this deployment before delegating
+    _ = get_object_or_404(
+        Deployment,
+        name=name,
+        deployed_by=request.user
+    )
+
+    # Delegate to the deployments API view for actual validation
+    return deploy_api.validate_project_api(request, name)
+
+
+@csrf_exempt
 @require_http_methods(["POST"])
 @api_authentication_required
 def deployment_env_set(request, name: str) -> JsonResponse:

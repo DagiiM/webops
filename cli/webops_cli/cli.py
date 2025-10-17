@@ -498,7 +498,6 @@ def env_validate(name: str) -> None:
                 console.print(f"  • {var}")
             console.print(f"\nRun: [cyan]webops env:generate {name}[/cyan] to regenerate")
             sys.exit(1)
-
     except WebOpsAPIError as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
@@ -632,13 +631,67 @@ def env_unset(name: str, key: str, restart: bool) -> None:
         sys.exit(1)
 
 
-# Interactive wizard commands
+@main.command(name='project:validate')
+@click.argument('name')
+def project_validate(name: str) -> None:
+    """
+    Validate project structure and requirements for a deployment.
+
+    Example:
+        webops project:validate myapp
+    """
+    client = get_api_client()
+
+    try:
+        with console.status(f"[cyan]Validating project for {name}...", spinner="dots"):
+            result = client.validate_project(deployment_name=name)
+
+        all_passed = result.get('all_passed', False)
+        checks = result.get('results', [])
+
+        if all_passed:
+            console.print("[green]✓[/green] Project validation passed — ready to deploy")
+            return
+
+        errors = sum(1 for r in checks if r.get('level') == 'error')
+        warnings = sum(1 for r in checks if r.get('level') == 'warning')
+        infos = sum(1 for r in checks if r.get('level') == 'info')
+
+        console.print("[red]✗[/red] Project validation found issues")
+        console.print(f"[cyan]Summary:[/cyan] {errors} error(s), {warnings} warning(s), {infos} info")
+        console.print("\n[cyan]Checks:[/cyan]")
+
+        for r in checks:
+            level = r.get('level', 'info')
+            color = {'error': 'red', 'warning': 'yellow', 'info': 'cyan'}.get(level, 'white')
+            icon = '✓' if r.get('passed') else '✗'
+            message = r.get('message', '')
+            console.print(f"  • [{color}]{icon}[/{color}] {message}")
+            details = r.get('details') or {}
+            if details and not r.get('passed'):
+                count = 0
+                for k, v in details.items():
+                    kv = f"{k}: {v}"
+                    if len(kv) > 120:
+                        kv = kv[:120] + "…"
+                    console.print(f"      [dim]{kv}[/dim]")
+                    count += 1
+                    if count >= 5:
+                        break
+
+        sys.exit(1)
+
+    except WebOpsAPIError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
 @main.command(name='setup')
 def setup_wizard():
     """Run the interactive WebOps setup wizard."""
     wizard = SetupWizard()
     success = wizard.run()
-    
+
     if success:
         console.print("\n[green]Setup completed successfully![/green]")
     else:
@@ -650,7 +703,7 @@ def deploy_wizard():
     """Run the interactive deployment wizard."""
     wizard = DeploymentWizard()
     success = wizard.run()
-    
+
     if success:
         console.print("\n[green]Deployment wizard completed successfully![/green]")
     else:
@@ -662,7 +715,7 @@ def troubleshoot_wizard():
     """Run the interactive troubleshooting wizard."""
     wizard = TroubleshootingWizard()
     success = wizard.run()
-    
+
     if success:
         console.print("\n[green]Troubleshooting completed successfully![/green]")
     else:

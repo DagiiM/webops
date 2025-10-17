@@ -150,10 +150,18 @@ MAX_PORT = config('MAX_PORT', default=9000, cast=int)
 ENCRYPTION_KEY = config('ENCRYPTION_KEY', default='')
 GITHUB_TOKEN = config('GITHUB_TOKEN', default='')
 
-# GitHub OAuth Integration
+# OAuth Configuration - Dynamic settings with database fallback
+from config.dynamic_settings import dynamic_settings
+
+# GitHub OAuth
 GITHUB_OAUTH_CLIENT_ID = config('GITHUB_OAUTH_CLIENT_ID', default='')
 GITHUB_OAUTH_CLIENT_SECRET = config('GITHUB_OAUTH_CLIENT_SECRET', default='')
 GITHUB_OAUTH_REDIRECT_URI = config('GITHUB_OAUTH_REDIRECT_URI', default='http://localhost:8000/integrations/github/callback')
+
+# Google OAuth - Static fallback values (will be overridden by dynamic_settings)
+GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
+GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='')
+GOOGLE_OAUTH_REDIRECT_URI = config('GOOGLE_OAUTH_REDIRECT_URI', default='http://localhost:8000/auth/login/google/callback/')
 
 # Hugging Face Integration (uses API tokens, not OAuth)
 # Users will provide their HF tokens through the UI

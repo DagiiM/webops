@@ -25,6 +25,9 @@ urlpatterns = [
     # Branding Settings
     path('settings/branding/', views.branding_settings, name='branding_settings'),
     path('settings/branding/reset/', views.reset_branding, name='reset_branding'),
+    
+    # Google OAuth Configuration
+    path('settings/google-oauth/', views.google_oauth_config, name='google_oauth_config'),
 
     # Platform Integrations
     path('integrations/', integration_views.integrations_dashboard, name='integrations_dashboard'),
@@ -47,4 +50,11 @@ urlpatterns = [
 
     # Notifications (placeholder views to be implemented)
     path('integrations/notifications/', integration_views.notification_list, name='notification_list'),
+    path('login/google/', auth_views.google_login_start, name='google_login'),
+    path('login/google/callback/', auth_views.google_login_callback, name='google_login_callback'),
+    path('integrations/google/connect/', integration_views.google_connect, name='google_connect'),
+    path('integrations/google/oauth/', integration_views.google_connect_oauth, name='google_connect_oauth'),
+    path('integrations/google/callback/', integration_views.google_callback, name='google_callback'),
+    path('integrations/google/disconnect/', integration_views.google_disconnect, name='google_disconnect'),
+    path('integrations/google/test/', integration_views.google_test, name='google_test'),
 ]

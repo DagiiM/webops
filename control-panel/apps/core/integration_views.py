@@ -16,9 +16,10 @@ from django.urls import reverse
 
 from apps.core.integration_services import (
     GitHubIntegrationService,
-    HuggingFaceIntegrationService
+    HuggingFaceIntegrationService,
+    GoogleIntegrationService
 )
-from apps.core.models import GitHubConnection, HuggingFaceConnection
+from apps.core.models import GitHubConnection, HuggingFaceConnection, GoogleConnection
 
 
 @login_required
@@ -49,6 +50,16 @@ def integrations_dashboard(request):
     except HuggingFaceConnection.DoesNotExist:
         pass
 
+    # Check Google connection
+    google_connected = False
+    google_email = None
+    try:
+        g_conn = GoogleConnection.objects.get(user=request.user)
+        google_connected = g_conn.is_valid
+        google_email = g_conn.email
+    except GoogleConnection.DoesNotExist:
+        pass
+
     # Webhook stats
     webhook_count = Webhook.objects.filter(user=request.user, is_active=True).count()
     webhook_triggers = (
@@ -76,7 +87,7 @@ def integrations_dashboard(request):
 
     # Connected platforms
     connected_platforms = sum(
-        [1 for connected in [github_connected, hf_connected] if connected]
+        [1 for connected in [github_connected, hf_connected, google_connected] if connected]
     )
 
     context = {
@@ -84,6 +95,8 @@ def integrations_dashboard(request):
         "github_username": github_username,
         "hf_connected": hf_connected,
         "hf_username": hf_username,
+        "google_connected": google_connected,
+        "google_email": google_email,
         "webhook_count": webhook_count,
         "notification_count": notification_count,
         "webhook_triggers": webhook_triggers,
@@ -612,3 +625,106 @@ def notification_delete(request, channel_id):
 
     messages.success(request, f'Notification channel "{channel_name}" deleted successfully.')
     return redirect('notification_list')
+
+
+@login_required
+def google_connect(request):
+    """
+    Entry page for Google integration. Provides OAuth connect button.
+    """
+    from config.dynamic_settings import dynamic_settings
+    if not dynamic_settings.GOOGLE_OAUTH_CLIENT_ID or not dynamic_settings.GOOGLE_OAUTH_CLIENT_SECRET:
+        messages.error(request, 'Google OAuth is not configured.')
+    return render(request, 'integrations/google_connect.html')
+
+
+@login_required
+def google_connect_oauth(request):
+    """
+    Initiate Google OAuth flow for integration.
+    """
+    from config.dynamic_settings import dynamic_settings
+    if not dynamic_settings.GOOGLE_OAUTH_CLIENT_ID or not dynamic_settings.GOOGLE_OAUTH_CLIENT_SECRET:
+        messages.error(request, 'Google OAuth is not configured.')
+        return redirect('google_connect')
+
+    state = secrets.token_urlsafe(32)
+    request.session['google_oauth_state'] = state
+
+    redirect_uri = request.build_absolute_uri(reverse('google_callback'))
+
+    google_service = GoogleIntegrationService()
+    auth_url = google_service.get_authorization_url(redirect_uri, state)
+    return redirect(auth_url)
+
+
+@login_required
+def google_callback(request):
+    """
+    Handle Google OAuth callback for integration.
+    """
+    state = request.GET.get('state')
+    session_state = request.session.get('google_oauth_state')
+    if not state or state != session_state:
+        messages.error(request, 'Invalid OAuth state. Please try again.')
+        return redirect('integrations_dashboard')
+
+    if 'google_oauth_state' in request.session:
+        del request.session['google_oauth_state']
+
+    code = request.GET.get('code')
+    if not code:
+        error = request.GET.get('error', 'Unknown error')
+        messages.error(request, f'Google authorization failed: {error}')
+        return redirect('integrations_dashboard')
+
+    google_service = GoogleIntegrationService()
+    redirect_uri = request.build_absolute_uri(reverse('google_callback'))
+    token_data = google_service.exchange_code_for_token(code, redirect_uri)
+
+    if not token_data:
+        messages.error(request, 'Failed to exchange authorization code for tokens.')
+        return redirect('integrations_dashboard')
+
+    access_token = token_data.get('access_token')
+    user_info = google_service.get_user_info(access_token) if access_token else None
+    if not user_info:
+        messages.error(request, 'Failed to retrieve Google user information.')
+        return redirect('integrations_dashboard')
+
+    connection = google_service.save_connection(request.user, token_data, user_info)
+    if connection:
+        messages.success(request, f'Successfully connected to Google as {connection.email}!')
+    else:
+        messages.error(request, 'Failed to save Google connection.')
+
+    return redirect('integrations_dashboard')
+
+
+@login_required
+@require_http_methods(["POST"])
+def google_disconnect(request):
+    """
+    Disconnect Google integration.
+    """
+    google_service = GoogleIntegrationService()
+    success = google_service.disconnect(request.user)
+    if success:
+        messages.success(request, 'Google account disconnected successfully.')
+    else:
+        messages.warning(request, 'No Google connection found.')
+    return redirect('integrations_dashboard')
+
+
+@login_required
+@require_http_methods(["POST"])
+def google_test(request):
+    """
+    Test Google integration connection.
+    """
+    google_service = GoogleIntegrationService()
+    is_valid, message = google_service.test_connection(request.user)
+    return JsonResponse({
+        'valid': is_valid,
+        'message': message
+    })

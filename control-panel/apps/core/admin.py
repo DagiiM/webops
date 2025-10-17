@@ -17,6 +17,7 @@ from apps.core.models import (
     WebhookDelivery,
     NotificationChannel,
     NotificationLog,
+    GoogleConnection,
 )
 
 
@@ -185,3 +186,13 @@ class NotificationLogAdmin(admin.ModelAdmin):
     search_fields = ['channel__name', 'subject', 'message']
     readonly_fields = ['created_at', 'updated_at', 'metadata']
     date_hierarchy = 'created_at'
+
+
+@admin.register(GoogleConnection)
+class GoogleConnectionAdmin(admin.ModelAdmin):
+    """Admin interface for Google connections."""
+
+    list_display = ['user', 'email', 'is_valid', 'created_at', 'last_synced']
+    list_filter = ['is_valid']
+    search_fields = ['user__username', 'email']
+    readonly_fields = ['access_token', 'refresh_token', 'id_token', 'created_at', 'last_synced']

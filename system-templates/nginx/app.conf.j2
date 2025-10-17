@@ -9,6 +9,9 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
+    {% if csp %}
+    add_header Content-Security-Policy "{{ csp }}" always;
+    {% endif %}
 
     # Logging
     access_log /var/log/nginx/{{ app_name }}-access.log;

@@ -85,6 +85,16 @@
                         </a>
                     </div>
                 </form>
+
+                <!-- Social Sign Up -->
+                <div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
+                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                    <span style="font-size: var(--webops-font-size-sm);">or</span>
+                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                </div>
+                <a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
+                    Sign up with Google
+                </a>
             </div>
         </div>
     </div>

@@ -159,6 +159,90 @@
     </div>
 </div>
 
+    <!-- Google Integration Card -->
+    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: all var(--webops-transition-base);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
+                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #4285F4, #34A853); display: flex; align-items: center; justify-content: center;">
+                    <span class="material-icons" style="font-size: 28px; color: white;">account_circle</span>
+                </div>
+                <div>
+                    <h3 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                        Google
+                    </h3>
+                    <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                        OAuth
+                    </p>
+                </div>
+            </div>
+            {% if google_connected %}
+            <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-semibold);">
+                Connected
+            </span>
+            {% endif %}
+        </div>
+
+        {% if google_connected %}
+        <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
+            <div style="display: flex; align-items: center; gap: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
+                <span class="material-icons" style="color: var(--webops-color-success);">check_circle</span>
+                <div>
+                    <div style="font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
+                        Connected as <strong>{{ google_email }}</strong>
+                    </div>
+                    <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-secondary);">
+                        SSO and profile sync enabled
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: var(--webops-space-1-5);">
+            <form method="post" action="{% url 'google_disconnect' %}" style="flex: 1;">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+                    Disconnect
+                </button>
+            </form>
+            <button type="button" onclick="testGoogle()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+                Test Connection
+            </button>
+        </div>
+        <div style="margin-top: var(--webops-space-2);">
+            <a href="{% url 'google_oauth_config' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: all var(--webops-transition-fast);">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
+                Configure OAuth Settings
+            </a>
+        </div>
+        {% else %}
+        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+            Connect your Google account to enable one-click SSO and profile sync.
+        </p>
+        <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
+            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
+                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                Single Sign-On with Google
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
+                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                Sync basic profile and email
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
+                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                Secure OAuth 2.0 flow
+            </li>
+        </ul>
+        <div style="display: flex; flex-direction: column; gap: var(--webops-space-2);">
+            <a href="{% url 'google_oauth_config' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-2) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: all var(--webops-transition-fast);">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
+                Configure OAuth Settings
+            </a>
+            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: all var(--webops-transition-fast);">
+                Connect Google Account
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
 <!-- Webhooks & Automation Section -->
 <div style="margin-top: var(--webops-space-3xl);">
     <h2 style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-3);">
@@ -315,6 +399,19 @@ function testGitHub() {
 
 function testHF() {
     fetch('{% url "huggingface_test" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert(data.valid ? '✓ ' + data.message : '✗ ' + data.message);
+    });
+}
+
+function testGoogle() {
+    fetch('{% url "google_test" %}', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}'

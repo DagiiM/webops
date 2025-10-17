@@ -24,6 +24,7 @@ import logging
 
 from apps.core.utils import generate_port, validate_repo_url, generate_secret_key
 from .models import Deployment, DeploymentLog
+from .validators import validate_project
 
 logger = logging.getLogger(__name__)
 
@@ -945,6 +946,7 @@ PORT={deployment.port}
             'repo_path': str(repo_path),
             'static_root': str(repo_path / 'staticfiles'),
             'media_root': str(repo_path / 'media'),
+            'csp': (deployment.env_vars or {}).get('CSP')
         }
 
         return template.render(**context)
@@ -963,8 +965,30 @@ PORT={deployment.port}
         venv_path = self.get_venv_path(deployment)
         template = self.jinja_env.get_template('systemd/app.service.j2')
 
-        # Find wsgi module (assuming common Django structure)
-        wsgi_module = f"{deployment.name}.wsgi:application"
+        # Detect ASGI/WSGI module paths
+        excluded_dirs = {'migrations', 'tests', 'test', 'venv', 'env', '__pycache__', '.git'}
+
+        def _find_module(filename: str):
+            files = list(repo_path.rglob(filename))
+            valid = [f for f in files if not any(part in excluded_dirs for part in f.relative_to(repo_path).parts)]
+            if not valid:
+                return None
+            rel = valid[0].relative_to(repo_path)
+            dotted = ".".join(rel.with_suffix('').parts)
+            return f"{dotted}:application"
+
+        asgi_module = _find_module('asgi.py')
+        wsgi_module = _find_module('wsgi.py')
+
+        is_asgi = asgi_module is not None
+        app_module = asgi_module if is_asgi else (wsgi_module or f"{deployment.name}.wsgi:application")
+        worker_class = 'uvicorn.workers.UvicornWorker' if is_asgi else None
+        extra_gunicorn_args = f"--worker-class {worker_class}" if worker_class else ""
+
+        if is_asgi:
+            self.log(deployment, f"ASGI module detected: {asgi_module}. Using UvicornWorker.")
+        else:
+            self.log(deployment, f"ASGI module not found. Using WSGI: {app_module}")
 
         context = {
             'app_name': deployment.name,
@@ -973,7 +997,8 @@ PORT={deployment.port}
             'venv_path': str(venv_path),
             'port': deployment.port,
             'workers': 2,
-            'wsgi_module': wsgi_module,
+            'app_module': app_module,
+            'extra_gunicorn_args': extra_gunicorn_args,
             'log_path': str(self.get_deployment_path(deployment) / 'logs'),
             'env_vars': deployment.env_vars or {},
         }
@@ -1138,6 +1163,37 @@ PORT={deployment.port}
                 'error': error,
                 'deployment_id': deployment.id
             }
+
+        # Run project validation before creating services
+        try:
+            repo_path = self.get_repo_path(deployment)
+            all_passed, results = validate_project(repo_path)
+
+            # Log all validation results
+            for r in results:
+                log_level = (
+                    DeploymentLog.Level.ERROR if r.level == 'error' else
+                    DeploymentLog.Level.WARNING if r.level == 'warning' else
+                    DeploymentLog.Level.INFO
+                )
+                self.log(deployment, f"[validation] {r.message}", log_level)
+
+            if not all_passed:
+                self.log(
+                    deployment,
+                    "Project validation failed; aborting service creation",
+                    DeploymentLog.Level.ERROR
+                )
+                deployment.status = Deployment.Status.FAILED
+                deployment.save(update_fields=['status'])
+                return {
+                    'success': False,
+                    'error': 'Project validation failed. Fix errors and retry.',
+                    'deployment_id': deployment.id
+                }
+        except Exception as e:
+            # If validation unexpectedly errors, log and continue (non-blocking)
+            self.log(deployment, f"Validation step encountered an error: {e}", DeploymentLog.Level.WARNING)
 
         # Create service manager
         service_manager = ServiceManager()

@@ -172,20 +172,48 @@ function initializeUserMenu() {
 function initializeSettingsButton() {
     const settingsButton = document.getElementById('settingsButton');
     const userSettingsButton = document.getElementById('userSettingsButton');
-    
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettings = document.getElementById('closeSettings');
+
+    function openSettingsModal() {
+        if (settingsModal) {
+            settingsModal.classList.add('active');
+        }
+    }
+
+    function closeSettingsModal() {
+        if (settingsModal) {
+            settingsModal.classList.remove('active');
+        }
+    }
+
     if (settingsButton) {
-        settingsButton.addEventListener('click', function() {
-            // Handle settings button click
-            console.log('Settings button clicked');
-            // You can implement settings modal or navigation here
+        settingsButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSettingsModal();
         });
     }
     
     if (userSettingsButton) {
-        userSettingsButton.addEventListener('click', function() {
-            // Handle user settings button click
-            console.log('User settings button clicked');
-            // You can implement user settings modal or navigation here
+        userSettingsButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSettingsModal();
+        });
+    }
+
+    if (closeSettings) {
+        closeSettings.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeSettingsModal();
+        });
+    }
+
+    // Close modal on overlay click
+    if (settingsModal) {
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) {
+                closeSettingsModal();
+            }
         });
     }
 }

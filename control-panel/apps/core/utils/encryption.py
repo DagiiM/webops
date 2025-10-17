@@ -38,9 +38,15 @@ def encrypt_password(password: str) -> str:
         Encrypted password string
     """
     if not settings.ENCRYPTION_KEY:
-        raise ValueError("ENCRYPTION_KEY not configured in settings")
+        raise ValueError("ENCRYPTION_KEY not configured in settings. Set a valid Fernet key in .env")
 
-    fernet = Fernet(settings.ENCRYPTION_KEY.encode())
+    try:
+        fernet = Fernet(settings.ENCRYPTION_KEY.encode())
+    except Exception as e:
+        raise ValueError(
+            "Invalid ENCRYPTION_KEY: must be 32 url-safe base64-encoded bytes.\n"
+            "Generate one with: from cryptography.fernet import Fernet; Fernet.generate_key().decode()"
+        ) from e
     return fernet.encrypt(password.encode()).decode()
 
 
@@ -55,7 +61,13 @@ def decrypt_password(encrypted: str) -> str:
         Plain text password
     """
     if not settings.ENCRYPTION_KEY:
-        raise ValueError("ENCRYPTION_KEY not configured in settings")
+        raise ValueError("ENCRYPTION_KEY not configured in settings. Set a valid Fernet key in .env")
 
-    fernet = Fernet(settings.ENCRYPTION_KEY.encode())
+    try:
+        fernet = Fernet(settings.ENCRYPTION_KEY.encode())
+    except Exception as e:
+        raise ValueError(
+            "Invalid ENCRYPTION_KEY: must be 32 url-safe base64-encoded bytes.\n"
+            "Generate one with: from cryptography.fernet import Fernet; Fernet.generate_key().decode()"
+        ) from e
     return fernet.decrypt(encrypted.encode()).decode()

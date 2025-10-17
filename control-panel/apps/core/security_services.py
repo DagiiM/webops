@@ -15,7 +15,51 @@ from typing import Dict, Any, Optional, Tuple
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
+from cryptography.fernet import Fernet
 from .models import TwoFactorAuth, GitHubConnection, SecurityAuditLog, SystemHealthCheck
+
+
+class EncryptionService:
+    """
+    Encryption service for sensitive configuration data.
+    Uses Fernet (symmetric encryption) for secure storage.
+    """
+    
+    @staticmethod
+    def _get_encryption_key() -> bytes:
+        """Get or generate encryption key from Django secret key."""
+        # Use Django's SECRET_KEY to derive a consistent encryption key
+        key_material = settings.SECRET_KEY.encode('utf-8')
+        # Use HKDF to derive a proper 32-byte key for Fernet
+        derived_key = hashlib.pbkdf2_hmac('sha256', key_material, b'webops-config', 100000)
+        return base64.urlsafe_b64encode(derived_key)
+    
+    @staticmethod
+    def encrypt(plaintext: str) -> str:
+        """Encrypt a plaintext string."""
+        if not plaintext:
+            return plaintext
+        
+        key = EncryptionService._get_encryption_key()
+        fernet = Fernet(key)
+        encrypted_bytes = fernet.encrypt(plaintext.encode('utf-8'))
+        return base64.urlsafe_b64encode(encrypted_bytes).decode('utf-8')
+    
+    @staticmethod
+    def decrypt(encrypted_text: str) -> str:
+        """Decrypt an encrypted string."""
+        if not encrypted_text:
+            return encrypted_text
+        
+        try:
+            key = EncryptionService._get_encryption_key()
+            fernet = Fernet(key)
+            encrypted_bytes = base64.urlsafe_b64decode(encrypted_text.encode('utf-8'))
+            decrypted_bytes = fernet.decrypt(encrypted_bytes)
+            return decrypted_bytes.decode('utf-8')
+        except Exception:
+            # If decryption fails, return the original text (might be unencrypted)
+            return encrypted_text
 
 
 class TOTPService:
@@ -434,121 +478,71 @@ class SystemHealthService:
         }
 
 
-class GitHubOAuthService:
-    """Service for GitHub OAuth integration."""
+class GoogleOAuthService:
+    """Helpers for Google OAuth: auth URL, token exchange, and user info."""
 
-    GITHUB_OAUTH_URL = "https://github.com/login/oauth/authorize"
-    GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
-    GITHUB_API_URL = "https://api.github.com"
+    AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+    TOKEN_URL = "https://oauth2.googleapis.com/token"
+    USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
-    @staticmethod
-    def get_authorization_url(redirect_uri: str) -> str:
-        """
-        Get GitHub OAuth authorization URL.
+    def __init__(self):
+        self.client_id = settings.GOOGLE_OAUTH_CLIENT_ID
+        self.client_secret = settings.GOOGLE_OAUTH_CLIENT_SECRET
 
-        Args:
-            redirect_uri: Callback URL
-
-        Returns:
-            Authorization URL
-        """
+    def get_authorization_url(self, redirect_uri: str, state: str) -> str:
         from urllib.parse import urlencode
-
         params = {
-            'client_id': settings.GITHUB_CLIENT_ID,
-            'redirect_uri': redirect_uri,
-            'scope': 'repo,read:user,user:email',
-            'state': secrets.token_urlsafe(32),
+            "client_id": self.client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "state": state,
+            "access_type": "offline",
+            "include_granted_scopes": "true",
+            "prompt": "consent",
         }
+        return f"{self.AUTH_URL}?{urlencode(params)}"
 
-        return f"{GitHubOAuthService.GITHUB_OAUTH_URL}?{urlencode(params)}"
-
-    @staticmethod
-    def exchange_code_for_token(code: str) -> Optional[Dict[str, Any]]:
-        """
-        Exchange authorization code for access token.
-
-        Args:
-            code: Authorization code from GitHub
-
-        Returns:
-            Token response or None
-        """
-        import requests
-
-        data = {
-            'client_id': settings.GITHUB_CLIENT_ID,
-            'client_secret': settings.GITHUB_CLIENT_SECRET,
-            'code': code,
-        }
-
-        response = requests.post(
-            GitHubOAuthService.GITHUB_TOKEN_URL,
-            data=data,
-            headers={'Accept': 'application/json'}
-        )
-
-        if response.status_code == 200:
-            return response.json()
-
-        return None
-
-    @staticmethod
-    def get_user_info(access_token: str) -> Optional[Dict[str, Any]]:
-        """
-        Get GitHub user information.
-
-        Args:
-            access_token: GitHub access token
-
-        Returns:
-            User info or None
-        """
-        import requests
-
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Accept': 'application/json'
-        }
-
-        response = requests.get(
-            f"{GitHubOAuthService.GITHUB_API_URL}/user",
-            headers=headers
-        )
-
-        if response.status_code == 200:
-            return response.json()
-
-        return None
-
-    @staticmethod
-    def create_connection(user: User, access_token: str, user_info: Dict[str, Any]) -> GitHubConnection:
-        """
-        Create or update GitHub connection for user.
-
-        Args:
-            user: Django user
-            access_token: GitHub access token
-            user_info: GitHub user information
-
-        Returns:
-            GitHubConnection instance
-        """
-        from cryptography.fernet import Fernet
-
-        # Encrypt access token
-        f = Fernet(settings.ENCRYPTION_KEY.encode())
-        encrypted_token = f.encrypt(access_token.encode()).decode()
-
-        connection, created = GitHubConnection.objects.update_or_create(
-            user=user,
-            defaults={
-                'github_user_id': user_info['id'],
-                'username': user_info['login'],
-                'access_token': encrypted_token,
-                'scopes': user_info.get('scope', '').split(','),
-                'last_synced': timezone.now()
+    def exchange_code_for_token(self, code: str, redirect_uri: str) -> Optional[Dict[str, Any]]:
+        try:
+            data = {
+                "code": code,
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
             }
-        )
+            resp = requests.post(self.TOKEN_URL, data=data, timeout=10)
+            if resp.status_code == 200:
+                return resp.json()
+            logger.error(f"Google token exchange failed HTTP {resp.status_code}: {resp.text}")
+        except Exception:
+            logger.exception("Google token exchange exception")
+        return None
 
-        return connection
+    def refresh_access_token(self, refresh_token: str) -> Optional[Dict[str, Any]]:
+        try:
+            data = {
+                "refresh_token": refresh_token,
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "grant_type": "refresh_token",
+            }
+            resp = requests.post(self.TOKEN_URL, data=data, timeout=10)
+            if resp.status_code == 200:
+                return resp.json()
+            logger.error(f"Google token refresh failed HTTP {resp.status_code}: {resp.text}")
+        except Exception:
+            logger.exception("Google token refresh exception")
+        return None
+
+    def get_user_info(self, access_token: str) -> Optional[Dict[str, Any]]:
+        try:
+            headers = {"Authorization": f"Bearer {access_token}"}
+            resp = requests.get(self.USERINFO_URL, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                return resp.json()
+            logger.error(f"Google userinfo failed HTTP {resp.status_code}: {resp.text}")
+        except Exception:
+            logger.exception("Google userinfo exception")
+        return None

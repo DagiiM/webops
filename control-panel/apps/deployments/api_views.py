@@ -21,6 +21,7 @@ import json
 from .models import Deployment, DeploymentLog
 from .tasks import deploy_application, restart_deployment, stop_deployment
 from apps.core.env_manager import EnvManager
+from .validators import validate_project
 
 
 @login_required
@@ -345,6 +346,50 @@ def generate_env_api(request, name: str) -> JsonResponse:
                 'success': False,
                 'error': message
             }, status=400)
+
+    except Deployment.DoesNotExist:
+        return JsonResponse({'error': f'Deployment {name} not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def validate_project_api(request, name: str) -> JsonResponse:
+    """
+    Validate deployment project structure and requirements.
+
+    GET /api/deployments/{name}/project/validate/
+    """
+    try:
+        deployment = Deployment.objects.get(name=name)
+
+        # Get repo path
+        from .services import DeploymentService
+        service = DeploymentService()
+        repo_path = service.get_repo_path(deployment)
+
+        if not repo_path.exists():
+            return JsonResponse(
+                {'error': 'Repository not cloned yet. Deploy first.'},
+                status=400
+            )
+
+        all_passed, results = validate_project(repo_path)
+
+        return JsonResponse({
+            'success': True,
+            'all_passed': all_passed,
+            'results': [
+                {
+                    'passed': r.passed,
+                    'message': r.message,
+                    'level': r.level,
+                    'details': r.details,
+                }
+                for r in results
+            ]
+        })
 
     except Deployment.DoesNotExist:
         return JsonResponse({'error': f'Deployment {name} not found'}, status=404)
