@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Virtual Machines{% endblock %}
+
+{% block extra_head %}
+<style>
+    .vm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .vm-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        transition: box-shadow 0.2s;
+    }
+
+    .vm-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .vm-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .vm-name {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .vm-state {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .vm-state.running {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .vm-state.stopped {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .vm-state.paused {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .vm-details {
+        margin: 15px 0;
+    }
+
+    .vm-detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .vm-detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .vm-detail-label {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .vm-detail-value {
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .vm-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 10px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+    }
+
+    .ssh-command {
+        background: #f5f5f5;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        word-break: break-all;
+    }
+
+    .snapshot-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .snapshot-list {
+        max-height: 150px;
+        overflow-y: auto;
+        margin-top: 10px;
+    }
+
+    .snapshot-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px;
+        background: #f9f9f9;
+        margin-bottom: 4px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    .snapshot-actions {
+        display: flex;
+        gap: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>My Virtual Machines</h1>
+        <a href="{% url 'deployments:deployment_create' %}" class="btn btn-primary">
+            + New VM
+        </a>
+    </div>
+
+    {% if vms %}
+        <div class="vm-grid">
+            {% for vm in vms %}
+            <div class="vm-card" data-vm-id="{{ vm.deployment.id }}">
+                <div class="vm-header">
+                    <h3 class="vm-name">{{ vm.vm_name }}</h3>
+                    <span class="vm-state {{ vm.libvirt_state }}">{{ vm.libvirt_state|title }}</span>
+                </div>
+
+                <div class="vm-details">
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">Plan</span>
+                        <span class="vm-detail-value">{{ vm.vm_plan.display_name }}</span>
+                    </div>
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">OS</span>
+                        <span class="vm-detail-value">{{ vm.os_template.display_name }}</span>
+                    </div>
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">Resources</span>
+                        <span class="vm-detail-value">
+                            {{ vm.vcpus }} vCPU, {{ vm.memory_mb|filesizeformat }}
+                        </span>
+                    </div>
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">IP Address</span>
+                        <span class="vm-detail-value">{{ vm.ip_address|default:"Pending" }}</span>
+                    </div>
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">SSH</span>
+                        <span class="vm-detail-value ssh-command">{{ vm.get_ssh_command }}</span>
+                    </div>
+                    <div class="vm-detail-row">
+                        <span class="vm-detail-label">Created</span>
+                        <span class="vm-detail-value">{{ vm.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="vm-actions">
+                    <a href="{% url 'kvm:console' vm.deployment.id %}" class="btn btn-primary btn-sm">
+                        Console
+                    </a>
+
+                    {% if vm.libvirt_state == 'running' %}
+                        <button class="btn btn-warning btn-sm" onclick="vmAction({{ vm.deployment.id }}, 'restart')">
+                            Restart
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="vmAction({{ vm.deployment.id }}, 'stop')">
+                            Stop
+                        </button>
+                    {% elif vm.libvirt_state == 'stopped' %}
+                        <button class="btn btn-success btn-sm" onclick="vmAction({{ vm.deployment.id }}, 'start')">
+                            Start
+                        </button>
+                    {% endif %}
+
+                    <button class="btn btn-secondary btn-sm" onclick="showSnapshots({{ vm.deployment.id }})">
+                        Snapshots
+                    </button>
+                </div>
+
+                <!-- Snapshot section (initially hidden) -->
+                <div class="snapshot-section" id="snapshots-{{ vm.deployment.id }}" style="display:none;">
+                    <strong>Snapshots:</strong>
+                    <div class="snapshot-list" id="snapshot-list-{{ vm.deployment.id }}">
+                        Loading...
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="createSnapshot({{ vm.deployment.id }})">
+                        + Create Snapshot
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>No Virtual Machines Yet</h3>
+            <p>Create your first VM to get started</p>
+            <a href="{% url 'deployments:deployment_create' %}" class="btn btn-primary">
+                Create VM
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+async function vmAction(deploymentId, action) {
+    const button = event.target;
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Processing...';
+
+    try {
+        const response = await fetch(`/kvm/api/vm/${deploymentId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`VM ${action} successful`);
+            location.reload();
+        } else {
+            alert(`Failed to ${action} VM: ` + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+async function showSnapshots(deploymentId) {
+    const section = document.getElementById(`snapshots-${deploymentId}`);
+
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        await loadSnapshots(deploymentId);
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+async function loadSnapshots(deploymentId) {
+    const listEl = document.getElementById(`snapshot-list-${deploymentId}`);
+    listEl.textContent = 'Loading...';
+
+    try {
+        const response = await fetch(`/kvm/api/vm/${deploymentId}/snapshots/`);
+        const data = await response.json();
+
+        if (data.snapshots.length === 0) {
+            listEl.textContent = 'No snapshots yet';
+            return;
+        }
+
+        listEl.innerHTML = '';
+        data.snapshots.forEach(snap => {
+            const item = document.createElement('div');
+            item.className = 'snapshot-item';
+            item.innerHTML = `
+                <span>${snap.name} - ${new Date(snap.created_at).toLocaleDateString()}</span>
+                <div class="snapshot-actions">
+                    <button class="btn btn-sm btn-primary" onclick="restoreSnapshot(${deploymentId}, ${snap.id})">Restore</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteSnapshot(${deploymentId}, ${snap.id})">Delete</button>
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    } catch (error) {
+        listEl.textContent = 'Error loading snapshots';
+        console.error(error);
+    }
+}
+
+async function createSnapshot(deploymentId) {
+    const name = prompt('Enter snapshot name:');
+    if (!name) return;
+
+    const description = prompt('Enter description (optional):') || '';
+
+    try {
+        const response = await fetch(`/kvm/api/vm/${deploymentId}/snapshots/create/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, description }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Snapshot created successfully');
+            await loadSnapshots(deploymentId);
+        } else {
+            alert('Failed to create snapshot: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function restoreSnapshot(deploymentId, snapshotId) {
+    if (!confirm('Are you sure you want to restore this snapshot? Current VM state will be lost.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/kvm/api/vm/${deploymentId}/snapshots/${snapshotId}/restore/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Snapshot restored successfully');
+            location.reload();
+        } else {
+            alert('Failed to restore snapshot: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function deleteSnapshot(deploymentId, snapshotId) {
+    if (!confirm('Are you sure you want to delete this snapshot?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/kvm/api/vm/${deploymentId}/snapshots/${snapshotId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Snapshot deleted successfully');
+            await loadSnapshots(deploymentId);
+        } else {
+            alert('Failed to delete snapshot: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Auto-refresh VM states every 30 seconds
+setInterval(() => {
+    document.querySelectorAll('[data-vm-id]').forEach(async card => {
+        const deploymentId = card.dataset.vmId;
+        try {
+            const response = await fetch(`/kvm/api/vm/${deploymentId}/state/`);
+            const data = await response.json();
+            const stateEl = card.querySelector('.vm-state');
+            stateEl.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+            stateEl.className = 'vm-state ' + data.state;
+        } catch (error) {
+            console.error('Error updating state:', error);
+        }
+    });
+}, 30000);
+</script>
+{% endblock %}

@@ -142,7 +142,7 @@
                 <h4 class="webops-text-sm webops-font-semibold webops-mb-sm">Recent Executions</h4>
                 <div class="webops-flex webops-gap-xs webops-flex-wrap">
                     {% for execution in item.recent_executions %}
-                    <a href="{% url 'execution_detail' execution.id %}"
+                    <a href="{% url 'automation:execution_detail' execution.id %}"
                        class="webops-badge webops-badge-{{ execution.status|yesno:'success,error,warning,info,secondary,warning' }}"
                        title="{{ execution.started_at|date:'Y-m-d H:i' }} - {{ execution.get_status_display }}">
                         <span class="material-icons webops-icon-xs">

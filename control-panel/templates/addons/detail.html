@@ -1,36 +1,72 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ addon.name }} - Addon Details{% endblock %}
-{% block content %}
-<div class="webops-container">
-    <!-- Header with Back Button -->
-    <div class="webops-addon-detail-header">
-        <a href="{% url 'addons:addons_list' %}" class="webops-back-button">
-            <span class="material-icons">arrow_back</span>
-            Back to Addons
-        </a>
 
-        <div class="webops-addon-detail-title-section">
-            <div class="webops-addon-detail-title-wrapper">
-                <div class="webops-addon-detail-icon">
-                    <span class="material-icons">extension</span>
+{% block extra_css_first %}
+<link rel="stylesheet" href="{% static 'css/addon-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+  
+<div class="webops-container">
+    <!-- Enhanced Header with Gradient Background -->
+    <div class="webops-addon-detail__header">
+        <div class="webops-addon-detail__header-background"></div>
+        <div class="webops-addon-detail__header-content">
+            <a href="{% url 'addons:addons_list' %}" class="webops-addon-detail__back-button">
+                <span class="material-icons webops-addon-detail__back-button--icon">arrow_back</span>
+                Back to Addons
+            </a>
+
+            <div class="webops-addon-detail__title-section">
+                <div class="webops-addon-detail__title-wrapper">
+                    <div class="webops-addon-detail__icon">
+                        <span class="material-icons">extension</span>
+                        <div class="webops-addon-detail__icon-glow"></div>
+                    </div>
+                    <div class="webops-addon-detail__title-content">
+                        <h1 class="webops-addon-detail__title">{{ addon.name }}</h1>
+                        <div class="webops-addon-detail__meta">
+                            <span class="webops-addon-detail__meta-item">
+                                <span class="material-icons">info</span>
+                                Version {{ addon.version }}
+                            </span>
+                            {% if addon.author %}
+                            <span class="webops-addon-detail__meta-item">
+                                <span class="material-icons">person</span>
+                                {{ addon.author }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="webops-page-title">{{ addon.name }}</h1>
-                    <p class="webops-addon-detail-version">Version {{ addon.version }}</p>
+
+                <div class="webops-addon-detail__status {% if addon.enabled %}webops-addon-detail__status--active{% else %}webops-addon-detail__status--inactive{% endif %}">
+                    <div class="webops-addon-detail__status-indicator {% if addon.enabled %}webops-addon-detail__status-indicator--active{% else %}webops-addon-detail__status-indicator--inactive{% endif %}"></div>
+                    <span class="material-icons">{% if addon.enabled %}check_circle{% else %}cancel{% endif %}</span>
+                    <span>{% if addon.enabled %}Active{% else %}Inactive{% endif %}</span>
                 </div>
             </div>
 
-            <div class="webops-addon-detail-status">
-                {% if addon.enabled %}
-                    <span class="webops-addon-status-badge webops-addon-status-enabled">
-                        <span class="material-icons">check_circle</span>
-                        Enabled
-                    </span>
-                {% else %}
-                    <span class="webops-addon-status-badge webops-addon-status-disabled">
-                        <span class="material-icons">cancel</span>
-                        Disabled
-                    </span>
+            <!-- Quick Stats Bar -->
+            <div class="webops-addon-detail__quick-stats">
+                <div class="webops-addon-detail__quick-stat">
+                    <span class="webops-addon-detail__quick-stat-value">{{ total_runs }}</span>
+                    <span class="webops-addon-detail__quick-stat-label">Total Runs</span>
+                </div>
+                <div class="webops-addon-detail__quick-stat">
+                    <span class="webops-addon-detail__quick-stat-value">{{ addon.success_count }}</span>
+                    <span class="webops-addon-detail__quick-stat-label">Successes</span>
+                </div>
+                <div class="webops-addon-detail__quick-stat">
+                    <span class="webops-addon-detail__quick-stat-value">{{ addon.failure_count }}</span>
+                    <span class="webops-addon-detail__quick-stat-label">Failures</span>
+                </div>
+                {% if total_runs > 0 %}
+                <div class="webops-addon-detail__quick-stat">
+                    <span class="webops-addon-detail__quick-stat-value">{{ success_rate|floatformat:1 }}%</span>
+                    <span class="webops-addon-detail__quick-stat-label">Success Rate</span>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -40,8 +76,11 @@
     {% if messages %}
     <div style="margin-bottom: var(--webops-space-4);">
         {% for message in messages %}
-        <div class="webops-addon-alert {% if message.tags == 'success' %}webops-addon-alert-success{% elif message.tags == 'warning' %}webops-addon-alert-warning{% else %}webops-addon-alert-info{% endif %}">
-            <span class="material-icons">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</span>
+        <div class="webops-addon-detail__alert
+            {% if message.tags == 'success' %}webops-addon-detail__alert--success{% elif message.tags == 'warning' %}webops-addon-detail__alert--warning{% elif message.tags == 'error' %}webops-addon-detail__alert--error{% else %}webops-addon-detail__alert--info{% endif %}">
+            <span class="material-icons">
+                {% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% elif message.tags == 'error' %}error{% else %}info{% endif %}
+            </span>
             <span>{{ message }}</span>
         </div>
         {% endfor %}
@@ -49,33 +88,61 @@
     {% endif %}
 
     <!-- Main Content Grid -->
-    <div class="webops-addon-detail-grid">
+    <div class="webops-addon-detail__grid">
         <!-- Left Column -->
-        <div class="webops-addon-detail-main">
+        <div class="webops-addon-detail__main">
             <!-- Description Card -->
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Description</h3>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">description</span>
+                        <h3 class="webops-addon-detail__card-title">Description</h3>
+                    </div>
                 </div>
-                <div class="webops-card-body">
-                    <p class="webops-addon-detail-description">
+                <div class="webops-addon-detail__card-body">
+                    <p class="webops-addon-detail__description">
                         {{ addon.description|default:"No description available for this addon." }}
                     </p>
                 </div>
             </div>
 
-            <!-- Capabilities Card -->
+            <!-- Enhanced Capabilities Card -->
+            {% load addon_filters %}
             {% if addon.capabilities %}
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Capabilities</h3>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">verified</span>
+                        <h3 class="webops-addon-detail__card-title">Capabilities</h3>
+                    </div>
+                    <div class="webops-addon-detail__capabilities-count">
+                        {{ addon.capabilities|length }} feature{{ addon.capabilities|length|pluralize }}
+                    </div>
                 </div>
-                <div class="webops-card-body">
-                    <div class="webops-capabilities-grid">
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__capabilities-grid">
                         {% for capability in addon.capabilities %}
-                        <div class="webops-capability-tag">
-                            <span class="material-icons">check</span>
-                            {{ capability|title|replace:"_":" " }}
+                        <div class="webops-addon-detail__capability-item">
+                            <div class="webops-addon-detail__capability-icon">
+                                {% if capability == "container_management" %}
+                                    <span class="material-icons">inventory_2</span>
+                                {% elif capability == "orchestration_generation" %}
+                                    <span class="material-icons">auto_awesome</span>
+                                {% elif capability == "docker_build" %}
+                                    <span class="material-icons">build</span>
+                                {% elif capability == "health_monitoring" %}
+                                    <span class="material-icons">monitor_heart</span>
+                                {% else %}
+                                    <span class="material-icons">extension</span>
+                                {% endif %}
+                            </div>
+                            <div class="webops-addon-detail__capability-content">
+                                <span class="webops-addon-detail__capability-name">{{ capability|title|replace_string:"_, " }}</span>
+                                <div class="webops-addon-detail__capability-status">
+                                    <span class="material-icons">check_circle</span>
+                                    <span>Available</span>
+                                </div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -85,51 +152,101 @@
 
             <!-- Registered Hooks Card -->
             {% if registered_hooks %}
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Registered Hooks</h3>
-                    <span class="webops-badge">{{ registered_hooks|length }} event{{ registered_hooks|length|pluralize }}</span>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">webhook</span>
+                        <h3 class="webops-addon-detail__card-title">Registered Hooks</h3>
+                    </div>
+                    <div class="webops-addon-detail__hooks-summary">
+                        <span class="webops-addon-detail__hooks-count">{{ registered_hooks|length }} event{{ registered_hooks|length|pluralize }}</span>
+                        <span class="webops-addon-detail__hooks-total">
+                            {% with total_hooks=registered_hooks.values|length %}
+                            {{ total_hooks }} total hook{{ total_hooks|pluralize }}
+                            {% endwith %}
+                        </span>
+                    </div>
                 </div>
-                <div class="webops-card-body">
-                    {% for event, hooks in registered_hooks.items %}
-                    <div class="webops-hook-section">
-                        <div class="webops-hook-event-header">
-                            <span class="material-icons">webhook</span>
-                            <h4>{{ event|replace:"_":" "|title }}</h4>
-                            <span class="webops-hook-count">{{ hooks|length }} hook{{ hooks|length|pluralize }}</span>
-                        </div>
-                        <div class="webops-hook-list">
-                            {% for hook in hooks %}
-                            <div class="webops-hook-item">
-                                <div class="webops-hook-info">
-                                    <span class="webops-hook-label">Handler:</span>
-                                    <code class="webops-hook-value">{{ hook.handler_path }}</code>
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__hooks-grid">
+                        {% for event, hooks in registered_hooks.items %}
+                        <div class="webops-addon-detail__hook-event-card">
+                            <div class="webops-addon-detail__hook-event-header">
+                                <div class="webops-addon-detail__hook-event-icon">
+                                    <span class="material-icons">
+                                        {% if event == "pre_deployment" %}
+                                            play_circle
+                                        {% elif event == "post_deployment" %}
+                                            check_circle
+                                        {% elif event == "service_health_check" %}
+                                            health_and_safety
+                                        {% else %}
+                                            webhook
+                                        {% endif %}
+                                    </span>
                                 </div>
-                                <div class="webops-hook-meta">
-                                    <span class="webops-hook-priority">Priority: {{ hook.priority }}</span>
-                                    {% if hook.timeout_ms %}
-                                    <span class="webops-hook-timeout">Timeout: {{ hook.timeout_ms }}ms</span>
-                                    {% endif %}
-                                    {% if hook.conditions %}
-                                    <span class="webops-hook-conditions">Conditions: {{ hook.conditions|length }}</span>
-                                    {% endif %}
+                                <div class="webops-addon-detail__hook-event-info">
+                                    <h4 class="webops-addon-detail__hook-event-title">{{ event|title }}</h4>
+                                    <span class="webops-addon-detail__hook-event-count">{{ hooks|length }} hook{{ hooks|length|pluralize }}</span>
+                                </div>
+                                <div class="webops-addon-detail__hook-event-status">
+                                    <div class="webops-addon-detail__status-indicator webops-addon-detail__status-indicator--active"></div>
                                 </div>
                             </div>
-                            {% endfor %}
+                            <div class="webops-addon-detail__hook-list">
+                                {% for hook in hooks %}
+                                <div class="webops-addon-detail__hook-item">
+                                    <div class="webops-addon-detail__hook-item-header">
+                                        <div class="webops-addon-detail__hook-handler">
+                                            <span class="webops-addon-detail__hook-label">Handler</span>
+                                            <code class="webops-addon-detail__hook-value">{{ hook.handler_path }}</code>
+                                        </div>
+                                        <div class="webops-addon-detail__hook-priority-badge webops-addon-detail__hook-priority--{{ hook.priority|lower }}">
+                                            Priority {{ hook.priority }}
+                                        </div>
+                                    </div>
+                                    <div class="webops-addon-detail__hook-meta-grid">
+                                        {% if hook.timeout_ms %}
+                                        <div class="webops-addon-detail__hook-meta-item">
+                                            <span class="material-icons">timer</span>
+                                            <span class="webops-addon-detail__hook-meta-label">Timeout</span>
+                                            <span class="webops-addon-detail__hook-meta-value">{{ hook.timeout_ms }}ms</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if hook.conditions %}
+                                        <div class="webops-addon-detail__hook-meta-item">
+                                            <span class="material-icons">rule</span>
+                                            <span class="webops-addon-detail__hook-meta-label">Conditions</span>
+                                            <span class="webops-addon-detail__hook-meta-value">{{ hook.conditions|length }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="webops-addon-detail__hook-meta-item">
+                                            <span class="material-icons">schedule</span>
+                                            <span class="webops-addon-detail__hook-meta-label">Execution</span>
+                                            <span class="webops-addon-detail__hook-meta-value">{{ event|title }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
             {% elif addon.enabled %}
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Registered Hooks</h3>
-                </div>
-                <div class="webops-card-body">
-                    <div class="webops-empty-state">
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
                         <span class="material-icons">webhook</span>
-                        <p>No hooks registered for this addon.</p>
+                        <h3 class="webops-addon-detail__card-title">Registered Hooks</h3>
+                    </div>
+                </div>
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__empty-state">
+                        <span class="material-icons">webhook_off</span>
+                        <h3>No Hooks Registered</h3>
+                        <p>This addon doesn't have any hooks registered for deployment events.</p>
                     </div>
                 </div>
             </div>
@@ -137,20 +254,20 @@
 
             <!-- Last Error Card (if any) -->
             {% if addon.last_error %}
-            <div class="webops-card webops-card-error">
-                <div class="webops-card-header">
+            <div class="webops-addon-detail__card webops-addon-detail__card--error">
+                <div class="webops-addon-detail__card-header">
                     <span class="material-icons">error</span>
-                    <h3>Last Error</h3>
+                    <h3 class="webops-addon-detail__card-title">Last Error</h3>
                 </div>
-                <div class="webops-card-body">
-                    <div class="webops-error-details">
-                        <div class="webops-error-time">
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__error-details">
+                        <div class="webops-addon-detail__error-time">
                             {% if addon.last_run_at %}
                             <span class="material-icons">schedule</span>
                             {{ addon.last_run_at|date:"F d, Y H:i:s" }}
                             {% endif %}
                         </div>
-                        <pre class="webops-error-message">{{ addon.last_error }}</pre>
+                        <pre class="webops-addon-detail__error-message">{{ addon.last_error }}</pre>
                     </div>
                 </div>
             </div>
@@ -158,122 +275,187 @@
         </div>
 
         <!-- Right Column - Sidebar -->
-        <div class="webops-addon-detail-sidebar">
+        <div class="webops-addon-detail__sidebar">
             <!-- Actions Card -->
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Actions</h3>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">settings</span>
+                        <h3 class="webops-addon-detail__card-title">Actions</h3>
+                    </div>
                 </div>
-                <div class="webops-card-body">
+                <div class="webops-addon-detail__card-body">
                     <form method="POST" action="{% url 'addons:addon_toggle' addon.name %}"
                           onsubmit="return confirm('This will {% if addon.enabled %}disable{% else %}enable{% endif %} the {{ addon.name }} addon. A restart is required for changes to take effect. Continue?');">
                         {% csrf_token %}
                         {% if addon.enabled %}
-                        <button type="submit" class="webops-detail-action-button webops-detail-action-danger">
+                        <button type="submit" class="webops-addon-detail__action-button webops-addon-detail__action-button--danger">
                             <span class="material-icons">power_settings_new</span>
                             Disable Addon
                         </button>
                         {% else %}
-                        <button type="submit" class="webops-detail-action-button webops-detail-action-success">
+                        <button type="submit" class="webops-addon-detail__action-button webops-addon-detail__action-button--success">
                             <span class="material-icons">power_settings_new</span>
                             Enable Addon
                         </button>
                         {% endif %}
                     </form>
 
-                    <div class="webops-action-note">
+                    <div class="webops-addon-detail__action-note">
                         <span class="material-icons">info</span>
                         <p>Changes require a WebOps restart to take effect.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Statistics Card -->
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Statistics</h3>
-                </div>
-                <div class="webops-card-body">
-                    <div class="webops-stat-row">
-                        <div class="webops-stat-item">
-                            <span class="webops-stat-label">Total Runs</span>
-                            <span class="webops-stat-value">{{ total_runs }}</span>
-                        </div>
+            <!-- Enhanced Statistics Card -->
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">analytics</span>
+                        <h3 class="webops-addon-detail__card-title">Performance Statistics</h3>
                     </div>
+                </div>
+                <div class="webops-addon-detail__card-body">
+                    <!-- Main Stats Grid -->
+                    <div class="webops-addon-detail__stats-grid">
+                        <div class="webops-addon-detail__stat-card webops-addon-detail__stat-card--primary">
+                            <div class="webops-addon-detail__stat-icon">
+                                <span class="material-icons">play_circle</span>
+                            </div>
+                            <div class="webops-addon-detail__stat-content">
+                                <span class="webops-addon-detail__stat-value">{{ total_runs }}</span>
+                                <span class="webops-addon-detail__stat-label">Total Runs</span>
+                            </div>
+                        </div>
 
-                    <div class="webops-stat-row">
-                        <div class="webops-stat-item webops-stat-success">
-                            <span class="webops-stat-label">Successes</span>
-                            <span class="webops-stat-value">{{ addon.success_count }}</span>
+                        <div class="webops-addon-detail__stat-card webops-addon-detail__stat-card--success">
+                            <div class="webops-addon-detail__stat-icon">
+                                <span class="material-icons">check_circle</span>
+                            </div>
+                            <div class="webops-addon-detail__stat-content">
+                                <span class="webops-addon-detail__stat-value">{{ addon.success_count }}</span>
+                                <span class="webops-addon-detail__stat-label">Successes</span>
+                            </div>
                         </div>
-                        <div class="webops-stat-item webops-stat-error">
-                            <span class="webops-stat-label">Failures</span>
-                            <span class="webops-stat-value">{{ addon.failure_count }}</span>
+
+                        <div class="webops-addon-detail__stat-card webops-addon-detail__stat-card--error">
+                            <div class="webops-addon-detail__stat-icon">
+                                <span class="material-icons">error</span>
+                            </div>
+                            <div class="webops-addon-detail__stat-content">
+                                <span class="webops-addon-detail__stat-value">{{ addon.failure_count }}</span>
+                                <span class="webops-addon-detail__stat-label">Failures</span>
+                            </div>
                         </div>
+
+                        {% if addon.last_duration_ms %}
+                        <div class="webops-addon-detail__stat-card webops-addon-detail__stat-card--info">
+                            <div class="webops-addon-detail__stat-icon">
+                                <span class="material-icons">schedule</span>
+                            </div>
+                            <div class="webops-addon-detail__stat-content">
+                                <span class="webops-addon-detail__stat-value">{{ addon.last_duration_ms }}ms</span>
+                                <span class="webops-addon-detail__stat-label">Last Duration</span>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% if total_runs > 0 %}
-                    <div class="webops-success-rate">
-                        <div class="webops-success-rate-label">Success Rate</div>
-                        <div class="webops-success-rate-bar">
-                            <div class="webops-success-rate-fill" style="width: {{ success_rate }}%"></div>
+                    <!-- Success Rate Visualization -->
+                    <div class="webops-addon-detail__success-rate-section">
+                        <div class="webops-addon-detail__success-rate-header">
+                            <span class="webops-addon-detail__success-rate-label">Success Rate</span>
+                            <span class="webops-addon-detail__success-rate-value">{{ success_rate|floatformat:1 }}%</span>
                         </div>
-                        <div class="webops-success-rate-value">{{ success_rate|floatformat:1 }}%</div>
+                        <div class="webops-addon-detail__success-rate-bar-container">
+                            <div class="webops-addon-detail__success-rate-bar">
+                                <div class="webops-addon-detail__success-rate-fill" data-width="{{ success_rate }}">
+                                    <div class="webops-addon-detail__success-rate-glow"></div>
+                                </div>
+                            </div>
+                            <div class="webops-addon-detail__success-rate-markers">
+                                <span class="webops-addon-detail__rate-marker" style="left: 25%">25%</span>
+                                <span class="webops-addon-detail__rate-marker" style="left: 50%">50%</span>
+                                <span class="webops-addon-detail__rate-marker" style="left: 75%">75%</span>
+                                <span class="webops-addon-detail__rate-marker" style="left: 100%">100%</span>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
 
-                    {% if addon.last_duration_ms %}
-                    <div class="webops-stat-row">
-                        <div class="webops-stat-item">
-                            <span class="webops-stat-label">Last Duration</span>
-                            <span class="webops-stat-value">{{ addon.last_duration_ms }}ms</span>
-                        </div>
+                    <!-- Performance Indicator -->
+                    <div class="webops-addon-detail__performance-indicator">
+                        {% if success_rate >= 95 %}
+                            <div class="webops-addon-detail__performance-badge webops-addon-detail__performance-badge--excellent">
+                                <span class="material-icons">star</span>
+                                <span>Excellent Performance</span>
+                            </div>
+                        {% elif success_rate >= 80 %}
+                            <div class="webops-addon-detail__performance-badge webops-addon-detail__performance-badge--good">
+                                <span class="material-icons">thumb_up</span>
+                                <span>Good Performance</span>
+                            </div>
+                        {% elif success_rate >= 60 %}
+                            <div class="webops-addon-detail__performance-badge webops-addon-detail__performance-badge--fair">
+                                <span class="material-icons">warning</span>
+                                <span>Fair Performance</span>
+                            </div>
+                        {% else %}
+                            <div class="webops-addon-detail__performance-badge webops-addon-detail__performance-badge--poor">
+                                <span class="material-icons">error</span>
+                                <span>Needs Attention</span>
+                            </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Timeline Card -->
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Timeline</h3>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">history</span>
+                        <h3 class="webops-addon-detail__card-title">Timeline</h3>
+                    </div>
                 </div>
-                <div class="webops-card-body">
-                    <div class="webops-timeline">
-                        <div class="webops-timeline-item">
-                            <span class="material-icons webops-timeline-icon">add_circle</span>
-                            <div class="webops-timeline-content">
-                                <div class="webops-timeline-label">Created</div>
-                                <div class="webops-timeline-value">{{ addon.created_at|date:"F d, Y" }}</div>
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__timeline">
+                        <div class="webops-addon-detail__timeline-item">
+                            <span class="material-icons webops-addon-detail__timeline-icon">add_circle</span>
+                            <div class="webops-addon-detail__timeline-content">
+                                <div class="webops-addon-detail__timeline-label">Created</div>
+                                <div class="webops-addon-detail__timeline-value">{{ addon.created_at|date:"F d, Y" }}</div>
                             </div>
                         </div>
 
                         {% if addon.updated_at %}
-                        <div class="webops-timeline-item">
-                            <span class="material-icons webops-timeline-icon">update</span>
-                            <div class="webops-timeline-content">
-                                <div class="webops-timeline-label">Last Updated</div>
-                                <div class="webops-timeline-value">{{ addon.updated_at|date:"F d, Y H:i" }}</div>
+                        <div class="webops-addon-detail__timeline-item">
+                            <span class="material-icons webops-addon-detail__timeline-icon">update</span>
+                            <div class="webops-addon-detail__timeline-content">
+                                <div class="webops-addon-detail__timeline-label">Last Updated</div>
+                                <div class="webops-addon-detail__timeline-value">{{ addon.updated_at|date:"F d, Y H:i" }}</div>
                             </div>
                         </div>
                         {% endif %}
 
                         {% if addon.last_run_at %}
-                        <div class="webops-timeline-item">
-                            <span class="material-icons webops-timeline-icon">play_circle</span>
-                            <div class="webops-timeline-content">
-                                <div class="webops-timeline-label">Last Run</div>
-                                <div class="webops-timeline-value">{{ addon.last_run_at|date:"F d, Y H:i:s" }}</div>
+                        <div class="webops-addon-detail__timeline-item">
+                            <span class="material-icons webops-addon-detail__timeline-icon">play_circle</span>
+                            <div class="webops-addon-detail__timeline-content">
+                                <div class="webops-addon-detail__timeline-label">Last Run</div>
+                                <div class="webops-addon-detail__timeline-value">{{ addon.last_run_at|date:"F d, Y H:i:s" }}</div>
                             </div>
                         </div>
                         {% endif %}
 
                         {% if addon.last_success_at %}
-                        <div class="webops-timeline-item">
-                            <span class="material-icons webops-timeline-icon webops-timeline-success">check_circle</span>
-                            <div class="webops-timeline-content">
-                                <div class="webops-timeline-label">Last Success</div>
-                                <div class="webops-timeline-value">{{ addon.last_success_at|date:"F d, Y H:i:s" }}</div>
+                        <div class="webops-addon-detail__timeline-item">
+                            <span class="material-icons webops-addon-detail__timeline-icon webops-addon-detail__timeline-icon--success">check_circle</span>
+                            <div class="webops-addon-detail__timeline-content">
+                                <div class="webops-addon-detail__timeline-label">Last Success</div>
+                                <div class="webops-addon-detail__timeline-value">{{ addon.last_success_at|date:"F d, Y H:i:s" }}</div>
                             </div>
                         </div>
                         {% endif %}
@@ -282,29 +464,32 @@
             </div>
 
             <!-- Metadata Card -->
-            <div class="webops-card">
-                <div class="webops-card-header">
-                    <h3>Metadata</h3>
+            <div class="webops-addon-detail__card">
+                <div class="webops-addon-detail__card-header">
+                    <div class="webops-addon-detail__card-header-content">
+                        <span class="material-icons">info</span>
+                        <h3 class="webops-addon-detail__card-title">Metadata</h3>
+                    </div>
                 </div>
-                <div class="webops-card-body">
-                    <div class="webops-metadata-list">
-                        <div class="webops-metadata-item">
-                            <span class="webops-metadata-label">Name</span>
-                            <code class="webops-metadata-value">{{ addon.name }}</code>
+                <div class="webops-addon-detail__card-body">
+                    <div class="webops-addon-detail__metadata-list">
+                        <div class="webops-addon-detail__metadata-item">
+                            <span class="webops-addon-detail__metadata-label">Name</span>
+                            <code class="webops-addon-detail__metadata-value">{{ addon.name }}</code>
                         </div>
-                        <div class="webops-metadata-item">
-                            <span class="webops-metadata-label">Version</span>
-                            <code class="webops-metadata-value">{{ addon.version }}</code>
+                        <div class="webops-addon-detail__metadata-item">
+                            <span class="webops-addon-detail__metadata-label">Version</span>
+                            <code class="webops-addon-detail__metadata-value">{{ addon.version }}</code>
                         </div>
                         {% if addon.author %}
-                        <div class="webops-metadata-item">
-                            <span class="webops-metadata-label">Author</span>
-                            <span class="webops-metadata-value">{{ addon.author }}</span>
+                        <div class="webops-addon-detail__metadata-item">
+                            <span class="webops-addon-detail__metadata-label">Author</span>
+                            <span class="webops-addon-detail__metadata-value">{{ addon.author }}</span>
                         </div>
                         {% endif %}
-                        <div class="webops-metadata-item">
-                            <span class="webops-metadata-label">Status</span>
-                            <span class="webops-metadata-value">
+                        <div class="webops-addon-detail__metadata-item">
+                            <span class="webops-addon-detail__metadata-label">Status</span>
+                            <span class="webops-addon-detail__metadata-value">
                                 {% if addon.enabled %}
                                     <span style="color: var(--webops-color-success);">Active</span>
                                 {% else %}
@@ -319,558 +504,22 @@
     </div>
 </div>
 
-<style>
-/* ============================================================================
-   Addon Detail Header
-   ============================================================================ */
-
-.webops-addon-detail-header {
-    margin-bottom: var(--webops-space-8);
-}
-
-.webops-back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-    padding: var(--webops-space-2) var(--webops-space-3);
-    margin-bottom: var(--webops-space-6);
-    background: var(--webops-color-bg-secondary);
-    border: 1px solid var(--webops-color-border);
-    border-radius: var(--webops-radius-md);
-    color: var(--webops-color-text-primary);
-    text-decoration: none;
-    font-size: var(--webops-font-size-sm);
-    font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
-}
-
-.webops-back-button:hover {
-    background: var(--webops-color-bg-tertiary);
-    border-color: var(--webops-color-primary-alpha-30);
-    transform: translateX(-2px);
-}
-
-.webops-addon-detail-title-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--webops-space-6);
-}
-
-.webops-addon-detail-title-wrapper {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--webops-space-4);
-}
-
-.webops-addon-detail-icon {
-    width: var(--webops-size-16);
-    height: var(--webops-size-16);
-    background: var(--webops-color-primary);
-    border-radius: var(--webops-radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--webops-color-text-inverse);
-    flex-shrink: 0;
-}
-
-.webops-addon-detail-icon .material-icons {
-    font-size: var(--webops-size-8);
-}
-
-.webops-addon-detail-version {
-    margin: var(--webops-space-1) 0 0 0;
-    color: var(--webops-color-text-secondary);
-    font-size: var(--webops-font-size-base);
-    font-weight: var(--webops-font-weight-medium);
-}
-
-.webops-addon-detail-status .webops-addon-status-badge {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-    padding: var(--webops-space-2) var(--webops-space-4);
-    font-size: var(--webops-font-size-sm);
-}
-
-/* ============================================================================
-   Detail Grid Layout
-   ============================================================================ */
-
-.webops-addon-detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: var(--webops-space-6);
-}
-
-.webops-addon-detail-main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-6);
-}
-
-.webops-addon-detail-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-6);
-}
-
-/* ============================================================================
-   Cards
-   ============================================================================ */
-
-.webops-card-error {
-    border-color: var(--webops-color-error-alpha-30);
-}
-
-.webops-card-error .webops-card-header {
-    background: var(--webops-color-error-alpha-05);
-    border-bottom-color: var(--webops-color-error-alpha-20);
-    color: var(--webops-color-error);
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-}
-
-/* ============================================================================
-   Description
-   ============================================================================ */
-
-.webops-addon-detail-description {
-    margin: 0;
-    line-height: var(--webops-line-height-relaxed);
-    color: var(--webops-color-text-secondary);
-}
-
-/* ============================================================================
-   Capabilities
-   ============================================================================ */
-
-.webops-capabilities-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--webops-space-3);
-}
-
-.webops-capability-tag {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-    padding: var(--webops-space-3);
-    background: var(--webops-color-success-alpha-05);
-    border: 1px solid var(--webops-color-success-alpha-20);
-    border-radius: var(--webops-radius-md);
-    color: var(--webops-color-success);
-    font-size: var(--webops-font-size-sm);
-    font-weight: var(--webops-font-weight-medium);
-}
-
-.webops-capability-tag .material-icons {
-    font-size: var(--webops-size-4);
-}
-
-/* ============================================================================
-   Hooks
-   ============================================================================ */
-
-.webops-hook-section {
-    border: 1px solid var(--webops-color-border);
-    border-radius: var(--webops-radius-lg);
-    padding: var(--webops-space-4);
-    margin-bottom: var(--webops-space-4);
-}
-
-.webops-hook-section:last-child {
-    margin-bottom: 0;
-}
-
-.webops-hook-event-header {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-3);
-    margin-bottom: var(--webops-space-4);
-    padding-bottom: var(--webops-space-3);
-    border-bottom: 1px solid var(--webops-color-border);
-}
-
-.webops-hook-event-header .material-icons {
-    color: var(--webops-color-primary);
-    font-size: var(--webops-size-5);
-}
-
-.webops-hook-event-header h4 {
-    margin: 0;
-    flex: 1;
-    font-size: var(--webops-font-size-base);
-    font-weight: var(--webops-font-weight-semibold);
-}
-
-.webops-hook-count {
-    padding: var(--webops-space-1) var(--webops-space-3);
-    background: var(--webops-color-bg-tertiary);
-    border-radius: var(--webops-radius-full);
-    font-size: var(--webops-font-size-xs);
-    font-weight: var(--webops-font-weight-medium);
-    color: var(--webops-color-text-secondary);
-}
-
-.webops-hook-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-3);
-}
-
-.webops-hook-item {
-    padding: var(--webops-space-3);
-    background: var(--webops-color-bg-tertiary);
-    border-radius: var(--webops-radius-md);
-}
-
-.webops-hook-info {
-    display: flex;
-    align-items: baseline;
-    gap: var(--webops-space-2);
-    margin-bottom: var(--webops-space-2);
-}
-
-.webops-hook-label {
-    font-size: var(--webops-font-size-sm);
-    font-weight: var(--webops-font-weight-medium);
-    color: var(--webops-color-text-secondary);
-}
-
-.webops-hook-value {
-    font-size: var(--webops-font-size-sm);
-    font-family: var(--webops-font-mono);
-    color: var(--webops-color-primary);
-    background: var(--webops-color-primary-alpha-05);
-    padding: var(--webops-space-1) var(--webops-space-2);
-    border-radius: var(--webops-radius-sm);
-}
-
-.webops-hook-meta {
-    display: flex;
-    gap: var(--webops-space-4);
-    font-size: var(--webops-font-size-xs);
-    color: var(--webops-color-text-secondary);
-}
-
-/* ============================================================================
-   Actions
-   ============================================================================ */
-
-.webops-detail-action-button {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--webops-space-2);
-    padding: var(--webops-space-3) var(--webops-space-4);
-    border-radius: var(--webops-radius-md);
-    font-size: var(--webops-font-size-base);
-    font-weight: var(--webops-font-weight-semibold);
-    border: none;
-    cursor: pointer;
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
-}
-
-.webops-detail-action-button:hover {
-    transform: translateY(-1px);
-}
-
-.webops-detail-action-success {
-    background: var(--webops-color-success);
-    color: white;
-}
-
-.webops-detail-action-success:hover {
-    background: var(--webops-color-success-dark, #16a34a);
-}
-
-.webops-detail-action-danger {
-    background: var(--webops-color-error);
-    color: white;
-}
-
-.webops-detail-action-danger:hover {
-    background: var(--webops-color-error-dark, #dc2626);
-}
-
-.webops-action-note {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--webops-space-2);
-    margin-top: var(--webops-space-4);
-    padding: var(--webops-space-3);
-    background: var(--webops-color-info-alpha-05);
-    border: 1px solid var(--webops-color-info-alpha-20);
-    border-radius: var(--webops-radius-md);
-    color: var(--webops-color-info);
-    font-size: var(--webops-font-size-sm);
-}
-
-.webops-action-note .material-icons {
-    font-size: var(--webops-size-4);
-}
-
-.webops-action-note p {
-    margin: 0;
-}
-
-/* ============================================================================
-   Statistics
-   ============================================================================ */
-
-.webops-stat-row {
-    display: flex;
-    gap: var(--webops-space-4);
-    padding: var(--webops-space-4) 0;
-    border-bottom: 1px solid var(--webops-color-border);
-}
-
-.webops-stat-row:last-child {
-    border-bottom: none;
-}
-
-.webops-stat-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-1);
-}
-
-.webops-stat-label {
-    font-size: var(--webops-font-size-xs);
-    color: var(--webops-color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    font-weight: var(--webops-font-weight-medium);
-}
-
-.webops-stat-value {
-    font-size: var(--webops-font-size-2xl);
-    font-weight: var(--webops-font-weight-bold);
-    color: var(--webops-color-text-primary);
-}
-
-.webops-stat-success .webops-stat-value {
-    color: var(--webops-color-success);
-}
-
-.webops-stat-error .webops-stat-value {
-    color: var(--webops-color-error);
-}
-
-.webops-success-rate {
-    padding: var(--webops-space-4) 0;
-}
-
-.webops-success-rate-label {
-    font-size: var(--webops-font-size-xs);
-    color: var(--webops-color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    font-weight: var(--webops-font-weight-medium);
-    margin-bottom: var(--webops-space-2);
-}
-
-.webops-success-rate-bar {
-    height: 8px;
-    background: var(--webops-color-bg-tertiary);
-    border-radius: var(--webops-radius-full);
-    overflow: hidden;
-    margin-bottom: var(--webops-space-2);
-}
-
-.webops-success-rate-fill {
-    height: 100%;
-    background: linear-gradient(to right, var(--webops-color-success), var(--webops-color-success-light, #4ade80));
-    transition: width var(--webops-duration-normal) var(--webops-ease-out);
-}
-
-.webops-success-rate-value {
-    font-size: var(--webops-font-size-lg);
-    font-weight: var(--webops-font-weight-bold);
-    color: var(--webops-color-success);
-}
-
-/* ============================================================================
-   Timeline
-   ============================================================================ */
-
-.webops-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-4);
-}
-
-.webops-timeline-item {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--webops-space-3);
-}
-
-.webops-timeline-icon {
-    color: var(--webops-color-text-secondary);
-    font-size: var(--webops-size-5);
-}
-
-.webops-timeline-success {
-    color: var(--webops-color-success);
-}
-
-.webops-timeline-content {
-    flex: 1;
-}
-
-.webops-timeline-label {
-    font-size: var(--webops-font-size-xs);
-    color: var(--webops-color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    font-weight: var(--webops-font-weight-medium);
-}
-
-.webops-timeline-value {
-    font-size: var(--webops-font-size-sm);
-    color: var(--webops-color-text-primary);
-    margin-top: var(--webops-space-1);
-}
-
-/* ============================================================================
-   Metadata
-   ============================================================================ */
-
-.webops-metadata-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-3);
-}
-
-.webops-metadata-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-1);
-}
-
-.webops-metadata-label {
-    font-size: var(--webops-font-size-xs);
-    color: var(--webops-color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    font-weight: var(--webops-font-weight-medium);
-}
-
-.webops-metadata-value {
-    font-size: var(--webops-font-size-sm);
-    color: var(--webops-color-text-primary);
-}
-
-code.webops-metadata-value {
-    font-family: var(--webops-font-mono);
-    background: var(--webops-color-bg-tertiary);
-    padding: var(--webops-space-1) var(--webops-space-2);
-    border-radius: var(--webops-radius-sm);
-}
-
-/* ============================================================================
-   Error Details
-   ============================================================================ */
-
-.webops-error-details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-3);
-}
-
-.webops-error-time {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-    font-size: var(--webops-font-size-sm);
-    color: var(--webops-color-text-secondary);
-}
-
-.webops-error-time .material-icons {
-    font-size: var(--webops-size-4);
-}
-
-.webops-error-message {
-    margin: 0;
-    padding: var(--webops-space-4);
-    background: var(--webops-color-error-alpha-05);
-    border: 1px solid var(--webops-color-error-alpha-20);
-    border-radius: var(--webops-radius-md);
-    color: var(--webops-color-error);
-    font-family: var(--webops-font-mono);
-    font-size: var(--webops-font-size-sm);
-    line-height: var(--webops-line-height-relaxed);
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* ============================================================================
-   Empty State
-   ============================================================================ */
-
-.webops-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--webops-space-8);
-    text-align: center;
-}
-
-.webops-empty-state .material-icons {
-    font-size: var(--webops-size-12);
-    color: var(--webops-color-text-secondary);
-    margin-bottom: var(--webops-space-3);
-}
-
-.webops-empty-state p {
-    margin: 0;
-    color: var(--webops-color-text-secondary);
-}
-
-/* ============================================================================
-   Responsive Design
-   ============================================================================ */
-
-@media (max-width: 1024px) {
-    .webops-addon-detail-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .webops-addon-detail-sidebar {
-        order: 2;
-    }
-}
-
-@media (max-width: 768px) {
-    .webops-addon-detail-title-section {
-        flex-direction: column;
-        gap: var(--webops-space-4);
-    }
-
-    .webops-addon-detail-title-wrapper {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .webops-addon-detail-status {
-        align-self: flex-start;
-    }
-
-    .webops-capabilities-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .webops-stat-row {
-        flex-direction: column;
-        gap: var(--webops-space-3);
-    }
-}
-</style>
-{% endblock %}
+                {% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set the width of success rate fill bars based on data-width attribute
+    const successRateFills = document.querySelectorAll('.webops-addon-detail__success-rate-fill');
+    successRateFills.forEach(function(fill) {
+        const width = fill.getAttribute('data-width');
+        if (width) {
+            fill.style.width = width + '%';
+        }
+    });
+});
+</script>
+
+<!-- Load test script (only in development) -->
+{% if debug %}
+<script src="{% static 'js/addon-detail-test.js' %}"></script>
+{% endif %}

@@ -1,0 +1,17 @@
+# KVM Addon Requirements
+# Python dependencies for KVM virtual machine support
+
+# Libvirt Python bindings
+libvirt-python>=9.0.0
+
+# XML processing
+lxml>=4.9.0
+
+# YAML for cloud-init
+PyYAML>=6.0
+
+# Django (should already be installed by WebOps)
+Django>=4.2.0
+
+# Celery (should already be installed by WebOps)
+celery>=5.3.0

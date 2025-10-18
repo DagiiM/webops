@@ -374,6 +374,38 @@
   --webops-border-width-base: 2px;        /* Default borders */
   --webops-border-width-thick: 3px;       /* Thick borders */
   --webops-border-width-focus: 2px;       /* Focus ring width */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+      🎨 LEGACY COMPATIBILITY VARIABLES (Used in main.css but not in new system)
+      ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font weight compatibility */
+  --font-weight-bold: var(--webops-font-weight-bold);
+  --font-weight-semibold: var(--webops-font-weight-semibold);
+  
+  /* Shadow glow effects */
+  --webops-shadow-glow: 0 0 20px var(--webops-color-primary-glow);
+  
+  /* Background highlight for elements */
+  --webops-color-bg-highlight: var(--webops-color-primary-alpha-05);
+  
+  /* Color hover state */
+  --webops-color-primary-hover: var(--webops-color-primary-light);
+  
+  /* Border radius compatibility */
+  --webops-border-radius-lg: var(--webops-radius-lg);
+  --webops-border-radius-md: var(--webops-radius-md);
+  --webops-border-radius-sm: var(--webops-radius-sm);
+  
+  /* Additional color variants used in main.css */
+  --webops-color-error-light: hsl(0 100% 70%);      /* Lighter error color */
+  --webops-color-error-dark: hsl(0 100% 50%);       /* Darker error color */
+  --webops-color-success-light: var(--webops-color-primary-light);
+  --webops-color-success-dark: var(--webops-color-primary-dark);
+  --webops-color-warning-light: hsl(40 100% 60%);   /* Lighter warning color */
+  --webops-color-warning-dark: hsl(40 100% 40%);    /* Darker warning color */
+  --webops-color-info-light: hsl(195 100% 60%);     /* Lighter info color */
+  --webops-color-info-dark: hsl(195 100% 40%);      /* Darker info color */
 }
 
 

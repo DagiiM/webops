@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}VM Console - {{ vm_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    #console-container {
+        width: 100%;
+        height: calc(100vh - 200px);
+        background: #000;
+        position: relative;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    #vnc-screen {
+        width: 100%;
+        height: 100%;
+    }
+
+    .console-toolbar {
+        padding: 15px;
+        background: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .console-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-indicator.connected {
+        background: #28a745;
+    }
+
+    .status-indicator.disconnected {
+        background: #dc3545;
+    }
+
+    .status-indicator.connecting {
+        background: #ffc107;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .console-controls {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .console-info {
+        padding: 15px;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .console-info h3 {
+        margin-top: 0;
+        font-size: 18px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    #connection-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 18px;
+        text-align: center;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="console-info">
+        <h3>{{ vm_name }}</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="info-value" id="vm-state">{{ vm_state }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">IP Address</span>
+                <span class="info-value">{{ vm_deployment.ip_address|default:"Pending" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">SSH Command</span>
+                <span class="info-value"><code>{{ vm_deployment.get_ssh_command }}</code></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Plan</span>
+                <span class="info-value">{{ vm_deployment.vm_plan.display_name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="console-toolbar">
+        <div class="console-status">
+            <span class="status-indicator disconnected" id="status-indicator"></span>
+            <span id="status-text">Disconnected</span>
+        </div>
+        <div class="console-controls">
+            <button class="btn btn-primary" id="btn-connect" onclick="connectConsole()">Connect</button>
+            <button class="btn btn-secondary" id="btn-disconnect" onclick="disconnectConsole()" style="display:none;">Disconnect</button>
+            <button class="btn btn-secondary" onclick="sendCtrlAltDel()">Send Ctrl+Alt+Del</button>
+            <button class="btn btn-secondary" onclick="toggleFullscreen()">Fullscreen</button>
+        </div>
+    </div>
+
+    <div id="console-container">
+        <div id="connection-message">Click "Connect" to start console session</div>
+        <canvas id="vnc-screen"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- noVNC library -->
+<script src="https://cdn.jsdelivr.net/npm/@novnc/novnc@1.4.0/core/rfb.js"></script>
+
+<script>
+let rfb = null;
+const wsUrl = "{{ ws_url }}";
+const vmName = "{{ vm_name }}";
+
+function updateStatus(status, message) {
+    const indicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+
+    indicator.className = 'status-indicator ' + status;
+    statusText.textContent = message;
+}
+
+function connectConsole() {
+    const connectionMessage = document.getElementById('connection-message');
+    connectionMessage.textContent = 'Connecting to VM console...';
+
+    updateStatus('connecting', 'Connecting...');
+
+    try {
+        rfb = new RFB(
+            document.getElementById('vnc-screen'),
+            wsUrl,
+            {
+                credentials: { password: '' }, // VNC password if needed
+                shared: true,
+                wsProtocols: ['binary']
+            }
+        );
+
+        // Event handlers
+        rfb.addEventListener("connect", function() {
+            console.log('Connected to VNC server');
+            updateStatus('connected', 'Connected');
+            connectionMessage.style.display = 'none';
+            document.getElementById('btn-connect').style.display = 'none';
+            document.getElementById('btn-disconnect').style.display = 'inline-block';
+        });
+
+        rfb.addEventListener("disconnect", function(e) {
+            console.log('Disconnected from VNC server', e.detail);
+            updateStatus('disconnected', 'Disconnected');
+            connectionMessage.style.display = 'block';
+            connectionMessage.textContent = e.detail.clean ?
+                'Disconnected from console' :
+                'Connection lost: ' + (e.detail.reason || 'Unknown error');
+            document.getElementById('btn-connect').style.display = 'inline-block';
+            document.getElementById('btn-disconnect').style.display = 'none';
+            rfb = null;
+        });
+
+        rfb.addEventListener("credentialsrequired", function() {
+            console.log('VNC credentials required');
+            // For now, we don't support password-protected VNC
+            // Could add a prompt here if needed
+        });
+
+        rfb.addEventListener("desktopname", function(e) {
+            console.log('Desktop name:', e.detail.name);
+        });
+
+        // Quality and compression settings
+        rfb.scaleViewport = true;
+        rfb.resizeSession = false;
+        rfb.qualityLevel = 6;
+        rfb.compressionLevel = 2;
+
+    } catch (err) {
+        console.error('Failed to connect:', err);
+        updateStatus('disconnected', 'Connection failed');
+        connectionMessage.textContent = 'Connection failed: ' + err.message;
+    }
+}
+
+function disconnectConsole() {
+    if (rfb) {
+        rfb.disconnect();
+        rfb = null;
+    }
+}
+
+function sendCtrlAltDel() {
+    if (rfb) {
+        rfb.sendCtrlAltDel();
+        console.log('Sent Ctrl+Alt+Del');
+    } else {
+        alert('Not connected to console');
+    }
+}
+
+function toggleFullscreen() {
+    const container = document.getElementById('console-container');
+
+    if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => {
+            alert('Fullscreen failed: ' + err.message);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// Auto-connect on page load (optional)
+// window.addEventListener('load', connectConsole);
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    disconnectConsole();
+});
+</script>
+{% endblock %}

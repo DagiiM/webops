@@ -34,31 +34,59 @@ class GraphBackground {
 class Loader {
     static timeout = null;
     static maxDuration = 30000; // 30 seconds max
+    static activeCount = 0; // reference count for concurrent operations
 
     static show(message = 'Loading') {
         const loader = document.getElementById('webopsLoader');
         const text = loader?.querySelector('.webops-loader-text');
 
+        // Increment active operations
+        this.activeCount = Math.max(0, this.activeCount) + 1;
+
         if (loader) {
             if (text) text.textContent = message;
             loader.classList.add('active');
+            loader.setAttribute('aria-hidden', 'false');
+            document.body.setAttribute('aria-busy', 'true');
 
             // Auto-hide after max duration to prevent stuck loaders
             if (this.timeout) clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
-                this.hide();
+                this.forceHide();
                 console.warn('Loader auto-hidden after timeout');
             }, this.maxDuration);
         }
     }
 
     static hide() {
+        // Decrement active operations and only hide when it reaches zero
+        this.activeCount = Math.max(0, this.activeCount - 1);
+
+        if (this.activeCount > 0) return;
+
         const loader = document.getElementById('webopsLoader');
         if (loader) {
             loader.classList.remove('active');
+            loader.setAttribute('aria-hidden', 'true');
+            document.body.removeAttribute('aria-busy');
         }
 
         // Clear timeout
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+        }
+    }
+
+    static forceHide() {
+        // Immediately reset and hide, useful for timeouts or hard resets
+        this.activeCount = 0;
+        const loader = document.getElementById('webopsLoader');
+        if (loader) {
+            loader.classList.remove('active');
+            loader.setAttribute('aria-hidden', 'true');
+            document.body.removeAttribute('aria-busy');
+        }
         if (this.timeout) {
             clearTimeout(this.timeout);
             this.timeout = null;
@@ -107,26 +135,44 @@ class APIClient {
         const url = this.baseURL + endpoint;
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+        const { showLoader: showGlobalLoader = true } = options;
+        // Remove our custom flag from fetch options
+        const fetchOptions = { ...options };
+        delete fetchOptions.showLoader;
+
         try {
+            if (showGlobalLoader && window.WebOps?.Loader) {
+                window.WebOps.Loader.show('Loading');
+            }
+
             const response = await fetch(url, {
-                ...options,
+                ...fetchOptions,
                 headers: {
                     'X-CSRFToken': token,
                     'Content-Type': 'application/json',
-                    ...options.headers,
+                    ...fetchOptions.headers,
                 },
             });
 
             if (!response.ok) throw new Error('HTTP ' + response.status);
-            return await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return await response.json();
+            }
+            // Fallback to text for non-JSON responses
+            return await response.text();
         } catch (error) {
             Toast.error(error.message);
             throw error;
+        } finally {
+            if (showGlobalLoader && window.WebOps?.Loader) {
+                window.WebOps.Loader.hide();
+            }
         }
     }
 
-    get(endpoint) { return this.request(endpoint); }
-    post(endpoint, data) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(data) }); }
+    get(endpoint, options = {}) { return this.request(endpoint, options); }
+    post(endpoint, data, options = {}) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(data), ...options }); }
 }
 
 // Global error handlers for "no broken windows" philosophy
@@ -410,6 +456,57 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Global navigation loader hooks
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+        if (e.defaultPrevented) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#')) return;
+        if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
+        if (link.hasAttribute('download') || link.target) return;
+
+        // Same-origin navigation and not just a hash change
+        try {
+            const dest = new URL(href, document.baseURI);
+            const current = new URL(window.location.href);
+            const isSameOrigin = dest.origin === current.origin;
+            const onlyHashChange = isSameOrigin && dest.pathname === current.pathname && dest.search === current.search && dest.hash && dest.hash !== current.hash;
+            if (!isSameOrigin || onlyHashChange) return;
+        } catch (err) {
+            // If URL parsing fails, be conservative and do nothing
+            return;
+        }
+
+        // Don't show loader if explicitly disabled
+        if (link.dataset.noLoader !== undefined) return;
+
+        Loader.show('Navigating...');
+        // Safety timeout: hide if navigation is intercepted (SPA behavior)
+        setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+                Loader.hide();
+            }
+        }, 2000);
+    });
+
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (form && form.dataset && form.dataset.noLoader !== undefined) return;
+        Loader.show('Submitting...');
+        // Safety timeout: hide if submission is intercepted by JS and the page doesn't navigate
+        setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+                Loader.hide();
+            }
+        }, 2000);
+    });
+
+    window.addEventListener('beforeunload', () => {
+        Loader.show('Loading page...');
+    });
 });
 
 // Global helper functions for convenience

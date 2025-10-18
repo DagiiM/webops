@@ -1,0 +1,86 @@
+name: kvm
+version: 1.0.0
+description: KVM Virtual Machine deployment support for bare metal servers
+author: WebOps
+license: MIT
+
+# Optional metadata
+django_app: addons.kvm
+
+# Hook definitions
+hooks:
+  pre_deployment:
+    - handler: addons.kvm.hooks:pre_deployment
+      priority: 50
+      timeout_ms: 30000
+      retries: 0
+      enforcement: optional
+
+  post_deployment:
+    - handler: addons.kvm.hooks:post_deployment
+      priority: 50
+      timeout_ms: 600000
+      retries: 0
+      enforcement: optional
+
+  service_health_check:
+    - handler: addons.kvm.hooks:service_health_check
+      priority: 50
+      timeout_ms: 5000
+      retries: 0
+      enforcement: optional
+
+  pre_deletion:
+    - handler: addons.kvm.hooks:pre_deletion
+      priority: 50
+      timeout_ms: 10000
+      retries: 0
+      enforcement: optional
+
+  post_deletion:
+    - handler: addons.kvm.hooks:post_deletion
+      priority: 50
+      timeout_ms: 10000
+      retries: 0
+      enforcement: optional
+
+# Addon capabilities
+capabilities:
+  - vm_management
+  - libvirt_integration
+  - kvm_deployment
+
+# Settings schema (for future UI configuration)
+settings_schema:
+  storage_pool_path:
+    type: string
+    default: "/var/lib/webops/vms"
+    description: Storage pool path for VM disks
+  template_path:
+    type: string
+    default: "/var/lib/webops/templates"
+    description: Path to OS templates
+  nat_bridge_name:
+    type: string
+    default: "virbr-webops"
+    description: NAT bridge name
+  nat_network:
+    type: string
+    default: "192.168.100.0/24"
+    description: NAT network CIDR
+  ssh_port_range:
+    type: array
+    default: [2200, 2299]
+    description: Allowed SSH port range
+  vnc_port_range:
+    type: array
+    default: [5900, 5999]
+    description: Allowed VNC port range
+  default_cpu_overcommit:
+    type: number
+    default: 2.0
+    description: CPU overcommit ratio
+  default_memory_overcommit:
+    type: number
+    default: 1.0
+    description: Memory overcommit ratio

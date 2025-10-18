@@ -30,6 +30,8 @@
     <style>
     {{ branding.generate_css_variables|safe }}
     </style>
+    {% block extra_css %}{% endblock %}
+    {% block extra_css_first %}{% endblock %}
     <style>
         .webops-app-layout {
             display: flex;
@@ -583,13 +585,13 @@
     <div class="webops-app-background"></div>
 
     <!-- Ultra-Sleek Loader -->
-    <div class="webops-loader-overlay" id="webopsLoader">
-        <div class="webops-loader">
+    <div class="webops-loader-overlay" id="webopsLoader" aria-hidden="true" aria-live="polite" role="status">
+        <div class="webops-loader" aria-label="Loading content" aria-hidden="false">
             <div class="webops-loader-ring"></div>
             <div class="webops-loader-ring"></div>
             <div class="webops-loader-ring"></div>
             <div class="webops-loader-core"></div>
-            <div class="webops-loader-particles">
+            <div class="webops-loader-particles" aria-hidden="true">
                 <div class="webops-loader-particle"></div>
                 <div class="webops-loader-particle"></div>
                 <div class="webops-loader-particle"></div>

@@ -1,0 +1,27 @@
+{
+  "name": "kvm",
+  "version": "1.0.0",
+  "description": "KVM Virtual Machine deployment support for bare metal servers",
+  "author": "WebOps",
+  "requires": [
+    "libvirt-python>=9.0.0",
+    "lxml>=4.9.0"
+  ],
+  "hooks": [
+    "pre_deployment",
+    "post_deployment",
+    "service_health_check",
+    "pre_deletion",
+    "post_deletion"
+  ],
+  "settings": {
+    "storage_pool_path": "/var/lib/webops/vms",
+    "template_path": "/var/lib/webops/templates",
+    "nat_bridge_name": "virbr-webops",
+    "nat_network": "192.168.100.0/24",
+    "ssh_port_range": [2200, 2299],
+    "vnc_port_range": [5900, 5999],
+    "default_cpu_overcommit": 2.0,
+    "default_memory_overcommit": 1.0
+  }
+}

@@ -10,7 +10,7 @@
         <p class="webops-text-muted">{{ execution.workflow.name }} - {{ execution.started_at|date:"M d, Y H:i" }}</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <a href="{% url 'automation:workflow_executions' execution.workflow.id %}" class="webops-btn webops-btn-secondary">
+        <a href="{% url 'automation:execution_list' execution.workflow.id %}" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to History
         </a>
