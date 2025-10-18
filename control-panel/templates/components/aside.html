@@ -37,7 +37,7 @@
                         <span class="material-icons" style="font-size: 20px;" aria-hidden="true">vpn_key</span>
                         API Tokens
                     </a>
-                    <a href="{% url 'addons:list' %}" class="webops-nav-item {% if 'addons' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'addons' in request.path %}page{% endif %}">
+                    <a href="{% url 'addons:addons_list' %}" class="webops-nav-item {% if 'addons' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'addons' in request.path %}page{% endif %}">
                         <span class="material-icons" style="font-size: 20px;" aria-hidden="true">extension</span>
                         Addons
                     </a>
@@ -48,6 +48,10 @@
                     <a href="{% url 'deployments:llm_list' %}" class="webops-nav-item {% if 'llm' in request.path %}active{% endif %}">
                         <span class="material-icons" style="font-size: 20px;">smart_toy</span>
                         LLM Models
+                    </a>
+                    <a href="{% url 'automation:workflow_list' %}" class="webops-nav-item {% if 'automation' in request.path %}active{% endif %}">
+                        <span class="material-icons" style="font-size: 20px;">auto_awesome</span>
+                        Automation
                     </a>
                     <a href="{% url 'integrations_dashboard' %}" class="webops-nav-item {% if 'integrations' in request.path %}active{% endif %}">
                         <span class="material-icons" style="font-size: 20px;">link</span>

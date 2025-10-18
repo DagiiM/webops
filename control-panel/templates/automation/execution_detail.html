@@ -1,0 +1,611 @@
+{% extends 'base.html' %}
+
+{% block title %}Execution Details - {{ execution.workflow.name }} - WebOps{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Execution Details</h2>
+        <p class="webops-text-muted">{{ execution.workflow.name }} - {{ execution.started_at|date:"M d, Y H:i" }}</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <a href="{% url 'automation:workflow_executions' execution.workflow.id %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to History
+        </a>
+        <a href="{% url 'automation:workflow_builder' execution.workflow.id %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">edit</span>
+            Edit Workflow
+        </a>
+        {% if execution.status == 'running' %}
+        <form method="post" action="{% url 'execution_cancel' execution.id %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="webops-btn webops-btn-danger"
+                    onclick="return confirm('Cancel this execution?');">
+                <span class="material-icons">stop</span>
+                Cancel Execution
+            </button>
+        </form>
+        {% else %}
+        <form method="post" action="{% url 'automation:workflow_execute' execution.workflow.id %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="webops-btn webops-btn-primary">
+                <span class="material-icons">replay</span>
+                Run Again
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Execution Overview -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Execution Overview</h3>
+        <span class="webops-badge webops-badge-{% if execution.status == 'completed' %}success{% elif execution.status == 'failed' %}danger{% elif execution.status == 'running' %}info{% else %}secondary{% endif %}">
+            {% if execution.status == 'completed' %}
+                <span class="material-icons webops-icon-xs">check_circle</span>
+                Completed
+            {% elif execution.status == 'failed' %}
+                <span class="material-icons webops-icon-xs">error</span>
+                Failed
+            {% elif execution.status == 'running' %}
+                <span class="material-icons webops-icon-xs">play_circle</span>
+                Running
+            {% else %}
+                <span class="material-icons webops-icon-xs">cancel</span>
+                Cancelled
+            {% endif %}
+        </span>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-grid webops-grid-cols-4 webops-gap-lg">
+            <div class="execution-stat">
+                <div class="execution-stat-label">Started</div>
+                <div class="execution-stat-value">{{ execution.started_at|date:"M d, Y H:i:s" }}</div>
+                <div class="execution-stat-meta">{{ execution.started_at|timesince }} ago</div>
+            </div>
+
+            <div class="execution-stat">
+                <div class="execution-stat-label">Duration</div>
+                <div class="execution-stat-value">
+                    {% if execution.completed_at %}
+                        {{ execution.duration|floatformat:2 }}s
+                    {% elif execution.status == 'running' %}
+                        <span class="webops-text-info">Running...</span>
+                    {% else %}
+                        <span class="webops-text-secondary">N/A</span>
+                    {% endif %}
+                </div>
+                {% if execution.completed_at %}
+                <div class="execution-stat-meta">Ended {{ execution.completed_at|date:"H:i:s" }}</div>
+                {% endif %}
+            </div>
+
+            <div class="execution-stat">
+                <div class="execution-stat-label">Trigger</div>
+                <div class="execution-stat-value">
+                    {% if execution.trigger_type == 'manual' %}
+                        <span class="material-icons webops-icon-sm">touch_app</span>
+                        Manual
+                    {% elif execution.trigger_type == 'schedule' %}
+                        <span class="material-icons webops-icon-sm">schedule</span>
+                        Schedule
+                    {% elif execution.trigger_type == 'webhook' %}
+                        <span class="material-icons webops-icon-sm">webhook</span>
+                        Webhook
+                    {% else %}
+                        <span class="material-icons webops-icon-sm">event</span>
+                        Event
+                    {% endif %}
+                </div>
+                {% if execution.triggered_by %}
+                <div class="execution-stat-meta">by {{ execution.triggered_by.username }}</div>
+                {% endif %}
+            </div>
+
+            <div class="execution-stat">
+                <div class="execution-stat-label">Progress</div>
+                <div class="execution-stat-value">{{ execution.nodes_executed }}/{{ execution.total_nodes }} nodes</div>
+                <div class="webops-progress webops-mt-xs">
+                    <div class="webops-progress-bar" style="width: {% widthratio execution.nodes_executed execution.total_nodes 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+
+        {% if execution.error_message %}
+        <div class="webops-alert webops-alert-danger webops-mt-lg">
+            <div class="webops-alert-header">
+                <span class="material-icons">error</span>
+                Execution Error
+            </div>
+            <div class="webops-alert-body">
+                <pre class="error-message">{{ execution.error_message }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Node Execution Results -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Node Execution Results</h3>
+        <div class="webops-text-sm webops-text-secondary">Step-by-step execution details</div>
+    </div>
+    <div class="webops-card-body webops-p-0">
+        {% if node_results %}
+        <div class="node-results-timeline">
+            {% for result in node_results %}
+            <div class="timeline-item {% if result.status == 'completed' %}timeline-success{% elif result.status == 'failed' %}timeline-error{% elif result.status == 'running' %}timeline-running{% else %}timeline-pending{% endif %}">
+                <div class="timeline-marker">
+                    {% if result.status == 'completed' %}
+                        <span class="material-icons">check_circle</span>
+                    {% elif result.status == 'failed' %}
+                        <span class="material-icons">error</span>
+                    {% elif result.status == 'running' %}
+                        <span class="material-icons">play_circle</span>
+                    {% else %}
+                        <span class="material-icons">radio_button_unchecked</span>
+                    {% endif %}
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <h4 class="timeline-title">{{ result.node.name }}</h4>
+                        <div class="timeline-meta">
+                            <span class="webops-badge webops-badge-outline">{{ result.node.get_node_type_display }}</span>
+                            {% if result.duration %}
+                            <span class="webops-text-sm webops-text-secondary">{{ result.duration|floatformat:2 }}s</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if result.input_data %}
+                    <div class="timeline-section">
+                        <div class="timeline-section-header">
+                            <span class="material-icons webops-icon-sm">input</span>
+                            Input Data
+                        </div>
+                        <div class="code-block">
+                            <pre>{{ result.input_data|pprint }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.output_data %}
+                    <div class="timeline-section">
+                        <div class="timeline-section-header">
+                            <span class="material-icons webops-icon-sm">output</span>
+                            Output Data
+                        </div>
+                        <div class="code-block">
+                            <pre>{{ result.output_data|pprint }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.error_message %}
+                    <div class="timeline-section">
+                        <div class="timeline-section-header">
+                            <span class="material-icons webops-icon-sm">error</span>
+                            Error
+                        </div>
+                        <div class="code-block error-block">
+                            <pre>{{ result.error_message }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if result.logs %}
+                    <div class="timeline-section">
+                        <div class="timeline-section-header">
+                            <span class="material-icons webops-icon-sm">description</span>
+                            Logs
+                        </div>
+                        <div class="log-entries">
+                            {% for log in result.logs %}
+                            <div class="log-entry log-{{ log.level|lower }}">
+                                <span class="log-timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
+                                <span class="log-level">{{ log.level }}</span>
+                                <span class="log-message">{{ log.message }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="webops-empty-state webops-p-lg">
+            <span class="material-icons webops-empty-state-icon" style="font-size: 48px; color: var(--webops-color-text-tertiary); opacity: 0.3;">account_tree</span>
+            <h4 class="webops-empty-state-title">No node results yet</h4>
+            <p class="webops-empty-state-description">Node execution results will appear here as the workflow runs</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Execution Logs -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Execution Logs</h3>
+        <div class="webops-flex webops-gap-sm">
+            <button id="btn-auto-refresh" class="webops-btn webops-btn-sm webops-btn-secondary" 
+                    {% if execution.status == 'running' %}data-auto-refresh="true"{% endif %}>
+                <span class="material-icons">refresh</span>
+                Auto Refresh
+            </button>
+            <button id="btn-download-logs" class="webops-btn webops-btn-sm webops-btn-secondary">
+                <span class="material-icons">download</span>
+                Download
+            </button>
+        </div>
+    </div>
+    <div class="webops-card-body webops-p-0">
+        {% if execution.logs %}
+        <div class="log-viewer" id="log-viewer">
+            {% for log in execution.logs %}
+            <div class="log-entry log-{{ log.level|lower }}">
+                <span class="log-timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
+                <span class="log-level">{{ log.level }}</span>
+                <span class="log-message">{{ log.message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="webops-empty-state webops-p-lg">
+            <span class="material-icons webops-empty-state-icon" style="font-size: 48px; color: var(--webops-color-text-tertiary); opacity: 0.3;">description</span>
+            <h4 class="webops-empty-state-title">No logs available</h4>
+            <p class="webops-empty-state-description">Execution logs will appear here as the workflow runs</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-icon-sm {
+    font-size: 18px;
+}
+
+.webops-grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.execution-stat {
+    text-align: center;
+}
+
+.execution-stat-label {
+    font-size: 0.875rem;
+    color: var(--webops-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.execution-stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.execution-stat-meta {
+    font-size: 0.75rem;
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-progress {
+    width: 100%;
+    height: 4px;
+    background-color: var(--webops-color-bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.webops-progress-bar {
+    height: 100%;
+    background-color: var(--webops-color-primary);
+    transition: width 0.3s ease;
+}
+
+.error-message {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.2);
+    border-radius: var(--webops-radius-sm);
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--webops-color-error);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.node-results-timeline {
+    padding: 1rem;
+}
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    bottom: -32px;
+    width: 2px;
+    background: var(--webops-color-border);
+}
+
+.timeline-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.timeline-success .timeline-marker {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--webops-color-success);
+    border: 2px solid var(--webops-color-success);
+}
+
+.timeline-error .timeline-marker {
+    background: rgba(255, 68, 68, 0.1);
+    color: var(--webops-color-error);
+    border: 2px solid var(--webops-color-error);
+}
+
+.timeline-running .timeline-marker {
+    background: rgba(0, 170, 255, 0.1);
+    color: var(--webops-color-info);
+    border: 2px solid var(--webops-color-info);
+}
+
+.timeline-pending .timeline-marker {
+    background: var(--webops-color-bg-secondary);
+    color: var(--webops-color-text-tertiary);
+    border: 2px solid var(--webops-color-border);
+}
+
+.timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.timeline-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--webops-color-text-primary);
+}
+
+.timeline-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.timeline-section {
+    margin-bottom: 1rem;
+}
+
+.timeline-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--webops-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.code-block {
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-border);
+    border-radius: var(--webops-radius-sm);
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--webops-color-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.error-block {
+    background: rgba(255, 68, 68, 0.05);
+    border-color: rgba(255, 68, 68, 0.2);
+}
+
+.error-block pre {
+    color: var(--webops-color-error);
+}
+
+.log-viewer {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.log-entries {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.log-entry {
+    display: flex;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--webops-color-border);
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.log-entry:hover {
+    background: var(--webops-color-bg-secondary);
+}
+
+.log-timestamp {
+    color: var(--webops-color-text-tertiary);
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.log-level {
+    font-weight: 600;
+    min-width: 60px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.log-message {
+    flex: 1;
+    word-break: break-word;
+}
+
+.log-debug .log-level {
+    color: var(--webops-color-text-tertiary);
+}
+
+.log-info .log-level {
+    color: var(--webops-color-info);
+}
+
+.log-warning .log-level {
+    color: var(--webops-color-warning);
+}
+
+.log-error .log-level {
+    color: var(--webops-color-error);
+}
+
+@media (max-width: 768px) {
+    .webops-grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .timeline-item {
+        flex-direction: column;
+    }
+    
+    .timeline-marker {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        align-self: flex-start;
+    }
+    
+    .timeline-item:not(:last-child)::after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const autoRefreshBtn = document.getElementById('btn-auto-refresh');
+    const downloadBtn = document.getElementById('btn-download-logs');
+    let autoRefreshInterval;
+
+    // Auto refresh functionality
+    if (autoRefreshBtn) {
+        autoRefreshBtn.addEventListener('click', function() {
+            const isAutoRefresh = this.dataset.autoRefresh === 'true';
+            
+            if (isAutoRefresh) {
+                // Stop auto refresh
+                clearInterval(autoRefreshInterval);
+                this.dataset.autoRefresh = 'false';
+                this.classList.remove('webops-btn-primary');
+                this.classList.add('webops-btn-secondary');
+            } else {
+                // Start auto refresh
+                autoRefreshInterval = setInterval(() => {
+                    window.location.reload();
+                }, 5000);
+                this.dataset.autoRefresh = 'true';
+                this.classList.remove('webops-btn-secondary');
+                this.classList.add('webops-btn-primary');
+            }
+        });
+
+        // Start auto refresh if execution is running
+        if (autoRefreshBtn.dataset.autoRefresh === 'true') {
+            autoRefreshInterval = setInterval(() => {
+                window.location.reload();
+            }, 5000);
+            autoRefreshBtn.classList.remove('webops-btn-secondary');
+            autoRefreshBtn.classList.add('webops-btn-primary');
+        }
+    }
+
+    // Download logs functionality
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            const logEntries = document.querySelectorAll('.log-entry');
+            let logText = '';
+            
+            logEntries.forEach(entry => {
+                const timestamp = entry.querySelector('.log-timestamp').textContent;
+                const level = entry.querySelector('.log-level').textContent;
+                const message = entry.querySelector('.log-message').textContent;
+                logText += `${timestamp} [${level}] ${message}\n`;
+            });
+
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `execution-{{ execution.id }}-logs.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+});
+</script>
+{% endblock %}

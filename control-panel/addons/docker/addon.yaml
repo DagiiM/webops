@@ -1,0 +1,59 @@
+name: docker
+version: 1.0.0
+description: Provides Docker containerization support for deployments. Automatically builds and manages Docker containers for applications.
+author: WebOps Team
+license: MIT
+enabled: true
+
+# Hook definitions
+hooks:
+  pre_deployment:
+    - handler: addons.docker.hooks:docker_pre_deployment
+      priority: 50
+      timeout_ms: 10000
+      retries: 0
+      enforcement: optional
+
+  post_deployment:
+    - handler: addons.docker.hooks:docker_post_deployment
+      priority: 50
+      timeout_ms: 600000
+      retries: 0
+      enforcement: optional
+
+  service_health_check:
+    - handler: addons.docker.hooks:docker_health_check
+      priority: 50
+      timeout_ms: 5000
+      retries: 0
+      enforcement: optional
+
+# Addon capabilities
+capabilities:
+  - container_management
+  - dockerfile_generation
+  - docker_build
+  - health_monitoring
+
+# Settings schema (for future UI configuration)
+settings_schema:
+  default_base_image:
+    type: string
+    default: "python:3.11-slim"
+    description: Default Docker base image for auto-generated Dockerfiles
+
+  registry_url:
+    type: string
+    default: ""
+    description: Custom Docker registry URL (optional)
+
+  enable_auto_dockerfile_generation:
+    type: boolean
+    default: true
+    description: Enable automatic Dockerfile generation for projects without one
+
+  default_network_mode:
+    type: string
+    default: "bridge"
+    enum: ["bridge", "host", "none"]
+    description: Default Docker network mode for containers

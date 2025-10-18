@@ -1,0 +1,746 @@
+{% extends 'base.html' %}
+
+{% block title %}Workflow Templates - WebOps{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Workflow Templates</h2>
+        <p class="webops-text-muted">Pre-built workflows to get you started quickly</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Workflows
+        </a>
+        <a href="{% url 'automation:workflow_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Custom
+        </a>
+    </div>
+</div>
+
+<!-- Template Categories Filter -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-body">
+        <div class="template-filters">
+            <div class="filter-group">
+                <label class="webops-label">Category</label>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-category="all">
+                        <span class="material-icons">apps</span>
+                        All Templates
+                    </button>
+                    <button class="filter-btn" data-category="data_processing">
+                        <span class="material-icons">transform</span>
+                        Data Processing
+                    </button>
+                    <button class="filter-btn" data-category="notifications">
+                        <span class="material-icons">notifications</span>
+                        Notifications
+                    </button>
+                    <button class="filter-btn" data-category="integrations">
+                        <span class="material-icons">integration_instructions</span>
+                        Integrations
+                    </button>
+                    <button class="filter-btn" data-category="reporting">
+                        <span class="material-icons">assessment</span>
+                        Reporting
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <label class="webops-label">Search</label>
+                <div class="webops-input-group">
+                    <span class="material-icons webops-input-icon">search</span>
+                    <input type="text" id="template-search" class="webops-input" placeholder="Search templates...">
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button class="webops-btn webops-btn-sm webops-btn-secondary" onclick="clearFilters()">
+                    <span class="material-icons">clear</span>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Grid -->
+<div class="templates-container" id="templates-container">
+    <div class="templates-grid" id="templates-grid">
+        {% for template in templates %}
+        <div class="template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
+            <div class="template-card-header">
+                <div class="template-icon">
+                    <span class="material-icons">{{ template.icon|default:'auto_awesome' }}</span>
+                </div>
+                <div class="template-category">{{ template.get_category_display }}</div>
+            </div>
+            
+            <div class="template-card-body">
+                <h3 class="template-title">{{ template.name }}</h3>
+                <p class="template-description">{{ template.description|truncatechars:120 }}</p>
+                
+                <div class="template-meta">
+                    <div class="meta-item">
+                        <span class="material-icons webops-icon-xs">schedule</span>
+                        <span>{{ template.estimated_duration|default:'5 min' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="material-icons webops-icon-xs">settings</span>
+                        <span>{{ template.complexity|default:'Easy' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="template-card-footer">
+                <button class="webops-btn webops-btn-sm webops-btn-secondary template-preview-btn" 
+                        data-template-id="{{ template.id }}">
+                    <span class="material-icons webops-icon-sm">visibility</span>
+                    Preview
+                </button>
+                <a href="{% url 'automation:workflow_create' %}?template={{ template.id }}" 
+                   class="webops-btn webops-btn-sm webops-btn-primary">
+                    <span class="material-icons webops-icon-sm">copy</span>
+                    Use Template
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- No Results Message -->
+{% if not templates %}
+<div class="webops-empty-state" id="no-results">
+    <div class="webops-empty-icon">
+        <span class="material-icons">search_off</span>
+    </div>
+    <h3>No templates found</h3>
+    <p>Try adjusting your search criteria or create a custom workflow.</p>
+    <div class="webops-empty-actions">
+        <a href="{% url 'automation:workflow_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create First Workflow
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Template Preview Modal -->
+<div class="webops-modal" id="template-preview-modal" style="display: none;">
+    <div class="webops-modal-backdrop" onclick="closePreviewModal()"></div>
+    <div class="webops-modal__content">
+        <div class="webops-modal-header">
+            <div class="webops-modal-title-section">
+                <h3 class="webops-modal-title" id="preview-title">Template Preview</h3>
+                <p class="webops-modal-subtitle" id="preview-subtitle">Loading template details...</p>
+            </div>
+            <button class="webops-modal-close" onclick="closePreviewModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="webops-modal-body" id="preview-body">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <span class="loading-text">Loading template preview...</span>
+            </div>
+        </div>
+        <div class="webops-modal-footer">
+            <button class="webops-btn webops-btn-secondary" onclick="closePreviewModal()">
+                <span class="material-icons">close</span>
+                Close
+            </button>
+            <button class="webops-btn webops-btn-primary" id="use-template-btn">
+                <span class="material-icons">copy</span>
+                Use This Template
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced Modal Styles */
+.webops-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000; /* ensure modal stacks above page content */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-6);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--webops-duration-normal) var(--webops-ease-out);
+}
+
+.webops-modal.show {
+    display: flex; /* allow showing via class toggle */
+    opacity: 1;
+    visibility: visible;
+}
+
+.webops-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+    z-index: 1; /* backdrop below content */
+}
+
+.webops-modal__content {
+    position: relative;
+    z-index: 2; /* content above backdrop */
+    background: var(--webops-color-bg-elevated);
+    border-radius: var(--webops-radius-2xl);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-modal-shadow);
+    max-width: 900px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95) translateY(20px);
+    transition: all var(--webops-duration-normal) var(--webops-ease-out);
+    overflow: hidden;
+    border: 1px solid var(--webops-color-primary-alpha-15);
+}
+
+.webops-modal.show .webops-modal__content {
+    transform: scale(1) translateY(0);
+}
+
+.webops-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-accent) 100%);
+    color: var(--webops-color-text-inverse);
+    position: relative;
+}
+
+.webops-modal-title {
+    margin: 0 0 var(--webops-space-2) 0;
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-bold);
+}
+
+.webops-modal-subtitle {
+    margin: 0;
+    font-size: var(--webops-font-size-sm);
+    opacity: 0.9;
+}
+
+.webops-modal-body {
+    flex: 1;
+    padding: var(--webops-space-6);
+    overflow-y: auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.webops-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-4) var(--webops-space-6);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--webops-color-bg-primary);
+}
+
+.webops-modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--webops-color-text-inverse);
+    cursor: pointer;
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-lg);
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+}
+
+.webops-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--webops-space-4);
+    padding: var(--webops-space-8) var(--webops-space-6);
+}
+
+.spinner-ring {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(59, 130, 246, 0.1);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Template Filters */
+.template-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 2px solid var(--webops-color-border);
+    border-radius: 12px;
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    border-color: var(--webops-color-primary);
+    color: var(--webops-color-primary);
+    transform: translateY(-1px);
+}
+
+.filter-btn.active {
+    background: var(--webops-color-primary);
+    border-color: var(--webops-color-primary);
+    color: white;
+}
+
+/* Templates Grid */
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--webops-space-6);
+}
+
+.template-card {
+    background: var(--webops-color-bg-primary);
+    border-radius: var(--webops-radius-2xl);
+    border: 1px solid var(--webops-color-border);
+    overflow: hidden;
+    transition: all var(--webops-duration-normal) var(--webops-ease-out);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--webops-shadow-lg);
+}
+
+.template-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
+    background: var(--webops-color-bg-secondary);
+}
+
+.template-icon {
+    width: var(--webops-size-12);
+    height: var(--webops-size-12);
+    background: var(--webops-color-primary);
+    border-radius: var(--webops-radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--webops-color-text-inverse);
+}
+
+.template-category {
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+    color: var(--webops-color-text-secondary);
+    background: var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-1) var(--webops-space-3);
+    border-radius: var(--webops-radius-full);
+}
+
+.template-card-body {
+    padding: var(--webops-space-6);
+}
+
+.template-title {
+    margin: 0 0 var(--webops-space-3) 0;
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.template-description {
+    margin: 0 0 var(--webops-space-4) 0;
+    color: var(--webops-color-text-secondary);
+    line-height: var(--webops-line-height-normal);
+}
+
+.template-meta {
+    display: flex;
+    gap: var(--webops-space-4);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.template-card-footer {
+    display: flex;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-6);
+    border-top: 1px solid var(--webops-color-border);
+    background: var(--webops-color-bg-tertiary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .templates-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .template-filters {
+        flex-direction: column;
+        gap: var(--webops-space-4);
+    }
+    
+    .filter-buttons {
+        flex-direction: column;
+    }
+
+    .webops-modal {
+        padding: var(--webops-space-4);
+    }
+    
+    .webops-modal__content {
+        max-height: 90vh;
+        border-radius: var(--webops-radius-2xl);
+    }
+    
+    .webops-modal-header {
+        padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
+    }
+    
+    .webops-modal-body {
+        padding: var(--webops-space-6);
+    }
+    
+    .webops-modal-footer {
+        padding: var(--webops-space-4) var(--webops-space-6);
+        flex-direction: column;
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-modal-footer .webops-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Template Preview Content Styles */
+.template-preview-content {
+    padding: 0;
+}
+
+.template-description {
+    margin-bottom: var(--webops-space-6);
+    padding: var(--webops-space-5);
+    background: var(--webops-color-bg-secondary);
+    border-radius: var(--webops-radius-xl);
+    border-left: var(--webops-space-1) solid var(--webops-color-primary);
+}
+
+.template-description p {
+    margin: 0;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-base);
+    line-height: var(--webops-line-height-relaxed);
+}
+
+.workflow-summary {
+    margin-bottom: 24px;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.workflow-nodes {
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.workflow-nodes h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.node-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.node-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.node-preview:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(4px);
+}
+
+.node-type-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    min-width: 80px;
+    text-align: center;
+}
+
+.node-type-trigger { background: #dbeafe; color: #1e40af; }
+.node-type-api { background: #dcfce7; color: #166534; }
+.node-type-database { background: #fef3c7; color: #92400e; }
+.node-type-condition { background: #fce7f3; color: #be185d; }
+.node-type-email { background: #e0e7ff; color: #3730a3; }
+.node-type-webhook { background: #f3e8ff; color: #6b21a8; }
+.node-type-transform { background: #fed7d7; color: #c53030; }
+.node-type-aggregate { background: #bee3f8; color: #2c5282; }
+.node-type-slack { background: #e6fffa; color: #234e52; }
+.node-type-file { background: #fbb6ce; color: #97266d; }
+.node-type-code { background: #d6f5d6; color: #22543d; }
+
+.node-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Responsive adjustments for preview content */
+@media (max-width: 768px) {
+    .summary-stats {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .stat-item {
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .node-preview {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .node-type-badge {
+        min-width: auto;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('template-search');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const templatesGrid = document.getElementById('templates-grid');
+    const previewModal = document.getElementById('template-preview-modal');
+    const previewBtns = document.querySelectorAll('.template-preview-btn');
+
+    let currentFilters = {
+        category: 'all',
+        search: ''
+    };
+
+    // Search functionality
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            currentFilters.search = this.value.toLowerCase();
+            filterTemplates();
+        });
+    }
+
+    // Filter buttons
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filterValue = this.dataset.category;
+            
+            // Update active state
+            this.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update filter
+            currentFilters.category = filterValue;
+            filterTemplates();
+        });
+    });
+
+    // Template preview buttons
+    previewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const templateId = this.dataset.templateId;
+            showPreviewModal(templateId);
+        });
+    });
+
+    function filterTemplates() {
+        const templateCards = document.querySelectorAll('.template-card');
+        let visibleCount = 0;
+
+        templateCards.forEach(card => {
+            const category = card.dataset.category;
+            const name = card.dataset.name;
+            
+            const matchesCategory = currentFilters.category === 'all' || category === currentFilters.category;
+            const matchesSearch = !currentFilters.search || name.includes(currentFilters.search);
+            
+            if (matchesCategory && matchesSearch) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function showPreviewModal(templateId) {
+        if (previewModal) {
+            previewModal.style.display = 'flex';
+            previewModal.classList.add('show');
+            
+            // Load template details via AJAX
+            fetch(`/automation/templates/${templateId}/preview/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('preview-title').textContent = data.name;
+                    document.getElementById('preview-subtitle').textContent = data.category;
+                    document.getElementById('preview-body').innerHTML = data.html;
+                    document.getElementById('use-template-btn').onclick = () => {
+                        window.location.href = `/automation/template/${templateId}/create/`;
+                    };
+                })
+                .catch(error => {
+                    document.getElementById('preview-body').innerHTML = '<p>Error loading template preview.</p>';
+                });
+        }
+    }
+
+    window.closePreviewModal = function() {
+        if (previewModal) {
+            previewModal.classList.remove('show');
+            setTimeout(() => {
+                previewModal.style.display = 'none';
+            }, 300);
+        }
+    };
+
+    window.clearFilters = function() {
+        currentFilters = {
+            category: 'all',
+            search: ''
+        };
+
+        if (searchInput) searchInput.value = '';
+        filterBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.category === 'all') {
+                btn.classList.add('active');
+            }
+        });
+
+        filterTemplates();
+    };
+});
+</script>
+{% endblock %}

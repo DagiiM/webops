@@ -53,6 +53,12 @@ def deployment_create(request):
         branch = request.POST.get('branch', 'main').strip()
         domain = request.POST.get('domain', '').strip()
 
+        # Docker options
+        use_docker = request.POST.get('use_docker') == 'on'
+        auto_generate_dockerfile = request.POST.get('auto_generate_dockerfile') == 'on'
+        dockerfile_path = request.POST.get('dockerfile_path', 'Dockerfile').strip()
+        docker_network_mode = request.POST.get('docker_network_mode', 'bridge').strip()
+
         # Validation
         if not name:
             messages.error(request, "Deployment name is required.")
@@ -94,7 +100,11 @@ def deployment_create(request):
                 repo_url=repo_url,
                 branch=branch or 'main',
                 domain=domain,
-                deployed_by=request.user
+                deployed_by=request.user,
+                use_docker=use_docker,
+                auto_generate_dockerfile=auto_generate_dockerfile,
+                dockerfile_path=dockerfile_path if use_docker else 'Dockerfile',
+                docker_network_mode=docker_network_mode if use_docker else 'bridge'
             )
 
             # Ensure Celery worker is running (non-interactive)

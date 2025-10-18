@@ -243,6 +243,69 @@
                 <small class="webops-input-help">Leave empty to use IP address and port</small>
             </div>
 
+            <!-- Docker Options (only shown if docker addon is enabled) -->
+            {% if 'docker' in enabled_addon_names %}
+            <div class="webops-card" style="margin-bottom: var(--webops-space-3); background: var(--webops-color-bg-secondary);">
+                <div class="webops-card-header" style="display: flex; align-items: center; gap: var(--webops-space-2);">
+                    <span class="material-icons" style="color: var(--webops-color-info);">widgets</span>
+                    <h4 class="webops-h4" style="margin: 0;">Docker Containerization</h4>
+                    <span class="webops-badge" style="background: rgba(0, 170, 255, 0.2); color: var(--webops-color-info); font-size: 11px;">Optional</span>
+                </div>
+                <div class="webops-card-body">
+                    <div class="webops-form-group">
+                        <label class="webops-flex webops-gap-sm" style="align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="use_docker" name="use_docker" style="width: auto;">
+                            <span class="webops-label" style="margin: 0;">Use Docker containerization</span>
+                        </label>
+                        <small class="webops-input-help">Deploy this application in a Docker container for better isolation and portability</small>
+                    </div>
+
+                    <div id="dockerOptions" style="display: none; margin-top: var(--webops-space-3); padding-top: var(--webops-space-3); border-top: 1px solid rgba(0, 255, 136, 0.1);">
+                        <div class="webops-form-group">
+                            <label class="webops-flex webops-gap-sm" style="align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="auto_generate_dockerfile" name="auto_generate_dockerfile" checked style="width: auto;">
+                                <span class="webops-label" style="margin: 0;">Auto-generate Dockerfile if not present</span>
+                            </label>
+                            <small class="webops-input-help">WebOps will create an optimized Dockerfile based on your project type</small>
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="dockerfile_path" class="webops-label">Dockerfile Path</label>
+                            <input type="text" id="dockerfile_path" name="dockerfile_path" class="webops-input" value="Dockerfile"
+                                   placeholder="Dockerfile"
+                                   autocomplete="off">
+                            <small class="webops-input-help">Path to Dockerfile relative to repository root</small>
+                        </div>
+
+                        <div class="webops-form-group">
+                            <label for="docker_network_mode" class="webops-label">Network Mode</label>
+                            <select id="docker_network_mode" name="docker_network_mode" class="webops-input">
+                                <option value="bridge" selected>Bridge (default)</option>
+                                <option value="host">Host</option>
+                                <option value="none">None</option>
+                            </select>
+                            <small class="webops-input-help">Docker network mode for the container</small>
+                        </div>
+
+                        <div class="webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 3px solid var(--webops-color-info);">
+                            <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                                <span class="material-icons webops-text-info" style="font-size: 18px;">info</span>
+                                <div class="webops-text-xs">
+                                    <strong>Docker Benefits:</strong>
+                                    <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                                        <li>Consistent runtime environment</li>
+                                        <li>Better resource isolation</li>
+                                        <li>Easy scaling and updates</li>
+                                        <li>Compatible with vLLM and other containerized services</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
                 <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
                     <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
@@ -403,5 +466,20 @@ document.getElementById('branchSelect').addEventListener('change', function() {
 document.getElementById('deploymentForm').addEventListener('submit', function() {
     showLoader();
 });
+
+// Docker options toggle (only if Docker addon is enabled)
+const useDockerCheckbox = document.getElementById('use_docker');
+if (useDockerCheckbox) {
+    useDockerCheckbox.addEventListener('change', function() {
+        const dockerOptions = document.getElementById('dockerOptions');
+        if (dockerOptions) {
+            if (this.checked) {
+                dockerOptions.style.display = 'block';
+            } else {
+                dockerOptions.style.display = 'none';
+            }
+        }
+    });
+}
 </script>
 {% endblock %}

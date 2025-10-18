@@ -28,6 +28,9 @@ urlpatterns = [
     # Monitoring
     path('monitoring/', include('apps.services.urls')),
 
+    # Automation
+    path('automation/', include(('apps.automation.urls', 'automation'))),
+
     # Addons
     path('addons/', include(('apps.addons.urls', 'addons'))),
 

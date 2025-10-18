@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Automation Workflows - WebOps{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Automation Workflows</h2>
+        <p class="webops-text-muted">Create and manage visual automation workflows</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <a href="{% url 'automation:template_list' %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">apps</span>
+            Templates
+        </a>
+        <a href="{% url 'automation:workflow_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Create Workflow
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="webops-stats-grid webops-mb-lg">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">account_tree</span>
+        </div>
+        <div class="webops-stat-value">{{ total_workflows }}</div>
+        <div class="webops-stat-label">Total Workflows</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <span class="material-icons">check_circle</span>
+        </div>
+        <div class="webops-stat-value">{{ active_workflows }}</div>
+        <div class="webops-stat-label">Active</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <span class="material-icons">play_arrow</span>
+        </div>
+        <div class="webops-stat-value">
+            {% widthratio workflow_stats|length 1 1 %}
+        </div>
+        <div class="webops-stat-label">Recent Executions</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(156, 39, 176, 0.1); color: #9c27b0;">
+            <span class="material-icons">schedule</span>
+        </div>
+        <div class="webops-stat-value">
+            {% for item in workflow_stats %}
+                {% if item.workflow.trigger_type == 'schedule' %}1{% endif %}
+            {% empty %}0{% endfor %}
+        </div>
+        <div class="webops-stat-label">Scheduled</div>
+    </div>
+</div>
+
+<!-- Workflows List -->
+{% if workflow_stats %}
+<div class="webops-space-y-md">
+    {% for item in workflow_stats %}
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-justify-between webops-items-center">
+                <div class="webops-flex webops-items-center webops-gap-md">
+                    <div>
+                        <h3 class="webops-h3">
+                            <a href="{% url 'automation:workflow_builder' item.workflow.id %}" class="webops-link">
+                                {{ item.workflow.name }}
+                            </a>
+                        </h3>
+                        {% if item.workflow.description %}
+                        <div class="webops-text-sm webops-text-secondary webops-mt-xs">
+                            {{ item.workflow.description }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="webops-flex webops-gap-sm">
+                    <span class="webops-badge webops-badge-{{ item.workflow.status|yesno:'success,secondary,warning,danger' }}">
+                        {% if item.workflow.status == 'active' %}
+                            <span class="material-icons webops-icon-xs">check_circle</span>
+                            Active
+                        {% elif item.workflow.status == 'paused' %}
+                            <span class="material-icons webops-icon-xs">pause_circle</span>
+                            Paused
+                        {% elif item.workflow.status == 'draft' %}
+                            <span class="material-icons webops-icon-xs">edit</span>
+                            Draft
+                        {% else %}
+                            <span class="material-icons webops-icon-xs">cancel</span>
+                            Disabled
+                        {% endif %}
+                    </span>
+                    <span class="webops-badge webops-badge-info">
+                        {{ item.workflow.get_trigger_type_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="webops-card-body">
+            <!-- Workflow Statistics -->
+            <div class="webops-grid webops-grid-4 webops-mb-md">
+                <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold">{{ item.node_count }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Nodes</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold webops-text-success">{{ item.workflow.successful_executions }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Successful</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold webops-text-error">{{ item.workflow.failed_executions }}</div>
+                    <div class="webops-text-sm webops-text-secondary">Failed</div>
+                </div>
+
+                <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+                    <div class="webops-text-2xl webops-font-bold">
+                        {% if item.workflow.total_executions > 0 %}
+                            {% widthratio item.workflow.successful_executions item.workflow.total_executions 100 %}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                    <div class="webops-text-sm webops-text-secondary">Success Rate</div>
+                </div>
+            </div>
+
+            <!-- Recent Executions -->
+            {% if item.recent_executions %}
+            <div class="webops-mb-md">
+                <h4 class="webops-text-sm webops-font-semibold webops-mb-sm">Recent Executions</h4>
+                <div class="webops-flex webops-gap-xs webops-flex-wrap">
+                    {% for execution in item.recent_executions %}
+                    <a href="{% url 'execution_detail' execution.id %}"
+                       class="webops-badge webops-badge-{{ execution.status|yesno:'success,error,warning,info,secondary,warning' }}"
+                       title="{{ execution.started_at|date:'Y-m-d H:i' }} - {{ execution.get_status_display }}">
+                        <span class="material-icons webops-icon-xs">
+                            {% if execution.status == 'success' %}check_circle
+                            {% elif execution.status == 'failed' %}error
+                            {% elif execution.status == 'running' %}play_circle
+                            {% else %}pending{% endif %}
+                        </span>
+                        {{ execution.started_at|timesince }} ago
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="webops-flex webops-gap-sm webops-justify-end">
+                <a href="{% url 'automation:workflow_builder' item.workflow.id %}" class="webops-btn webops-btn-sm webops-btn-primary">
+                    <span class="material-icons">edit</span>
+                    Edit
+                </a>
+                <form method="post" action="{% url 'automation:workflow_execute' item.workflow.id %}" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="webops-btn webops-btn-sm webops-btn-success"
+                            {% if item.workflow.status == 'disabled' %}disabled{% endif %}>
+                        <span class="material-icons">play_arrow</span>
+                        Run
+                    </button>
+                </form>
+                <a href="{% url 'automation:execution_list' item.workflow.id %}" class="webops-btn webops-btn-sm webops-btn-info">
+                    <span class="material-icons">history</span>
+                    History
+                </a>
+                <form method="post" action="{% url 'automation:workflow_delete' item.workflow.id %}" class="inline-form"
+                      onsubmit="return confirm('Delete workflow \'{{ item.workflow.name }}\'? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="webops-btn webops-btn-sm webops-btn-danger">
+                        <span class="material-icons">delete</span>
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="webops-card">
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">account_tree</span>
+        <h3 class="webops-empty-state-title">No workflows yet</h3>
+        <p class="webops-empty-state-description">Create your first automation workflow to get started</p>
+        <div class="webops-flex webops-gap-sm webops-justify-center webops-mt-md">
+            <a href="{% url 'automation:workflow_create' %}" class="webops-btn webops-btn-primary">
+                <span class="material-icons">add</span>
+                Create Workflow
+            </a>
+            <a href="{% url 'automation:template_list' %}" class="webops-btn webops-btn-secondary">
+                <span class="material-icons">apps</span>
+                Browse Templates
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}

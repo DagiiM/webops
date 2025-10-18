@@ -2,44 +2,510 @@
 {% block title %}Addons{% endblock %}
 {% block content %}
 <div class="webops-container">
-    <h1 class="webops-page-title">Addons</h1>
-    <div class="webops-card">
-        <table class="webops-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Version</th>
-                    <th>Enabled</th>
-                    <th>Description</th>
-                    <th>Success</th>
-                    <th>Failure</th>
-                    <th>Last Run</th>
-                    <th>Last Success</th>
-                    <th>Duration (ms)</th>
-                    <th>Last Error</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for addon in addons %}
-                <tr>
-                    <td>{{ addon.name }}</td>
-                    <td>{{ addon.version }}</td>
-                    <td>{% if addon.enabled %}Yes{% else %}No{% endif %}</td>
-                    <td>{{ addon.description }}</td>
-                    <td>{{ addon.success_count }}</td>
-                    <td>{{ addon.failure_count }}</td>
-                    <td>{% if addon.last_run_at %}{{ addon.last_run_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
-                    <td>{% if addon.last_success_at %}{{ addon.last_success_at|date:"Y-m-d H:i" }}{% else %}-{% endif %}</td>
-                    <td>{{ addon.last_duration_ms }}</td>
-                    <td>{% if addon.last_error %}<span class="webops-text-danger">{{ addon.last_error }}</span>{% else %}-{% endif %}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="10">No addons found</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="webops-addons-header">
+        <h1 class="webops-page-title">Addons</h1>
+        <p class="webops-addons-subtitle">Manage and monitor your installed addons</p>
     </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div style="margin-bottom: var(--webops-space-4);">
+        {% for message in messages %}
+        <div class="webops-addon-alert {% if message.tags == 'success' %}webops-addon-alert-success{% elif message.tags == 'warning' %}webops-addon-alert-warning{% else %}webops-addon-alert-info{% endif %}">
+            <span class="material-icons">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</span>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Restart Warning -->
+    <div class="webops-addon-alert webops-addon-alert-warning" style="margin-bottom: var(--webops-space-6);">
+        <span class="material-icons">info</span>
+        <div>
+            <strong>Restart Required:</strong>
+            Changes to addon enabled/disabled status require a WebOps restart to take effect.
+            Hooks are registered during application startup.
+        </div>
+    </div>
+
+    {% if addons %}
+    <div class="webops-addons-grid">
+        {% for addon in addons %}
+        <div class="webops-addon-card">
+            <div class="webops-addon-card-header">
+                <div class="webops-addon-icon">
+                    <span class="material-icons">extension</span>
+                </div>
+                <div class="webops-addon-status">
+                    {% if addon.enabled %}
+                        <span class="webops-addon-status-badge webops-addon-status-enabled">Enabled</span>
+                    {% else %}
+                        <span class="webops-addon-status-badge webops-addon-status-disabled">Disabled</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="webops-addon-card-body">
+                <h3 class="webops-addon-title">{{ addon.name }}</h3>
+                <p class="webops-addon-version">Version {{ addon.version }}</p>
+                <p class="webops-addon-description">{{ addon.description|default:"No description available" }}</p>
+                
+                <div class="webops-addon-stats">
+                    <div class="webops-addon-stat">
+                        <span class="webops-addon-stat-value webops-addon-stat-success">{{ addon.success_count }}</span>
+                        <span class="webops-addon-stat-label">Success</span>
+                    </div>
+                    <div class="webops-addon-stat">
+                        <span class="webops-addon-stat-value webops-addon-stat-failure">{{ addon.failure_count }}</span>
+                        <span class="webops-addon-stat-label">Failures</span>
+                    </div>
+                    {% if addon.last_duration_ms %}
+                    <div class="webops-addon-stat">
+                        <span class="webops-addon-stat-value">{{ addon.last_duration_ms }}ms</span>
+                        <span class="webops-addon-stat-label">Duration</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="webops-addon-card-footer">
+                <div class="webops-addon-meta">
+                    {% if addon.last_run_at %}
+                        <div class="webops-addon-meta-item">
+                            <span class="material-icons webops-addon-meta-icon">schedule</span>
+                            <span class="webops-addon-meta-text">Last run: {{ addon.last_run_at|date:"M d, H:i" }}</span>
+                        </div>
+                    {% endif %}
+                    {% if addon.last_success_at %}
+                        <div class="webops-addon-meta-item">
+                            <span class="material-icons webops-addon-meta-icon">check_circle</span>
+                            <span class="webops-addon-meta-text">Last success: {{ addon.last_success_at|date:"M d, H:i" }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if addon.last_error %}
+                <div class="webops-addon-error">
+                    <span class="material-icons webops-addon-error-icon">error</span>
+                    <span class="webops-addon-error-text">{{ addon.last_error|truncatewords:15 }}</span>
+                </div>
+                {% endif %}
+
+                <!-- Enable/Disable Actions -->
+                <div class="webops-addon-actions" style="margin-top: var(--webops-space-4); display: flex; gap: var(--webops-space-2);">
+                    <a href="{% url 'addons:addon_detail' addon.name %}" class="webops-addon-action-button webops-addon-action-secondary" style="flex: 1;">
+                        <span class="material-icons" style="font-size: 16px;">info</span>
+                        Details
+                    </a>
+                    <form method="POST" action="{% url 'addons:addon_toggle' addon.name %}" style="flex: 1;" onsubmit="return confirm('This will {% if addon.enabled %}disable{% else %}enable{% endif %} the {{ addon.name }} addon. A restart is required for changes to take effect. Continue?');">
+                        {% csrf_token %}
+                        {% if addon.enabled %}
+                        <button type="submit" class="webops-addon-action-button webops-addon-action-danger" style="width: 100%;">
+                            <span class="material-icons" style="font-size: 16px;">power_settings_new</span>
+                            Disable
+                        </button>
+                        {% else %}
+                        <button type="submit" class="webops-addon-action-button webops-addon-action-success" style="width: 100%;">
+                            <span class="material-icons" style="font-size: 16px;">power_settings_new</span>
+                            Enable
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="webops-addons-empty">
+        <div class="webops-addons-empty-icon">
+            <span class="material-icons">extension</span>
+        </div>
+        <h3 class="webops-addons-empty-title">No Addons Found</h3>
+        <p class="webops-addons-empty-description">No addons are currently installed or available.</p>
+    </div>
+    {% endif %}
 </div>
+
+<style>
+/* ============================================================================
+   Addons Page Styles
+   ============================================================================ */
+
+.webops-addons-header {
+    margin-bottom: var(--webops-space-8);
+}
+
+.webops-addons-subtitle {
+    margin: var(--webops-space-2) 0 0 0;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-lg);
+}
+
+/* ============================================================================
+   Addons Grid Layout
+   ============================================================================ */
+
+.webops-addons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--webops-space-6);
+    margin-bottom: var(--webops-space-8);
+}
+
+/* ============================================================================
+   Addon Card Styles
+   ============================================================================ */
+
+.webops-addon-card {
+    background: var(--webops-color-bg-primary);
+    border: 1px solid var(--webops-color-border);
+    border-radius: var(--webops-radius-2xl);
+    overflow: hidden;
+    transition: all var(--webops-duration-normal) var(--webops-ease-out);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-addon-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--webops-shadow-lg);
+    border-color: var(--webops-color-primary-alpha-30);
+}
+
+.webops-addon-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-6);
+    background: var(--webops-color-bg-secondary);
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.webops-addon-icon {
+    width: var(--webops-size-12);
+    height: var(--webops-size-12);
+    background: var(--webops-color-primary);
+    border-radius: var(--webops-radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--webops-color-text-inverse);
+}
+
+.webops-addon-icon .material-icons {
+    font-size: var(--webops-size-6);
+}
+
+.webops-addon-status-badge {
+    padding: var(--webops-space-1) var(--webops-space-3);
+    border-radius: var(--webops-radius-full);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+}
+
+.webops-addon-status-enabled {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-addon-status-disabled {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-addon-card-body {
+    padding: var(--webops-space-6);
+}
+
+.webops-addon-title {
+    margin: 0 0 var(--webops-space-2) 0;
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-addon-version {
+    margin: 0 0 var(--webops-space-3) 0;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-addon-description {
+    margin: 0 0 var(--webops-space-5) 0;
+    color: var(--webops-color-text-secondary);
+    line-height: var(--webops-line-height-normal);
+}
+
+/* ============================================================================
+   Addon Stats
+   ============================================================================ */
+
+.webops-addon-stats {
+    display: flex;
+    gap: var(--webops-space-4);
+    padding: var(--webops-space-4);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-lg);
+}
+
+.webops-addon-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.webops-addon-stat-value {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-bold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-addon-stat-success {
+    color: var(--webops-color-success);
+}
+
+.webops-addon-stat-failure {
+    color: var(--webops-color-error);
+}
+
+.webops-addon-stat-label {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+    margin-top: var(--webops-space-1);
+}
+
+/* ============================================================================
+   Addon Card Footer
+   ============================================================================ */
+
+.webops-addon-card-footer {
+    padding: var(--webops-space-6);
+    border-top: 1px solid var(--webops-color-border);
+    background: var(--webops-color-bg-tertiary);
+}
+
+.webops-addon-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+.webops-addon-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-addon-meta-icon {
+    font-size: var(--webops-size-4);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-addon-meta-text {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-addon-error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-4);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-error-alpha-05);
+    border: 1px solid var(--webops-color-error-alpha-20);
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-addon-error-icon {
+    font-size: var(--webops-size-4);
+    color: var(--webops-color-error);
+    margin-top: var(--webops-space-0-5);
+}
+
+.webops-addon-error-text {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-error);
+    line-height: var(--webops-line-height-normal);
+}
+
+/* ============================================================================
+   Alert Messages
+   ============================================================================ */
+
+.webops-addon-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-4);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-addon-alert .material-icons {
+    font-size: var(--webops-size-5);
+}
+
+.webops-addon-alert-success {
+    background: var(--webops-color-success-alpha-10);
+    border: 1px solid var(--webops-color-success-alpha-30);
+    color: var(--webops-color-success);
+}
+
+.webops-addon-alert-warning {
+    background: rgba(255, 191, 0, 0.1);
+    border: 1px solid rgba(255, 191, 0, 0.3);
+    color: #FFC107;
+}
+
+.webops-addon-alert-info {
+    background: var(--webops-color-info-alpha-10);
+    border: 1px solid var(--webops-color-info-alpha-30);
+    color: var(--webops-color-info);
+}
+
+/* ============================================================================
+   Addon Actions
+   ============================================================================ */
+
+.webops-addon-action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--webops-space-2);
+    padding: var(--webops-space-2-5) var(--webops-space-4);
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    border: none;
+    cursor: pointer;
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    text-decoration: none;
+}
+
+.webops-addon-action-button:hover {
+    transform: translateY(-1px);
+}
+
+.webops-addon-action-secondary {
+    background: var(--webops-color-bg-secondary);
+    color: var(--webops-color-text-primary);
+    border: 1px solid var(--webops-color-border);
+}
+
+.webops-addon-action-secondary:hover {
+    background: var(--webops-color-bg-tertiary);
+    border-color: var(--webops-color-primary-alpha-30);
+}
+
+.webops-addon-action-success {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+    border: 1px solid var(--webops-color-success-alpha-30);
+}
+
+.webops-addon-action-success:hover {
+    background: var(--webops-color-success-alpha-20);
+    border-color: var(--webops-color-success);
+}
+
+.webops-addon-action-danger {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+    border: 1px solid var(--webops-color-error-alpha-30);
+}
+
+.webops-addon-action-danger:hover {
+    background: var(--webops-color-error-alpha-20);
+    border-color: var(--webops-color-error);
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.webops-addons-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-16);
+    text-align: center;
+}
+
+.webops-addons-empty-icon {
+    width: var(--webops-size-16);
+    height: var(--webops-size-16);
+    background: var(--webops-color-bg-secondary);
+    border-radius: var(--webops-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--webops-space-6);
+}
+
+.webops-addons-empty-icon .material-icons {
+    font-size: var(--webops-size-8);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-addons-empty-title {
+    margin: 0 0 var(--webops-space-3) 0;
+    font-size: var(--webops-font-size-2xl);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-addons-empty-description {
+    margin: 0;
+    font-size: var(--webops-font-size-lg);
+    color: var(--webops-color-text-secondary);
+    max-width: 400px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .webops-addons-grid {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-4);
+    }
+    
+    .webops-addon-stats {
+        flex-direction: column;
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-addon-stat {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .webops-addon-meta {
+        gap: var(--webops-space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-addon-card-header {
+        flex-direction: column;
+        gap: var(--webops-space-3);
+        align-items: flex-start;
+    }
+    
+    .webops-addon-stats {
+        padding: var(--webops-space-3);
+    }
+}
+</style>
 {% endblock %}

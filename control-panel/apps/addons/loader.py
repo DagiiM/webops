@@ -137,6 +137,7 @@ def register_discovered_addons(registry, addons_path: str = DEFAULT_ADDONS_PATH)
     Given a registry (AddonHookRegistry), parse manifests and register hooks
     with extracted options and resolved handlers.
     Also sync Addon model records for discovered manifests.
+    Only registers hooks for enabled addons.
     Returns the list of discovered addon dicts.
     """
     addons = discover_addons(addons_path)
@@ -149,7 +150,19 @@ def register_discovered_addons(registry, addons_path: str = DEFAULT_ADDONS_PATH)
             sync_addon_record(meta, addon['manifest_path'])
         except Exception as e:
             logger.error(f"Failed to sync Addon record for '{name}': {e}")
-        # Register hooks
+
+        # Check if addon is enabled in the database
+        try:
+            addon_record = Addon.objects.get(name=name)
+            if not addon_record.enabled:
+                logger.info(f"Skipping disabled addon '{name}'")
+                continue
+        except Addon.DoesNotExist:
+            logger.warning(f"Addon record not found for '{name}', will not register hooks")
+            continue
+
+        # Register hooks (only for enabled addons)
+        logger.info(f"Registering hooks for enabled addon '{name}'")
         for event, handlers in hooks.items():
             if not isinstance(handlers, list):
                 logger.warning(f"Hooks for event '{event}' in addon '{name}' must be a list.")

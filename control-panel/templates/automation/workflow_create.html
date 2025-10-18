@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Workflow - WebOps{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Create Automation Workflow</h2>
+        <p class="webops-text-muted">Start from scratch or use a template</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Create from Scratch -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Create from Scratch</h3>
+        <div class="webops-text-sm webops-text-secondary">Build a custom workflow from the ground up</div>
+    </div>
+    <div class="webops-card-body">
+        <form method="post" action="{% url 'automation:workflow_create' %}" class="webops-form">
+            {% csrf_token %}
+
+            <div class="webops-form-group">
+                <label class="webops-label" for="name">
+                    Workflow Name
+                    <span class="webops-text-error">*</span>
+                </label>
+                <input type="text" name="name" id="name" class="webops-input" required
+                       placeholder="e.g., Daily Report Generator">
+            </div>
+
+            <div class="webops-form-group">
+                <label class="webops-label" for="description">
+                    Description
+                </label>
+                <textarea name="description" id="description" class="webops-input" rows="3"
+                          placeholder="What does this workflow do?"></textarea>
+            </div>
+
+            <div class="webops-form-group">
+                <label class="webops-label" for="trigger_type">
+                    Trigger Type
+                </label>
+                <select name="trigger_type" id="trigger_type" class="webops-select">
+                    <option value="manual">Manual - Run on demand</option>
+                    <option value="schedule">Schedule - Run on a schedule</option>
+                    <option value="webhook">Webhook - Trigger via HTTP</option>
+                    <option value="event">Event - Trigger on system events</option>
+                </select>
+            </div>
+
+            <div class="webops-flex webops-justify-end webops-gap-sm">
+                <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">add</span>
+                    Create Workflow
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Templates -->
+{% if templates %}
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Start from Template</h3>
+        <div class="webops-text-sm webops-text-secondary">Use pre-built workflows to get started quickly</div>
+    </div>
+    <div class="webops-card-body">
+        <div class="template-grid">
+            {% for template in templates %}
+            <div class="template-card">
+                <div class="template-header">
+                    <h4 class="template-title">{{ template.name }}</h4>
+                    <span class="webops-badge webops-badge-info">{{ template.get_category_display }}</span>
+                </div>
+                <p class="template-description">{{ template.description }}</p>
+                <div class="template-footer">
+                    <div class="template-stats">
+                        <span class="webops-text-sm webops-text-secondary">
+                            <span class="material-icons" style="font-size: 16px;">people</span>
+                            {{ template.usage_count }} uses
+                        </span>
+                        {% if template.is_official %}
+                        <span class="webops-badge webops-badge-success">Official</span>
+                        {% endif %}
+                    </div>
+                    <form method="post" action="{% url 'automation:workflow_create_from_template' template.id %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit" class="webops-btn webops-btn-sm webops-btn-primary">
+                            <span class="material-icons">copy</span>
+                            Use Template
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="webops-text-center webops-mt-md">
+            <a href="{% url 'automation:template_list' %}" class="webops-btn webops-btn-secondary">
+                <span class="material-icons">apps</span>
+                View All Templates
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.template-card {
+    border: 1px solid var(--webops-color-border);
+    border-radius: var(--webops-radius-md);
+    padding: 1.25rem;
+    background: var(--webops-color-bg-primary);
+    transition: all 0.2s;
+}
+
+.template-card:hover {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.template-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--webops-color-text-primary);
+}
+
+.template-description {
+    color: var(--webops-color-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.template-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--webops-color-border);
+}
+
+.template-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .template-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

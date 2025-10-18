@@ -1,0 +1,764 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ workflow.name }} - Workflow Builder{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="workflow-builder-container">
+    <!-- Toolbar -->
+    <div class="workflow-toolbar">
+        <div class="toolbar-left">
+            <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary">
+                <span class="material-icons">arrow_back</span>
+                Back
+            </a>
+            <div class="workflow-title-edit">
+                <input type="text" id="workflow-name" value="{{ workflow.name }}" class="workflow-name-input">
+                <span class="webops-badge webops-badge-{{ workflow.status }}">{{ workflow.get_status_display }}</span>
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <button id="btn-undo" class="webops-btn webops-btn-sm webops-btn-secondary" disabled>
+                <span class="material-icons">undo</span>
+            </button>
+            <button id="btn-redo" class="webops-btn webops-btn-sm webops-btn-secondary" disabled>
+                <span class="material-icons">redo</span>
+            </button>
+            <button id="btn-zoom-out" class="webops-btn webops-btn-sm webops-btn-secondary">
+                <span class="material-icons">zoom_out</span>
+            </button>
+            <span id="zoom-level" class="zoom-indicator">100%</span>
+            <button id="btn-zoom-in" class="webops-btn webops-btn-sm webops-btn-secondary">
+                <span class="material-icons">zoom_in</span>
+            </button>
+            <button id="btn-fit-view" class="webops-btn webops-btn-sm webops-btn-secondary">
+                <span class="material-icons">fit_screen</span>
+            </button>
+            <button id="btn-save" class="webops-btn webops-btn-sm webops-btn-primary">
+                <span class="material-icons">save</span>
+                Save
+            </button>
+            <button id="btn-execute" class="webops-btn webops-btn-sm webops-btn-success">
+                <span class="material-icons">play_arrow</span>
+                Run
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="workflow-main">
+        <!-- Node Palette -->
+        <div class="node-palette">
+            <div class="palette-header">
+                <h3>Nodes</h3>
+                <input type="text" id="node-search" placeholder="Search nodes..." class="palette-search">
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-section-header">
+                    <span class="material-icons">input</span>
+                    Data Sources
+                </div>
+                <div class="palette-nodes" id="data-source-nodes">
+                    <div class="palette-node" data-node-type="DATA_SOURCE_GOOGLE_DOCS" draggable="true">
+                        <span class="material-icons">description</span>
+                        <span>Google Docs</span>
+                    </div>
+                    <div class="palette-node" data-node-type="DATA_SOURCE_GOOGLE_SHEETS" draggable="true">
+                        <span class="material-icons">table_chart</span>
+                        <span>Google Sheets</span>
+                    </div>
+                    <div class="palette-node" data-node-type="DATA_SOURCE_WEBHOOK" draggable="true">
+                        <span class="material-icons">webhook</span>
+                        <span>Webhook</span>
+                    </div>
+                    <div class="palette-node" data-node-type="DATA_SOURCE_DATABASE" draggable="true">
+                        <span class="material-icons">storage</span>
+                        <span>Database Query</span>
+                    </div>
+                    <div class="palette-node" data-node-type="DATA_SOURCE_API" draggable="true">
+                        <span class="material-icons">api</span>
+                        <span>API Request</span>
+                    </div>
+                    <div class="palette-node" data-node-type="DATA_SOURCE_CUSTOM_URL" draggable="true">
+                        <span class="material-icons">link</span>
+                        <span>Custom URL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-section-header">
+                    <span class="material-icons">transform</span>
+                    Processors
+                </div>
+                <div class="palette-nodes" id="processor-nodes">
+                    <div class="palette-node" data-node-type="PROCESSOR_LLM" draggable="true">
+                        <span class="material-icons">psychology</span>
+                        <span>LLM Processor</span>
+                    </div>
+                    <div class="palette-node" data-node-type="PROCESSOR_TRANSFORM" draggable="true">
+                        <span class="material-icons">transform</span>
+                        <span>Transform Data</span>
+                    </div>
+                    <div class="palette-node" data-node-type="PROCESSOR_FILTER" draggable="true">
+                        <span class="material-icons">filter_alt</span>
+                        <span>Filter</span>
+                    </div>
+                    <div class="palette-node" data-node-type="PROCESSOR_AGGREGATE" draggable="true">
+                        <span class="material-icons">functions</span>
+                        <span>Aggregate</span>
+                    </div>
+                    <div class="palette-node" data-node-type="PROCESSOR_CODE" draggable="true">
+                        <span class="material-icons">code</span>
+                        <span>Custom Code</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-section-header">
+                    <span class="material-icons">output</span>
+                    Outputs
+                </div>
+                <div class="palette-nodes" id="output-nodes">
+                    <div class="palette-node" data-node-type="OUTPUT_EMAIL" draggable="true">
+                        <span class="material-icons">email</span>
+                        <span>Send Email</span>
+                    </div>
+                    <div class="palette-node" data-node-type="OUTPUT_WEBHOOK" draggable="true">
+                        <span class="material-icons">webhook</span>
+                        <span>Webhook Out</span>
+                    </div>
+                    <div class="palette-node" data-node-type="OUTPUT_DATABASE" draggable="true">
+                        <span class="material-icons">storage</span>
+                        <span>Database Write</span>
+                    </div>
+                    <div class="palette-node" data-node-type="OUTPUT_SLACK" draggable="true">
+                        <span class="material-icons">chat</span>
+                        <span>Slack Message</span>
+                    </div>
+                    <div class="palette-node" data-node-type="OUTPUT_NOTIFICATION" draggable="true">
+                        <span class="material-icons">notifications</span>
+                        <span>Notification</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-section-header">
+                    <span class="material-icons">account_tree</span>
+                    Control Flow
+                </div>
+                <div class="palette-nodes" id="control-nodes">
+                    <div class="palette-node" data-node-type="CONTROL_CONDITION" draggable="true">
+                        <span class="material-icons">alt_route</span>
+                        <span>Condition</span>
+                    </div>
+                    <div class="palette-node" data-node-type="CONTROL_LOOP" draggable="true">
+                        <span class="material-icons">loop</span>
+                        <span>Loop</span>
+                    </div>
+                    <div class="palette-node" data-node-type="CONTROL_DELAY" draggable="true">
+                        <span class="material-icons">schedule</span>
+                        <span>Delay</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="workflow-canvas"></canvas>
+            <div class="canvas-minimap" id="minimap"></div>
+        </div>
+
+        <!-- Properties Panel -->
+        <div class="properties-panel" id="properties-panel">
+            <div class="properties-header">
+                <h3 id="properties-title">Properties</h3>
+                <button id="btn-close-properties" class="btn-icon">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="properties-body" id="properties-body">
+                <p class="webops-text-muted">Select a node to edit its properties</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Data -->
+<script id="workflow-data" type="application/json">
+{
+    "workflow_id": {{ workflow.id }},
+    "nodes": {{ nodes|safe }},
+    "connections": {{ connections|safe }}
+}
+</script>
+
+<style>
+.workflow-builder-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--webops-header-height, 120px) - var(--webops-space-6, 48px));
+    max-width: var(--webops-content-max-width, 1280px);
+    margin: 0 auto;
+    background: var(--webops-color-bg-primary);
+    font-family: var(--webops-font-family-base);
+    border-radius: var(--webops-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--webops-shadow-lg);
+}
+
+.workflow-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-4) var(--webops-space-6);
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    box-shadow: var(--webops-shadow-xs);
+    z-index: var(--webops-z-sticky);
+}
+
+.toolbar-left, .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+}
+
+.workflow-title-edit {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+}
+
+.workflow-name-input {
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-semibold);
+    padding: var(--webops-space-2) var(--webops-space-3);
+    border: var(--webops-border-width-base) solid transparent;
+    border-radius: var(--webops-radius-lg);
+    background: var(--webops-color-bg-card);
+    color: var(--webops-color-text-primary);
+    transition: all var(--webops-transition-base);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.workflow-name-input:hover {
+    border-color: var(--webops-color-primary-alpha-30);
+    background: var(--webops-color-bg-elevated);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.workflow-name-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    background: var(--webops-color-bg-elevated);
+    box-shadow: var(--webops-shadow-primary-sm);
+}
+
+.zoom-indicator {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-secondary);
+    min-width: 50px;
+    text-align: center;
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: var(--webops-color-bg-card);
+    border-radius: var(--webops-radius-md);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+}
+
+.workflow-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Enhanced Node Palette */
+.node-palette {
+    width: 300px;
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border-right: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    overflow-y: auto;
+    flex-shrink: 0;
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.palette-header {
+    padding: var(--webops-space-6);
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    color: white;
+}
+
+.palette-header h3 {
+    margin: 0 0 var(--webops-space-4) 0;
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-bold);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.palette-search {
+    width: 100%;
+    padding: var(--webops-space-3) var(--webops-space-4);
+    border: var(--webops-border-width-base) solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--webops-radius-xl);
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: var(--webops-font-size-sm);
+    backdrop-filter: blur(10px);
+    transition: all var(--webops-transition-base);
+}
+
+.palette-search::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.palette-search:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.palette-section {
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
+}
+
+.palette-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-4) var(--webops-space-6);
+    font-weight: var(--webops-font-weight-bold);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    background: var(--webops-color-bg-tertiary);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+}
+
+.palette-section-header .material-icons {
+    font-size: var(--webops-icon-size-lg);
+    color: var(--webops-color-primary);
+}
+
+.palette-nodes {
+    padding: var(--webops-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+@media (max-width: 768px) {
+    .palette-nodes {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: var(--webops-space-3);
+        gap: var(--webops-space-2);
+    }
+    
+    .palette-node {
+        flex-shrink: 0;
+        min-width: 140px;
+        margin-bottom: 0;
+    }
+}
+
+.palette-node {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-4);
+    padding: var(--webops-space-4);
+    margin-bottom: var(--webops-space-3);
+    background: var(--webops-color-bg-elevated);
+    border: var(--webops-border-width-base) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-xl);
+    cursor: grab;
+    transition: all var(--webops-transition-base);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    box-shadow: var(--webops-shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.palette-node::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-600));
+    transform: scaleX(0);
+    transition: transform var(--webops-transition-base);
+}
+
+.palette-node:hover {
+    border-color: var(--webops-color-primary);
+    box-shadow: var(--webops-shadow-lg);
+    transform: translateY(-2px);
+}
+
+.palette-node:hover::before {
+    transform: scaleX(1);
+}
+
+.palette-node:active {
+    cursor: grabbing;
+    transform: translateY(0) scale(var(--webops-scale-active));
+}
+
+.palette-node .material-icons {
+    font-size: var(--webops-icon-size-lg);
+    color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-lg);
+}
+
+/* Ultra Sleek Canvas */
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background: 
+        radial-gradient(circle at 25% 25%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
+        linear-gradient(90deg, var(--webops-color-surface) 1px, transparent 1px),
+        linear-gradient(var(--webops-color-surface) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+    overflow: hidden;
+}
+
+#workflow-canvas {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    transition: cursor var(--webops-transition-fast);
+}
+
+#workflow-canvas:active {
+    cursor: grabbing;
+}
+
+.canvas-minimap {
+    position: absolute;
+    bottom: var(--webops-space-6);
+    right: var(--webops-space-6);
+    width: 220px;
+    height: 160px;
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border: var(--webops-border-width-base) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-2xl);
+    box-shadow: var(--webops-shadow-lg);
+    transition: all var(--webops-transition-base);
+}
+
+.canvas-minimap:hover {
+    box-shadow: var(--webops-shadow-xl);
+    transform: translateY(-2px);
+}
+
+/* Enhanced Properties Panel */
+.properties-panel {
+    width: 350px;
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border-left: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.properties-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-6);
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    color: white;
+}
+
+.properties-header h3 {
+    margin: 0;
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-bold);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-lg);
+    color: white;
+    transition: all var(--webops-transition-base);
+    backdrop-filter: blur(10px);
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(var(--webops-scale-hover));
+}
+
+.properties-body {
+    padding: var(--webops-space-6);
+    overflow-y: auto;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .properties-body {
+        padding: var(--webops-space-4);
+        overflow-y: auto;
+        max-height: 180px;
+    }
+    
+    .properties-header {
+        padding: var(--webops-space-4) var(--webops-space-6);
+    }
+    
+    .palette-header {
+        padding: var(--webops-space-4) var(--webops-space-6);
+    }
+    
+    .palette-header h3 {
+        font-size: var(--webops-font-size-base);
+        margin-bottom: var(--webops-space-3);
+    }
+}
+
+/* Enhanced Button Styles */
+.webops-btn-sm {
+    padding: var(--webops-space-3) var(--webops-space-4);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    border-radius: var(--webops-radius-lg);
+    transition: all var(--webops-transition-base);
+    border: var(--webops-border-width-base) solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-btn-sm::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left var(--webops-duration-slow) ease;
+}
+
+.webops-btn-sm:hover::before {
+    left: 100%;
+}
+
+.webops-btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-btn-primary {
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    box-shadow: var(--webops-shadow-primary-sm);
+}
+
+.webops-btn-primary:hover {
+    box-shadow: var(--webops-shadow-primary);
+}
+
+.webops-btn-success {
+    background: linear-gradient(135deg, var(--webops-color-success) 0%, var(--webops-color-success-600) 100%);
+    box-shadow: var(--webops-shadow-success);
+}
+
+.webops-btn-success:hover {
+    box-shadow: var(--webops-shadow-success);
+}
+
+.webops-btn-secondary {
+    background: var(--webops-color-bg-card);
+    color: var(--webops-color-text-primary);
+    border-color: var(--webops-color-surface);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-btn-secondary:hover {
+    background: var(--webops-color-bg-elevated);
+    border-color: var(--webops-color-primary);
+    color: var(--webops-color-primary);
+}
+
+.webops-btn-sm .material-icons {
+    font-size: var(--webops-icon-size-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .node-palette {
+        width: 260px;
+    }
+
+    .properties-panel {
+        width: 300px;
+    }
+    
+    .workflow-builder-container {
+        height: calc(100vh - 140px);
+    }
+}
+
+@media (max-width: 1024px) {
+    .node-palette {
+        width: 240px;
+    }
+
+    .properties-panel {
+        width: 280px;
+    }
+    
+    .canvas-minimap {
+        width: 180px;
+        height: 120px;
+    }
+    
+    .workflow-builder-container {
+        height: calc(100vh - 160px);
+    }
+}
+
+@media (max-width: 768px) {
+    .workflow-toolbar {
+        padding: var(--webops-space-3) var(--webops-space-4);
+        flex-wrap: wrap;
+        gap: var(--webops-space-2);
+    }
+    
+    .toolbar-left, .toolbar-right {
+        gap: var(--webops-space-2);
+        flex-wrap: wrap;
+    }
+    
+    .workflow-name-input {
+        font-size: var(--webops-font-size-base);
+        min-width: 200px;
+    }
+    
+    .canvas-minimap {
+        bottom: var(--webops-space-4);
+        right: var(--webops-space-4);
+        width: 160px;
+        height: 100px;
+    }
+    
+    .workflow-main {
+        flex-direction: column;
+    }
+    
+    .node-palette {
+        width: 100%;
+        height: 200px;
+        order: 2;
+        border-right: none;
+        border-top: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    }
+    
+    .canvas-container {
+        order: 1;
+        height: 300px;
+        min-height: 300px;
+    }
+    
+    .properties-panel {
+        width: 100%;
+        height: 250px;
+        order: 3;
+        border-left: none;
+        border-top: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    }
+    
+    .workflow-builder-container {
+        height: calc(100vh - 180px);
+    }
+}
+
+@media (max-width: 480px) {
+    .workflow-toolbar {
+        padding: var(--webops-space-2);
+    }
+    
+    .toolbar-left .webops-btn span:not(.material-icons) {
+        display: none;
+    }
+    
+    .workflow-name-input {
+        min-width: 150px;
+        font-size: var(--webops-font-size-sm);
+    }
+    
+    .zoom-indicator {
+        min-width: 40px;
+        font-size: var(--webops-font-size-xs);
+    }
+    
+    .node-palette {
+        height: 150px;
+    }
+    
+    .canvas-container {
+        height: 250px;
+        min-height: 250px;
+    }
+    
+    .properties-panel {
+        height: 200px;
+    }
+    
+    .workflow-builder-container {
+        height: calc(100vh - 200px);
+    }
+}
+
+/* Loading and Animation States */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: var(--webops-opacity-hover); }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.palette-node {
+    animation: slideIn var(--webops-duration-base) var(--webops-ease-out) forwards;
+}
+
+.palette-node:nth-child(1) { animation-delay: var(--webops-duration-fast); }
+.palette-node:nth-child(2) { animation-delay: var(--webops-duration-base); }
+.palette-node:nth-child(3) { animation-delay: var(--webops-duration-medium); }
+.palette-node:nth-child(4) { animation-delay: var(--webops-duration-slow); }
+.palette-node:nth-child(5) { animation-delay: var(--webops-duration-slower); }
+</style>
+
+<script src="{% static 'js/workflow-canvas.js' %}"></script>
+{% endblock %}

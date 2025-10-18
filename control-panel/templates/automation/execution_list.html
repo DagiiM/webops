@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}Execution History - {{ workflow.name }} - WebOps{% endblock %}
+{% block header_title %}Automation{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Execution History</h2>
+        <p class="webops-text-muted">{{ workflow.name }} - View all workflow executions</p>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Workflows
+        </a>
+        <a href="{% url 'automation:workflow_builder' workflow.id %}" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">edit</span>
+            Edit Workflow
+        </a>
+        <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="inline-form">
+            {% csrf_token %}
+            <button type="submit" class="webops-btn webops-btn-primary">
+                <span class="material-icons">play_arrow</span>
+                Run Now
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="webops-stats-grid webops-mb-lg">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">play_arrow</span>
+        </div>
+        <div class="webops-stat-value">{{ total_executions }}</div>
+        <div class="webops-stat-label">Total Executions</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <span class="material-icons">check_circle</span>
+        </div>
+        <div class="webops-stat-value">{{ successful_executions }}</div>
+        <div class="webops-stat-label">Successful</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+            <span class="material-icons">error</span>
+        </div>
+        <div class="webops-stat-value">{{ failed_executions }}</div>
+        <div class="webops-stat-label">Failed</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(156, 39, 176, 0.1); color: #9c27b0;">
+            <span class="material-icons">schedule</span>
+        </div>
+        <div class="webops-stat-value">
+            {% if avg_duration %}{{ avg_duration|floatformat:1 }}s{% else %}N/A{% endif %}
+        </div>
+        <div class="webops-stat-label">Avg Duration</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-body">
+        <form method="get" class="webops-form">
+            <div class="webops-grid webops-grid-cols-4 webops-gap-md">
+                <div class="webops-form-group">
+                    <label class="webops-label" for="status">Status</label>
+                    <select name="status" id="status" class="webops-select">
+                        <option value="">All Statuses</option>
+                        <option value="running" {% if request.GET.status == 'running' %}selected{% endif %}>Running</option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-label" for="trigger_type">Trigger</label>
+                    <select name="trigger_type" id="trigger_type" class="webops-select">
+                        <option value="">All Triggers</option>
+                        <option value="manual" {% if request.GET.trigger_type == 'manual' %}selected{% endif %}>Manual</option>
+                        <option value="schedule" {% if request.GET.trigger_type == 'schedule' %}selected{% endif %}>Schedule</option>
+                        <option value="webhook" {% if request.GET.trigger_type == 'webhook' %}selected{% endif %}>Webhook</option>
+                        <option value="event" {% if request.GET.trigger_type == 'event' %}selected{% endif %}>Event</option>
+                    </select>
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-label" for="date_from">From Date</label>
+                    <input type="date" name="date_from" id="date_from" class="webops-input" 
+                           value="{{ request.GET.date_from }}">
+                </div>
+
+                <div class="webops-form-group">
+                    <label class="webops-label" for="date_to">To Date</label>
+                    <input type="date" name="date_to" id="date_to" class="webops-input" 
+                           value="{{ request.GET.date_to }}">
+                </div>
+            </div>
+
+            <div class="webops-flex webops-gap-sm webops-mt-md">
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">filter_list</span>
+                    Apply Filters
+                </button>
+                <a href="{% url 'automation:execution_list' workflow.id %}" class="webops-btn webops-btn-secondary">
+                    <span class="material-icons">clear</span>
+                    Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Executions List -->
+{% if executions %}
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Execution History</h3>
+        <div class="webops-text-sm webops-text-secondary">{{ executions|length }} executions found</div>
+    </div>
+    <div class="webops-card-body webops-p-0">
+        <div class="webops-table-responsive">
+            <table class="webops-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Duration</th>
+                        <th>Trigger</th>
+                        <th>Nodes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for execution in executions %}
+                    <tr>
+                        <td>
+                            <span class="webops-badge webops-badge-{% if execution.status == 'completed' %}success{% elif execution.status == 'failed' %}danger{% elif execution.status == 'running' %}info{% else %}secondary{% endif %}">
+                                {% if execution.status == 'completed' %}
+                                    <span class="material-icons webops-icon-xs">check_circle</span>
+                                    Completed
+                                {% elif execution.status == 'failed' %}
+                                    <span class="material-icons webops-icon-xs">error</span>
+                                    Failed
+                                {% elif execution.status == 'running' %}
+                                    <span class="material-icons webops-icon-xs">play_circle</span>
+                                    Running
+                                {% else %}
+                                    <span class="material-icons webops-icon-xs">cancel</span>
+                                    Cancelled
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="webops-text-sm">
+                                {{ execution.started_at|date:"M d, Y H:i" }}
+                            </div>
+                            <div class="webops-text-xs webops-text-secondary">
+                                {{ execution.started_at|timesince }} ago
+                            </div>
+                        </td>
+                        <td>
+                            {% if execution.completed_at %}
+                                {{ execution.duration|floatformat:2 }}s
+                            {% elif execution.status == 'running' %}
+                                <span class="webops-text-info">Running...</span>
+                            {% else %}
+                                <span class="webops-text-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="webops-badge webops-badge-outline">
+                                {% if execution.trigger_type == 'manual' %}
+                                    <span class="material-icons webops-icon-xs">touch_app</span>
+                                    Manual
+                                {% elif execution.trigger_type == 'schedule' %}
+                                    <span class="material-icons webops-icon-xs">schedule</span>
+                                    Schedule
+                                {% elif execution.trigger_type == 'webhook' %}
+                                    <span class="material-icons webops-icon-xs">webhook</span>
+                                    Webhook
+                                {% else %}
+                                    <span class="material-icons webops-icon-xs">event</span>
+                                    Event
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="webops-text-sm">
+                                {{ execution.nodes_executed }}/{{ execution.total_nodes }} nodes
+                            </div>
+                            {% if execution.status == 'running' %}
+                            <div class="webops-progress webops-mt-xs">
+                                <div class="webops-progress-bar" style="width: {% widthratio execution.nodes_executed execution.total_nodes 100 %}%"></div>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="webops-flex webops-gap-xs">
+                                <a href="{% url 'automation:execution_detail' execution.id %}" class="webops-btn webops-btn-xs webops-btn-primary">
+                                    <span class="material-icons">visibility</span>
+                                    View
+                                </a>
+                                {% if execution.status == 'running' %}
+                                <form method="post" action="{% url 'execution_cancel' execution.id %}" class="inline-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="webops-btn webops-btn-xs webops-btn-danger"
+                                            onclick="return confirm('Cancel this execution?');">
+                                        <span class="material-icons">stop</span>
+                                        Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="webops-pagination-container webops-mt-lg">
+    <div class="webops-pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+                <span class="material-icons">first_page</span>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+                <span class="material-icons">chevron_left</span>
+            </a>
+        {% endif %}
+
+        <span class="webops-pagination-info">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+                <span class="material-icons">chevron_right</span>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+                <span class="material-icons">last_page</span>
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="webops-card">
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">history</span>
+        <h3 class="webops-empty-state-title">No executions yet</h3>
+        <p class="webops-empty-state-description">This workflow hasn't been executed yet</p>
+        <div class="webops-flex webops-gap-sm webops-justify-center webops-mt-md">
+            <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit" class="webops-btn webops-btn-primary">
+                    <span class="material-icons">play_arrow</span>
+                    Run Workflow
+                </button>
+            </form>
+            <a href="{% url 'automation:workflow_builder' workflow.id %}" class="webops-btn webops-btn-secondary">
+                <span class="material-icons">edit</span>
+                Edit Workflow
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-progress {
+    width: 100%;
+    height: 4px;
+    background-color: var(--webops-color-bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.webops-progress-bar {
+    height: 100%;
+    background-color: var(--webops-color-primary);
+    transition: width 0.3s ease;
+}
+
+.webops-grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .webops-grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-grid-cols-4 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

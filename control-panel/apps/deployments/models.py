@@ -80,6 +80,61 @@ class Deployment(BaseModel):
         help_text='Model data type'
     )
 
+    # Docker-specific fields
+    use_docker = models.BooleanField(default=False, help_text='Deploy using Docker containerization')
+    dockerfile_path = models.CharField(
+        max_length=255,
+        blank=True,
+        default='Dockerfile',
+        help_text='Path to Dockerfile relative to repository root'
+    )
+    docker_compose_path = models.CharField(
+        max_length=255,
+        blank=True,
+        default='docker-compose.yml',
+        help_text='Path to docker-compose.yml relative to repository root'
+    )
+    docker_image_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Custom Docker image name (auto-generated if empty)'
+    )
+    docker_build_args = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Docker build arguments as key-value pairs'
+    )
+    docker_env_vars = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Docker container environment variables'
+    )
+    docker_volumes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Docker volume mounts as list of {"host": "path", "container": "path"}'
+    )
+    docker_ports = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Additional Docker port mappings as list of {"host": port, "container": port}'
+    )
+    docker_network_mode = models.CharField(
+        max_length=50,
+        blank=True,
+        default='bridge',
+        choices=[
+            ('bridge', 'Bridge'),
+            ('host', 'Host'),
+            ('none', 'None'),
+        ],
+        help_text='Docker network mode'
+    )
+    auto_generate_dockerfile = models.BooleanField(
+        default=False,
+        help_text='Automatically generate Dockerfile if not present in repository'
+    )
+
     def __str__(self) -> str:
         return f"{self.name} ({self.status})"
 

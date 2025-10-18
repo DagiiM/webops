@@ -113,6 +113,66 @@ body {
     margin: 0;
 }
 
+/* WebOps Links */
+.webops-link {
+    color: var(--webops-color-primary);
+    text-decoration: none;
+    font-weight: var(--webops-font-weight-medium);
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    border-radius: var(--webops-radius-sm);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    margin: calc(-1 * var(--webops-space-0-5)) calc(-1 * var(--webops-space-1));
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-1);
+}
+
+.webops-link:hover {
+    color: var(--webops-color-primary-light);
+    background: var(--webops-color-primary-alpha-05);
+    text-decoration: none;
+}
+
+.webops-link:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-link:active {
+    color: var(--webops-color-primary-dark);
+    background: var(--webops-color-primary-alpha-15);
+    transform: translateY(1px);
+}
+
+/* WebOps Link Variants */
+.webops-link.webops-link-muted {
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-link.webops-link-muted:hover {
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-bg-secondary);
+}
+
+.webops-link.webops-link-danger {
+    color: var(--webops-color-error);
+}
+
+.webops-link.webops-link-danger:hover {
+    color: var(--webops-color-error-light);
+    background: var(--webops-color-error-alpha-05);
+}
+
+.webops-link.webops-link-success {
+    color: var(--webops-color-success);
+}
+
+.webops-link.webops-link-success:hover {
+    color: var(--webops-color-success-light);
+    background: var(--webops-color-success-alpha-05);
+}
+
 /* Light Mode Variables (Default) */
 :root[data-theme="light"] {
     --color-bg-primary: #f8faf9;
@@ -1665,6 +1725,31 @@ select:focus {
 
 .webops-btn-danger:hover {
     background: linear-gradient(135deg, var(--webops-color-error-light), var(--webops-color-error));
+    transform: translateY(-1px);
+}
+
+/* Success & Info Button Variants */
+.webops-btn-success {
+    background: var(--webops-color-success);
+    color: var(--webops-color-bg-primary);
+    box-shadow: 0 4px 12px var(--webops-color-success-alpha-30);
+}
+
+.webops-btn-success:hover {
+    background: var(--webops-color-success);
+    box-shadow: 0 6px 20px var(--webops-color-success-alpha-30);
+    transform: translateY(-1px);
+}
+
+.webops-btn-info {
+    background: var(--webops-color-info);
+    color: var(--webops-color-bg-primary);
+    box-shadow: 0 4px 12px var(--webops-color-info-alpha-30);
+}
+
+.webops-btn-info:hover {
+    background: var(--webops-color-info);
+    box-shadow: 0 6px 20px var(--webops-color-info-alpha-30);
     transform: translateY(-1px);
 }
 
