@@ -108,7 +108,7 @@
 
         <div class="webops-card-body">
             <!-- Workflow Statistics -->
-            <div class="webops-grid webops-grid-4 webops-mb-md">
+            <div class="webops-grid webops-grid--cols-4 webops-mb-md">
                 <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
                     <div class="webops-text-2xl webops-font-bold">{{ item.node_count }}</div>
                     <div class="webops-text-sm webops-text-secondary">Nodes</div>
@@ -164,7 +164,7 @@
                     <span class="material-icons">edit</span>
                     Edit
                 </a>
-                <form method="post" action="{% url 'automation:workflow_execute' item.workflow.id %}" class="inline-form">
+                <form method="post" action="{% url 'automation:workflow_execute' item.workflow.id %}" class="webops-form webops-form--inline">
                     {% csrf_token %}
                     <button type="submit" class="webops-btn webops-btn-sm webops-btn-success"
                             {% if item.workflow.status == 'disabled' %}disabled{% endif %}>
@@ -176,7 +176,7 @@
                     <span class="material-icons">history</span>
                     History
                 </a>
-                <form method="post" action="{% url 'automation:workflow_delete' item.workflow.id %}" class="inline-form"
+                <form method="post" action="{% url 'automation:workflow_delete' item.workflow.id %}" class="webops-form webops-form--inline"
                       onsubmit="return confirm('Delete workflow \'{{ item.workflow.name }}\'? This cannot be undone.');">
                     {% csrf_token %}
                     <button type="submit" class="webops-btn webops-btn-sm webops-btn-danger">
@@ -210,7 +210,7 @@
 {% endif %}
 
 <style>
-.inline-form {
+.webops-form--inline {
     display: inline-block;
     margin: 0;
 }
@@ -219,14 +219,14 @@
     font-size: 14px;
 }
 
-.webops-grid-4 {
+.webops-grid--cols-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
 @media (max-width: 768px) {
-    .webops-grid-4 {
+    .webops-grid--cols-4 {
         grid-template-columns: repeat(2, 1fr);
     }
 }

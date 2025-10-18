@@ -24,34 +24,43 @@
 <!-- Template Categories Filter -->
 <div class="webops-card webops-mb-lg">
     <div class="webops-card-body">
-        <div class="template-filters">
-            <div class="filter-group">
+-        <div class="template-filters">
++        <div class="webops-template-list__filters">
+-            <div class="filter-group">
++            <div class="webops-template-list__filter-group">
                 <label class="webops-label">Category</label>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-category="all">
+-                <div class="filter-buttons">
++                <div class="webops-template-list__filter-buttons">
+-                    <button class="filter-btn active" data-category="all">
++                    <button class="webops-template-list__filter-btn webops-template-list__filter-btn--active" data-category="all">
                         <span class="material-icons">apps</span>
                         All Templates
                     </button>
-                    <button class="filter-btn" data-category="data_processing">
+-                    <button class="filter-btn" data-category="data_processing">
++                    <button class="webops-template-list__filter-btn" data-category="data_processing">
                         <span class="material-icons">transform</span>
                         Data Processing
                     </button>
-                    <button class="filter-btn" data-category="notifications">
+-                    <button class="filter-btn" data-category="notifications">
++                    <button class="webops-template-list__filter-btn" data-category="notifications">
                         <span class="material-icons">notifications</span>
                         Notifications
                     </button>
-                    <button class="filter-btn" data-category="integrations">
+-                    <button class="filter-btn" data-category="integrations">
++                    <button class="webops-template-list__filter-btn" data-category="integrations">
                         <span class="material-icons">integration_instructions</span>
                         Integrations
                     </button>
-                    <button class="filter-btn" data-category="reporting">
+-                    <button class="filter-btn" data-category="reporting">
++                    <button class="webops-template-list__filter-btn" data-category="reporting">
                         <span class="material-icons">assessment</span>
                         Reporting
                     </button>
                 </div>
             </div>
             
-            <div class="filter-group">
+-            <div class="filter-group">
++            <div class="webops-template-list__filter-group">
                 <label class="webops-label">Search</label>
                 <div class="webops-input-group">
                     <span class="material-icons webops-input-icon">search</span>
@@ -59,7 +68,8 @@
                 </div>
             </div>
             
-            <div class="filter-actions">
+-            <div class="filter-actions">
++            <div class="webops-template-list__filter-actions">
                 <button class="webops-btn webops-btn-sm webops-btn-secondary" onclick="clearFilters()">
                     <span class="material-icons">clear</span>
                     Clear Filters
@@ -70,36 +80,50 @@
 </div>
 
 <!-- Templates Grid -->
-<div class="templates-container" id="templates-container">
-    <div class="templates-grid" id="templates-grid">
+-<div class="templates-container" id="templates-container">
++<div class="webops-template-list__container" id="templates-container">
+-    <div class="templates-grid" id="templates-grid">
++    <div class="webops-template-list__grid" id="templates-grid">
         {% for template in templates %}
-        <div class="template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
-            <div class="template-card-header">
-                <div class="template-icon">
+-        <div class="template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
++        <div class="webops-template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
+-            <div class="template-card-header">
++            <div class="webops-template-card__header">
+-                <div class="template-icon">
++                <div class="webops-template-card__icon">
                     <span class="material-icons">{{ template.icon|default:'auto_awesome' }}</span>
                 </div>
-                <div class="template-category">{{ template.get_category_display }}</div>
+-                <div class="template-category">{{ template.get_category_display }}</div>
++                <div class="webops-template-card__category">{{ template.get_category_display }}</div>
             </div>
             
-            <div class="template-card-body">
-                <h3 class="template-title">{{ template.name }}</h3>
-                <p class="template-description">{{ template.description|truncatechars:120 }}</p>
+-            <div class="template-card-body">
+-                <h3 class="template-title">{{ template.name }}</h3>
+-                <p class="template-description">{{ template.description|truncatechars:120 }}</p>
++            <div class="webops-template-card__body">
++                <h3 class="webops-template-card__title">{{ template.name }}</h3>
++                <p class="webops-template-card__description">{{ template.description|truncatechars:120 }}</p>
                 
-                <div class="template-meta">
-                    <div class="meta-item">
+-                <div class="template-meta">
+-                    <div class="meta-item">
++                <div class="webops-template-card__meta">
++                    <div class="webops-template-card__meta-item">
                         <span class="material-icons webops-icon-xs">schedule</span>
                         <span>{{ template.estimated_duration|default:'5 min' }}</span>
                     </div>
-                    <div class="meta-item">
+-                    <div class="meta-item">
++                    <div class="webops-template-card__meta-item">
                         <span class="material-icons webops-icon-xs">settings</span>
                         <span>{{ template.complexity|default:'Easy' }}</span>
                     </div>
                 </div>
             </div>
             
-            <div class="template-card-footer">
-                <button class="webops-btn webops-btn-sm webops-btn-secondary template-preview-btn" 
-                        data-template-id="{{ template.id }}">
+-            <div class="template-card-footer">
+-                <button class="webops-btn webops-btn-sm webops-btn-secondary template-preview-btn" 
++            <div class="webops-template-card__footer">
++                <button class="webops-btn webops-btn-sm webops-btn-secondary webops-template-card__preview-btn" 
+                         data-template-id="{{ template.id }}">
                     <span class="material-icons webops-icon-sm">visibility</span>
                     Preview
                 </button>
@@ -145,9 +169,12 @@
             </button>
         </div>
         <div class="webops-modal-body" id="preview-body">
-            <div class="loading-spinner">
-                <div class="spinner-ring"></div>
-                <span class="loading-text">Loading template preview...</span>
+-            <div class="loading-spinner">
+-                <div class="spinner-ring"></div>
+-                <span class="loading-text">Loading template preview...</span>
++            <div class="webops-loading">
++                <div class="webops-loading__ring"></div>
++                <span class="webops-loading__text">Loading template preview...</span>
             </div>
         </div>
         <div class="webops-modal-footer">

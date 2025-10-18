@@ -357,7 +357,6 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--webops-color-success), var(--webops-color-primary));
 }
 
 .webops-addon-detail__capability-item:hover {
@@ -482,7 +481,7 @@
 }
 
 .webops-addon-detail__hook-list {
-    padding: var(--webops-space-4);
+   /* padding: var(--webops-space-4); */
 }
 
 .webops-addon-detail__hook-item {
@@ -568,7 +567,7 @@
 
 .webops-addon-detail__hook-meta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  /*  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); */
     gap: var(--webops-space-3);
 }
 
@@ -577,7 +576,7 @@
     align-items: center;
     gap: var(--webops-space-2);
     padding: var(--webops-space-2) var(--webops-space-3);
-    background: var(--webops-color-surface);
+   /* background: var(--webops-color-surface); */
     border-radius: var(--webops-radius-md);
     border: 1px solid var(--webops-color-primary-alpha-10);
 }
@@ -727,8 +726,6 @@
     align-items: center;
     justify-content: center;
     margin-bottom: var(--webops-space-2);
-    background: currentColor;
-    color: var(--webops-color-bg-primary);
     box-shadow: var(--webops-shadow-sm);
 }
 

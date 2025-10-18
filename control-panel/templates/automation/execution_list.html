@@ -18,7 +18,7 @@
             <span class="material-icons">edit</span>
             Edit Workflow
         </a>
-        <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="inline-form">
+        <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="webops-form webops-form--inline">
             {% csrf_token %}
             <button type="submit" class="webops-btn webops-btn-primary">
                 <span class="material-icons">play_arrow</span>
@@ -69,7 +69,7 @@
 <div class="webops-card webops-mb-lg">
     <div class="webops-card-body">
         <form method="get" class="webops-form">
-            <div class="webops-grid webops-grid-cols-4 webops-gap-md">
+            <div class="webops-grid webops-grid--cols-4 webops-gap-md">
                 <div class="webops-form-group">
                     <label class="webops-label" for="status">Status</label>
                     <select name="status" id="status" class="webops-select">
@@ -210,7 +210,7 @@
                                     View
                                 </a>
                                 {% if execution.status == 'running' %}
-                                <form method="post" action="{% url 'execution_cancel' execution.id %}" class="inline-form">
+                                <form method="post" action="{% url 'execution_cancel' execution.id %}" class="webops-form webops-form--inline">
                                     {% csrf_token %}
                                     <button type="submit" class="webops-btn webops-btn-xs webops-btn-danger"
                                             onclick="return confirm('Cancel this execution?');">
@@ -265,7 +265,7 @@
         <h3 class="webops-empty-state-title">No executions yet</h3>
         <p class="webops-empty-state-description">This workflow hasn't been executed yet</p>
         <div class="webops-flex webops-gap-sm webops-justify-center webops-mt-md">
-            <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="inline-form">
+            <form method="post" action="{% url 'automation:workflow_execute' workflow.id %}" class="webops-form webops-form--inline">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-primary">
                     <span class="material-icons">play_arrow</span>
@@ -282,7 +282,7 @@
 {% endif %}
 
 <style>
-.inline-form {
+.webops-form--inline {
     display: inline-block;
     margin: 0;
 }
@@ -305,18 +305,18 @@
     transition: width 0.3s ease;
 }
 
-.webops-grid-cols-4 {
+.webops-grid--cols-4 {
     grid-template-columns: repeat(4, 1fr);
 }
 
 @media (max-width: 768px) {
-    .webops-grid-cols-4 {
+    .webops-grid--cols-4 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 480px) {
-    .webops-grid-cols-4 {
+    .webops-grid--cols-4 {
         grid-template-columns: 1fr;
     }
 }

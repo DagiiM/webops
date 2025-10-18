@@ -57,4 +57,8 @@ urlpatterns = [
     path('integrations/google/callback/', integration_views.google_callback, name='google_callback'),
     path('integrations/google/disconnect/', integration_views.google_disconnect, name='google_disconnect'),
     path('integrations/google/test/', integration_views.google_test, name='google_test'),
+    
+    # Toast Test Pages
+    path('test/toast/', views.toast_test, name='toast_test'),
+    path('test/toast-messages/', views.test_toast_messages, name='test-toast-messages'),
 ]

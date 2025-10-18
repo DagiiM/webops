@@ -1,0 +1,301 @@
+/**
+ * WebOps Toast Notification System
+ * Modern, accessible toast notifications that integrate with existing alert classes
+ * Adheres to the WebOps Design System variables and styles
+ */
+
+/* Toast Container */
+.webops-toast-container {
+    position: fixed;
+    top: var(--webops-space-5);
+    right: var(--webops-space-5);
+    z-index: var(--webops-z-toast);
+    pointer-events: none;
+    max-width: 420px;
+    width: 100%;
+}
+
+/* Toast Base Styles */
+.webops-toast {
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-primary-glow);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-3);
+    pointer-events: all;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all var(--webops-transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Toast Animation States */
+.webops-toast.webops-toast--show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.webops-toast.webops-toast--hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Toast Progress Bar */
+.webops-toast__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: var(--webops-space-0-5);
+    background: currentColor;
+    opacity: var(--webops-opacity-hover);
+    transition: width linear;
+}
+
+/* Toast Icon */
+.webops-toast__icon {
+    flex-shrink: 0;
+    width: var(--webops-icon-size-lg);
+    height: var(--webops-icon-size-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--webops-radius-full);
+    font-size: var(--webops-font-size-sm);
+}
+
+/* Toast Content */
+.webops-toast__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.webops-toast__title {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-0-5);
+    font-size: var(--webops-font-size-sm);
+    line-height: var(--webops-line-height-tight);
+}
+
+.webops-toast__message {
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+    line-height: var(--webops-line-height-normal);
+    word-wrap: break-word;
+}
+
+/* Toast Close Button */
+.webops-toast__close {
+    flex-shrink: 0;
+    width: var(--webops-icon-size-lg);
+    height: var(--webops-icon-size-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-tertiary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-font-size-lg);
+    line-height: 1;
+}
+
+.webops-toast__close:hover {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-toast__close:focus-visible {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+/* Toast Actions */
+.webops-toast__actions {
+    display: flex;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-2);
+}
+
+.webops-toast__action {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: var(--webops-color-primary-alpha-10);
+    border: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-family: var(--webops-font-family-primary);
+}
+
+.webops-toast__action:hover {
+    background: var(--webops-color-primary-alpha-20);
+    border-color: var(--webops-color-primary);
+    transform: var(--webops-scale-hover);
+}
+
+.webops-toast__action:focus-visible {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+/* Toast Type Variants */
+.webops-toast--success {
+    border-color: var(--webops-color-success);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-success-alpha-30);
+}
+
+.webops-toast--success .webops-toast__icon {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-toast--success .webops-toast__progress {
+    color: var(--webops-color-success);
+}
+
+.webops-toast--error {
+    border-color: var(--webops-color-error);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-error-alpha-30);
+}
+
+.webops-toast--error .webops-toast__icon {
+    background: var(--webops-color-error-alpha-20);
+    color: var(--webops-color-error);
+}
+
+.webops-toast--error .webops-toast__progress {
+    color: var(--webops-color-error);
+}
+
+.webops-toast--warning {
+    border-color: var(--webops-color-warning);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-warning-alpha-30);
+}
+
+.webops-toast--warning .webops-toast__icon {
+    background: var(--webops-color-warning-alpha-20);
+    color: var(--webops-color-warning);
+}
+
+.webops-toast--warning .webops-toast__progress {
+    color: var(--webops-color-warning);
+}
+
+.webops-toast--info {
+    border-color: var(--webops-color-info);
+    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-info-alpha-30);
+}
+
+.webops-toast--info .webops-toast__icon {
+    background: var(--webops-color-info-alpha-20);
+    color: var(--webops-color-info);
+}
+
+.webops-toast--info .webops-toast__progress {
+    color: var(--webops-color-info);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .webops-toast-container {
+        top: var(--webops-space-3);
+        right: var(--webops-space-3);
+        left: var(--webops-space-3);
+        max-width: none;
+    }
+    
+    .webops-toast {
+        padding: var(--webops-space-3);
+        margin-bottom: var(--webops-space-3);
+    }
+    
+    .webops-toast__title {
+        font-size: var(--webops-font-size-sm);
+    }
+    
+    .webops-toast__message {
+        font-size: var(--webops-font-size-sm);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .webops-toast,
+    .webops-toast__progress,
+    .webops-toast__close,
+    .webops-toast__action {
+        transition: none;
+    }
+    
+    .webops-toast.webops-toast--show,
+    .webops-toast.webops-toast--hide {
+        transform: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .webops-toast {
+        border-width: var(--webops-border-width-thick);
+    }
+    
+    .webops-toast__icon {
+        border: var(--webops-border-width-thin) solid currentColor;
+    }
+    
+    .webops-toast__action {
+        border-width: var(--webops-border-width-thick);
+    }
+}
+
+/* Stack Management - Multiple Toasts */
+.webops-toast-container .webops-toast:nth-child(1) { z-index: calc(var(--webops-z-toast) + 0); }
+.webops-toast-container .webops-toast:nth-child(2) { z-index: calc(var(--webops-z-toast) - 1); }
+.webops-toast-container .webops-toast:nth-child(3) { z-index: calc(var(--webops-z-toast) - 2); }
+.webops-toast-container .webops-toast:nth-child(4) { z-index: calc(var(--webops-z-toast) - 3); }
+.webops-toast-container .webops-toast:nth-child(5) { z-index: calc(var(--webops-z-toast) - 4); }
+
+/* Animation for new toasts pushing existing ones up */
+.webops-toast-container .webops-toast {
+    animation: webopsToastSlideIn var(--webops-transition-medium) forwards;
+}
+
+@keyframes webopsToastSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.webops-toast.webops-toast--hide {
+    animation: webopsToastSlideOut var(--webops-transition-medium) forwards;
+}
+
+@keyframes webopsToastSlideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

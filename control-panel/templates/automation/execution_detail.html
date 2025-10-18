@@ -19,18 +19,18 @@
             Edit Workflow
         </a>
         {% if execution.status == 'running' %}
-        <form method="post" action="{% url 'execution_cancel' execution.id %}" class="inline-form">
-            {% csrf_token %}
-            <button type="submit" class="webops-btn webops-btn-danger"
+        <form method="post" action="{% url 'execution_cancel' execution.id %}" class="webops-form--inline">
+        {% csrf_token %}
+        <button type="submit" class="webops-btn webops-btn-danger"
                     onclick="return confirm('Cancel this execution?');">
                 <span class="material-icons">stop</span>
                 Cancel Execution
             </button>
         </form>
         {% else %}
-        <form method="post" action="{% url 'automation:workflow_execute' execution.workflow.id %}" class="inline-form">
-            {% csrf_token %}
-            <button type="submit" class="webops-btn webops-btn-primary">
+        <form method="post" action="{% url 'automation:workflow_execute' execution.workflow.id %}" class="webops-form--inline">
+        {% csrf_token %}
+        <button type="submit" class="webops-btn webops-btn-primary">
                 <span class="material-icons">replay</span>
                 Run Again
             </button>
@@ -53,39 +53,41 @@
             {% elif execution.status == 'running' %}
                 <span class="material-icons webops-icon-xs">play_circle</span>
                 Running
-            {% else %}
+            {% elif execution.status == 'cancelled' or execution.status == 'canceled' %}
                 <span class="material-icons webops-icon-xs">cancel</span>
                 Cancelled
+            {% else %}
+                <span class="material-icons webops-icon-xs">help</span>
+                {{ execution.status|capfirst }}
             {% endif %}
         </span>
     </div>
     <div class="webops-card-body">
-        <div class="webops-grid webops-grid-cols-4 webops-gap-lg">
-            <div class="execution-stat">
-                <div class="execution-stat-label">Started</div>
-                <div class="execution-stat-value">{{ execution.started_at|date:"M d, Y H:i:s" }}</div>
-                <div class="execution-stat-meta">{{ execution.started_at|timesince }} ago</div>
+        <div class="webops-grid webops-grid--cols-4 webops-gap-lg">
+            <div class="webops-execution-stat">
+                <div class="webops-execution-stat__label">Started</div>
+                <div class="webops-execution-stat__value">{{ execution.started_at|date:"M d, Y H:i:s" }}</div>
+                <div class="webops-execution-stat__meta">{{ execution.started_at|timesince }} ago</div>
             </div>
-
-            <div class="execution-stat">
-                <div class="execution-stat-label">Duration</div>
-                <div class="execution-stat-value">
-                    {% if execution.completed_at %}
-                        {{ execution.duration|floatformat:2 }}s
-                    {% elif execution.status == 'running' %}
-                        <span class="webops-text-info">Running...</span>
-                    {% else %}
-                        <span class="webops-text-secondary">N/A</span>
-                    {% endif %}
-                </div>
-                {% if execution.completed_at %}
-                <div class="execution-stat-meta">Ended {{ execution.completed_at|date:"H:i:s" }}</div>
-                {% endif %}
-            </div>
-
-            <div class="execution-stat">
-                <div class="execution-stat-label">Trigger</div>
-                <div class="execution-stat-value">
+            <div class="webops-execution-stat">
+                <div class="webops-execution-stat__label">Duration</div>
+                <div class="webops-execution-stat__value">
+                     {% if execution.completed_at %}
+                         {{ execution.duration|floatformat:2 }}s
+                     {% elif execution.status == 'running' %}
+                         <span class="webops-text-info">Running...</span>
+                     {% else %}
+                         <span class="webops-text-secondary">N/A</span>
+                     {% endif %}
+                 </div>
+                 {% if execution.completed_at %}
+                <div class="webops-execution-stat__meta">Ended {{ execution.completed_at|date:"H:i:s" }}</div>
+                 {% endif %}
+             </div>
+ 
+            <div class="webops-execution-stat">
+                <div class="webops-execution-stat__label">Trigger</div>
+                <div class="webops-execution-stat__value">
                     {% if execution.trigger_type == 'manual' %}
                         <span class="material-icons webops-icon-sm">touch_app</span>
                         Manual
@@ -101,32 +103,32 @@
                     {% endif %}
                 </div>
                 {% if execution.triggered_by %}
-                <div class="execution-stat-meta">by {{ execution.triggered_by.username }}</div>
+                <div class="webops-execution-stat__meta">by {{ execution.triggered_by.username }}</div>
                 {% endif %}
             </div>
 
-            <div class="execution-stat">
-                <div class="execution-stat-label">Progress</div>
-                <div class="execution-stat-value">{{ execution.nodes_executed }}/{{ execution.total_nodes }} nodes</div>
+            <div class="webops-execution-stat">
+                <div class="webops-execution-stat__label">Progress</div>
+                <div class="webops-execution-stat__value">{{ execution.nodes_executed }}/{{ execution.total_nodes }} nodes</div>
                 <div class="webops-progress webops-mt-xs">
-                    <div class="webops-progress-bar" style="width: {% widthratio execution.nodes_executed execution.total_nodes 100 %}%"></div>
+                    <div class="webops-progress-bar" data-progress="{% widthratio execution.nodes_executed execution.total_nodes 100 %}"></div>
                 </div>
             </div>
-        </div>
-
-        {% if execution.error_message %}
+         </div>
+ 
+         {% if execution.error_message %}
         <div class="webops-alert webops-alert-danger webops-mt-lg">
             <div class="webops-alert-header">
                 <span class="material-icons">error</span>
                 Execution Error
             </div>
             <div class="webops-alert-body">
-                <pre class="error-message">{{ execution.error_message }}</pre>
+                <pre class="webops-error-message">{{ execution.error_message }}</pre>
             </div>
         </div>
-        {% endif %}
-    </div>
-</div>
+         {% endif %}
+     </div>
+ </div>
 
 <!-- Node Execution Results -->
 <div class="webops-card webops-mb-lg">
@@ -136,82 +138,82 @@
     </div>
     <div class="webops-card-body webops-p-0">
         {% if node_results %}
-        <div class="node-results-timeline">
-            {% for result in node_results %}
-            <div class="timeline-item {% if result.status == 'completed' %}timeline-success{% elif result.status == 'failed' %}timeline-error{% elif result.status == 'running' %}timeline-running{% else %}timeline-pending{% endif %}">
-                <div class="timeline-marker">
-                    {% if result.status == 'completed' %}
-                        <span class="material-icons">check_circle</span>
-                    {% elif result.status == 'failed' %}
-                        <span class="material-icons">error</span>
-                    {% elif result.status == 'running' %}
-                        <span class="material-icons">play_circle</span>
-                    {% else %}
-                        <span class="material-icons">radio_button_unchecked</span>
-                    {% endif %}
-                </div>
-                <div class="timeline-content">
-                    <div class="timeline-header">
-                        <h4 class="timeline-title">{{ result.node.name }}</h4>
-                        <div class="timeline-meta">
-                            <span class="webops-badge webops-badge-outline">{{ result.node.get_node_type_display }}</span>
-                            {% if result.duration %}
-                            <span class="webops-text-sm webops-text-secondary">{{ result.duration|floatformat:2 }}s</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if result.input_data %}
-                    <div class="timeline-section">
-                        <div class="timeline-section-header">
-                            <span class="material-icons webops-icon-sm">input</span>
-                            Input Data
-                        </div>
-                        <div class="code-block">
-                            <pre>{{ result.input_data|pprint }}</pre>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if result.output_data %}
-                    <div class="timeline-section">
-                        <div class="timeline-section-header">
-                            <span class="material-icons webops-icon-sm">output</span>
-                            Output Data
-                        </div>
-                        <div class="code-block">
-                            <pre>{{ result.output_data|pprint }}</pre>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if result.error_message %}
-                    <div class="timeline-section">
-                        <div class="timeline-section-header">
-                            <span class="material-icons webops-icon-sm">error</span>
-                            Error
-                        </div>
-                        <div class="code-block error-block">
-                            <pre>{{ result.error_message }}</pre>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if result.logs %}
-                    <div class="timeline-section">
-                        <div class="timeline-section-header">
-                            <span class="material-icons webops-icon-sm">description</span>
-                            Logs
-                        </div>
-                        <div class="log-entries">
-                            {% for log in result.logs %}
-                            <div class="log-entry log-{{ log.level|lower }}">
-                                <span class="log-timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
-                                <span class="log-level">{{ log.level }}</span>
-                                <span class="log-message">{{ log.message }}</span>
+        <div class="webops-timeline">
+             {% for result in node_results %}
+            <div class="webops-timeline__item {% if result.status == 'completed' %}webops-timeline__item--success{% elif result.status == 'failed' %}webops-timeline__item--error{% elif result.status == 'running' %}webops-timeline__item--running{% else %}webops-timeline__item--pending{% endif %}">
+                <div class="webops-timeline__marker">
+                     {% if result.status == 'completed' %}
+                         <span class="material-icons">check_circle</span>
+                     {% elif result.status == 'failed' %}
+                         <span class="material-icons">error</span>
+                     {% elif result.status == 'running' %}
+                         <span class="material-icons">play_circle</span>
+                     {% else %}
+                         <span class="material-icons">radio_button_unchecked</span>
+                     {% endif %}
+                 </div>
+                <div class="webops-timeline__content">
+                    <div class="webops-timeline__header">
+                        <h4 class="webops-timeline__title">{{ result.node.name }}</h4>
+                        <div class="webops-timeline__meta">
+                             <span class="webops-badge webops-badge-outline">{{ result.node.get_node_type_display }}</span>
+                             {% if result.duration %}
+                             <span class="webops-text-sm webops-text-secondary">{{ result.duration|floatformat:2 }}s</span>
+                             {% endif %}
+                         </div>
+                     </div>
+ 
+                     {% if result.input_data %}
+                    <div class="webops-timeline__section">
+                        <div class="webops-timeline__section-header">
+                             <span class="material-icons webops-icon-sm">input</span>
+                             Input Data
+                         </div>
+                        <div class="webops-code-block">
+                             <pre>{{ result.input_data|pprint }}</pre>
+                         </div>
+                     </div>
+                     {% endif %}
+ 
+                     {% if result.output_data %}
+                    <div class="webops-timeline__section">
+                        <div class="webops-timeline__section-header">
+                             <span class="material-icons webops-icon-sm">output</span>
+                             Output Data
+                         </div>
+                        <div class="webops-code-block">
+                             <pre>{{ result.output_data|pprint }}</pre>
+                         </div>
+                     </div>
+                     {% endif %}
+ 
+                     {% if result.error_message %}
+                    <div class="webops-timeline__section">
+                        <div class="webops-timeline__section-header">
+                             <span class="material-icons webops-icon-sm">error</span>
+                             Error
+                         </div>
+                        <div class="webops-code-block webops-code-block--error">
+                             <pre>{{ result.error_message }}</pre>
+                         </div>
+                     </div>
+                     {% endif %}
+ 
+                     {% if result.logs %}
+                    <div class="webops-timeline__section">
+                        <div class="webops-timeline__section-header">
+                             <span class="material-icons webops-icon-sm">description</span>
+                             Logs
+                         </div>
+                        <div class="webops-log-entries">
+                             {% for log in result.logs %}
+                            <div class="webops-log-entry webops-log-entry--{{ log.level|lower }}">
+                                <span class="webops-log-entry__timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
+                                <span class="webops-log-entry__level">{{ log.level }}</span>
+                                <span class="webops-log-entry__message">{{ log.message }}</span>
                             </div>
-                            {% endfor %}
-                        </div>
+                             {% endfor %}
+                         </div>
                     </div>
                     {% endif %}
                 </div>
@@ -246,12 +248,12 @@
     </div>
     <div class="webops-card-body webops-p-0">
         {% if execution.logs %}
-        <div class="log-viewer" id="log-viewer">
+        <div class="webops-log-viewer" id="log-viewer">
             {% for log in execution.logs %}
-            <div class="log-entry log-{{ log.level|lower }}">
-                <span class="log-timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
-                <span class="log-level">{{ log.level }}</span>
-                <span class="log-message">{{ log.message }}</span>
+            <div class="webops-log-entry webops-log-entry--{{ log.level|lower }}">
+                <span class="webops-log-entry__timestamp">{{ log.timestamp|date:"H:i:s.u" }}</span>
+                <span class="webops-log-entry__level">{{ log.level }}</span>
+                <span class="webops-log-entry__message">{{ log.message }}</span>
             </div>
             {% endfor %}
         </div>
@@ -266,7 +268,7 @@
 </div>
 
 <style>
-.inline-form {
+.webops-form--inline {
     display: inline-block;
     margin: 0;
 }
@@ -279,21 +281,21 @@
     font-size: 18px;
 }
 
-.webops-grid-cols-4 {
+.webops-grid--cols-4 {
     grid-template-columns: repeat(4, 1fr);
 }
 
-.execution-stat {
+.webops-execution-stat {
     text-align: center;
 }
 
-.execution-stat-label {
+.webops-execution-stat__label {
     font-size: 0.875rem;
     color: var(--webops-color-text-secondary);
     margin-bottom: 0.5rem;
 }
 
-.execution-stat-value {
+.webops-execution-stat__value {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--webops-color-text-primary);
@@ -304,7 +306,7 @@
     gap: 0.5rem;
 }
 
-.execution-stat-meta {
+.webops-execution-stat__meta {
     font-size: 0.75rem;
     color: var(--webops-color-text-tertiary);
 }
@@ -323,7 +325,7 @@
     transition: width 0.3s ease;
 }
 
-.error-message {
+.webops-error-message {
     background: rgba(255, 68, 68, 0.1);
     border: 1px solid rgba(255, 68, 68, 0.2);
     border-radius: var(--webops-radius-sm);
@@ -336,17 +338,17 @@
     word-break: break-word;
 }
 
-.node-results-timeline {
+.webops-timeline {
     padding: 1rem;
 }
 
-.timeline-item {
+.webops-timeline__item {
     display: flex;
     margin-bottom: 2rem;
     position: relative;
 }
 
-.timeline-item:not(:last-child)::after {
+.webops-timeline__item:not(:last-child)::after {
     content: '';
     position: absolute;
     left: 20px;
@@ -356,7 +358,7 @@
     background: var(--webops-color-border);
 }
 
-.timeline-marker {
+.webops-timeline__marker {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -367,60 +369,60 @@
     flex-shrink: 0;
 }
 
-.timeline-success .timeline-marker {
+.webops-timeline__item--success .webops-timeline__marker {
     background: rgba(0, 255, 136, 0.1);
     color: var(--webops-color-success);
     border: 2px solid var(--webops-color-success);
 }
 
-.timeline-error .timeline-marker {
+.webops-timeline__item--error .webops-timeline__marker {
     background: rgba(255, 68, 68, 0.1);
     color: var(--webops-color-error);
     border: 2px solid var(--webops-color-error);
 }
 
-.timeline-running .timeline-marker {
+.webops-timeline__item--running .webops-timeline__marker {
     background: rgba(0, 170, 255, 0.1);
     color: var(--webops-color-info);
     border: 2px solid var(--webops-color-info);
 }
 
-.timeline-pending .timeline-marker {
+.webops-timeline__item--pending .webops-timeline__marker {
     background: var(--webops-color-bg-secondary);
     color: var(--webops-color-text-tertiary);
     border: 2px solid var(--webops-color-border);
 }
 
-.timeline-content {
+.webops-timeline__content {
     flex: 1;
     min-width: 0;
 }
 
-.timeline-header {
+.webops-timeline__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.timeline-title {
+.webops-timeline__title {
     font-size: 1rem;
     font-weight: 600;
     margin: 0;
     color: var(--webops-color-text-primary);
 }
 
-.timeline-meta {
+.webops-timeline__meta {
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.timeline-section {
+.webops-timeline__section {
     margin-bottom: 1rem;
 }
 
-.timeline-section-header {
+.webops-timeline__section-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -430,7 +432,7 @@
     margin-bottom: 0.5rem;
 }
 
-.code-block {
+.webops-code-block {
     background: var(--webops-color-bg-secondary);
     border: 1px solid var(--webops-color-border);
     border-radius: var(--webops-radius-sm);
@@ -438,7 +440,7 @@
     overflow-x: auto;
 }
 
-.code-block pre {
+.webops-code-block pre {
     margin: 0;
     font-family: 'Courier New', monospace;
     font-size: 0.875rem;
@@ -447,16 +449,16 @@
     word-break: break-word;
 }
 
-.error-block {
+.webops-code-block--error {
     background: rgba(255, 68, 68, 0.05);
     border-color: rgba(255, 68, 68, 0.2);
 }
 
-.error-block pre {
+.webops-code-block--error pre {
     color: var(--webops-color-error);
 }
 
-.log-viewer {
+.webops-log-viewer {
     max-height: 400px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
@@ -464,14 +466,14 @@
     line-height: 1.4;
 }
 
-.log-entries {
+.webops-log-entries {
     max-height: 200px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
     font-size: 0.875rem;
 }
 
-.log-entry {
+.webops-log-entry {
     display: flex;
     padding: 0.5rem 1rem;
     border-bottom: 1px solid var(--webops-color-border);
@@ -479,66 +481,66 @@
     gap: 1rem;
 }
 
-.log-entry:hover {
+.webops-log-entry:hover {
     background: var(--webops-color-bg-secondary);
 }
 
-.log-timestamp {
+.webops-log-entry__timestamp {
     color: var(--webops-color-text-tertiary);
     font-size: 0.75rem;
     min-width: 80px;
 }
 
-.log-level {
+.webops-log-entry__level {
     font-weight: 600;
     min-width: 60px;
     text-transform: uppercase;
     font-size: 0.75rem;
 }
 
-.log-message {
+.webops-log-entry__message {
     flex: 1;
     word-break: break-word;
 }
 
-.log-debug .log-level {
+.webops-log-entry--debug .webops-log-entry__level {
     color: var(--webops-color-text-tertiary);
 }
 
-.log-info .log-level {
+.webops-log-entry--info .webops-log-entry__level {
     color: var(--webops-color-info);
 }
 
-.log-warning .log-level {
+.webops-log-entry--warning .webops-log-entry__level {
     color: var(--webops-color-warning);
 }
 
-.log-error .log-level {
+.webops-log-entry--error .webops-log-entry__level {
     color: var(--webops-color-error);
 }
 
 @media (max-width: 768px) {
-    .webops-grid-cols-4 {
+    .webops-grid--cols-4 {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .timeline-item {
+    .webops-timeline__item {
         flex-direction: column;
     }
     
-    .timeline-marker {
+    .webops-timeline__marker {
         margin-right: 0;
         margin-bottom: 1rem;
         align-self: flex-start;
     }
     
-    .timeline-item:not(:last-child)::after {
+    .webops-timeline__item:not(:last-child)::after {
         display: none;
     }
 }
 
 @media (max-width: 480px) {
-    .webops-grid-cols-4 {
+    .webops-grid--cols-4 {
         grid-template-columns: 1fr;
     }
 }
@@ -549,6 +551,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const autoRefreshBtn = document.getElementById('btn-auto-refresh');
     const downloadBtn = document.getElementById('btn-download-logs');
     let autoRefreshInterval;
+
+    // Initialize progress bar widths from data-progress attributes
+    document.querySelectorAll('.webops-progress-bar').forEach(bar => {
+        const pct = parseFloat(bar.getAttribute('data-progress'));
+        if (!isNaN(pct)) {
+            bar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+    });
 
     // Auto refresh functionality
     if (autoRefreshBtn) {
@@ -585,13 +595,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Download logs functionality
     if (downloadBtn) {
         downloadBtn.addEventListener('click', function() {
-            const logEntries = document.querySelectorAll('.log-entry');
+            const logEntries = document.querySelectorAll('.webops-log-entry');
             let logText = '';
             
             logEntries.forEach(entry => {
-                const timestamp = entry.querySelector('.log-timestamp').textContent;
-                const level = entry.querySelector('.log-level').textContent;
-                const message = entry.querySelector('.log-message').textContent;
+                const timestamp = entry.querySelector('.webops-log-entry__timestamp').textContent;
+                const level = entry.querySelector('.webops-log-entry__level').textContent;
+                const message = entry.querySelector('.webops-log-entry__message').textContent;
                 logText += `${timestamp} [${level}] ${message}\n`;
             });
 

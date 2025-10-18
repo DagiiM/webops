@@ -220,3 +220,29 @@ def reset_branding(request):
     settings.save()
 
     return JsonResponse({'status': 'success', 'message': 'Branding reset to defaults'})
+
+
+@login_required
+def toast_test(request):
+    """View for testing toast notifications."""
+    return render(request, 'toast-test.html')
+
+
+@login_required
+@require_http_methods(["POST"])
+def test_toast_messages(request):
+    """Test view for Django messages to toast conversion."""
+    message_type = request.POST.get('message_type', 'info')
+    message = request.POST.get('message', 'Test message')
+    
+    # Add Django message based on type
+    if message_type == 'success':
+        messages.success(request, message)
+    elif message_type == 'error':
+        messages.error(request, message)
+    elif message_type == 'warning':
+        messages.warning(request, message)
+    else:
+        messages.info(request, message)
+    
+    return render(request, 'toast-test.html')

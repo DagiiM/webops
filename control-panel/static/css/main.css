@@ -3408,11 +3408,69 @@ select:focus {
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
-    transition: transform var(--webops-transition-base);
+    transition: all var(--webops-transition-base);
     transform: translateX(0);
 }
 
+/* Sidebar Minimized State */
+.webops-sidebar.minimized {
+    width: 60px;
+}
 
+.webops-sidebar.minimized .sidebar-header {
+    padding: var(--webops-space-3) var(--webops-space-1);
+    justify-content: center;
+}
+
+.webops-sidebar.minimized .sidebar-header .sidebar-title {
+    display: none;
+}
+
+.webops-sidebar.minimized .sidebar-header .sidebar-toggle {
+    margin: 0;
+    transform: rotate(180deg);
+}
+
+.webops-sidebar.minimized .webops-nav-item {
+    padding: var(--webops-space-2);
+    justify-content: center;
+    border-left: none;
+    border-right: 3px solid transparent;
+    border-radius: 0;
+}
+
+.webops-sidebar.minimized .webops-nav-item:hover {
+    border-right-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-sidebar.minimized .webops-nav-item.active {
+    border-right-color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-sidebar.minimized .nav-item-text {
+    display: none;
+}
+
+.webops-sidebar.minimized .nav-item-icon {
+    margin: 0;
+}
+
+.webops-sidebar.minimized .nav-item-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.webops-sidebar.minimized .sidebar-footer {
+    padding: var(--webops-space-2);
+    justify-content: center;
+}
+
+.webops-sidebar.minimized .sidebar-footer .sidebar-user,
+.webops-sidebar.minimized .sidebar-footer .sidebar-actions {
+    display: none;
+}
 
 .webops-sidebar-toggle:hover {
     background: var(--webops-color-primary-hover);
@@ -3432,6 +3490,11 @@ select:focus {
     min-height: 100vh;
     background: var(--webops-color-bg-primary);
     transition: margin-left var(--webops-transition-base);
+}
+
+/* Main content adjustment for minimized sidebar */
+.webops-main-content.expanded {
+    margin-left: 60px;
 }
 
 .webops-sidebar-overlay {
@@ -3497,6 +3560,7 @@ select:focus {
 @media (max-width: 768px) {
     .webops-sidebar {
         transform: translateX(-100%);
+        width: 280px !important; /* Force full width on mobile */
     }
     
     .webops-sidebar.active {
@@ -3508,7 +3572,7 @@ select:focus {
     }
     
     .webops-main-content {
-        margin-left: 0;
+        margin-left: 0 !important; /* Remove sidebar margin on mobile */
     }
     
     .webops-sidebar-overlay {
@@ -3723,12 +3787,20 @@ select:focus {
     .webops-main-content {
         margin-left: 200px; /* Reduced sidebar width on tablets */
     }
+    
+    .webops-main-content.expanded {
+        margin-left: 60px; /* Minimized sidebar width on tablets */
+    }
 }
 
 @media (max-width: 768px) {
     .webops-main-content {
         margin-left: 0 !important; /* Remove sidebar margin on mobile */
         padding: var(--webops-space-2);
+    }
+    
+    .webops-main-content.expanded {
+        margin-left: 0 !important; /* Ensure no margin on mobile even when minimized */
     }
     
     .webops-container {
@@ -3775,6 +3847,10 @@ select:focus {
 @media (max-width: 480px) {
     .webops-main-content {
         margin-left: 0 !important; /* Ensure no margin on small screens */
+    }
+    
+    .webops-main-content.expanded {
+        margin-left: 0 !important; /* Ensure no margin on small screens even when minimized */
     }
     
     .webops-container {

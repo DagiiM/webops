@@ -106,6 +106,12 @@ class Loader {
 
 class Toast {
     static show(message, type = 'info', duration = 5000) {
+        // Use the new toast system if available
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.show({ message, type, duration });
+        }
+        
+        // Fallback to the old implementation for backward compatibility
         const toast = document.createElement('div');
         toast.className = 'toast toast-' + type;
         toast.textContent = message;
@@ -122,8 +128,45 @@ class Toast {
         }, duration);
     }
 
-    static success(msg) { this.show(msg, 'success'); }
-    static error(msg) { this.show(msg, 'error'); }
+    static success(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.success(msg, options);
+        }
+        return this.show(msg, 'success');
+    }
+    
+    static error(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.error(msg, options);
+        }
+        return this.show(msg, 'error');
+    }
+    
+    static warning(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.warning(msg, options);
+        }
+        return this.show(msg, 'warning');
+    }
+    
+    static info(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.info(msg, options);
+        }
+        return this.show(msg, 'info');
+    }
+    
+    static hide(id) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.hide(id);
+        }
+    }
+    
+    static hideAll() {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.hideAll();
+        }
+    }
 }
 
 class APIClient {

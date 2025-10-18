@@ -5,184 +5,236 @@
 {% block header_title %}Automation{% endblock %}
 
 {% block content %}
-<div class="workflow-builder-container">
+<div class="webops-workflow-builder-container">
     <!-- Toolbar -->
-    <div class="workflow-toolbar">
-        <div class="toolbar-left">
-            <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary">
-                <span class="material-icons">arrow_back</span>
-                Back
+    <div class="webops-workflow-toolbar">
+        <div class="webops-toolbar-left">
+            <a href="{% url 'automation:workflow_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Back to workflow list">
+                <span class="material-icons" aria-hidden="true">arrow_back</span>
+                <span class="toolbar-text">Back</span>
             </a>
-            <div class="workflow-title-edit">
-                <input type="text" id="workflow-name" value="{{ workflow.name }}" class="workflow-name-input">
-                <span class="webops-badge webops-badge-{{ workflow.status }}">{{ workflow.get_status_display }}</span>
+            <div class="webops-workflow-title-edit toolbar-item">
+                <input type="text" id="workflow-name" value="{{ workflow.name }}" class="webops-workflow-name-input" aria-label="Workflow name">
+                <span class="webops-badge webops-badge-{{ workflow.status }}" role="status" aria-label="Workflow status: {{ workflow.get_status_display }}">{{ workflow.get_status_display }}</span>
             </div>
         </div>
-        <div class="toolbar-right">
-            <button id="btn-undo" class="webops-btn webops-btn-sm webops-btn-secondary" disabled>
-                <span class="material-icons">undo</span>
+        <div class="webops-toolbar-right">
+            <button id="btn-undo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Undo">
+                <span class="material-icons" aria-hidden="true">undo</span>
+                <span class="toolbar-text">Undo</span>
             </button>
-            <button id="btn-redo" class="webops-btn webops-btn-sm webops-btn-secondary" disabled>
-                <span class="material-icons">redo</span>
+            <button id="btn-redo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Redo">
+                <span class="material-icons" aria-hidden="true">redo</span>
+                <span class="toolbar-text">Redo</span>
             </button>
-            <button id="btn-zoom-out" class="webops-btn webops-btn-sm webops-btn-secondary">
-                <span class="material-icons">zoom_out</span>
+            <button id="btn-zoom-out" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom out">
+                <span class="material-icons" aria-hidden="true">zoom_out</span>
+                <span class="toolbar-text">Zoom Out</span>
             </button>
-            <span id="zoom-level" class="zoom-indicator">100%</span>
-            <button id="btn-zoom-in" class="webops-btn webops-btn-sm webops-btn-secondary">
-                <span class="material-icons">zoom_in</span>
+            <span id="zoom-level" class="webops-zoom-indicator toolbar-item" role="status" aria-live="polite">100%</span>
+            <button id="btn-zoom-in" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom in">
+                <span class="material-icons" aria-hidden="true">zoom_in</span>
+                <span class="toolbar-text">Zoom In</span>
             </button>
-            <button id="btn-fit-view" class="webops-btn webops-btn-sm webops-btn-secondary">
-                <span class="material-icons">fit_screen</span>
+            <button id="btn-fit-view" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Fit view">
+                <span class="material-icons" aria-hidden="true">fit_screen</span>
+                <span class="toolbar-text">Fit View</span>
             </button>
-            <button id="btn-save" class="webops-btn webops-btn-sm webops-btn-primary">
-                <span class="material-icons">save</span>
-                Save
+            <div class="webops-toolbar-divider"></div>
+            <button id="btn-save" class="webops-btn webops-btn-sm webops-btn-primary toolbar-item" aria-label="Save workflow">
+                <span class="material-icons" aria-hidden="true">save</span>
+                <span class="toolbar-text">Save</span>
             </button>
-            <button id="btn-execute" class="webops-btn webops-btn-sm webops-btn-success">
-                <span class="material-icons">play_arrow</span>
-                Run
+            <button id="btn-execute" class="webops-btn webops-btn-sm webops-btn-success toolbar-item" aria-label="Execute workflow">
+                <span class="material-icons" aria-hidden="true">play_arrow</span>
+                <span class="toolbar-text">Run</span>
             </button>
+            <div class="webops-toolbar-more">
+                <button id="btn-more" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="More options" aria-expanded="false">
+                    <span class="material-icons" aria-hidden="true">more_vert</span>
+                </button>
+                <div class="webops-toolbar-dropdown" id="toolbar-dropdown">
+                    <button id="btn-export" class="webops-toolbar-dropdown-item" aria-label="Export workflow">
+                        <span class="material-icons">download</span>
+                        <span>Export</span>
+                    </button>
+                    <button id="btn-import" class="webops-toolbar-dropdown-item" aria-label="Import workflow">
+                        <span class="material-icons">upload</span>
+                        <span>Import</span>
+                    </button>
+                    <button id="btn-duplicate" class="webops-toolbar-dropdown-item" aria-label="Duplicate workflow">
+                        <span class="material-icons">content_copy</span>
+                        <span>Duplicate</span>
+                    </button>
+                    <div class="webops-toolbar-dropdown-divider"></div>
+                    <button id="btn-clear" class="webops-toolbar-dropdown-item" aria-label="Clear canvas">
+                        <span class="material-icons">clear_all</span>
+                        <span>Clear Canvas</span>
+                    </button>
+                    <button id="btn-settings" class="webops-toolbar-dropdown-item" aria-label="Workflow settings">
+                        <span class="material-icons">settings</span>
+                        <span>Settings</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div class="workflow-main">
+    <div class="webops-workflow-main">
         <!-- Node Palette -->
-        <div class="node-palette">
-            <div class="palette-header">
+        <div class="webops-node-palette" id="node-palette">
+            <div class="webops-palette-header">
                 <h3>Nodes</h3>
-                <input type="text" id="node-search" placeholder="Search nodes..." class="palette-search">
+                <div class="webops-palette-header-actions">
+                    <input type="text" id="node-search" placeholder="Search nodes..." class="webops-palette-search" aria-label="Search nodes">
+                    <button id="btn-toggle-palette" class="webops-btn-icon webops-palette-toggle" aria-label="Toggle palette size">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="palette-section">
-                <div class="palette-section-header">
+            <div class="webops-palette-section">
+                <div class="webops-palette-section-header">
                     <span class="material-icons">input</span>
                     Data Sources
                 </div>
-                <div class="palette-nodes" id="data-source-nodes">
-                    <div class="palette-node" data-node-type="DATA_SOURCE_GOOGLE_DOCS" draggable="true">
-                        <span class="material-icons">description</span>
-                        <span>Google Docs</span>
+                <div class="webops-palette-nodes" id="data-source-nodes">
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_GOOGLE_DOCS" draggable="true" role="button" tabindex="0" aria-label="Google Docs data source node">
+                        <span class="material-icons" aria-hidden="true">description</span>
+                        <span class="node-label">Google Docs</span>
                     </div>
-                    <div class="palette-node" data-node-type="DATA_SOURCE_GOOGLE_SHEETS" draggable="true">
-                        <span class="material-icons">table_chart</span>
-                        <span>Google Sheets</span>
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_GOOGLE_SHEETS" draggable="true" role="button" tabindex="0" aria-label="Google Sheets data source node">
+                        <span class="material-icons" aria-hidden="true">table_chart</span>
+                        <span class="node-label">Google Sheets</span>
                     </div>
-                    <div class="palette-node" data-node-type="DATA_SOURCE_WEBHOOK" draggable="true">
-                        <span class="material-icons">webhook</span>
-                        <span>Webhook</span>
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_WEBHOOK" draggable="true" role="button" tabindex="0" aria-label="Webhook data source node">
+                        <span class="material-icons" aria-hidden="true">webhook</span>
+                        <span class="node-label">Webhook</span>
                     </div>
-                    <div class="palette-node" data-node-type="DATA_SOURCE_DATABASE" draggable="true">
-                        <span class="material-icons">storage</span>
-                        <span>Database Query</span>
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_DATABASE" draggable="true" role="button" tabindex="0" aria-label="Database Query data source node">
+                        <span class="material-icons" aria-hidden="true">storage</span>
+                        <span class="node-label">Database Query</span>
                     </div>
-                    <div class="palette-node" data-node-type="DATA_SOURCE_API" draggable="true">
-                        <span class="material-icons">api</span>
-                        <span>API Request</span>
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_API" draggable="true" role="button" tabindex="0" aria-label="API Request data source node">
+                        <span class="material-icons" aria-hidden="true">api</span>
+                        <span class="node-label">API Request</span>
                     </div>
-                    <div class="palette-node" data-node-type="DATA_SOURCE_CUSTOM_URL" draggable="true">
-                        <span class="material-icons">link</span>
-                        <span>Custom URL</span>
+                    <div class="webops-palette-node" data-node-type="DATA_SOURCE_CUSTOM_URL" draggable="true" role="button" tabindex="0" aria-label="Custom URL data source node">
+                        <span class="material-icons" aria-hidden="true">link</span>
+                        <span class="node-label">Custom URL</span>
                     </div>
                 </div>
             </div>
 
-            <div class="palette-section">
-                <div class="palette-section-header">
+            <div class="webops-palette-section">
+                <div class="webops-palette-section-header">
                     <span class="material-icons">transform</span>
                     Processors
                 </div>
-                <div class="palette-nodes" id="processor-nodes">
-                    <div class="palette-node" data-node-type="PROCESSOR_LLM" draggable="true">
-                        <span class="material-icons">psychology</span>
-                        <span>LLM Processor</span>
+                <div class="webops-palette-nodes" id="processor-nodes">
+                    <div class="webops-palette-node" data-node-type="PROCESSOR_LLM" draggable="true" role="button" tabindex="0" aria-label="LLM Processor node">
+                        <span class="material-icons" aria-hidden="true">psychology</span>
+                        <span class="node-label">LLM Processor</span>
                     </div>
-                    <div class="palette-node" data-node-type="PROCESSOR_TRANSFORM" draggable="true">
-                        <span class="material-icons">transform</span>
-                        <span>Transform Data</span>
+                    <div class="webops-palette-node" data-node-type="PROCESSOR_TRANSFORM" draggable="true" role="button" tabindex="0" aria-label="Transform Data node">
+                        <span class="material-icons" aria-hidden="true">transform</span>
+                        <span class="node-label">Transform Data</span>
                     </div>
-                    <div class="palette-node" data-node-type="PROCESSOR_FILTER" draggable="true">
-                        <span class="material-icons">filter_alt</span>
-                        <span>Filter</span>
+                    <div class="webops-palette-node" data-node-type="PROCESSOR_FILTER" draggable="true" role="button" tabindex="0" aria-label="Filter node">
+                        <span class="material-icons" aria-hidden="true">filter_alt</span>
+                        <span class="node-label">Filter</span>
                     </div>
-                    <div class="palette-node" data-node-type="PROCESSOR_AGGREGATE" draggable="true">
-                        <span class="material-icons">functions</span>
-                        <span>Aggregate</span>
+                    <div class="webops-palette-node" data-node-type="PROCESSOR_AGGREGATE" draggable="true" role="button" tabindex="0" aria-label="Aggregate node">
+                        <span class="material-icons" aria-hidden="true">functions</span>
+                        <span class="node-label">Aggregate</span>
                     </div>
-                    <div class="palette-node" data-node-type="PROCESSOR_CODE" draggable="true">
-                        <span class="material-icons">code</span>
-                        <span>Custom Code</span>
+                    <div class="webops-palette-node" data-node-type="PROCESSOR_CODE" draggable="true" role="button" tabindex="0" aria-label="Custom Code node">
+                        <span class="material-icons" aria-hidden="true">code</span>
+                        <span class="node-label">Custom Code</span>
                     </div>
                 </div>
             </div>
 
-            <div class="palette-section">
-                <div class="palette-section-header">
+            <div class="webops-palette-section">
+                <div class="webops-palette-section-header">
                     <span class="material-icons">output</span>
                     Outputs
                 </div>
-                <div class="palette-nodes" id="output-nodes">
-                    <div class="palette-node" data-node-type="OUTPUT_EMAIL" draggable="true">
-                        <span class="material-icons">email</span>
-                        <span>Send Email</span>
+                <div class="webops-palette-nodes" id="output-nodes">
+                    <div class="webops-palette-node" data-node-type="OUTPUT_EMAIL" draggable="true" role="button" tabindex="0" aria-label="Send Email output node">
+                        <span class="material-icons" aria-hidden="true">email</span>
+                        <span class="node-label">Send Email</span>
                     </div>
-                    <div class="palette-node" data-node-type="OUTPUT_WEBHOOK" draggable="true">
-                        <span class="material-icons">webhook</span>
-                        <span>Webhook Out</span>
+                    <div class="webops-palette-node" data-node-type="OUTPUT_WEBHOOK" draggable="true" role="button" tabindex="0" aria-label="Webhook Out output node">
+                        <span class="material-icons" aria-hidden="true">webhook</span>
+                        <span class="node-label">Webhook Out</span>
                     </div>
-                    <div class="palette-node" data-node-type="OUTPUT_DATABASE" draggable="true">
-                        <span class="material-icons">storage</span>
-                        <span>Database Write</span>
+                    <div class="webops-palette-node" data-node-type="OUTPUT_DATABASE" draggable="true" role="button" tabindex="0" aria-label="Database Write output node">
+                        <span class="material-icons" aria-hidden="true">storage</span>
+                        <span class="node-label">Database Write</span>
                     </div>
-                    <div class="palette-node" data-node-type="OUTPUT_SLACK" draggable="true">
-                        <span class="material-icons">chat</span>
-                        <span>Slack Message</span>
+                    <div class="webops-palette-node" data-node-type="OUTPUT_SLACK" draggable="true" role="button" tabindex="0" aria-label="Slack Message output node">
+                        <span class="material-icons" aria-hidden="true">chat</span>
+                        <span class="node-label">Slack Message</span>
                     </div>
-                    <div class="palette-node" data-node-type="OUTPUT_NOTIFICATION" draggable="true">
-                        <span class="material-icons">notifications</span>
-                        <span>Notification</span>
+                    <div class="webops-palette-node" data-node-type="OUTPUT_NOTIFICATION" draggable="true" role="button" tabindex="0" aria-label="Notification output node">
+                        <span class="material-icons" aria-hidden="true">notifications</span>
+                        <span class="node-label">Notification</span>
                     </div>
                 </div>
             </div>
 
-            <div class="palette-section">
-                <div class="palette-section-header">
+            <div class="webops-palette-section">
+                <div class="webops-palette-section-header">
                     <span class="material-icons">account_tree</span>
                     Control Flow
                 </div>
-                <div class="palette-nodes" id="control-nodes">
-                    <div class="palette-node" data-node-type="CONTROL_CONDITION" draggable="true">
-                        <span class="material-icons">alt_route</span>
-                        <span>Condition</span>
+                <div class="webops-palette-nodes" id="control-nodes">
+                    <div class="webops-palette-node" data-node-type="CONTROL_CONDITION" draggable="true" role="button" tabindex="0" aria-label="Condition control flow node">
+                        <span class="material-icons" aria-hidden="true">alt_route</span>
+                        <span class="node-label">Condition</span>
                     </div>
-                    <div class="palette-node" data-node-type="CONTROL_LOOP" draggable="true">
-                        <span class="material-icons">loop</span>
-                        <span>Loop</span>
+                    <div class="webops-palette-node" data-node-type="CONTROL_LOOP" draggable="true" role="button" tabindex="0" aria-label="Loop control flow node">
+                        <span class="material-icons" aria-hidden="true">loop</span>
+                        <span class="node-label">Loop</span>
                     </div>
-                    <div class="palette-node" data-node-type="CONTROL_DELAY" draggable="true">
-                        <span class="material-icons">schedule</span>
-                        <span>Delay</span>
+                    <div class="webops-palette-node" data-node-type="CONTROL_DELAY" draggable="true" role="button" tabindex="0" aria-label="Delay control flow node">
+                        <span class="material-icons" aria-hidden="true">schedule</span>
+                        <span class="node-label">Delay</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Canvas Area -->
-        <div class="canvas-container">
-            <canvas id="workflow-canvas"></canvas>
-            <div class="canvas-minimap" id="minimap"></div>
+        <div class="webops-canvas-container">
+            <button id="btn-toggle-grid" class="webops-grid-toggle" aria-label="Toggle grid">
+                <span class="material-icons">grid_on</span>
+            </button>
+            <canvas id="workflow-canvas" role="application" aria-label="Workflow canvas"></canvas>
+            <div class="webops-canvas-minimap" id="minimap" role="img" aria-label="Workflow minimap">
+                <canvas id="minimap-canvas"></canvas>
+            </div>
         </div>
 
         <!-- Properties Panel -->
-        <div class="properties-panel" id="properties-panel">
-            <div class="properties-header">
-                <h3 id="properties-title">Properties</h3>
-                <button id="btn-close-properties" class="btn-icon">
-                    <span class="material-icons">close</span>
-                </button>
+        <div class="webops-properties-panel" id="properties-panel">
+            <div class="webops-properties-toggle" id="properties-toggle" aria-label="Toggle properties panel">
+                <span class="material-icons">chevron_right</span>
             </div>
-            <div class="properties-body" id="properties-body">
+            <div class="webops-properties-header">
+                <h3 id="properties-title">Properties</h3>
+                <div class="webops-properties-header-actions">
+                    <button id="btn-toggle-properties-size" class="webops-btn-icon" aria-label="Toggle properties panel size">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                    <button id="btn-close-properties" class="webops-btn-icon" aria-label="Close properties panel">
+                        <span class="material-icons" aria-hidden="true">close</span>
+                    </button>
+                </div>
+            </div>
+            <div class="webops-properties-body" id="properties-body">
                 <p class="webops-text-muted">Select a node to edit its properties</p>
             </div>
         </div>
@@ -199,44 +251,235 @@
 </script>
 
 <style>
-.workflow-builder-container {
+.webops-workflow-builder-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - var(--webops-header-height, 120px) - var(--webops-space-6, 48px));
-    max-width: var(--webops-content-max-width, 1280px);
+    height: calc(100vh - var(--webops-header-height) - var(--webops-space-4));
+    max-width: var(--webops-content-max-width);
     margin: 0 auto;
     background: var(--webops-color-bg-primary);
-    font-family: var(--webops-font-family-base);
+    font-family: var(--webops-font-family-primary);
     border-radius: var(--webops-radius-lg);
     overflow: hidden;
     box-shadow: var(--webops-shadow-lg);
 }
 
-.workflow-toolbar {
+.webops-workflow-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--webops-space-4) var(--webops-space-6);
+    padding: var(--webops-space-2) var(--webops-space-3);
     background: var(--webops-color-bg-card);
     backdrop-filter: blur(20px);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
     box-shadow: var(--webops-shadow-xs);
     z-index: var(--webops-z-sticky);
+    min-height: 48px;
+    position: relative;
+    overflow: hidden;
 }
 
-.toolbar-left, .toolbar-right {
+.webops-toolbar-left, .webops-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+/* Toolbar items with auto-fold */
+.toolbar-item {
+    position: relative;
+    transition: all var(--webops-transition-base);
+}
+
+.toolbar-text {
+    transition: opacity var(--webops-transition-base), max-width var(--webops-transition-base);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Toolbar divider */
+.webops-toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--webops-color-surface);
+    margin: 0 var(--webops-space-2);
+}
+
+/* More menu */
+.webops-toolbar-more {
+    position: relative;
+}
+
+.webops-toolbar-dropdown {
+    position: absolute;
+    top: calc(100% + var(--webops-space-2));
+    right: 0;
+    min-width: 200px;
+    background: var(--webops-color-bg-elevated);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-lg);
+    box-shadow: var(--webops-shadow-lg);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--webops-transition-base);
+    z-index: var(--webops-z-dropdown);
+    padding: var(--webops-space-2) 0;
+}
+
+.webops-toolbar-dropdown.webops-toolbar-dropdown--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.webops-toolbar-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    width: 100%;
+    padding: var(--webops-space-2) var(--webops-space-4);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--webops-color-text-primary);
+    cursor: pointer;
+    transition: background var(--webops-transition-fast);
+    font-size: var(--webops-font-size-sm);
+    text-align: left;
+}
+
+.webops-toolbar-dropdown-item:hover {
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-toolbar-dropdown-item .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-toolbar-dropdown-divider {
+    height: 1px;
+    background: var(--webops-color-surface);
+    margin: var(--webops-space-2) 0;
+}
+
+/* Auto-fold functionality */
+@media (max-width: 1200px) {
+    .toolbar-text {
+        opacity: 0;
+        max-width: 0;
+    }
+    
+    .webops-workflow-name-input {
+        min-width: 200px;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .webops-toolbar-left .toolbar-item:nth-child(n+3) {
+        display: none;
+    }
+    
+    .webops-toolbar-right .toolbar-item:nth-child(n+4) {
+        display: none;
+    }
+    
+    .webops-workflow-name-input {
+        min-width: 180px;
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-toolbar-divider {
+        display: none;
+    }
+    
+    .webops-workflow-name-input {
+        min-width: 150px;
+        max-width: 200px;
+    }
+    
+    .toolbar-text {
+        display: none;
+    }
+    
+    .webops-toolbar-left .toolbar-item:nth-child(n+2) {
+        display: none;
+    }
+    
+    .webops-toolbar-right .toolbar-item:nth-child(n+3) {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-workflow-toolbar {
+        padding: var(--webops-space-1) var(--webops-space-2);
+    }
+    
+    .webops-toolbar-left, .webops-toolbar-right {
+        gap: var(--webops-space-1);
+    }
+    
+    .webops-workflow-name-input {
+        min-width: 120px;
+        max-width: 150px;
+        font-size: var(--webops-font-size-sm);
+    }
+    
+    .webops-zoom-indicator {
+        display: none;
+    }
+}
+
+/* Dynamic toolbar overflow handling */
+.webops-workflow-toolbar {
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.webops-workflow-toolbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* Workflow name input truncation */
+.webops-workflow-name-input {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Additional responsive breakpoints for very long names */
+@media (max-width: 1400px) {
+    .webops-workflow-name-input {
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 1300px) {
+    .webops-workflow-name-input {
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .webops-workflow-name-input {
+        max-width: 250px;
+    }
+}
+
+.webops-workflow-title-edit {
     display: flex;
     align-items: center;
     gap: var(--webops-space-3);
 }
 
-.workflow-title-edit {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-3);
-}
-
-.workflow-name-input {
+.webops-workflow-name-input {
     font-size: var(--webops-font-size-xl);
     font-weight: var(--webops-font-weight-semibold);
     padding: var(--webops-space-2) var(--webops-space-3);
@@ -248,20 +491,20 @@
     box-shadow: var(--webops-shadow-sm);
 }
 
-.workflow-name-input:hover {
+.webops-workflow-name-input:hover {
     border-color: var(--webops-color-primary-alpha-30);
     background: var(--webops-color-bg-elevated);
     box-shadow: var(--webops-shadow-md);
 }
 
-.workflow-name-input:focus {
+.webops-workflow-name-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
     background: var(--webops-color-bg-elevated);
     box-shadow: var(--webops-shadow-primary-sm);
 }
 
-.zoom-indicator {
+.webops-zoom-indicator {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-secondary);
@@ -273,162 +516,303 @@
     border: var(--webops-border-width-thin) solid var(--webops-color-surface);
 }
 
-.workflow-main {
+.webops-workflow-main {
     display: flex;
     flex: 1;
     overflow: hidden;
 }
 
 /* Enhanced Node Palette */
-.node-palette {
-    width: 300px;
+.webops-node-palette {
+    width: 200px;
     background: var(--webops-color-bg-card);
     backdrop-filter: blur(20px);
     border-right: var(--webops-border-width-thin) solid var(--webops-color-surface);
     overflow-y: auto;
     flex-shrink: 0;
     box-shadow: var(--webops-shadow-sm);
+    transition: width var(--webops-transition-medium), min-width var(--webops-transition-medium);
 }
 
-.palette-header {
-    padding: var(--webops-space-6);
+/* Minimized Palette */
+.webops-node-palette.minimized {
+    width: 60px;
+    min-width: 60px;
+}
+
+.webops-palette-header {
+    padding: var(--webops-space-4);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
     color: white;
+    position: relative;
 }
 
-.palette-header h3 {
-    margin: 0 0 var(--webops-space-4) 0;
-    font-size: var(--webops-font-size-lg);
+.webops-palette-header h3 {
+    margin: 0;
+    font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-bold);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: opacity var(--webops-transition-fast);
 }
 
-.palette-search {
+.webops-node-palette.minimized .webops-palette-header h3 {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.webops-palette-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-palette-search {
     width: 100%;
-    padding: var(--webops-space-3) var(--webops-space-4);
+    padding: var(--webops-space-2) var(--webops-space-3);
     border: var(--webops-border-width-base) solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--webops-radius-xl);
+    border-radius: var(--webops-radius-lg);
     background: rgba(255, 255, 255, 0.15);
     color: white;
-    font-size: var(--webops-font-size-sm);
+    font-size: var(--webops-font-size-xs);
     backdrop-filter: blur(10px);
     transition: all var(--webops-transition-base);
 }
 
-.palette-search::placeholder {
+.webops-node-palette.minimized .webops-palette-search {
+    display: none;
+}
+
+.webops-palette-search::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
 
-.palette-search:focus {
+.webops-palette-search:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.4);
     background: rgba(255, 255, 255, 0.25);
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
-.palette-section {
+.webops-palette-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: var(--webops-space-1);
+    border-radius: var(--webops-radius-md);
+    color: white;
+    transition: all var(--webops-transition-base);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.webops-palette-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.webops-palette-toggle .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    transition: transform var(--webops-transition-base);
+}
+
+.webops-node-palette.minimized .webops-palette-toggle .material-icons {
+    transform: rotate(180deg);
+}
+
+.webops-palette-section {
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
 }
 
-.palette-section-header {
+.webops-palette-section-header {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-3);
-    padding: var(--webops-space-4) var(--webops-space-6);
+    gap: var(--webops-space-2);
+    padding: var(--webops-space-3) var(--webops-space-4);
     font-weight: var(--webops-font-weight-bold);
-    font-size: var(--webops-font-size-sm);
+    font-size: var(--webops-font-size-xs);
     color: var(--webops-color-text-secondary);
     background: var(--webops-color-bg-tertiary);
     text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
+    letter-spacing: var(--webops-letter-spacing-wider);
+    transition: padding var(--webops-transition-fast);
 }
 
-.palette-section-header .material-icons {
-    font-size: var(--webops-icon-size-lg);
+.webops-node-palette.minimized .webops-palette-section-header {
+    padding: var(--webops-space-2);
+    justify-content: center;
+}
+
+.webops-palette-section-header span {
+    transition: opacity var(--webops-transition-fast);
+}
+
+.webops-node-palette.minimized .webops-palette-section-header span:not(.material-icons) {
+    display: none;
+}
+
+.webops-palette-section-header .material-icons {
+    font-size: var(--webops-icon-size-base);
     color: var(--webops-color-primary);
 }
 
-.palette-nodes {
-    padding: var(--webops-space-4);
+.webops-palette-nodes {
+    padding: var(--webops-space-3);
     display: flex;
     flex-direction: column;
-    gap: var(--webops-space-3);
+    gap: var(--webops-space-2);
+}
+
+.webops-node-palette.minimized .webops-palette-nodes {
+    padding: var(--webops-space-2);
+    gap: var(--webops-space-1);
 }
 
 @media (max-width: 768px) {
-    .palette-nodes {
+    .webops-palette-nodes {
         flex-direction: row;
         overflow-x: auto;
-        padding: var(--webops-space-3);
-        gap: var(--webops-space-2);
+        padding: var(--webops-space-2);
+        gap: var(--webops-space-1);
     }
     
-    .palette-node {
+    .webops-palette-node {
         flex-shrink: 0;
-        min-width: 140px;
+        min-width: 120px;
         margin-bottom: 0;
+    }
+    
+    .webops-node-palette.minimized .webops-palette-nodes {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+    
+    .webops-node-palette.minimized .webops-palette-node {
+        min-width: auto;
+        width: 44px;
+        height: 44px;
+        justify-content: center;
     }
 }
 
-.palette-node {
+.webops-palette-node {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-4);
-    padding: var(--webops-space-4);
-    margin-bottom: var(--webops-space-3);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-2);
     background: var(--webops-color-bg-elevated);
     border: var(--webops-border-width-base) solid var(--webops-color-surface);
-    border-radius: var(--webops-radius-xl);
+    border-radius: var(--webops-radius-lg);
     cursor: grab;
     transition: all var(--webops-transition-base);
-    font-size: var(--webops-font-size-sm);
+    font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-medium);
     box-shadow: var(--webops-shadow-sm);
     position: relative;
     overflow: hidden;
 }
 
-.palette-node::before {
+.webops-node-palette.minimized .webops-palette-node {
+    width: 44px;
+    height: 44px;
+    padding: var(--webops-space-2);
+    justify-content: center;
+    margin-bottom: var(--webops-space-1);
+}
+
+.webops-palette-node::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-600));
+    height: 2px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-dark));
     transform: scaleX(0);
     transition: transform var(--webops-transition-base);
 }
 
-.palette-node:hover {
+.webops-palette-node:hover {
     border-color: var(--webops-color-primary);
-    box-shadow: var(--webops-shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: var(--webops-shadow-md);
+    transform: translateY(-1px);
 }
 
-.palette-node:hover::before {
+.webops-palette-node:hover::before {
     transform: scaleX(1);
 }
 
-.palette-node:active {
+.webops-palette-node:active {
     cursor: grabbing;
     transform: translateY(0) scale(var(--webops-scale-active));
 }
 
-.palette-node .material-icons {
-    font-size: var(--webops-icon-size-lg);
+.webops-palette-node .material-icons {
+    font-size: var(--webops-icon-size-base);
     color: var(--webops-color-primary);
     background: var(--webops-color-primary-alpha-10);
-    padding: var(--webops-space-2);
-    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-1);
+    border-radius: var(--webops-radius-md);
+    flex-shrink: 0;
+}
+
+.webops-node-palette.minimized .webops-palette-node .material-icons {
+    font-size: var(--webops-icon-size-lg);
+    background: transparent;
+    padding: 0;
+}
+
+.node-label {
+    transition: opacity var(--webops-transition-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.webops-node-palette.minimized .node-label {
+    display: none;
+}
+
+/* Tooltip for minimized palette */
+.webops-node-palette.minimized .webops-palette-node {
+    position: relative;
+}
+
+.webops-node-palette.minimized .webops-palette-node::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--webops-color-bg-elevated);
+    color: var(--webops-color-text-primary);
+    padding: var(--webops-space-2) var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    box-shadow: var(--webops-shadow-lg);
+    font-size: var(--webops-font-size-xs);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--webops-transition-fast), visibility var(--webops-transition-fast);
+    z-index: var(--webops-z-dropdown);
+    pointer-events: none;
+}
+
+.webops-node-palette.minimized .webops-palette-node:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Ultra Sleek Canvas */
-.canvas-container {
+.webops-canvas-container {
     flex: 1;
     position: relative;
-    background: 
+    background:
         radial-gradient(circle at 25% 25%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
         radial-gradient(circle at 75% 75%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
         linear-gradient(90deg, var(--webops-color-surface) 1px, transparent 1px),
@@ -448,7 +832,7 @@
     cursor: grabbing;
 }
 
-.canvas-minimap {
+.webops-canvas-minimap {
     position: absolute;
     bottom: var(--webops-space-6);
     right: var(--webops-space-6);
@@ -460,16 +844,23 @@
     border-radius: var(--webops-radius-2xl);
     box-shadow: var(--webops-shadow-lg);
     transition: all var(--webops-transition-base);
+    overflow: hidden;
 }
 
-.canvas-minimap:hover {
+.webops-canvas-minimap:hover {
     box-shadow: var(--webops-shadow-xl);
     transform: translateY(-2px);
 }
 
+#minimap-canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--webops-radius-2xl);
+}
+
 /* Enhanced Properties Panel */
-.properties-panel {
-    width: 350px;
+.webops-properties-panel {
+    width: 280px;
     background: var(--webops-color-bg-card);
     backdrop-filter: blur(20px);
     border-left: var(--webops-border-width-thin) solid var(--webops-color-surface);
@@ -477,63 +868,148 @@
     flex-direction: column;
     flex-shrink: 0;
     box-shadow: var(--webops-shadow-sm);
+    transition: width var(--webops-transition-medium), min-width var(--webops-transition-medium);
+    position: relative;
 }
 
-.properties-header {
+/* Minimized Properties Panel */
+.webops-properties-panel.minimized {
+    width: 60px;
+    min-width: 60px;
+}
+
+.webops-properties-panel.minimized .webops-properties-body {
+    display: none;
+}
+
+.webops-properties-panel.minimized .webops-properties-header h3 {
+    display: none;
+}
+
+.webops-properties-panel.minimized .webops-properties-header-actions {
+    justify-content: center;
+}
+
+/* Properties panel size toggle button */
+#btn-toggle-properties-size {
+    transition: transform var(--webops-transition-base);
+}
+
+.webops-properties-panel.minimized #btn-toggle-properties-size .material-icons {
+    transform: rotate(180deg);
+}
+
+/* Toggle Button for Properties Panel */
+.webops-properties-toggle {
+    position: absolute;
+    top: 50%;
+    left: -12px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 48px;
+    background: var(--webops-color-bg-card);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-md) 0 0 var(--webops-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: var(--webops-shadow-sm);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-properties-toggle:hover {
+    background: var(--webops-color-bg-elevated);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-properties-toggle .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    color: var(--webops-color-text-secondary);
+    transition: transform var(--webops-transition-base);
+}
+
+.webops-properties-panel.minimized .webops-properties-toggle .material-icons {
+    transform: rotate(180deg);
+}
+
+.webops-properties-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--webops-space-6);
+    padding: var(--webops-space-4);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
     color: white;
 }
 
-.properties-header h3 {
+.webops-properties-header h3 {
     margin: 0;
-    font-size: var(--webops-font-size-lg);
+    font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-bold);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: opacity var(--webops-transition-fast);
 }
 
-.btn-icon {
+.webops-properties-panel.minimized .webops-properties-header h3 {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.webops-properties-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-btn-icon {
     background: rgba(255, 255, 255, 0.2);
     border: none;
     cursor: pointer;
-    padding: var(--webops-space-2);
-    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-1);
+    border-radius: var(--webops-radius-md);
     color: white;
     transition: all var(--webops-transition-base);
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-icon:hover {
+.webops-btn-icon:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(var(--webops-scale-hover));
 }
 
-.properties-body {
+.webops-btn-icon .material-icons {
+    font-size: var(--webops-icon-size-sm);
+}
+
+.webops-properties-body {
     padding: var(--webops-space-6);
     overflow-y: auto;
     flex: 1;
 }
 
 @media (max-width: 768px) {
-    .properties-body {
+    .webops-properties-body {
         padding: var(--webops-space-4);
         overflow-y: auto;
         max-height: 180px;
     }
     
-    .properties-header {
+    .webops-properties-header {
         padding: var(--webops-space-4) var(--webops-space-6);
     }
     
-    .palette-header {
+    .webops-palette-header {
         padding: var(--webops-space-4) var(--webops-space-6);
     }
     
-    .palette-header h3 {
+    .webops-palette-header h3 {
         font-size: var(--webops-font-size-base);
         margin-bottom: var(--webops-space-3);
     }
@@ -559,7 +1035,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left var(--webops-duration-slow) ease;
+    transition: left var(--webops-duration-slow) var(--webops-ease-out);
 }
 
 .webops-btn-sm:hover::before {
@@ -572,7 +1048,7 @@
 }
 
 .webops-btn-primary {
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-600) 100%);
+    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
     box-shadow: var(--webops-shadow-primary-sm);
 }
 
@@ -581,7 +1057,7 @@
 }
 
 .webops-btn-success {
-    background: linear-gradient(135deg, var(--webops-color-success) 0%, var(--webops-color-success-600) 100%);
+    background: linear-gradient(135deg, var(--webops-color-success) 0%, var(--webops-color-success-dark) 100%);
     box-shadow: var(--webops-shadow-success);
 }
 
@@ -608,67 +1084,67 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .node-palette {
-        width: 260px;
+    .webops-node-palette {
+        width: 220px;
     }
 
-    .properties-panel {
-        width: 300px;
+    .webops-properties-panel {
+        width: 260px;
     }
     
-    .workflow-builder-container {
-        height: calc(100vh - 140px);
+    .webops-workflow-builder-container {
+        height: calc(100vh - 120px);
     }
 }
 
 @media (max-width: 1024px) {
-    .node-palette {
-        width: 240px;
+    .webops-node-palette {
+        width: 200px;
     }
 
-    .properties-panel {
-        width: 280px;
+    .webops-properties-panel {
+        width: 240px;
     }
     
-    .canvas-minimap {
+    .webops-canvas-minimap {
         width: 180px;
         height: 120px;
     }
     
-    .workflow-builder-container {
-        height: calc(100vh - 160px);
+    .webops-workflow-builder-container {
+        height: calc(100vh - 140px);
     }
 }
 
 @media (max-width: 768px) {
-    .workflow-toolbar {
-        padding: var(--webops-space-3) var(--webops-space-4);
+    .webops-workflow-toolbar {
+        padding: var(--webops-space-2) var(--webops-space-3);
         flex-wrap: wrap;
-        gap: var(--webops-space-2);
+        gap: var(--webops-space-1);
     }
     
-    .toolbar-left, .toolbar-right {
-        gap: var(--webops-space-2);
+    .webops-toolbar-left, .webops-toolbar-right {
+        gap: var(--webops-space-1);
         flex-wrap: wrap;
     }
     
-    .workflow-name-input {
+    .webops-workflow-name-input {
         font-size: var(--webops-font-size-base);
         min-width: 200px;
     }
     
-    .canvas-minimap {
+    .webops-canvas-minimap {
         bottom: var(--webops-space-4);
         right: var(--webops-space-4);
         width: 160px;
         height: 100px;
     }
     
-    .workflow-main {
+    .webops-workflow-main {
         flex-direction: column;
     }
     
-    .node-palette {
+    .webops-node-palette {
         width: 100%;
         height: 200px;
         order: 2;
@@ -676,13 +1152,13 @@
         border-top: var(--webops-border-width-thin) solid var(--webops-color-surface);
     }
     
-    .canvas-container {
+    .webops-canvas-container {
         order: 1;
         height: 300px;
         min-height: 300px;
     }
     
-    .properties-panel {
+    .webops-properties-panel {
         width: 100%;
         height: 250px;
         order: 3;
@@ -690,45 +1166,49 @@
         border-top: var(--webops-border-width-thin) solid var(--webops-color-surface);
     }
     
-    .workflow-builder-container {
-        height: calc(100vh - 180px);
+    .webops-properties-toggle {
+        display: none;
+    }
+    
+    .webops-workflow-builder-container {
+        height: calc(100vh - 160px);
     }
 }
 
 @media (max-width: 480px) {
-    .workflow-toolbar {
+    .webops-workflow-toolbar {
         padding: var(--webops-space-2);
     }
     
-    .toolbar-left .webops-btn span:not(.material-icons) {
+    .webops-toolbar-left .webops-btn span:not(.material-icons) {
         display: none;
     }
     
-    .workflow-name-input {
+    .webops-workflow-name-input {
         min-width: 150px;
         font-size: var(--webops-font-size-sm);
     }
     
-    .zoom-indicator {
+    .webops-zoom-indicator {
         min-width: 40px;
         font-size: var(--webops-font-size-xs);
     }
     
-    .node-palette {
+    .webops-node-palette {
         height: 150px;
     }
     
-    .canvas-container {
+    .webops-canvas-container {
         height: 250px;
         min-height: 250px;
     }
     
-    .properties-panel {
+    .webops-properties-panel {
         height: 200px;
     }
     
-    .workflow-builder-container {
-        height: calc(100vh - 200px);
+    .webops-workflow-builder-container {
+        height: calc(100vh - 180px);
     }
 }
 
@@ -749,15 +1229,129 @@
     }
 }
 
-.palette-node {
+.webops-palette-node {
     animation: slideIn var(--webops-duration-base) var(--webops-ease-out) forwards;
 }
 
-.palette-node:nth-child(1) { animation-delay: var(--webops-duration-fast); }
-.palette-node:nth-child(2) { animation-delay: var(--webops-duration-base); }
-.palette-node:nth-child(3) { animation-delay: var(--webops-duration-medium); }
-.palette-node:nth-child(4) { animation-delay: var(--webops-duration-slow); }
-.palette-node:nth-child(5) { animation-delay: var(--webops-duration-slower); }
+.webops-palette-node:nth-child(1) { animation-delay: var(--webops-duration-fast); }
+.webops-palette-node:nth-child(2) { animation-delay: var(--webops-duration-base); }
+.webops-palette-node:nth-child(3) { animation-delay: var(--webops-duration-medium); }
+.webops-palette-node:nth-child(4) { animation-delay: var(--webops-duration-slow); }
+.webops-palette-node:nth-child(5) { animation-delay: var(--webops-duration-slower); }
+
+/* Additional Enhancements */
+.webops-canvas-container {
+    min-width: 0; /* Important for flex item to shrink properly */
+}
+
+/* Keyboard Navigation */
+.webops-palette-node:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+}
+
+/* Search Highlight */
+.webops-palette-node.highlighted {
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary);
+}
+
+/* Node Status Indicators */
+.webops-palette-node::after {
+    content: '';
+    position: absolute;
+    top: var(--webops-space-2);
+    right: var(--webops-space-2);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--webops-color-success);
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-palette-node:hover::after {
+    opacity: 1;
+}
+
+/* Context Menu */
+.webops-context-menu {
+    position: absolute;
+    background: var(--webops-color-bg-card);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    box-shadow: var(--webops-shadow-lg);
+    padding: var(--webops-space-2) 0;
+    min-width: 180px;
+    z-index: var(--webops-z-dropdown);
+    display: none;
+}
+
+.webops-context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-2) var(--webops-space-4);
+    color: var(--webops-color-text-primary);
+    cursor: pointer;
+    transition: background var(--webops-transition-fast);
+}
+
+.webops-context-menu-item:hover {
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-context-menu-item .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+/* Loading State */
+.webops-canvas-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--webops-z-modal);
+}
+
+/* Grid Toggle */
+.webops-grid-toggle {
+    position: absolute;
+    top: var(--webops-space-4);
+    left: var(--webops-space-4);
+    background: var(--webops-color-bg-card);
+    border: var(--webops-border-width-thin) solid var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-2);
+    cursor: pointer;
+    z-index: 10;
+    transition: all var(--webops-transition-base);
+}
+
+.webops-grid-toggle:hover {
+    background: var(--webops-color-bg-elevated);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-grid-toggle .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+/* Performance Optimization */
+.webops-workflow-builder-container {
+    contain: layout style paint;
+}
+
+.webops-canvas-container {
+    contain: layout style paint;
+}
 </style>
 
 <script src="{% static 'js/workflow-canvas.js' %}"></script>
