@@ -99,7 +99,7 @@
   /* ────────────────────────────────────────────────────────────────────────────────
      🌑 NEUTRAL GRAYSCALE SYSTEM (Optimized for dark theme)
      ──────────────────────────────────────────────────────────────────────────────── */
-  
+
   /* Grayscale palette (pure neutral - no hue bias) */
   --webops-gray-950: hsl(0 0% 4%);     /* #0a0a0a - Deepest background */
   --webops-gray-900: hsl(0 0% 7%);     /* #121212 - Primary background */
@@ -120,7 +120,7 @@
   --webops-color-bg-primary: var(--webops-gray-950);      /* Main app background */
   --webops-color-bg-secondary: var(--webops-gray-900);    /* Content areas */
   --webops-color-bg-tertiary: var(--webops-gray-850);     /* Sidebar, panels */
-  --webops-color-bg-elevated: var(--webops-gray-800);     /* Cards, modals */
+  --webops-color-bg-elevated: var(--webops-gray-900);     /* Cards, modals */
   
   /* Interactive surfaces */
   --webops-color-surface: var(--webops-gray-850);         /* Default surface */
