@@ -64,10 +64,12 @@
 
                 <div class="webops-nav-section">
                     <div class="webops-nav-section-title">Monitoring</div>
-                    <a href="{% url 'monitoring_dashboard' %}" class="webops-nav-item {% if 'monitoring' in request.path and 'alerts' not in request.path %}active{% endif %}">
+                    <a href="{% url 'monitoring_dashboard' %}" class="webops-nav-item {% if 'monitoring' in request.path and 'alerts' not in request.path and 'celery' not in request.path %}active{% endif %}">
                         <span class="material-icons">analytics</span>
                         <span class="nav-item-text">System Monitor</span>
                     </a>
+                  
+
                     <a href="{% url 'alerts_list' %}" class="webops-nav-item {% if 'alerts' in request.path %}active{% endif %}">
                         <span class="material-icons">notifications</span>
                         <span class="nav-item-text">Alerts</span>

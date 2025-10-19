@@ -1,6 +1,6 @@
 """URL configuration for Deployments app."""
 
-from django.urls import path
+from django.urls import path, include
 from . import views, llm_views
 
 urlpatterns = [
@@ -30,4 +30,10 @@ urlpatterns = [
     path('llm/<int:pk>/test/', llm_views.llm_test_endpoint, name='llm_test'),
     path('llm/<int:pk>/playground/', llm_views.llm_playground, name='llm_playground'),
     path('llm/search/', llm_views.llm_search_models, name='llm_search'),
+
+    # Configuration Management
+    path('', include('apps.deployments.configuration_urls')),
+    
+    # Celery Management
+    path('', include('apps.deployments.celery_urls')),
 ]
