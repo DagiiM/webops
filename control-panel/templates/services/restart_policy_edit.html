@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Configure automated restart behavior for {{ deployment.name }}</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to List
         </button>
@@ -190,7 +190,7 @@
         <!-- Form Actions -->
         <div class="webops-card-footer">
             <div class="webops-flex webops-justify-between">
-                <a href="{% url 'restart_policy_list' %}" class="webops-btn webops-btn-secondary">
+                <a href="{% url 'monitoring:restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
                     Cancel
                 </a>
                 <button type="submit" class="webops-btn webops-btn-primary">

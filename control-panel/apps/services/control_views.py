@@ -28,6 +28,7 @@ from .tasks import (
     stop_service_task,
     restart_service_task
 )
+from .background import get_background_processor
 
 
 # =============================================================================
@@ -81,12 +82,13 @@ def start_service(request, deployment_id):
     use_task = request.POST.get('background', 'false') == 'true'
 
     if use_task:
-        # Queue background task
-        task = start_service_task.delay(deployment_id)
+        # Queue background task via adapter (backward-compatible with Celery)
+        processor = get_background_processor()
+        handle = processor.submit('services.start_service_task', deployment_id)
         result = {
             'success': True,
             'message': f'Start task queued for {deployment.name}',
-            'task_id': task.id
+            'task_id': handle.id
         }
     else:
         # Synchronous start
@@ -100,7 +102,7 @@ def start_service(request, deployment_id):
     else:
         messages.error(request, result['message'])
 
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 @login_required
@@ -112,11 +114,12 @@ def stop_service(request, deployment_id):
     use_task = request.POST.get('background', 'false') == 'true'
 
     if use_task:
-        task = stop_service_task.delay(deployment_id)
+        processor = get_background_processor()
+        handle = processor.submit('services.stop_service_task', deployment_id)
         result = {
             'success': True,
             'message': f'Stop task queued for {deployment.name}',
-            'task_id': task.id
+            'task_id': handle.id
         }
     else:
         result = service_controller.stop_service(deployment)
@@ -129,7 +132,7 @@ def stop_service(request, deployment_id):
     else:
         messages.error(request, result['message'])
 
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 @login_required
@@ -141,11 +144,12 @@ def restart_service(request, deployment_id):
     use_task = request.POST.get('background', 'false') == 'true'
 
     if use_task:
-        task = restart_service_task.delay(deployment_id)
+        processor = get_background_processor()
+        handle = processor.submit('services.restart_service_task', deployment_id)
         result = {
             'success': True,
             'message': f'Restart task queued for {deployment.name}',
-            'task_id': task.id
+            'task_id': handle.id
         }
     else:
         result = service_controller.restart_service(deployment)
@@ -158,7 +162,7 @@ def restart_service(request, deployment_id):
     else:
         messages.error(request, result['message'])
 
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 @login_required
@@ -175,7 +179,7 @@ def bulk_start_services(request):
         f"Started {result['started']} services ({result['failed']} failed)"
     )
 
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 @login_required
@@ -192,7 +196,7 @@ def bulk_stop_services(request):
         f"Stopped {result['stopped']} services ({result['failed']} failed)"
     )
 
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 @login_required
@@ -208,8 +212,7 @@ def bulk_restart_services(request):
         request,
         f"Restarted {result['restarted']} services ({result['failed']} failed)"
     )
-
-    return redirect('service_control_dashboard')
+    return redirect('monitoring:service_control_dashboard')
 
 
 # =============================================================================
@@ -281,7 +284,7 @@ def restart_policy_edit(request, deployment_id):
             )
             messages.success(request, f'Restart policy created for {deployment.name}')
 
-        return redirect('restart_policy_list')
+        return redirect('monitoring:restart_policy_list')
 
     context = {
         'deployment': deployment,
@@ -305,7 +308,7 @@ def restart_policy_delete(request, deployment_id):
     except RestartPolicy.DoesNotExist:
         messages.error(request, 'Restart policy not found')
 
-    return redirect('restart_policy_list')
+    return redirect('monitoring:restart_policy_list')
 
 
 # =============================================================================
@@ -384,7 +387,7 @@ def configuration_update(request):
         else:
             messages.error(request, f'Failed to update configuration: {key}')
 
-        return redirect('configuration_list')
+        return redirect('monitoring:configuration_list')
 
     # Handle multiple key updates (for form submissions)
     updated_count = 0
@@ -428,7 +431,7 @@ def configuration_update(request):
         for error in errors:
             messages.error(request, error)
 
-    return redirect('configuration_list')
+    return redirect('monitoring:configuration_list')
 
 
 @login_required
@@ -449,7 +452,7 @@ def configuration_reset(request, key):
     else:
         messages.error(request, f'Failed to reset configuration: {key}')
 
-    return redirect('configuration_list')
+    return redirect('monitoring:configuration_list')
 
 
 @login_required
@@ -466,7 +469,7 @@ def configuration_reset_all(request):
         })
 
     messages.success(request, f'Reset {count} configurations to defaults')
-    return redirect('configuration_list')
+    return redirect('monitoring:configuration_list')
 
 
 # =============================================================================
@@ -499,7 +502,7 @@ def celery_restart_workers(request):
     else:
         messages.error(request, result['message'])
 
-    return redirect('celery_status')
+    return redirect('monitoring:celery_status')
 
 
 # =============================================================================

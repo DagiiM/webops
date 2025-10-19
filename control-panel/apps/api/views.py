@@ -18,12 +18,13 @@ from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 
 from apps.deployments.models import Deployment, DeploymentLog
-from apps.deployments.tasks import deploy_application, delete_deployment as delete_deployment_task
+from apps.services.background import get_background_processor
 from apps.deployments.service_manager import ServiceManager
 from apps.databases.models import Database
 from apps.databases.services import DatabaseService
 
 from .authentication import api_authentication_required, validate_request_data
+from apps.core.utils import sanitize_deployment_name, validate_domain
 
 
 # ============================================================================
@@ -87,9 +88,31 @@ def deployment_create(request) -> JsonResponse:
             'message': 'Must be a valid GitHub HTTPS URL'
         }, status=400)
 
+    # Sanitize and validate deployment name
+    try:
+        sanitized_name = sanitize_deployment_name(data['name'])
+    except ValueError as e:
+        return JsonResponse({
+            'error': 'Invalid deployment name',
+            'message': str(e)
+        }, status=400)
+
+    # Validate domain if provided
+    if data.get('domain') and not validate_domain(data['domain']):
+        return JsonResponse({
+            'error': 'Invalid domain name',
+            'message': 'Invalid domain name format'
+        }, status=400)
+
+    # Ensure name uniqueness (using sanitized value)
+    if Deployment.objects.filter(name=sanitized_name).exists():
+        return JsonResponse({
+            'error': f'Deployment {sanitized_name} already exists'
+        }, status=400)
+
     try:
         deployment = Deployment.objects.create(
-            name=data['name'],
+            name=sanitized_name,
             repo_url=data['repo_url'],
             branch=data.get('branch', 'main'),
             domain=data.get('domain', ''),
@@ -100,7 +123,7 @@ def deployment_create(request) -> JsonResponse:
 
         # Ensure Celery worker is running (non-interactive)
         ServiceManager().ensure_celery_running()
-        deploy_application.delay(deployment.id)
+        get_background_processor().submit('apps.deployments.tasks.deploy_application', deployment.id)
 
         return JsonResponse({
             'id': deployment.id,
@@ -218,7 +241,7 @@ def deployment_delete(request, name: str) -> JsonResponse:
 
     # Ensure Celery worker is running (non-interactive)
     ServiceManager().ensure_celery_running()
-    delete_deployment_task.delay(deployment_id)
+    get_background_processor().submit('apps.deployments.tasks.delete_deployment', deployment_id)
 
     return JsonResponse({
         'success': True,

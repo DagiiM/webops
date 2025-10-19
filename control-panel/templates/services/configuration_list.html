@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Manage monitoring intervals, thresholds, and system settings</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
@@ -35,7 +35,7 @@
             </div>
         </div>
         <div class="webops-card-body">
-            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+            <form method="post" action="{% url 'monitoring:configuration_update' %}" class="webops-form">
                 {% csrf_token %}
                 <input type="hidden" name="category" value="monitoring">
 
@@ -80,7 +80,7 @@
             </div>
         </div>
         <div class="webops-card-body">
-            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+            <form method="post" action="{% url 'monitoring:configuration_update' %}" class="webops-form">
                 {% csrf_token %}
                 <input type="hidden" name="category" value="data_retention">
 
@@ -121,7 +121,7 @@
             </div>
         </div>
         <div class="webops-card-body">
-            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+            <form method="post" action="{% url 'monitoring:configuration_update' %}" class="webops-form">
                 {% csrf_token %}
                 <input type="hidden" name="category" value="notifications">
 
@@ -168,7 +168,7 @@
             </div>
         </div>
         <div class="webops-card-body">
-            <form method="post" action="{% url 'configuration_update' %}" class="webops-form">
+            <form method="post" action="{% url 'monitoring:configuration_update' %}" class="webops-form">
                 {% csrf_token %}
                 <input type="hidden" name="category" value="celery">
 
@@ -212,7 +212,7 @@ function resetToDefaults() {
         return;
     }
 
-    fetch('{% url "configuration_reset_all" %}', {
+    fetch('{% url "monitoring:configuration_reset_all" %}', {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',

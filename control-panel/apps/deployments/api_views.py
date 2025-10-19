@@ -19,7 +19,7 @@ from pathlib import Path
 import json
 
 from .models import Deployment, DeploymentLog
-from .tasks import deploy_application, restart_deployment, stop_deployment
+from apps.services.background import get_background_processor
 from apps.core.env_manager import EnvManager
 from .validators import validate_project
 
@@ -139,7 +139,8 @@ def create_deployment(request) -> JsonResponse:
         ServiceManager().ensure_celery_running()
 
         # Queue deployment task
-        deploy_application.delay(deployment.id)
+        # deploy_application.delay(deployment.id)
+        get_background_processor().submit('apps.deployments.tasks.deploy_application', deployment.id)
 
         return JsonResponse({
             'id': deployment.id,
@@ -215,7 +216,8 @@ def stop_deployment_api(request, name: str) -> JsonResponse:
         ServiceManager().ensure_celery_running()
 
         # Queue stop task
-        stop_deployment.delay(deployment.id)
+        # stop_deployment.delay(deployment.id)
+        get_background_processor().submit('apps.deployments.tasks.stop_deployment', deployment.id)
 
         return JsonResponse({
             'message': f'Deployment {name} stop queued',
@@ -238,7 +240,8 @@ def restart_deployment_api(request, name: str) -> JsonResponse:
         ServiceManager().ensure_celery_running()
 
         # Queue restart task
-        restart_deployment.delay(deployment.id)
+        # restart_deployment.delay(deployment.id)
+        get_background_processor().submit('apps.deployments.tasks.restart_deployment', deployment.id)
 
         return JsonResponse({
             'message': f'Deployment {name} restart queued',
@@ -260,12 +263,11 @@ def delete_deployment_api(request, name: str) -> JsonResponse:
         from .service_manager import ServiceManager
         ServiceManager().ensure_celery_running()
 
-        # Queue deletion task
-        from .tasks import delete_deployment
-        delete_deployment.delay(deployment.id)
+        # Queue delete task
+        get_background_processor().submit('apps.deployments.tasks.delete_deployment', deployment.id)
 
         return JsonResponse({
-            'message': f'Deployment {name} deletion queued'
+            'message': f'Deployment {name} delete queued'
         })
 
     except Deployment.DoesNotExist:

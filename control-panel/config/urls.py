@@ -26,7 +26,7 @@ urlpatterns = [
     path('databases/', include('apps.databases.urls')),
 
     # Monitoring
-    path('monitoring/', include('apps.services.urls')),
+    path('monitoring/', include(('apps.services.urls', 'monitoring'), namespace='monitoring')),
 
     # Automation
     path('automation/', include(('apps.automation.urls', 'automation'))),

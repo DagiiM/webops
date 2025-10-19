@@ -101,7 +101,7 @@ def sanitize_deployment_name(name: str) -> str:
     if not re.match(r'^[a-z0-9]', sanitized):
         sanitized = 'app-' + sanitized
     
-    if not re.match(r'[a-z0-9]$', sanitized):
+    if not re.search(r'[a-z0-9]$', sanitized):
         sanitized = sanitized + '-app'
     
     # Validate final result

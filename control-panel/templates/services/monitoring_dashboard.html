@@ -87,7 +87,7 @@
 <div class="webops-card webops-mb-lg">
     <div class="webops-card-header">
         <h3 class="webops-h3">Active Alerts</h3>
-        <a href="{% url 'alerts_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary">View All</a>
+        <a href="{% url 'monitoring:alerts_list' %}" class="webops-btn webops-btn-sm webops-btn-secondary">View All</a>
     </div>
     <div class="webops-card-body">
         <div class="webops-grid webops-grid-4 webops-mb-md">
@@ -179,7 +179,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'service_status_detail' item.deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">
+                        <a href="{% url 'monitoring:service_status_detail' item.deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">
                             Details
                         </a>
                     </td>

@@ -111,9 +111,9 @@ def alert_acknowledge(request, pk):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': True, 'message': 'Alert acknowledged'})
 
-        return redirect('alerts_list')
+        return redirect('monitoring:alerts_list')
 
-    return redirect('alerts_list')
+    return redirect('monitoring:alerts_list')
 
 
 @login_required
@@ -128,9 +128,9 @@ def alert_acknowledge_all(request):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': True, 'count': count})
 
-        return redirect('alerts_list')
+        return redirect('monitoring:alerts_list')
 
-    return redirect('alerts_list')
+    return redirect('monitoring:alerts_list')
 
 
 @login_required
@@ -215,7 +215,7 @@ def refresh_service_status(request, deployment_id):
             } if health_check else None
         })
 
-    return redirect('service_status_detail', deployment_id=deployment_id)
+    return redirect('monitoring:service_status_detail', deployment_id=deployment_id)
 
 
 @login_required

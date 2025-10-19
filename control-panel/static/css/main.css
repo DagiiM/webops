@@ -1039,6 +1039,10 @@ select:focus {
     margin-bottom: var(--webops-space-3);
 }
 
+input:-internal-autofill-selected{
+     background: var(--webops-color-surface);
+}
+
 .login-page .webops-input {
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);

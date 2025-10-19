@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Service status and health monitoring</p>
     </div>
     <div class="webops-flex webops-gap-md">
-        <form method="post" action="{% url 'refresh_service_status' deployment.pk %}" style="display: inline;">
+        <form method="post" action="{% url 'monitoring:refresh_service_status' deployment.pk %}" style="display: inline;">
             {% csrf_token %}
             <button type="submit" class="webops-btn webops-btn-primary">
                 <span class="material-icons">refresh</span>

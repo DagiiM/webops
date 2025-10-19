@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Monitor and manage background task workers</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
@@ -288,7 +288,7 @@ function refreshStatus() {
 }
 
 function inspectWorker(workerName) {
-    fetch(`{% url 'api_celery_inspect' %}?worker=${workerName}`, {
+    fetch(`{% url 'monitoring:api_celery_inspect' %}?worker=${workerName}`, {
         headers: {
             'X-CSRFToken': '{{ csrf_token }}'
         }

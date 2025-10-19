@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Automated service recovery configuration</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
@@ -116,11 +116,11 @@
 
             <!-- Actions -->
             <div class="webops-flex webops-gap-sm webops-justify-end">
-                <a href="{% url 'restart_policy_edit' item.policy.deployment.id %}" class="webops-btn webops-btn-primary">
+                <a href="{% url 'monitoring:restart_policy_edit' item.policy.deployment.id %}" class="webops-btn webops-btn-primary">
                     <span class="material-icons">edit</span>
                     Edit Policy
                 </a>
-                <form method="post" action="{% url 'restart_policy_delete' item.policy.deployment.id %}" class="inline-form" onsubmit="return confirm('Delete restart policy for {{ item.policy.deployment.name }}?');">
+                <form method="post" action="{% url 'monitoring:restart_policy_delete' item.policy.deployment.id %}" class="inline-form" onsubmit="return confirm('Delete restart policy for {{ item.policy.deployment.name }}?');">
                     {% csrf_token %}
                     <button type="submit" class="webops-btn webops-btn-danger">
                         <span class="material-icons">delete</span>
@@ -138,7 +138,7 @@
         <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">policy</span>
         <h3 class="webops-empty-state-title">No restart policies configured</h3>
         <p class="webops-empty-state-description">Create restart policies to enable automated service recovery</p>
-        <a href="{% url 'service_control_dashboard' %}" class="webops-btn webops-btn-primary">
+        <a href="{% url 'monitoring:service_control_dashboard' %}" class="webops-btn webops-btn-primary">
             <span class="material-icons">arrow_back</span>
             Go to Service Control
         </a>

@@ -10,11 +10,11 @@
         <p class="webops-text-muted">Manage and monitor all deployment services</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:restart_policy_list' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">settings</span>
             Restart Policies
         </button>
-        <button onclick="location.href='{% url 'configuration_list' %}'" class="webops-btn webops-btn-secondary">
+        <button onclick="location.href='{% url 'monitoring:configuration_list' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">tune</span>
             Configuration
         </button>
@@ -70,7 +70,7 @@
     </div>
     <div class="webops-card-body">
         <div class="webops-flex webops-gap-md webops-flex-wrap">
-            <form method="post" action="{% url 'bulk_start_services' %}" onsubmit="return confirm('Start all stopped services?');" class="inline-form">
+            <form method="post" action="{% url 'monitoring:bulk_start_services' %}" onsubmit="return confirm('Start all stopped services?');" class="inline-form">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-success">
                     <span class="material-icons">play_arrow</span>
@@ -78,7 +78,7 @@
                 </button>
             </form>
 
-            <form method="post" action="{% url 'bulk_stop_services' %}" onsubmit="return confirm('Stop all running services? This will cause downtime.');" class="inline-form">
+            <form method="post" action="{% url 'monitoring:bulk_stop_services' %}" onsubmit="return confirm('Stop all running services? This will cause downtime.');" class="inline-form">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-danger">
                     <span class="material-icons">stop</span>
@@ -86,7 +86,7 @@
                 </button>
             </form>
 
-            <form method="post" action="{% url 'bulk_restart_services' %}" onsubmit="return confirm('Restart all running services? This may cause brief downtime.');" class="inline-form">
+            <form method="post" action="{% url 'monitoring:bulk_restart_services' %}" onsubmit="return confirm('Restart all running services? This may cause brief downtime.');" class="inline-form">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-warning">
                     <span class="material-icons">restart_alt</span>
@@ -94,7 +94,7 @@
                 </button>
             </form>
 
-            <a href="{% url 'celery_status' %}" class="webops-btn webops-btn-info">
+            <a href="{% url 'monitoring:celery_status' %}" class="webops-btn webops-btn-info">
                 <span class="material-icons">settings_applications</span>
                 Manage Celery
             </a>
@@ -183,13 +183,13 @@
                     </td>
                     <td>
                         {% if item.policy %}
-                            <a href="{% url 'restart_policy_edit' item.deployment.id %}" class="webops-link">
+                            <a href="{% url 'monitoring:restart_policy_edit' item.deployment.id %}" class="webops-link">
                                 <span class="webops-badge webops-badge-{{ item.policy.enabled|yesno:'primary,secondary' }}">
                                     {{ item.policy.get_policy_type_display }}
                                 </span>
                             </a>
                         {% else %}
-                            <a href="{% url 'restart_policy_edit' item.deployment.id %}" class="webops-link webops-text-muted">
+                            <a href="{% url 'monitoring:restart_policy_edit' item.deployment.id %}" class="webops-link webops-text-muted">
                                 <span class="material-icons webops-icon-sm">add</span>
                                 Add
                             </a>
@@ -198,7 +198,7 @@
                     <td>
                         <div class="webops-btn-group">
                             {% if item.status.status != 'running' %}
-                            <form method="post" action="{% url 'start_service' item.deployment.id %}" class="inline-form">
+                            <form method="post" action="{% url 'monitoring:start_service' item.deployment.id %}" class="inline-form">
                                 {% csrf_token %}
                                 <button type="submit" class="webops-btn webops-btn-xs webops-btn-success" title="Start">
                                     <span class="material-icons">play_arrow</span>
@@ -207,14 +207,14 @@
                             {% endif %}
 
                             {% if item.status.status == 'running' %}
-                            <form method="post" action="{% url 'restart_service' item.deployment.id %}" class="inline-form">
+                            <form method="post" action="{% url 'monitoring:restart_service' item.deployment.id %}" class="inline-form">
                                 {% csrf_token %}
                                 <button type="submit" class="webops-btn webops-btn-xs webops-btn-warning" title="Restart">
                                     <span class="material-icons">restart_alt</span>
                                 </button>
                             </form>
 
-                            <form method="post" action="{% url 'stop_service' item.deployment.id %}" class="inline-form" onsubmit="return confirm('Stop {{ item.deployment.name }}?');">
+                            <form method="post" action="{% url 'monitoring:stop_service' item.deployment.id %}" class="inline-form" onsubmit="return confirm('Stop {{ item.deployment.name }}?');">
                                 {% csrf_token %}
                                 <button type="submit" class="webops-btn webops-btn-xs webops-btn-danger" title="Stop">
                                     <span class="material-icons">stop</span>
@@ -222,7 +222,7 @@
                             </form>
                             {% endif %}
 
-                            <a href="{% url 'service_status_detail' item.deployment.id %}" class="webops-btn webops-btn-xs webops-btn-info" title="Details">
+                            <a href="{% url 'monitoring:service_status_detail' item.deployment.id %}" class="webops-btn webops-btn-xs webops-btn-info" title="Details">
                                 <span class="material-icons">info</span>
                             </a>
                         </div>
@@ -270,7 +270,7 @@
 let refreshInterval;
 
 function refreshServiceStatus() {
-    fetch('{% url 'api_system_health' %}')
+    fetch('{% url 'monitoring:api_system_health' %}')
         .then(response => response.json())
         .then(data => {
             // Update without full page reload if needed

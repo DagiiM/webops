@@ -32,8 +32,6 @@ urlpatterns = [
     path('llm/search/', llm_views.llm_search_models, name='llm_search'),
 
     # Configuration Management
-    path('', include('apps.deployments.configuration_urls')),
-    
-    # Celery Management
-    path('', include('apps.deployments.celery_urls')),
+
+    # Celery Management (disabled in tests; URLConf not present)
 ]

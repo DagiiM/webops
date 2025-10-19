@@ -93,7 +93,6 @@ def deployment_create(request):
         # Create deployment
         try:
             from .services import DeploymentService
-            from .tasks import deploy_application
 
             deployment = Deployment.objects.create(
                 name=sanitized_name,
@@ -111,8 +110,10 @@ def deployment_create(request):
             from .service_manager import ServiceManager
             ServiceManager().ensure_celery_running()
 
-            # Queue deployment task
-            deploy_application.delay(deployment.id)
+            # Queue deployment task via background processor
+            from apps.services.background import get_background_processor
+            processor = get_background_processor()
+            processor.submit('apps.deployments.tasks.deploy_application', deployment.id)
 
             messages.success(request, f"Deployment '{sanitized_name}' created and queued successfully.")
             return redirect('deployments:deployment_detail', pk=deployment.id)
@@ -261,16 +262,16 @@ def deployment_delete(request, pk):
     deployment = get_object_or_404(Deployment, pk=pk)
 
     if request.method == 'POST':
-        from .tasks import delete_deployment
-
         deployment_name = deployment.name
 
         # Ensure Celery worker is running (non-interactive)
         from .service_manager import ServiceManager
         ServiceManager().ensure_celery_running()
 
-        # Trigger background deletion task
-        delete_deployment.delay(deployment.id)
+        # Trigger background deletion task via adapter
+        from apps.services.background import get_background_processor
+        processor = get_background_processor()
+        processor.submit('apps.deployments.tasks.delete_deployment', deployment.id)
 
         messages.success(
             request,

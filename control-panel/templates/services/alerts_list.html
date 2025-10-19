@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Monitor and manage system alerts</p>
     </div>
     {% if stats.unacknowledged > 0 %}
-    <form method="post" action="{% url 'alert_acknowledge_all' %}" style="display: inline;">
+    <form method="post" action="{% url 'monitoring:alert_acknowledge_all' %}" style="display: inline;">
         {% csrf_token %}
         <button type="submit" class="webops-btn webops-btn-secondary">
             Acknowledge All ({{ stats.unacknowledged }})
@@ -86,7 +86,7 @@
             </div>
 
             <button type="submit" class="webops-btn webops-btn-primary">Filter</button>
-            <a href="{% url 'alerts_list' %}" class="webops-btn webops-btn-secondary">Clear</a>
+            <a href="{% url 'monitoring:alerts_list' %}" class="webops-btn webops-btn-secondary">Clear</a>
         </form>
     </div>
 </div>
@@ -139,7 +139,7 @@
                     </td>
                     <td>
                         {% if not alert.is_acknowledged %}
-                        <form method="post" action="{% url 'alert_acknowledge' alert.pk %}" style="display: inline;">
+                        <form method="post" action="{% url 'monitoring:alert_acknowledge' alert.pk %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="webops-btn webops-btn-sm webops-btn-secondary">
                                 Acknowledge

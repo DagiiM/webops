@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -148,6 +149,16 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Use in-memory Channels during test runs to avoid external Redis dependency
+if 'test' in sys.argv:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer'
+        }
+    }
+    # Force background processor to in-memory for tests
+    os.environ.setdefault('WEBOPS_BG_PROCESSOR', 'memory')
+
 # WebOps-specific settings
 WEBOPS_INSTALL_PATH = config('WEBOPS_INSTALL_PATH', default='/opt/webops')
 WEBOPS_USER = config('WEBOPS_USER', default='webops')
@@ -261,6 +272,15 @@ else:
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
             'LOCATION': 'webops-cache',
+        }
+    }
+
+# Override caches to locmem during tests regardless of DEBUG
+if 'test' in sys.argv:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'webops-test-cache',
         }
     }
 

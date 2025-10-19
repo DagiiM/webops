@@ -188,9 +188,11 @@ def deploy(repo: str, name: str, branch: str, domain: str) -> None:
             domain=domain
         )
 
+        sanitized_name = result.get('name', name)
         console.print(f"[green]✓[/green] Deployment created: {result.get('message')}")
         console.print(f"[cyan]ID:[/cyan] {result.get('id')}")
-        console.print("\nUse [cyan]webops logs {name}[/cyan] to monitor deployment progress")
+        console.print(f"[cyan]Name:[/cyan] {sanitized_name}")
+        console.print(f"\nUse [cyan]webops logs {sanitized_name}[/cyan] to monitor deployment progress")
 
     except WebOpsAPIError as e:
         console.print(f"[red]Error:[/red] {e}")

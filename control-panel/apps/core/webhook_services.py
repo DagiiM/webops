@@ -17,6 +17,7 @@ from django.conf import settings
 
 from apps.core.models import Webhook, WebhookDelivery
 from apps.deployments.models import Deployment
+from apps.services.background import get_background_processor
 
 logger = logging.getLogger(__name__)
 
@@ -166,16 +167,15 @@ class WebhookService:
             from apps.deployments.service_manager import ServiceManager
             ServiceManager().ensure_celery_running()
 
-            # Queue deployment task
-            result = deploy_django_app.delay(
-                deployment_id=webhook.deployment.id,
-                repo_url=webhook.deployment.repo_url,
-                branch=branch or webhook.deployment.branch,
+            # Queue deployment task via background processor
+            handle = get_background_processor().submit(
+                'apps.deployments.tasks.deploy_application',
+                webhook.deployment.id
             )
 
             # Update delivery record
             delivery.status = WebhookDelivery.Status.SUCCESS
-            delivery.response = {"task_id": result.id, "branch": branch}
+            delivery.response = {"task_id": handle.id, "branch": branch}
             delivery.save()
 
             logger.info(
