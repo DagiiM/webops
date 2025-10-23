@@ -1,7 +1,7 @@
 """
 Rate limiting middleware and decorators for WebOps API.
 
-Reference: CLAUDE.md "Security Best Practices" section
+"Security Best Practices" section
 """
 
 import time
@@ -215,7 +215,7 @@ class RateLimitMiddleware:
     
     def __call__(self, request):
         # Skip rate limiting for static files and admin
-        if (request.path.startswith('/static/') or 
+        if (request.path.startswith('/static/') or
             request.path.startswith('/media/') or
             request.path.startswith('/admin/')):
             return self.get_response(request)
@@ -226,7 +226,10 @@ class RateLimitMiddleware:
         # Check global rate limit
         allowed, info = self.global_limiter.is_allowed(identifier)
         
+        print(f"Rate limit check for {identifier} on {request.path}: allowed={allowed}")
+        
         if not allowed:
+            print(f"Rate limit exceeded for {identifier}")
             response = JsonResponse({
                 'error': 'Global rate limit exceeded',
                 'message': 'Too many requests from this IP address',

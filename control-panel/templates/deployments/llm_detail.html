@@ -340,13 +340,32 @@ function initLiveLogs() {
 
     const MAX_LINES = 1000;
     const wsProto = (location.protocol === 'https:') ? 'wss' : 'ws';
-    const wsUrl = `${wsProto}://${location.host}/ws/deployments/${deploymentId}/`;
+    // Force use of port 8009 where Daphne is running
+    const wsHost = location.hostname + ':8009';
+    
+    // Get WebSocket token before connecting
+    async function getWebSocketToken() {
+        try {
+            const response = await fetch('/api/v1/ws/token/');
+            if (!response.ok) {
+                throw new Error('Failed to get WebSocket token');
+            }
+            const data = await response.json();
+            return data.token;
+        } catch (error) {
+            console.error('Error getting WebSocket token:', error);
+            appendLine('[ERROR] Failed to get WebSocket token: ' + error.message);
+            return null;
+        }
+    }
+    
     let ws;
     let buffer = [];
     let flushing = false;
     let autoScroll = true;
     let paused = false;
     let reconnectDelay = 1000;
+    let wsToken = null;
 
     function normalizeLogs(logs) {
         return logs.map(l => {
@@ -383,24 +402,59 @@ function initLiveLogs() {
         flush();
     }
 
-    function connect() {
-        ws = new WebSocket(wsUrl);
-        ws.onopen = () => { reconnectDelay = 1000; };
+    async function connect() {
+        // Get a fresh token for each connection attempt
+        wsToken = await getWebSocketToken();
+        if (!wsToken) {
+            appendLine('[ERROR] Failed to get authentication token. Retrying in 5 seconds...');
+            setTimeout(() => connect(), 5000);
+            return;
+        }
+        
+        // Build WebSocket URL with token as query parameter
+        const wsUrlWithToken = `${wsProto}://${wsHost}/ws/deployments/${deploymentId}/?token=${wsToken}`;
+        console.log('Attempting WebSocket connection to:', wsUrlWithToken);
+        
+        // Create WebSocket connection with token
+        ws = new WebSocket(wsUrlWithToken);
+        ws.onopen = () => {
+            console.log('WebSocket connected successfully');
+            appendLine('[INFO] WebSocket connected successfully');
+            reconnectDelay = 1000;
+        };
         ws.onmessage = (evt) => {
             try {
                 const msg = JSON.parse(evt.data);
                 if (msg.type === 'deployment_logs' && Array.isArray(msg.logs)) {
                     enqueue(msg.logs);
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                console.error('Error parsing WebSocket message:', e);
+                appendLine('[ERROR] Error parsing WebSocket message: ' + e.message);
+            }
         };
-        ws.onclose = () => {
+        ws.onclose = (evt) => {
+            const reason = evt.reason || 'Unknown reason';
+            console.log('WebSocket closed, attempting reconnect. Code:', evt.code, 'Reason:', reason);
+            
+            // If authentication failed (code 4001), get a new token
+            if (evt.code === 4001) {
+                appendLine('[WARN] Authentication expired. Getting new token...');
+                wsToken = null;
+            } else {
+                appendLine(`[WARN] WebSocket closed (code: ${evt.code}, reason: ${reason}). Reconnecting in ${reconnectDelay/1000}s...`);
+            }
+            
             setTimeout(() => {
                 reconnectDelay = Math.min(reconnectDelay * 2, 30000);
                 connect();
             }, reconnectDelay);
         };
-        ws.onerror = () => { try { ws.close(); } catch(e) {} };
+        ws.onerror = (err) => {
+            console.error('WebSocket error:', err);
+            appendLine('[ERROR] WebSocket connection error. Check browser console for details.');
+            try { ws.close(); } catch(e) {}
+        };
     }
 
     // Controls

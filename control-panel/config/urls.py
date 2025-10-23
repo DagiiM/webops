@@ -1,16 +1,21 @@
 """
 URL configuration for WebOps Control Panel.
 
-Reference: CLAUDE.md "URL Routing" section
+"URL Routing" section
 """
 
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import render
 from apps.deployments import views as deployment_views
-from apps.core import webhook_views
+from apps.core.webhooks import views as webhook_views
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    
 
     # Authentication (modern with 2FA)
     path('auth/', include('apps.core.urls')),
@@ -25,11 +30,17 @@ urlpatterns = [
     # Databases
     path('databases/', include('apps.databases.urls')),
 
+    # Trash / Recycle Bin
+    path('trash/', include('apps.trash.urls')),
+
     # Monitoring
     path('monitoring/', include(('apps.services.urls', 'monitoring'), namespace='monitoring')),
 
     # Automation
     path('automation/', include(('apps.automation.urls', 'automation'))),
+
+    # Compliance & Security
+    path('compliance/', include(('apps.compliance.urls', 'compliance'))),
 
     # Addons
     path('addons/', include(('apps.addons.urls', 'addons'))),

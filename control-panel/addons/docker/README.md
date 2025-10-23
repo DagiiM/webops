@@ -238,7 +238,7 @@ Docker is particularly useful for vLLM deployments:
 
 ```python
 # vLLM deployment with Docker
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name="llama-model",
     project_type="llm",
     use_docker=True,

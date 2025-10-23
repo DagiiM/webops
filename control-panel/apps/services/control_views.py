@@ -1,7 +1,7 @@
 """
 Service Control Views for admin interface and API.
 
-Reference: CLAUDE.md "Services Control System"
+"Services Control System"
 Architecture: RESTful API and web interface for service management
 
 This module provides:
@@ -18,8 +18,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib import messages
+from django.utils import timezone
 
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 from .service_controller import service_controller
 from .restart_policy import RestartPolicy, restart_policy_enforcer
 from .config_manager import config_manager
@@ -39,7 +40,7 @@ from .background import get_background_processor
 def service_control_dashboard(request):
     """Main service control dashboard."""
     # Get all deployments with status
-    deployments = Deployment.objects.all()
+    deployments = ApplicationDeployment.objects.all()
     service_statuses = []
 
     for deployment in deployments:
@@ -76,7 +77,7 @@ def service_control_dashboard(request):
 @require_POST
 def start_service(request, deployment_id):
     """Start a specific service."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     # Check if background task requested
     use_task = request.POST.get('background', 'false') == 'true'
@@ -105,11 +106,101 @@ def start_service(request, deployment_id):
     return redirect('monitoring:service_control_dashboard')
 
 
+# =============================================================================
+# BACKGROUND PROCESSOR MANAGEMENT VIEWS
+# =============================================================================
+
+@login_required
+def background_management(request):
+    """Processor-agnostic background management view."""
+    from .background import get_background_processor
+    processor = get_background_processor()
+    
+    try:
+        # Get processor status
+        status = processor.get_status()
+        
+        # Get queue statistics if available
+        queue_stats = {}
+        if hasattr(processor, 'get_queue_stats'):
+            queue_stats = processor.get_queue_stats()
+        
+        # Determine backend type for template rendering
+        backend_name = processor.__class__.__name__.lower()
+        if 'celery' in backend_name:
+            backend_type = 'celery'
+        elif 'memory' in backend_name:
+            backend_type = 'memory'
+        else:
+            backend_type = 'unknown'
+        
+        context = {
+            'processor_status': status,
+            'queue_stats': queue_stats,
+            'backend_type': backend_type,
+        }
+        
+        return render(request, 'services/background_management.html', context)
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error getting background processor status: {e}")
+        from django.contrib import messages
+        messages.error(request, f"Error getting background processor status: {e}")
+        return redirect('monitoring:service_control_dashboard')
+
+
+@login_required
+@require_POST
+def background_restart(request):
+    """Restart the active background-processor workers."""
+    from .background import get_background_processor
+    processor = get_background_processor()
+    # Delegate to service_controller for actual restart logic
+    result = service_controller.restart_background_workers(processor)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse(result)
+
+    if result['success']:
+        messages.success(request, result['message'])
+    else:
+        messages.error(request, result['message'])
+
+    return redirect('monitoring:background_management')
+
+
+# =============================================================================
+# LEGACY REDIRECTS
+# =============================================================================
+
+@login_required
+def celery_status_redirect(request):
+    """Redirect old /celery/ URLs to new /background/ page."""
+    messages.info(request, 'Celery management has moved to Background Processes.')
+    return redirect('monitoring:background_management')
+
+
+@login_required
+def celery_restart_redirect(request):
+    """Redirect old /celery/restart/ to new /background/restart/."""
+    messages.info(request, 'Celery restart has moved to Background Processes.')
+    return redirect('monitoring:background_restart')
+
+    if result['success']:
+        messages.success(request, result['message'])
+    else:
+        messages.error(request, result['message'])
+
+    return redirect('monitoring:service_control_dashboard')
+
+
 @login_required
 @require_POST
 def stop_service(request, deployment_id):
     """Stop a specific service."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     use_task = request.POST.get('background', 'false') == 'true'
 
@@ -139,7 +230,7 @@ def stop_service(request, deployment_id):
 @require_POST
 def restart_service(request, deployment_id):
     """Restart a specific service."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     use_task = request.POST.get('background', 'false') == 'true'
 
@@ -246,7 +337,7 @@ def restart_policy_list(request):
 @login_required
 def restart_policy_edit(request, deployment_id):
     """Edit restart policy for a deployment."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     try:
         policy = RestartPolicy.objects.get(deployment=deployment)
@@ -299,7 +390,7 @@ def restart_policy_edit(request, deployment_id):
 @require_POST
 def restart_policy_delete(request, deployment_id):
     """Delete restart policy."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     try:
         policy = RestartPolicy.objects.get(deployment=deployment)
@@ -513,7 +604,7 @@ def celery_restart_workers(request):
 @require_http_methods(["GET"])
 def api_service_status(request, deployment_id):
     """API: Get service status."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
     status = service_controller.get_service_status(deployment)
     return JsonResponse(status)
 
@@ -582,3 +673,362 @@ def api_celery_inspect(request):
             result['config'] = stats[worker_name]
 
     return JsonResponse(result)
+
+
+# =============================================================================
+# BACKGROUND PROCESSOR MANAGEMENT VIEWS
+# =============================================================================
+
+@login_required
+def background_management(request):
+    """Generic background processor management page."""
+    from apps.services.background import get_background_processor
+    
+    try:
+        processor = get_background_processor()
+        processor_status = processor.get_status()
+        backend_type = processor_status.get('processor', 'unknown')
+        
+        # Get worker status based on processor type
+        if backend_type == 'celery':
+            worker_status = service_controller.check_celery_workers()
+        else:
+            # For in-memory processor, create mock worker status
+            worker_status = {
+                'status': 'healthy',
+                'workers': [{
+                    'name': 'in-memory-worker',
+                    'status': 'online',
+                    'active': processor_status.get('running_tasks', 0),
+                    'scheduled': processor_status.get('pending_tasks', 0),
+                }]
+            }
+        
+        context = {
+            'backend_type': backend_type,
+            'processor_status': processor_status,
+            'worker_status': worker_status,
+        }
+        
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error getting background processor status: {e}")
+        context = {
+            'backend_type': 'error',
+            'processor_status': {'status': 'error', 'error': str(e)},
+            'worker_status': {'status': 'error', 'workers': []},
+        }
+    
+    return render(request, 'services/background_management.html', context)
+
+
+@login_required
+@require_POST
+def background_restart_workers(request):
+    """Restart background processor workers."""
+    result = service_controller.restart_background_workers()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse(result)
+    
+    if result['success']:
+        messages.success(request, result['message'])
+    else:
+        messages.error(request, result['message'])
+    
+    return redirect('monitoring:background_management')
+
+
+# =============================================================================
+# LEGACY REDIRECTS (FOR BACKWARD COMPATIBILITY)
+# =============================================================================
+
+@login_required
+def celery_status_redirect(request):
+    """Redirect old Celery status URL to new background management page."""
+    return redirect('monitoring:background_management')
+
+
+@login_required
+def celery_restart_redirect(request):
+    """Redirect old Celery restart URL to new background restart endpoint."""
+    return background_restart_workers(request)
+
+
+# =============================================================================
+# SSL CONFIGURATION MANAGEMENT VIEWS
+# =============================================================================
+
+@login_required
+def ssl_configuration(request, deployment_id):
+    """SSL configuration management page."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    # Get or create SSL configuration
+    from .models import SSLConfiguration
+    ssl_config, created = SSLConfiguration.objects.get_or_create(
+        deployment=deployment,
+        defaults={'ssl_enabled': False}
+    )
+    
+    context = {
+        'deployment': deployment,
+        'ssl_config': ssl_config,
+        'days_until_expiry': ssl_config.get_days_until_expiry() if ssl_config.certificate_expires_at else None,
+    }
+    
+    return render(request, 'services/ssl_configuration.html', context)
+
+
+@login_required
+@require_POST
+def ssl_toggle(request, deployment_id):
+    """Toggle SSL enable/disable for a deployment."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    from .models import SSLConfiguration
+    ssl_config, created = SSLConfiguration.objects.get_or_create(
+        deployment=deployment,
+        defaults={'ssl_enabled': False}
+    )
+    
+    # Toggle SSL status
+    ssl_config.ssl_enabled = not ssl_config.ssl_enabled
+    
+    if ssl_config.ssl_enabled:
+        # Validate certificate before enabling
+        if not ssl_config.certificate_file:
+            return JsonResponse({
+                'success': False,
+                'message': 'Cannot enable SSL: No certificate file uploaded'
+            })
+        
+        if not ssl_config.private_key_file:
+            return JsonResponse({
+                'success': False,
+                'message': 'Cannot enable SSL: No private key file uploaded'
+            })
+        
+        # Validate certificate
+        validation_result = service_controller.validate_ssl_certificate(ssl_config)
+        if not validation_result['valid']:
+            return JsonResponse({
+                'success': False,
+                'message': f"Cannot enable SSL: {validation_result['error']}"
+            })
+        
+        ssl_config.status = ssl_config.SSLStatus.ENABLED
+        ssl_config.validation_error = ''
+    else:
+        ssl_config.status = ssl_config.SSLStatus.DISABLED
+    
+    ssl_config.save()
+    
+    # Apply SSL configuration to service
+    result = service_controller.apply_ssl_configuration(deployment, ssl_config)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if result['success']:
+            return JsonResponse({
+                'success': True,
+                'message': f"SSL {'enabled' if ssl_config.ssl_enabled else 'disabled'} successfully",
+                'ssl_enabled': ssl_config.ssl_enabled,
+                'status': ssl_config.status
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': result['message']
+            })
+    
+    if result['success']:
+        messages.success(request, f"SSL {'enabled' if ssl_config.ssl_enabled else 'disabled'} successfully")
+    else:
+        messages.error(request, result['message'])
+    
+    return redirect('monitoring:ssl_configuration', deployment_id)
+
+
+@login_required
+@require_POST
+def ssl_upload_certificate(request, deployment_id):
+    """Upload SSL certificate files."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    from .models import SSLConfiguration
+    ssl_config, created = SSLConfiguration.objects.get_or_create(
+        deployment=deployment,
+        defaults={'ssl_enabled': False}
+    )
+    
+    try:
+        # Handle certificate file upload
+        if 'certificate_file' in request.FILES:
+            ssl_config.certificate_file = request.FILES['certificate_file']
+        
+        # Handle private key file upload
+        if 'private_key_file' in request.FILES:
+            ssl_config.private_key_file = request.FILES['private_key_file']
+        
+        # Handle certificate chain file upload
+        if 'certificate_chain_file' in request.FILES:
+            ssl_config.certificate_chain_file = request.FILES['certificate_chain_file']
+        
+        # Validate uploaded certificate
+        validation_result = service_controller.validate_ssl_certificate(ssl_config)
+        
+        if validation_result['valid']:
+            ssl_config.status = ssl_config.SSLStatus.ENABLED if ssl_config.ssl_enabled else ssl_config.SSLStatus.DISABLED
+            ssl_config.validation_error = ''
+            
+            # Extract certificate information
+            if 'certificate_info' in validation_result:
+                info = validation_result['certificate_info']
+                ssl_config.certificate_expires_at = info.get('expires_at')
+                ssl_config.certificate_issuer = info.get('issuer', '')
+                ssl_config.certificate_subject = info.get('subject', '')
+                ssl_config.domain = info.get('domain', '')
+        else:
+            ssl_config.status = ssl_config.SSLStatus.INVALID
+            ssl_config.validation_error = validation_result['error']
+        
+        ssl_config.last_validation_at = timezone.now()
+        ssl_config.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse(validation_result)
+        
+        if validation_result['valid']:
+            messages.success(request, 'Certificate uploaded and validated successfully')
+        else:
+            messages.error(request, f"Certificate validation failed: {validation_result['error']}")
+        
+    except Exception as e:
+        error_msg = f"Error uploading certificate: {str(e)}"
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': error_msg})
+        messages.error(request, error_msg)
+    
+    return redirect('monitoring:ssl_configuration', deployment_id)
+
+
+@login_required
+@require_POST
+def ssl_update_configuration(request, deployment_id):
+    """Update SSL configuration settings."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    from .models import SSLConfiguration
+    ssl_config, created = SSLConfiguration.objects.get_or_create(
+        deployment=deployment,
+        defaults={'ssl_enabled': False}
+    )
+    
+    try:
+        # Update configuration fields
+        ssl_config.encryption_protocol = request.POST.get('encryption_protocol', 'TLSv1.3')
+        ssl_config.cipher_suite = request.POST.get('cipher_suite', 'ECDHE-RSA-AES256-GCM-SHA384')
+        ssl_config.hsts_enabled = request.POST.get('hsts_enabled') == 'on'
+        ssl_config.hsts_max_age = int(request.POST.get('hsts_max_age', 31536000))
+        ssl_config.auto_redirect_http = request.POST.get('auto_redirect_http') == 'on'
+        ssl_config.certificate_type = request.POST.get('certificate_type', 'self_signed')
+        ssl_config.lets_encrypt_email = request.POST.get('lets_encrypt_email', '')
+        ssl_config.auto_renew = request.POST.get('auto_renew') == 'on'
+        ssl_config.renewal_days_before = int(request.POST.get('renewal_days_before', 30))
+        ssl_config.domain = request.POST.get('domain', '')
+        
+        ssl_config.save()
+        
+        # Apply updated configuration
+        if ssl_config.ssl_enabled:
+            result = service_controller.apply_ssl_configuration(deployment, ssl_config)
+            if not result['success']:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse(result)
+                messages.error(request, result['message'])
+                return redirect('monitoring:ssl_configuration', deployment_id)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'SSL configuration updated successfully'
+            })
+        
+        messages.success(request, 'SSL configuration updated successfully')
+        
+    except Exception as e:
+        error_msg = f"Error updating configuration: {str(e)}"
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': error_msg})
+        messages.error(request, error_msg)
+    
+    return redirect('monitoring:ssl_configuration', deployment_id)
+
+
+@login_required
+@require_http_methods(["GET"])
+def ssl_status(request, deployment_id):
+    """Get SSL status for a deployment (JSON endpoint)."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    from .models import SSLConfiguration
+    try:
+        ssl_config = SSLConfiguration.objects.get(deployment=deployment)
+        
+        # Get certificate validation info
+        validation_result = service_controller.validate_ssl_certificate(ssl_config)
+        
+        return JsonResponse({
+            'success': True,
+            'configured': True,
+            'enabled': ssl_config.ssl_enabled,
+            'status': ssl_config.status,
+            'certificate_type': ssl_config.certificate_type,
+            'domain': ssl_config.domain,
+            'valid_until': ssl_config.certificate_expires_at.isoformat() if ssl_config.certificate_expires_at else None,
+            'days_until_expiry': ssl_config.get_days_until_expiry() if ssl_config.certificate_expires_at else None,
+            'validation': validation_result,
+            'last_validation_at': ssl_config.last_validation_at.isoformat() if ssl_config.last_validation_at else None
+        })
+        
+    except SSLConfiguration.DoesNotExist:
+        return JsonResponse({
+            'success': True,
+            'configured': False,
+            'enabled': False,
+            'status': 'disabled',
+            'message': 'SSL not configured for this deployment'
+        })
+
+
+@login_required
+@require_http_methods(["GET"])
+def ssl_validate(request, deployment_id):
+    """Validate current SSL certificate."""
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    
+    from .models import SSLConfiguration
+    try:
+        ssl_config = SSLConfiguration.objects.get(deployment=deployment)
+        validation_result = service_controller.validate_ssl_certificate(ssl_config)
+        
+        # Update validation timestamp
+        ssl_config.last_validation_at = timezone.now()
+        
+        if validation_result['valid']:
+            ssl_config.status = ssl_config.SSLStatus.ENABLED if ssl_config.ssl_enabled else ssl_config.SSLStatus.DISABLED
+            ssl_config.validation_error = ''
+        else:
+            ssl_config.status = ssl_config.SSLStatus.INVALID
+            ssl_config.validation_error = validation_result['error']
+        
+        ssl_config.save()
+        
+        return JsonResponse(validation_result)
+        
+    except SSLConfiguration.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'No SSL configuration found for this deployment'
+        })

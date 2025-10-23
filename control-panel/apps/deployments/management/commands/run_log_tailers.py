@@ -23,9 +23,9 @@ from typing import Optional
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from apps.deployments.models import Deployment
-from apps.deployments.llm_service import LLMDeploymentService
-from apps.deployments.log_tailer import run_tailers_for_deployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
+from apps.deployments.services.llm import LLMDeploymentService
+from apps.deployments.shared.log_tailer import run_tailers_for_deployment
 
 
 class Command(BaseCommand):
@@ -80,24 +80,24 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # Resolve target deployments
-        deployments: list[Deployment] = []
+        deployments: list[ApplicationDeployment] = []
 
         if options.get("all_llm"):
-            deployments = list(Deployment.objects.filter(project_type=Deployment.ProjectType.LLM))
+            deployments = list(ApplicationDeployment.objects.filter(project_type=ApplicationDeployment.ProjectType.LLM))
             if not deployments:
                 raise CommandError("No LLM deployments found")
         elif options.get("deployment_id") is not None:
             dep_id = options["deployment_id"]
             try:
-                deployment = Deployment.objects.get(id=dep_id, project_type=Deployment.ProjectType.LLM)
-            except Deployment.DoesNotExist:
+                deployment = ApplicationDeployment.objects.get(id=dep_id, project_type=ApplicationDeployment.ProjectType.LLM)
+            except ApplicationDeployment.DoesNotExist:
                 raise CommandError(f"LLM deployment with id={dep_id} not found")
             deployments = [deployment]
         elif options.get("deployment_name"):
             name = options["deployment_name"]
             try:
-                deployment = Deployment.objects.get(name=name, project_type=Deployment.ProjectType.LLM)
-            except Deployment.DoesNotExist:
+                deployment = ApplicationDeployment.objects.get(name=name, project_type=ApplicationDeployment.ProjectType.LLM)
+            except ApplicationDeployment.DoesNotExist:
                 raise CommandError(f"LLM deployment '{name}' not found")
             deployments = [deployment]
         else:

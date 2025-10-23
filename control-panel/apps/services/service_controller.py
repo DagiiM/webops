@@ -1,7 +1,7 @@
 """
 Service Controller for centralized service management.
 
-Reference: CLAUDE.md "Services Control System"
+"Services Control System"
 Architecture: Centralized control for deployments, Celery workers, and system services
 
 This module provides:
@@ -22,8 +22,8 @@ from datetime import timedelta
 
 from .models import ServiceStatus, Alert, ResourceUsage
 from .monitoring import SystemMonitor
-from apps.deployments.models import Deployment
-from apps.deployments.service_manager import ServiceManager
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
+from apps.deployments.shared import ServiceManager
 
 logger = logging.getLogger(__name__)
 
@@ -52,12 +52,12 @@ class ServiceController:
     # DEPLOYMENT SERVICE CONTROL
     # =========================================================================
 
-    def start_service(self, deployment: Deployment) -> Dict[str, Any]:
+    def start_service(self, deployment: BaseDeployment) -> Dict[str, Any]:
         """
         Start a deployment service.
 
         Args:
-            deployment: Deployment instance to start
+            deployment: BaseDeployment instance to start
 
         Returns:
             Result dict with success status and details
@@ -77,7 +77,7 @@ class ServiceController:
 
             if status.status == ServiceStatus.Status.RUNNING:
                 # Update deployment status
-                deployment.status = Deployment.Status.RUNNING
+                deployment.status = BaseDeployment.Status.RUNNING
                 deployment.save(update_fields=['status'])
 
                 logger.info(f"Service started successfully: {deployment.name}")
@@ -98,12 +98,12 @@ class ServiceController:
                 'message': f'Failed to start service: {e}'
             }
 
-    def stop_service(self, deployment: Deployment) -> Dict[str, Any]:
+    def stop_service(self, deployment: BaseDeployment) -> Dict[str, Any]:
         """
         Stop a deployment service.
 
         Args:
-            deployment: Deployment instance to stop
+            deployment: BaseDeployment instance to stop
 
         Returns:
             Result dict with success status
@@ -114,7 +114,7 @@ class ServiceController:
             self.service_manager.stop_service(deployment)
 
             # Update deployment status
-            deployment.status = Deployment.Status.STOPPED
+            deployment.status = BaseDeployment.Status.STOPPED
             deployment.save(update_fields=['status'])
 
             # Update service status
@@ -135,12 +135,12 @@ class ServiceController:
                 'message': f'Failed to stop service: {e}'
             }
 
-    def restart_service(self, deployment: Deployment) -> Dict[str, Any]:
+    def restart_service(self, deployment: BaseDeployment) -> Dict[str, Any]:
         """
         Restart a deployment service.
 
         Args:
-            deployment: Deployment instance to restart
+            deployment: BaseDeployment instance to restart
 
         Returns:
             Result dict with success status
@@ -159,7 +159,7 @@ class ServiceController:
 
             if status.status == ServiceStatus.Status.RUNNING:
                 # Update deployment status
-                deployment.status = Deployment.Status.RUNNING
+                deployment.status = BaseDeployment.Status.RUNNING
                 deployment.save(update_fields=['status'])
 
                 # Increment restart count
@@ -185,12 +185,12 @@ class ServiceController:
                 'message': f'Failed to restart service: {e}'
             }
 
-    def get_service_status(self, deployment: Deployment) -> Dict[str, Any]:
+    def get_service_status(self, deployment: BaseDeployment) -> Dict[str, Any]:
         """
         Get detailed service status.
 
         Args:
-            deployment: Deployment instance
+            deployment: BaseDeployment instance
 
         Returns:
             Status dict with details
@@ -343,8 +343,8 @@ class ServiceController:
         Returns:
             Summary of operations
         """
-        deployments = Deployment.objects.filter(
-            status__in=[Deployment.Status.STOPPED, Deployment.Status.FAILED]
+        deployments = ApplicationDeployment.objects.filter(
+            status__in=[BaseDeployment.Status.STOPPED, BaseDeployment.Status.FAILED]
         )
 
         results = []
@@ -372,7 +372,7 @@ class ServiceController:
         Returns:
             Summary of operations
         """
-        deployments = Deployment.objects.filter(status=Deployment.Status.RUNNING)
+        deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
 
         results = []
         for deployment in deployments:
@@ -399,7 +399,7 @@ class ServiceController:
         Returns:
             Summary of operations
         """
-        deployments = Deployment.objects.filter(status=Deployment.Status.RUNNING)
+        deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
 
         results = []
         for deployment in deployments:
@@ -433,7 +433,7 @@ class ServiceController:
         Returns:
             Health check results
         """
-        deployments = Deployment.objects.filter(status=Deployment.Status.RUNNING)
+        deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
 
         results = []
         unhealthy = []
@@ -579,6 +579,580 @@ class ServiceController:
             'healthy': all_healthy,
             'services': statuses
         }
+
+    # =========================================================================
+    # BACKGROUND PROCESSOR MANAGEMENT
+    # =========================================================================
+
+    def check_celery_workers(self) -> Dict[str, Any]:
+        """
+        Check Celery worker status.
+
+        Returns:
+            Celery worker status summary
+        """
+        try:
+            from celery import current_app
+            inspect = current_app.control.inspect()
+            
+            # Get active workers
+            active_workers = inspect.active()
+            if not active_workers:
+                return {
+                    'healthy': False,
+                    'worker_count': 0,
+                    'workers': []
+                }
+            
+            workers = []
+            for worker_name, tasks in active_workers.items():
+                workers.append({
+                    'name': worker_name,
+                    'active_tasks': len(tasks),
+                    'status': 'online'
+                })
+            
+            return {
+                'healthy': len(workers) > 0,
+                'worker_count': len(workers),
+                'workers': workers
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to check Celery workers: {e}")
+            return {
+                'healthy': False,
+                'worker_count': 0,
+                'workers': [],
+                'error': str(e)
+            }
+
+    def restart_celery_workers(self) -> Dict[str, Any]:
+        """
+        Restart Celery workers.
+
+        Returns:
+            Restart result
+        """
+        try:
+            # Use systemctl to restart Celery workers
+            result = subprocess.run(
+                ['systemctl', 'restart', 'celery'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                return {
+                    'success': True,
+                    'message': 'Celery workers restarted successfully'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result.stderr,
+                    'message': f'Failed to restart Celery workers: {result.stderr}'
+                }
+                
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'error': 'Timeout restarting Celery workers',
+                'message': 'Timeout restarting Celery workers'
+            }
+        except Exception as e:
+            logger.error(f"Failed to restart Celery workers: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to restart Celery workers: {e}'
+            }
+
+    def restart_background_workers(self, processor) -> Dict[str, Any]:
+        """
+        Restart background processor workers (generic adapter).
+
+        Args:
+            processor: BackgroundProcessor instance
+
+        Returns:
+            Restart result
+        """
+        # Determine backend type from processor class name
+        backend_name = processor.__class__.__name__.lower().replace('backgroundprocessor', '')
+        
+        try:
+            if backend_name == 'celery':
+                # Delegate to Celery-specific restart
+                return self.restart_celery_workers()
+            elif backend_name == 'inmemory':
+                # In-memory processor doesn't need restart
+                return {
+                    'success': True,
+                    'message': 'In-memory processor does not require restart'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'Unknown backend: {backend_name}',
+                    'message': f'Restart not implemented for backend: {backend_name}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to restart background workers ({backend_name}): {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to restart {backend_name} workers: {e}'
+            }
+
+
+    # =========================================================================
+    # SSL MANAGEMENT
+    # =========================================================================
+
+    def get_ssl_status(self, deployment_id: int) -> Dict[str, Any]:
+        """
+        Get SSL configuration and status for a deployment.
+
+        Args:
+            deployment_id: ID of the deployment
+
+        Returns:
+            SSL configuration and status
+        """
+        try:
+            from .models import SSLConfiguration
+            
+            ssl_config = SSLConfiguration.objects.filter(deployment_id=deployment_id).first()
+            
+            if not ssl_config:
+                return {
+                    'enabled': False,
+                    'configured': False,
+                    'message': 'SSL not configured for this deployment'
+                }
+            
+            # Check certificate validity
+            is_valid = ssl_config.is_certificate_valid()
+            needs_renewal = ssl_config.needs_renewal()
+            
+            return {
+                'enabled': ssl_config.enabled,
+                'configured': True,
+                'domain': ssl_config.domain,
+                'certificate_type': ssl_config.certificate_type,
+                'valid_until': ssl_config.valid_until.isoformat() if ssl_config.valid_until else None,
+                'is_valid': is_valid,
+                'needs_renewal': needs_renewal,
+                'encryption_protocol': ssl_config.encryption_protocol,
+                'hsts_enabled': ssl_config.hsts_enabled,
+                'message': 'SSL configured and active' if is_valid else 'Certificate invalid or expired'
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get SSL status for deployment {deployment_id}: {e}")
+            return {
+                'enabled': False,
+                'configured': False,
+                'error': str(e),
+                'message': f'Error checking SSL status: {e}'
+            }
+
+    def enable_ssl(self, deployment_id: int, domain: str, certificate_type: str = 'self_signed') -> Dict[str, Any]:
+        """
+        Enable SSL for a deployment.
+
+        Args:
+            deployment_id: ID of the deployment
+            domain: Domain name for SSL
+            certificate_type: Type of certificate ('self_signed', 'lets_encrypt', 'custom')
+
+        Returns:
+            Result of SSL enable operation
+        """
+        try:
+            from .models import SSLConfiguration
+            
+            # Check if SSL configuration already exists
+            ssl_config, created = SSLConfiguration.objects.get_or_create(
+                deployment_id=deployment_id,
+                defaults={
+                    'enabled': True,
+                    'domain': domain,
+                    'certificate_type': certificate_type,
+                    'encryption_protocol': 'TLSv1.3',
+                    'hsts_enabled': True
+                }
+            )
+            
+            if not created:
+                ssl_config.enabled = True
+                ssl_config.domain = domain
+                ssl_config.certificate_type = certificate_type
+                ssl_config.save()
+            
+            # Create SSL certificate based on type
+            if certificate_type == 'self_signed':
+                result = self._generate_self_signed_certificate(ssl_config)
+            elif certificate_type == 'lets_encrypt':
+                result = self._generate_lets_encrypt_certificate(ssl_config)
+            else:
+                result = {'success': True, 'message': 'Custom certificate - upload required'}
+            
+            if result['success']:
+                # Update service configuration to use SSL
+                self._update_service_ssl_config(deployment_id, ssl_config)
+                
+                # Log the SSL enablement
+                self._log_service_action(
+                    'ssl_enabled',
+                    f'SSL enabled for deployment {deployment_id}',
+                    {'domain': domain, 'certificate_type': certificate_type}
+                )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to enable SSL for deployment {deployment_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to enable SSL: {e}'
+            }
+
+    def disable_ssl(self, deployment_id: int) -> Dict[str, Any]:
+        """
+        Disable SSL for a deployment.
+
+        Args:
+            deployment_id: ID of the deployment
+
+        Returns:
+            Result of SSL disable operation
+        """
+        try:
+            from .models import SSLConfiguration
+            
+            ssl_config = SSLConfiguration.objects.filter(deployment_id=deployment_id).first()
+            
+            if not ssl_config:
+                return {
+                    'success': False,
+                    'message': 'SSL not configured for this deployment'
+                }
+            
+            ssl_config.enabled = False
+            ssl_config.save()
+            
+            # Update service configuration to disable SSL
+            self._update_service_ssl_config(deployment_id, ssl_config)
+            
+            # Log the SSL disablement
+            self._log_service_action(
+                'ssl_disabled',
+                f'SSL disabled for deployment {deployment_id}',
+                {'domain': ssl_config.domain}
+            )
+            
+            return {
+                'success': True,
+                'message': 'SSL disabled successfully'
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to disable SSL for deployment {deployment_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to disable SSL: {e}'
+            }
+
+    def upload_ssl_certificate(self, deployment_id: int, certificate_file, private_key_file) -> Dict[str, Any]:
+        """
+        Upload custom SSL certificate and private key.
+
+        Args:
+            deployment_id: ID of the deployment
+            certificate_file: Certificate file
+            private_key_file: Private key file
+
+        Returns:
+            Result of certificate upload
+        """
+        try:
+            from .models import SSLConfiguration
+            from cryptography import x509
+            from cryptography.hazmat.backends import default_backend
+            import ssl
+            
+            ssl_config = SSLConfiguration.objects.filter(deployment_id=deployment_id).first()
+            
+            if not ssl_config:
+                return {
+                    'success': False,
+                    'message': 'SSL configuration not found for this deployment'
+                }
+            
+            # Validate certificate
+            try:
+                cert_data = certificate_file.read()
+                certificate = x509.load_pem_x509_certificate(cert_data, default_backend())
+                
+                # Extract certificate information
+                ssl_config.valid_until = certificate.not_valid_after
+                ssl_config.domain = certificate.subject.rfc4514_string()
+                
+            except Exception as e:
+                return {
+                    'success': False,
+                    'message': f'Invalid certificate file: {e}'
+                }
+            
+            # Validate private key
+            try:
+                key_data = private_key_file.read()
+                # Basic validation - check if it's a valid private key format
+                if not (b'BEGIN PRIVATE KEY' in key_data or b'BEGIN RSA PRIVATE KEY' in key_data):
+                    return {
+                        'success': False,
+                        'message': 'Invalid private key format'
+                    }
+            except Exception as e:
+                return {
+                    'success': False,
+                    'message': f'Invalid private key file: {e}'
+                }
+            
+            # Save files
+            ssl_config.certificate_file.save(f'cert_{deployment_id}.pem', certificate_file)
+            ssl_config.private_key_file.save(f'key_{deployment_id}.pem', private_key_file)
+            ssl_config.certificate_type = 'custom'
+            ssl_config.save()
+            
+            # Update service configuration
+            self._update_service_ssl_config(deployment_id, ssl_config)
+            
+            return {
+                'success': True,
+                'message': 'Certificate uploaded successfully',
+                'valid_until': ssl_config.valid_until.isoformat() if ssl_config.valid_until else None,
+                'domain': ssl_config.domain
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to upload SSL certificate for deployment {deployment_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to upload certificate: {e}'
+            }
+
+    def _generate_self_signed_certificate(self, ssl_config) -> Dict[str, Any]:
+        """
+        Generate a self-signed SSL certificate.
+
+        Args:
+            ssl_config: SSLConfiguration instance
+
+        Returns:
+            Result of certificate generation
+        """
+        try:
+            from cryptography import x509
+            from cryptography.x509.oid import NameOID
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import rsa
+            from cryptography.hazmat.backends import default_backend
+            import datetime
+            
+            # Generate private key
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+                backend=default_backend()
+            )
+            
+            # Generate certificate
+            subject = issuer = x509.Name([
+                x509.NameAttribute(NameOID.COUNTRY_NAME, u"US"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"State"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, u"City"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"WebOps"),
+                x509.NameAttribute(NameOID.COMMON_NAME, ssl_config.domain),
+            ])
+            
+            cert = x509.CertificateBuilder().subject_name(
+                subject
+            ).issuer_name(
+                issuer
+            ).public_key(
+                private_key.public_key()
+            ).serial_number(
+                x509.random_serial_number()
+            ).not_valid_before(
+                datetime.datetime.utcnow()
+            ).not_valid_after(
+                datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            ).add_extension(
+                x509.SubjectAlternativeName([x509.DNSName(ssl_config.domain)]),
+                critical=False,
+            ).sign(private_key, hashes.SHA256(), default_backend())
+            
+            # Save certificate and key
+            cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+            key_pem = private_key.private_bytes(
+                serialization.Encoding.PEM,
+                serialization.PrivateFormat.PKCS8,
+                serialization.NoEncryption()
+            )
+            
+            from django.core.files.base import ContentFile
+            ssl_config.certificate_file.save(f'self_signed_cert_{ssl_config.id}.pem', ContentFile(cert_pem))
+            ssl_config.private_key_file.save(f'self_signed_key_{ssl_config.id}.pem', ContentFile(key_pem))
+            ssl_config.valid_until = cert.not_valid_after
+            ssl_config.save()
+            
+            return {
+                'success': True,
+                'message': 'Self-signed certificate generated successfully',
+                'valid_until': ssl_config.valid_until.isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to generate self-signed certificate: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'Failed to generate self-signed certificate: {e}'
+            }
+
+    def _generate_lets_encrypt_certificate(self, ssl_config) -> Dict[str, Any]:
+        """
+        Generate Let's Encrypt certificate (placeholder for now).
+
+        Args:
+            ssl_config: SSLConfiguration instance
+
+        Returns:
+            Result of certificate generation
+        """
+        # This is a placeholder - in a real implementation, you would integrate
+        # with Let's Encrypt ACME protocol
+        return {
+            'success': False,
+            'message': 'Let\'s Encrypt integration not yet implemented. Please use self-signed or custom certificates.'
+        }
+
+    def validate_ssl_certificate(self, ssl_config) -> Dict[str, Any]:
+        """
+        Validate SSL certificate configuration.
+
+        Args:
+            ssl_config: SSLConfiguration instance
+
+        Returns:
+            Validation result
+        """
+        try:
+            from cryptography import x509
+            from cryptography.hazmat.backends import default_backend
+            from datetime import datetime
+            
+            # Check if certificate file exists
+            if not ssl_config.certificate_file:
+                return {
+                    'valid': False,
+                    'error': 'No certificate file found'
+                }
+            
+            # Check if private key file exists
+            if not ssl_config.private_key_file:
+                return {
+                    'valid': False,
+                    'error': 'No private key file found'
+                }
+            
+            # Validate certificate
+            try:
+                cert_data = ssl_config.certificate_file.read()
+                certificate = x509.load_pem_x509_certificate(cert_data, default_backend())
+                
+                # Check if certificate is expired
+                now = datetime.now()
+                if certificate.not_valid_after < now:
+                    return {
+                        'valid': False,
+                        'error': 'Certificate has expired'
+                    }
+                
+                # Check if certificate is not yet valid
+                if certificate.not_valid_before > now:
+                    return {
+                        'valid': False,
+                        'error': 'Certificate is not yet valid'
+                    }
+                
+                # Extract certificate information
+                cert_info = {
+                    'subject': str(certificate.subject),
+                    'issuer': str(certificate.issuer),
+                    'expires_at': certificate.not_valid_after.isoformat(),
+                    'domain': str(certificate.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)[0].value) if certificate.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME) else ''
+                }
+                
+                # Validate private key format
+                key_data = ssl_config.private_key_file.read()
+                if not (b'BEGIN PRIVATE KEY' in key_data or b'BEGIN RSA PRIVATE KEY' in key_data):
+                    return {
+                        'valid': False,
+                        'error': 'Invalid private key format'
+                    }
+                
+                return {
+                    'valid': True,
+                    'message': 'Certificate is valid',
+                    'certificate_info': cert_info
+                }
+                
+            except Exception as e:
+                return {
+                    'valid': False,
+                    'error': f'Invalid certificate: {str(e)}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to validate SSL certificate: {e}")
+            return {
+                'valid': False,
+                'error': f'Validation failed: {str(e)}'
+            }
+
+    def _update_service_ssl_config(self, deployment_id: int, ssl_config) -> None:
+        """
+        Update service configuration to use SSL settings.
+
+        Args:
+            deployment_id: ID of the deployment
+            ssl_config: SSLConfiguration instance
+        """
+        # This would integrate with your deployment configuration system
+        # For now, it's a placeholder that would update nginx/apache configs
+        logger.info(f"Updating SSL configuration for deployment {deployment_id}")
+
+    def _log_service_action(self, action: str, message: str, details: Dict[str, Any] = None) -> None:
+        """
+        Log service actions for audit purposes.
+
+        Args:
+            action: Action type
+            message: Action message
+            details: Additional details
+        """
+        logger.info(f"Service Action: {action} - {message}")
+        if details:
+            logger.info(f"Details: {details}")
 
 
 # Singleton instance

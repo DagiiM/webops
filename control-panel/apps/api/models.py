@@ -1,7 +1,7 @@
 """
 API models for WebOps.
 
-Reference: CLAUDE.md "API Design" section
+"API Design" section
 
 This module implements API-specific models:
 - API tokens for authentication
@@ -11,7 +11,7 @@ This module implements API-specific models:
 import secrets
 from django.db import models
 from django.contrib.auth.models import User
-from apps.core.models import BaseModel
+from apps.core.common.models import BaseModel
 
 
 class APIToken(BaseModel):

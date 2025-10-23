@@ -101,7 +101,7 @@ main.add_command(addon_command_group)
 - Addons register commands via Python `entry_points` in `setup.py` or `pyproject.toml`
 - CLI loader discovers and imports addon commands at runtime
 - Commands inherit from base classes providing API client access and configuration
-- Interactive flows integrate with existing `enhanced_cli.py` and `terminal_ui.py` components
+- Interactive flows integrate with existing `cli.py` and `terminal_ui.py` components
 
 ### Control Panel Integration Points
 
@@ -1717,7 +1717,7 @@ cli:
 
 - New root command: `webops addon`.
 - Subcommands: `list`, `install`, `enable`, `disable`, `configure`, `remove`, `info`.
-- Integrate help texts and examples with `enhanced_cli` flows.
+- Integrate help texts and examples with `cli` flows.
 
 ## UI/UX
 

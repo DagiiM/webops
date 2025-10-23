@@ -99,7 +99,7 @@
   /* ────────────────────────────────────────────────────────────────────────────────
      🌑 NEUTRAL GRAYSCALE SYSTEM (Optimized for dark theme)
      ──────────────────────────────────────────────────────────────────────────────── */
-  
+
   /* Grayscale palette (pure neutral - no hue bias) */
   --webops-gray-950: hsl(0 0% 4%);     /* #0a0a0a - Deepest background */
   --webops-gray-900: hsl(0 0% 7%);     /* #121212 - Primary background */
@@ -112,6 +112,9 @@
   --webops-gray-400: hsl(0 0% 65%);    /* #a6a6a6 - Secondary text */
   --webops-gray-200: hsl(0 0% 93%);    /* #ededed - Primary text */
 
+  /* Neutral alpha variants */
+  --webops-color-neutral-alpha-10: hsl(0 0% 65% / 10%);
+
   /* ────────────────────────────────────────────────────────────────────────────────
      🏗️ SEMANTIC SURFACE COLORS (Mapped to grayscale for consistency)
      ──────────────────────────────────────────────────────────────────────────────── */
@@ -120,7 +123,7 @@
   --webops-color-bg-primary: var(--webops-gray-950);      /* Main app background */
   --webops-color-bg-secondary: var(--webops-gray-900);    /* Content areas */
   --webops-color-bg-tertiary: var(--webops-gray-850);     /* Sidebar, panels */
-  --webops-color-bg-elevated: var(--webops-gray-800);     /* Cards, modals */
+  --webops-color-bg-elevated: var(--webops-gray-900);     /* Cards, modals */
   
   /* Interactive surfaces */
   --webops-color-surface: var(--webops-gray-850);         /* Default surface */
@@ -374,6 +377,49 @@
   --webops-border-width-base: 2px;        /* Default borders */
   --webops-border-width-thick: 3px;       /* Thick borders */
   --webops-border-width-focus: 2px;       /* Focus ring width */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+      🎨 LEGACY COMPATIBILITY VARIABLES (Used in main.css but not in new system)
+      ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font weight compatibility */
+  --font-weight-bold: var(--webops-font-weight-bold);
+  --font-weight-semibold: var(--webops-font-weight-semibold);
+  
+  /* Shadow glow effects */
+  --webops-shadow-glow: 0 0 20px var(--webops-color-primary-glow);
+  
+  /* Background highlight for elements */
+  --webops-color-bg-highlight: var(--webops-color-primary-alpha-05);
+  
+  /* Color hover state */
+  --webops-color-primary-hover: var(--webops-color-primary-light);
+  
+  /* Border radius compatibility */
+  --webops-border-radius-lg: var(--webops-radius-lg);
+  --webops-border-radius-md: var(--webops-radius-md);
+  --webops-border-radius-sm: var(--webops-radius-sm);
+  
+  /* Additional color variants used in main.css */
+  --webops-color-error-light: hsl(0 100% 70%);      /* Lighter error color */
+  --webops-color-error-dark: hsl(0 100% 50%);       /* Darker error color */
+  --webops-color-success-light: var(--webops-color-primary-light);
+  --webops-color-success-dark: var(--webops-color-primary-dark);
+  --webops-color-warning-light: hsl(40 100% 60%);   /* Lighter warning color */
+  --webops-color-warning-dark: hsl(40 100% 40%);    /* Darker warning color */
+  --webops-color-info-light: hsl(195 100% 60%);     /* Lighter info color */
+  --webops-color-info-dark: hsl(195 100% 40%);      /* Darker info color */
+
+  --webops-shadow-xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                             /* High elevation */
+  --webops-shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                           /* Maximum elevation */
+  --webops-shadow-inner: inset 0 2px 4px 0 hsl(0 0% 0% / 5%);                          /* Inset elements */
+
+  /* Themed shadows (using primary color for brand consistency) */
+  --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+  --webops-shadow-primary-sm: 0 4px 6px -1px var(--webops-color-primary-alpha-15), 0 2px 4px -2px var(--webops-color-primary-alpha-10);
+  --webops-shadow-primary: 0 10px 15px -3px var(--webops-color-primary-alpha-20), 0 4px 6px -4px var(--webops-color-primary-alpha-15);
+  --webops-shadow-primary-lg: 0 20px 25px -5px var(--webops-color-primary-alpha-30), 0 8px 10px -6px var(--webops-color-primary-alpha-20);
+
 }
 
 

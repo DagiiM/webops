@@ -1,0 +1,238 @@
+/**
+ * Forest Theme - WebOps Control Panel
+ * Nature-inspired green theme with earthy tones
+ */
+
+:root[data-theme="forest"] {
+    /* Primary Colors - Forest Greens */
+    --webops-color-primary: #2d7a2d;
+    --webops-color-primary-light: #4a9a4a;
+    --webops-color-primary-dark: #1a5c1a;
+    --webops-color-primary-alpha-10: rgba(45, 122, 45, 0.1);
+    --webops-color-primary-alpha-15: rgba(45, 122, 45, 0.15);
+    --webops-color-primary-alpha-20: rgba(45, 122, 45, 0.2);
+    --webops-color-primary-alpha-30: rgba(45, 122, 45, 0.3);
+    --webops-color-primary-alpha-50: rgba(45, 122, 45, 0.5);
+    --webops-color-primary-alpha-70: rgba(45, 122, 45, 0.7);
+    
+    /* Status Colors */
+    --webops-color-success: #4caf50;
+    --webops-color-success-light: #66bb6a;
+    --webops-color-success-dark: #388e3c;
+    
+    --webops-color-warning: #ff9800;
+    --webops-color-warning-light: #ffa726;
+    --webops-color-warning-dark: #f57c00;
+    
+    --webops-color-error: #f44336;
+    --webops-color-error-light: #ef5350;
+    --webops-color-error-dark: #d32f2f;
+    
+    --webops-color-info: #2196f3;
+    --webops-color-info-light: #42a5f5;
+    --webops-color-info-dark: #1976d2;
+    
+    /* Grayscale - Forest Bark & Earth Tones */
+    --webops-color-white: #ffffff;
+    --webops-color-black: #0d130d;
+    --webops-color-gray-50: #f5f9f5;
+    --webops-color-gray-100: #e8f2e8;
+    --webops-color-gray-200: #d1e5d1;
+    --webops-color-gray-300: #b8d4b8;
+    --webops-color-gray-400: #9bc59b;
+    --webops-color-gray-500: #7eb37e;
+    --webops-color-gray-600: #5a8a5a;
+    --webops-color-gray-700: #3d6b3d;
+    --webops-color-gray-800: #2a4c2a;
+    --webops-color-gray-900: #1a2e1a;
+    
+    /* Background Colors - Forest Layers */
+    --webops-color-bg-primary: #0f1a0f;
+    --webops-color-bg-secondary: #1a2a1a;
+    --webops-color-bg-tertiary: #243824;
+    --webops-color-bg-quaternary: #2f402f;
+    --webops-color-bg-inverse: #f5f9f5;
+    
+    /* Text Colors */
+    --webops-color-text: #e8f2e8;
+    --webops-color-text-secondary: #c8e0c8;
+    --webops-color-text-tertiary: #a8cea8;
+    --webops-color-text-inverse: #1a2e1a;
+    --webops-color-text-link: #66bb6a;
+    --webops-color-text-link-hover: #81c784;
+    
+    /* Graph Colors */
+    --webops-color-graph-bg: #1a2a1a;
+    --webops-color-graph-grid: #2d4a2d;
+    --webops-color-graph-line: #4caf50;
+    --webops-color-graph-area: rgba(76, 175, 80, 0.1);
+    --webops-color-graph-tooltip-bg: #243824;
+    --webops-color-graph-tooltip-border: #4a7c4a;
+    
+    /* Border Colors */
+    --webops-color-border: #3d5a3d;
+    --webops-color-border-light: #4a6b4a;
+    --webops-color-border-dark: #2a402a;
+    
+    /* Focus Colors */
+    --webops-color-focus: #66bb6a;
+    --webops-color-focus-alpha-20: rgba(102, 187, 107, 0.2);
+    --webops-color-focus-alpha-50: rgba(102, 187, 107, 0.5);
+    
+    /* Typography */
+    --webops-font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --webops-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+    
+    --webops-font-size-xs: 0.75rem;
+    --webops-font-size-sm: 0.875rem;
+    --webops-font-size-base: 1rem;
+    --webops-font-size-lg: 1.125rem;
+    --webops-font-size-xl: 1.25rem;
+    --webops-font-size-2xl: 1.5rem;
+    --webops-font-size-3xl: 1.875rem;
+    --webops-font-size-4xl: 2.25rem;
+    --webops-font-size-5xl: 3rem;
+    
+    --webops-font-weight-light: 300;
+    --webops-font-weight-normal: 400;
+    --webops-font-weight-medium: 500;
+    --webops-font-weight-semibold: 600;
+    --webops-font-weight-bold: 700;
+    
+    --webops-line-height-tight: 1.25;
+    --webops-line-height-normal: 1.5;
+    --webops-line-height-relaxed: 1.75;
+    
+    /* Spacing */
+    --webops-space-0: 0;
+    --webops-space-1: 0.25rem;
+    --webops-space-2: 0.5rem;
+    --webops-space-3: 0.75rem;
+    --webops-space-4: 1rem;
+    --webops-space-5: 1.25rem;
+    --webops-space-6: 1.5rem;
+    --webops-space-8: 2rem;
+    --webops-space-10: 2.5rem;
+    --webops-space-12: 3rem;
+    --webops-space-16: 4rem;
+    --webops-space-20: 5rem;
+    --webops-space-24: 6rem;
+    --webops-space-32: 8rem;
+    
+    /* Layout */
+    --webops-container-xs: 20rem;
+    --webops-container-sm: 24rem;
+    --webops-container-md: 28rem;
+    --webops-container-lg: 32rem;
+    --webops-container-xl: 36rem;
+    --webops-container-2xl: 42rem;
+    --webops-container-3xl: 48rem;
+    --webops-container-4xl: 56rem;
+    --webops-container-5xl: 64rem;
+    --webops-container-6xl: 72rem;
+    --webops-container-full: 100%;
+    
+    /* Border Radius */
+    --webops-radius-none: 0;
+    --webops-radius-sm: 0.125rem;
+    --webops-radius-base: 0.25rem;
+    --webops-radius-md: 0.375rem;
+    --webops-radius-lg: 0.5rem;
+    --webops-radius-xl: 0.75rem;
+    --webops-radius-2xl: 1rem;
+    --webops-radius-3xl: 1.5rem;
+    --webops-radius-full: 9999px;
+    
+    /* Shadows - Forest Depth */
+    --webops-shadow-sm: 0 1px 2px 0 rgba(26, 46, 26, 0.05);
+    --webops-shadow-base: 0 1px 3px 0 rgba(26, 46, 26, 0.1), 0 1px 2px 0 rgba(26, 46, 26, 0.06);
+    --webops-shadow-md: 0 4px 6px -1px rgba(26, 46, 26, 0.1), 0 2px 4px -1px rgba(26, 46, 26, 0.06);
+    --webops-shadow-lg: 0 10px 15px -3px rgba(26, 46, 26, 0.1), 0 4px 6px -2px rgba(26, 46, 26, 0.05);
+    --webops-shadow-xl: 0 20px 25px -5px rgba(26, 46, 26, 0.1), 0 10px 10px -5px rgba(26, 46, 26, 0.04);
+    --webops-shadow-2xl: 0 25px 50px -12px rgba(26, 46, 26, 0.25);
+    --webops-shadow-inner: inset 0 2px 4px 0 rgba(26, 46, 26, 0.06);
+    --webops-shadow-none: none;
+    
+    /* Transitions */
+    --webops-transition-fast: 150ms ease-in-out;
+    --webops-transition-base: 250ms ease-in-out;
+    --webops-transition-slow: 350ms ease-in-out;
+    
+    /* Z-index Scale */
+    --webops-z-index-dropdown: 1000;
+    --webops-z-index-sticky: 1020;
+    --webops-z-index-fixed: 1030;
+    --webops-z-index-modal-backdrop: 1040;
+    --webops-z-index-modal: 1050;
+    --webops-z-index-popover: 1060;
+    --webops-z-index-tooltip: 1070;
+    --webops-z-index-toast: 1080;
+}
+
+/* Global Reset & Base Styles */
+:root[data-theme="forest"] * {
+    box-sizing: border-box;
+}
+
+:root[data-theme="forest"] body {
+    background: var(--webops-color-bg-primary);
+    color: var(--webops-color-text);
+    font-family: var(--webops-font-family-primary);
+    font-size: var(--webops-font-size-base);
+    line-height: var(--webops-line-height-normal);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Styling - Forest Theme */
+:root[data-theme="forest"] ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+:root[data-theme="forest"] ::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+}
+
+:root[data-theme="forest"] ::-webkit-scrollbar-thumb {
+    background: var(--webops-color-gray-600);
+    border-radius: var(--webops-radius-full);
+}
+
+:root[data-theme="forest"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--webops-color-gray-500);
+}
+
+/* Firefox Scrollbar */
+:root[data-theme="forest"] * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--webops-color-gray-600) var(--webops-color-bg-secondary);
+}
+
+/* Focus Styles */
+:root[data-theme="forest"] *:focus {
+    outline: 2px solid var(--webops-color-focus);
+    outline-offset: 2px;
+}
+
+:root[data-theme="forest"] *:focus-visible {
+    outline: 2px solid var(--webops-color-focus);
+    outline-offset: 2px;
+}
+
+:root[data-theme="forest"] *:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Selection */
+:root[data-theme="forest"] ::selection {
+    background: var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-text);
+}
+
+:root[data-theme="forest"] ::-moz-selection {
+    background: var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-text);
+}

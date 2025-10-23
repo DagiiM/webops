@@ -1,0 +1,114 @@
+{% load installer_tags %}
+<div class="webops-dependency-status">
+    {% if error %}
+    <div class="webops-alert error">
+        <div class="webops-flex webops-items-center webops-gap-md">
+            <span class="material-icons">error</span>
+            <div>{{ error }}</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="webops-flex webops-items-center webops-gap-md">
+        <span class="material-icons {% if all_installed %}webops-text-success{% else %}webops-text-warning{% endif %}">
+            {% dependency_icon all_installed %}
+        </span>
+        <div>
+            <span class="webops-badge {% if all_installed %}webops-badge-success{% else %}webops-badge-warning{% endif %}">
+                {% if all_installed %}All dependencies installed{% else %}Missing dependencies{% endif %}
+            </span>
+            {% if not all_installed %}
+            <p class="webops-text-sm webops-text-muted webops-mt-xs">
+                Missing: {{ missing_deps|join:", " }}
+            </p>
+            <div class="webops-mt-sm">
+                <a href="{{ check_url }}" class="webops-btn webops-btn-sm webops-btn-primary" target="_blank">
+                    <span class="material-icons">download</span>
+                    Check & Install Dependencies
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if dependencies %}
+    <div class="webops-mt-md">
+        <h4 class="webops-h4">Required Dependencies</h4>
+        <div class="webops-dependency-list">
+            {% for dep in dependencies %}
+            <div class="webops-dependency-item {% if dep not in missing_deps %}installed{% endif %}">
+                <div class="webops-flex webops-items-center webops-gap-md">
+                    <span class="material-icons {% if dep not in missing_deps %}webops-text-success{% else %}webops-text-warning{% endif %}">
+                        {% if dep not in missing_deps %}check_circle{% else %}error{% endif %}
+                    </span>
+                    <div class="webops-flex-grow">
+                        <strong>{{ dep }}</strong>
+                        {% if dep not in missing_deps %}
+                        <span class="webops-badge webops-badge-success">Installed</span>
+                        {% else %}
+                        <span class="webops-badge webops-badge-warning">Missing</span>
+                        {% endif %}
+                    </div>
+                    <div class="webops-dependency-actions">
+                        {% if dep in missing_deps %}
+                        {% install_button db_type dep "Install" "webops-btn webops-btn-sm webops-btn-primary" %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="webops-dependency-command">
+                    <code class="webops-code">{% install_command dep %}</code>
+                    <button onclick="copyToClipboard('{% install_command dep %}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                        <span class="material-icons">content_copy</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<style>
+.webops-dependency-status {
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+.webops-dependency-item {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-dependency-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-dependency-item.installed {
+    border-color: var(--webops-color-success-alpha-20);
+    background: var(--webops-color-success-alpha-05);
+}
+
+.webops-dependency-command {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1-5);
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-sm);
+}
+
+.webops-dependency-actions {
+    display: flex;
+    gap: var(--webops-space-1-5);
+}
+</style>

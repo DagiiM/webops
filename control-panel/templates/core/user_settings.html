@@ -1,0 +1,920 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }} - {{ branding.site_name }}{% endblock %}
+
+{% block header_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+
+<div class="webops-user-settings">
+    <div class="webops-settings-sidebar">
+        <nav class="webops-settings-nav">
+            <div class="webops-settings-nav__section">
+                <h3 class="webops-settings-nav__section-title">General</h3>
+                <ul class="webops-settings-nav__list">
+                    <li>
+                        <a href="#general" class="webops-settings-nav__item active" data-section="general">
+                            <span class="webops-settings-nav__item-icon material-icons">settings</span>
+                            <span class="webops-settings-nav__item-label">Account Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#notifications" class="webops-settings-nav__item" data-section="notifications">
+                            <span class="webops-settings-nav__item-icon material-icons">notifications</span>
+                            <span class="webops-settings-nav__item-label">Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#security" class="webops-settings-nav__item" data-section="security">
+                            <span class="webops-settings-nav__item-icon material-icons">security</span>
+                            <span class="webops-settings-nav__item-label">Security</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="webops-settings-nav__section">
+                <h3 class="webops-settings-nav__section-title">Preferences</h3>
+                <ul class="webops-settings-nav__list">
+                    <li>
+                        <a href="#appearance" class="webops-settings-nav__item" data-section="appearance">
+                            <span class="webops-settings-nav__item-icon material-icons">palette</span>
+                            <span class="webops-settings-nav__item-label">Appearance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#language" class="webops-settings-nav__item" data-section="language">
+                            <span class="webops-settings-nav__item-icon material-icons">language</span>
+                            <span class="webops-settings-nav__item-label">Language</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#notifications" class="webops-settings-nav__item" data-section="notifications">
+                            <span class="webops-settings-nav__item-icon material-icons">notifications</span>
+                            <span class="webops-settings-nav__item-label">Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#privacy" class="webops-settings-nav__item" data-section="privacy">
+                            <span class="webops-settings-nav__item-icon material-icons">lock</span>
+                            <span class="webops-settings-nav__item-label">Privacy</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            {% if user.is_superuser %}
+            <div class="webops-settings-nav__section">
+                <h3 class="webops-settings-nav__section-title">Admin</h3>
+                <ul class="webops-settings-nav__list">
+                    <li>
+                        <a href="{% url 'branding_settings' %}" class="webops-settings-nav__item">
+                            <span class="webops-settings-nav__item-icon material-icons">branding</span>
+                            <span class="webops-settings-nav__item-label">Branding</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </nav>
+    </div>
+    
+    <div class="webops-settings-content">
+        <div class="webops-card" id="appearance-settings">
+            <div class="webops-card__header">
+                <h2 class="webops-card__title">Appearance Settings</h2>
+                <p class="webops-card__subtitle">Customize the look and feel of your dashboard</p>
+            </div>
+            
+            <div class="webops-card__body">
+                <form class="webops-settings-form" method="post" action="{% url 'user_settings' %}" id="appearance-settings-form">
+                    {% csrf_token %}
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label">Theme Preference</label>
+                        <div class="webops-toggle-group webops-toggle-group--radio">
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="theme" value="system" {% if preferences.theme == 'system' or not preferences.theme %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">System Default</span>
+                            </label>
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="theme" value="light" {% if preferences.theme == 'light' %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Light</span>
+                            </label>
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="theme" value="dark" {% if preferences.theme == 'dark' %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Dark</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label">Animations</label>
+                        <div class="webops-toggle-group">
+                            <label class="webops-toggle">
+                                <input type="checkbox" id="animations" name="animations" {% if preferences.animations_enabled %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Enable UI animations</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label">Compact View</label>
+                        <div class="webops-toggle-group">
+                            <label class="webops-toggle">
+                                <input type="checkbox" id="compact_view" name="compact_view" {% if preferences.compact_view %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Use compact spacing</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label">Font Size</label>
+                        <div class="webops-toggle-group webops-toggle-group--radio">
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="font_size" value="small" {% if preferences.font_size == 'small' %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Small</span>
+                            </label>
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="font_size" value="normal" {% if preferences.font_size == 'normal' or not preferences.font_size %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Normal</span>
+                            </label>
+                            <label class="webops-toggle webops-toggle--radio">
+                                <input type="radio" name="font_size" value="large" {% if preferences.font_size == 'large' %}checked{% endif %}>
+                                <span class="webops-toggle__slider"></span>
+                                <span class="webops-toggle__label">Large</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="webops-form-actions">
+                        <button type="button" class="webops-btn webops-btn--secondary">Cancel</button>
+                        <button type="submit" class="webops-btn webops-btn--primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="webops-card" id="language-settings">
+            <div class="webops-card__header">
+                <h2 class="webops-card__title">Language Settings</h2>
+                <p class="webops-card__subtitle">Configure your preferred language and regional settings</p>
+            </div>
+            
+            <div class="webops-card__body">
+                <form class="webops-settings-form" method="post" action="{% url 'user_settings' %}" id="language-settings-form">
+                    {% csrf_token %}
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label" for="language">Interface Language</label>
+                        <select id="language" name="language" class="webops-form-control">
+                            <option value="en" {% if preferences.language == 'en' or not preferences.language %}selected{% endif %}>English</option>
+                            <option value="es" {% if preferences.language == 'es' %}selected{% endif %}>Español</option>
+                            <option value="fr" {% if preferences.language == 'fr' %}selected{% endif %}>Français</option>
+                            <option value="de" {% if preferences.language == 'de' %}selected{% endif %}>Deutsch</option>
+                            <option value="ja" {% if preferences.language == 'ja' %}selected{% endif %}>日本語</option>
+                            <option value="zh" {% if preferences.language == 'zh' %}selected{% endif %}>中文</option>
+                        </select>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label" for="timezone">Timezone</label>
+                        <select id="timezone" name="timezone" class="webops-form-control">
+                            <option value="UTC" {% if preferences.timezone == 'UTC' or not preferences.timezone %}selected{% endif %}>UTC</option>
+                            <option value="America/New_York" {% if preferences.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time (US & Canada)</option>
+                            <option value="America/Chicago" {% if preferences.timezone == 'America/Chicago' %}selected{% endif %}>Central Time (US & Canada)</option>
+                            <option value="America/Denver" {% if preferences.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time (US & Canada)</option>
+                            <option value="America/Los_Angeles" {% if preferences.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time (US & Canada)</option>
+                            <option value="Europe/London" {% if preferences.timezone == 'Europe/London' %}selected{% endif %}>London</option>
+                            <option value="Europe/Paris" {% if preferences.timezone == 'Europe/Paris' %}selected{% endif %}>Paris</option>
+                            <option value="Asia/Tokyo" {% if preferences.timezone == 'Asia/Tokyo' %}selected{% endif %}>Tokyo</option>
+                            <option value="Asia/Shanghai" {% if preferences.timezone == 'Asia/Shanghai' %}selected{% endif %}>Shanghai</option>
+                            <option value="Africa/Nairobi" {% if preferences.timezone == 'Africa/Nairobi' %}selected{% endif %}>Nairobi</option>
+                        </select>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label" for="date_format">Date Format</label>
+                        <select id="date_format" name="date_format" class="webops-form-control">
+                            <option value="MM/DD/YYYY" {% if preferences.date_format == 'MM/DD/YYYY' or not preferences.date_format %}selected{% endif %}>MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY" {% if preferences.date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD" {% if preferences.date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    
+                    <div class="webops-form-group">
+                        <label class="webops-form-label" for="time_format">Time Format</label>
+                        <select id="time_format" name="time_format" class="webops-form-control">
+                            <option value="12h" {% if preferences.time_format == '12h' or not preferences.time_format %}selected{% endif %}>12-hour (AM/PM)</option>
+                            <option value="24h" {% if preferences.time_format == '24h' %}selected{% endif %}>24-hour</option>
+                        </select>
+                    </div>
+                    
+                    <div class="webops-form-actions">
+                        <button type="button" class="webops-btn webops-btn--secondary">Cancel</button>
+                        <button type="submit" class="webops-btn webops-btn--primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="webops-card" id="notifications-settings">
+            <div class="webops-card__header">
+                <h2 class="webops-card__title">Notifications</h2>
+                <p class="webops-card__subtitle">Manage how you receive alerts and updates</p>
+            </div>
+            
+            <div class="webops-card__body">
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Email Notifications</h4>
+                        <p class="webops-setting-item__description">Receive important updates via email</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="email_notifications" {% if preferences.email_notifications %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Browser Notifications</h4>
+                        <p class="webops-setting-item__description">Get real-time alerts in your browser</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="browser_notifications" {% if preferences.browser_notifications %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Deployment Alerts</h4>
+                        <p class="webops-setting-item__description">Notify me when deployments start, complete, or fail</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="deployment_alerts" {% if preferences.deployment_alerts %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Security Alerts</h4>
+                        <p class="webops-setting-item__description">Notify me of security events and login attempts</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="security_alerts" {% if preferences.security_alerts %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">System Updates</h4>
+                        <p class="webops-setting-item__description">Notify me when system updates are available</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="system_updates" {% if preferences.system_updates %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-form-actions">
+                    <button type="button" class="webops-btn webops-btn--secondary">Cancel</button>
+                    <button type="submit" class="webops-btn webops-btn--primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="webops-card" id="privacy-settings">
+            <div class="webops-card__header">
+                <h2 class="webops-card__title">Privacy Settings</h2>
+                <p class="webops-card__subtitle">Control what information is shared and stored</p>
+            </div>
+            
+            <div class="webops-card__body">
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Activity Tracking</h4>
+                        <p class="webops-setting-item__description">Allow WebOps to collect anonymous usage data to improve the service</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="activity_tracking" {% if preferences.activity_tracking %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Personalized Recommendations</h4>
+                        <p class="webops-setting-item__description">Use your activity data to provide personalized suggestions</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="personalized_recommendations" {% if preferences.personalized_recommendations %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Third-party Integrations</h4>
+                        <p class="webops-setting-item__description">Allow connected services to access your profile information</p>
+                    </div>
+                    <label class="webops-toggle">
+                        <input type="checkbox" name="third_party_integrations" {% if preferences.third_party_integrations %}checked{% endif %}>
+                        <span class="webops-toggle__slider"></span>
+                    </label>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Data Export</h4>
+                        <p class="webops-setting-item__description">Download a copy of all your data stored in WebOps</p>
+                    </div>
+                    <button class="webops-btn webops-btn--outline">Export Data</button>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Account Deletion</h4>
+                        <p class="webops-setting-item__description">Permanently delete your account and all associated data</p>
+                    </div>
+                    <button class="webops-btn webops-btn--danger">Delete Account</button>
+                </div>
+                
+                <div class="webops-form-actions">
+                    <button type="button" class="webops-btn webops-btn--secondary">Cancel</button>
+                    <button type="submit" class="webops-btn webops-btn--primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="webops-card">
+            <div class="webops-card__header">
+                <h2 class="webops-card__title">Security Settings</h2>
+                <p class="webops-card__subtitle">Manage your account security preferences</p>
+            </div>
+            
+            <div class="webops-card__body">
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Two-Factor Authentication</h4>
+                        <p class="webops-setting-item__description">Add an extra layer of security to your account</p>
+                    </div>
+                    <a href="{% url 'two_factor_setup' %}" class="webops-btn webops-btn--outline">Manage</a>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Password</h4>
+                        <p class="webops-setting-item__description">Change your account password</p>
+                    </div>
+                    <button class="webops-btn webops-btn--outline">Change</button>
+                </div>
+                
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">API Tokens</h4>
+                        <p class="webops-setting-item__description">Manage your API access tokens</p>
+                    </div>
+                    <a href="{% url 'token_list' %}" class="webops-btn webops-btn--outline">Manage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/user-settings.js' %}"></script>
+{% endblock %}
+
+{% block extra_css_first %}
+<style>
+.webops-settings-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--webops-space-8);
+    min-height: 600px;
+    margin: var(--webops-space-4) 0;
+}
+
+.webops-settings-sidebar {
+    background: var(--webops-color-bg-elevated);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-5);
+    height: fit-content;
+    position: sticky;
+    top: calc(var(--webops-space-6) + 60px);
+    box-shadow: var(--webops-shadow-md);
+    backdrop-filter: blur(20px);
+}
+
+.webops-settings-nav__section {
+    margin-bottom: var(--webops-space-6);
+}
+
+.webops-settings-nav__section:last-child {
+    margin-bottom: 0;
+}
+
+.webops-settings-nav__section-title {
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--webops-space-3);
+    padding: 0 var(--webops-space-2);
+}
+
+.webops-settings-nav__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-settings-nav__item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-2-5) var(--webops-space-3);
+    color: var(--webops-color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--webops-radius-md);
+    transition: all var(--webops-transition-fast);
+    margin-bottom: var(--webops-space-1);
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-settings-nav__item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--webops-color-primary-alpha-05), transparent);
+    transition: left var(--webops-transition-base);
+}
+
+.webops-settings-nav__item:hover {
+    background: var(--webops-color-primary-alpha-05);
+    color: var(--webops-color-primary);
+    transform: translateX(2px);
+}
+
+.webops-settings-nav__item:hover::before {
+    left: 100%;
+}
+
+.webops-settings-nav__item.active {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-settings-nav__item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--webops-color-primary);
+    border-radius: 0 2px 2px 0;
+}
+
+.webops-settings-nav__item-icon {
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: transform var(--webops-transition-fast);
+}
+
+.webops-settings-nav__item:hover .webops-settings-nav__item-icon {
+    transform: scale(1.1);
+}
+
+.webops-settings-nav__item-label {
+    flex: 1;
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-6);
+}
+
+.webops-card {
+    background: var(--webops-color-bg-elevated);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--webops-shadow-md);
+    transition: all var(--webops-transition-base);
+    backdrop-filter: blur(20px);
+}
+
+.webops-card:hover {
+    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
+    transform: translateY(-2px);
+}
+
+.webops-card__header {
+    background: linear-gradient(135deg, var(--webops-color-primary-alpha-05) 0%, var(--webops-color-primary-alpha-10) 100%);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-15);
+    padding: var(--webops-space-4) var(--webops-space-4);
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-card__header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light), var(--webops-color-primary));
+    animation: webopsHeaderShimmer 3s ease-in-out infinite;
+}
+
+@keyframes webopsHeaderShimmer {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.webops-card__title {
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-bold);
+    color: var(--webops-color-text-primary);
+    margin: 0 0 var(--webops-space-1) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-card__subtitle {
+    color: var(--webops-color-text-secondary);
+    margin: 0;
+    font-size: var(--webops-font-size-sm);
+    line-height: 1.5;
+}
+
+.webops-card__body {
+    padding: var(--webops-space-4);
+}
+
+.webops-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-4) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-08);
+}
+
+.webops-setting-item:last-child {
+    border-bottom: none;
+}
+
+.webops-setting-item__info {
+    flex: 1;
+    margin-right: var(--webops-space-4);
+}
+
+.webops-setting-item__title {
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-1);
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-setting-item__description {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.webops-form-group {
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.webops-form-label {
+    display: block;
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-1-5);
+    transition: color var(--webops-transition-fast);
+}
+
+.webops-form-control {
+    width: 100%;
+    padding: var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 2px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-base);
+    color: var(--webops-color-text-primary);
+    transition: all var(--webops-transition-fast);
+    font-family: var(--webops-font-family-primary);
+}
+
+.webops-form-control:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+    transform: translateY(-1px);
+}
+
+.webops-form-control:hover:not(:focus) {
+    border-color: var(--webops-color-primary-alpha-25);
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--webops-space-4);
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-form-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+.webops-toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+.webops-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    cursor: pointer;
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-md);
+    transition: background var(--webops-transition-fast);
+    position: relative;
+}
+
+.webops-toggle:hover {
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-toggle input[type="radio"],
+.webops-toggle input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.webops-toggle__slider {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: var(--webops-color-neutral-alpha-20);
+    border: 1px solid var(--webops-color-neutral-alpha-30);
+    border-radius: 24px;
+    transition: all var(--webops-transition-base);
+    flex-shrink: 0;
+}
+
+.webops-toggle__slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--webops-color-text-secondary);
+    border-radius: 50%;
+    transition: all var(--webops-transition-base);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.webops-toggle input:checked + .webops-toggle__slider {
+    background: var(--webops-color-primary-alpha-20);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-toggle input:checked + .webops-toggle__slider::before {
+    transform: translateX(24px);
+    background: var(--webops-color-primary);
+    box-shadow: 0 0 8px var(--webops-color-primary-glow);
+}
+
+.webops-toggle input:focus + .webops-toggle__slider {
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+}
+
+.webops-toggle__label {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+    user-select: none;
+    flex: 1;
+}
+
+.webops-toggle-group--radio {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--webops-space-2);
+}
+
+.webops-toggle--radio {
+    border: 2px solid var(--webops-color-primary-alpha-15);
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    text-align: center;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-toggle--radio:hover {
+    border-color: var(--webops-color-primary-alpha-25);
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-toggle--radio input:checked + .webops-toggle__label {
+    color: var(--webops-color-primary);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-toggle--radio input:checked ~ .webops-toggle__slider {
+    background: var(--webops-color-primary-alpha-20);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-4);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
+    background: var(--webops-color-primary-alpha-03);
+}
+
+.webops-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-2-5) var(--webops-space-4);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    font-family: var(--webops-font-family-primary);
+    border: none;
+    border-radius: var(--webops-radius-md);
+    cursor: pointer;
+    transition: all var(--webops-transition-base);
+    text-decoration: none;
+    min-width: 120px;
+}
+
+.webops-form-actions .webops-btn {
+    min-width: 120px;
+    padding: var(--webops-space-2-5) var(--webops-space-4);
+    font-weight: var(--webops-font-weight-semibold);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-form-actions .webops-btn--primary {
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+}
+
+.webops-form-actions .webops-btn--primary:hover {
+    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
+    box-shadow: 0 6px 20px var(--webops-color-primary-glow);
+    transform: translateY(-2px);
+}
+
+.webops-form-actions .webops-btn--secondary {
+    background: var(--webops-color-surface);
+    border: 2px solid var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-primary);
+}
+
+.webops-form-actions .webops-btn--secondary:hover {
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+    .webops-user-settings {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-6);
+    }
+    
+    .webops-settings-sidebar {
+        position: static;
+        order: -1;
+    }
+    
+    .webops-settings-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: var(--webops-space-2);
+        padding-bottom: var(--webops-space-2);
+    }
+    
+    .webops-settings-nav__section {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-user-settings {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-4);
+        margin: var(--webops-space-2) 0;
+    }
+    
+    .webops-settings-sidebar {
+        position: static;
+        order: -1;
+    }
+    
+    .webops-settings-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: var(--webops-space-2);
+        padding-bottom: var(--webops-space-2);
+    }
+    
+    .webops-settings-nav__section {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .webops-form-row {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-settings-content .webops-card__header {
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-settings-form {
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-form-actions {
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+    
+    .webops-form-actions .webops-btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .webops-setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-3);
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-setting-item__info {
+        margin-right: 0;
+    }
+    
+    .webops-toggle-group--radio {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

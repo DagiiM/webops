@@ -1,7 +1,7 @@
 """
 API authentication for WebOps.
 
-Reference: CLAUDE.md "API Design" section
+"API Design" section
 
 This module implements token-based authentication for the REST API.
 """

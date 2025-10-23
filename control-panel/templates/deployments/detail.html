@@ -60,15 +60,11 @@
         {% endif %}
         
         <!-- Check if there is a configuration with Celery services -->
-        {% if deployment.configuration %}
-            {% with celery_services=deployment.configuration.deploymentbackgroundservice_set.filter(service__name__in=['celery_worker', 'celery_beat'], is_enabled=True) %}
-                {% if celery_services %}
-                    <a href="{% url 'deployments:celery_dashboard' %}?deployment_id={{ deployment.pk }}" class="webops-btn webops-btn-primary">
-                        <span class="material-icons">settings_applications</span>
-                        Celery
-                    </a>
-                {% endif %}
-            {% endwith %}
+        {% if celery_services %}
+            <a href="{% url 'deployments:celery_dashboard' %}?deployment_id={{ deployment.pk }}" class="webops-btn webops-btn-primary">
+                <span class="material-icons">settings_applications</span>
+                Celery
+            </a>
         {% endif %}
         
         <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="webops-btn webops-btn-danger">

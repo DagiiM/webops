@@ -13,13 +13,14 @@ Edge Cases Covered:
 
 import re
 import ipaddress
+import os
+from pathlib import Path
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-import os
 
 
 class SecurityValidator:
@@ -467,5 +468,3 @@ class SecretKeyValidator(SecurityValidator):
             )
 
 
-# Import Path for validation
-from pathlib import Path

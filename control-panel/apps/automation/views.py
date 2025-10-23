@@ -36,25 +36,38 @@ from .engine import workflow_engine
 @login_required
 def workflow_list(request):
     """List all workflows."""
+    from django.db.models import Count, Prefetch
+    from django.db.models import F
+    
+    # Optimize query with prefetch_related and annotations
     workflows = Workflow.objects.filter(
         owner=request.user
+    ).prefetch_related(
+        Prefetch('executions',
+                 queryset=WorkflowExecution.objects.order_by('-started_at')[:5],
+                 to_attr='recent_executions')
+    ).annotate(
+        node_count=Count('nodes'),
+        connection_count=Count('connections')
     ).order_by('-updated_at')
 
-    # Get execution statistics
+    # Get execution statistics (now optimized)
     workflow_stats = []
     for workflow in workflows:
-        recent_executions = workflow.executions.all()[:5]
+        # recent_executions is already prefetched
+        recent_executions = getattr(workflow, 'recent_executions', [])
+        
         workflow_stats.append({
             'workflow': workflow,
             'recent_executions': recent_executions,
-            'node_count': workflow.nodes.count(),
-            'connection_count': workflow.connections.count()
+            'node_count': workflow.node_count,
+            'connection_count': workflow.connection_count
         })
 
     context = {
         'workflow_stats': workflow_stats,
         'total_workflows': workflows.count(),
-        'active_workflows': workflows.filter(status=Workflow.Status.ACTIVE).count(),
+        'active_workflows': sum(1 for w in workflows if w.status == Workflow.Status.ACTIVE),
     }
 
     return render(request, 'automation/workflow_list.html', context)
@@ -142,59 +155,75 @@ def workflow_save(request, workflow_id):
 
     try:
         data = json.loads(request.body)
+        
+        # Use transaction to ensure all changes are atomic
+        from django.db import transaction
+        
+        with transaction.atomic():
+            # Update workflow metadata
+            if 'name' in data:
+                workflow.name = data['name']
+            if 'description' in data:
+                workflow.description = data['description']
+            if 'status' in data:
+                workflow.status = data['status']
 
-        # Update workflow metadata
-        if 'name' in data:
-            workflow.name = data['name']
-        if 'description' in data:
-            workflow.description = data['description']
-        if 'status' in data:
-            workflow.status = data['status']
+            # Save canvas data
+            workflow.canvas_data = data.get('canvas_data', {})
+            workflow.save()
 
-        # Save canvas data
-        workflow.canvas_data = data.get('canvas_data', {})
-        workflow.save()
+            # Update nodes
+            if 'nodes' in data:
+                # Delete removed nodes
+                existing_node_ids = set(workflow.nodes.values_list('node_id', flat=True))
+                new_node_ids = set(node['id'] for node in data['nodes'])
+                removed_ids = existing_node_ids - new_node_ids
 
-        # Update nodes
-        if 'nodes' in data:
-            # Delete removed nodes
-            existing_node_ids = set(workflow.nodes.values_list('node_id', flat=True))
-            new_node_ids = set(node['id'] for node in data['nodes'])
-            removed_ids = existing_node_ids - new_node_ids
+                workflow.nodes.filter(node_id__in=removed_ids).delete()
 
-            workflow.nodes.filter(node_id__in=removed_ids).delete()
+                # Create or update nodes
+                for node_data in data['nodes']:
+                    node, created = WorkflowNode.objects.update_or_create(
+                        workflow=workflow,
+                        node_id=node_data['id'],
+                        defaults={
+                            'node_type': node_data['type'],
+                            'label': node_data.get('label', node_data['type']),
+                            'position_x': node_data.get('position', {}).get('x', 0),
+                            'position_y': node_data.get('position', {}).get('y', 0),
+                            'config': node_data.get('config', {}),
+                            'enabled': node_data.get('enabled', True),
+                        }
+                    )
 
-            # Create or update nodes
-            for node_data in data['nodes']:
-                node, created = WorkflowNode.objects.update_or_create(
-                    workflow=workflow,
-                    node_id=node_data['id'],
-                    defaults={
-                        'node_type': node_data['type'],
-                        'label': node_data.get('label', node_data['type']),
-                        'position_x': node_data.get('position', {}).get('x', 0),
-                        'position_y': node_data.get('position', {}).get('y', 0),
-                        'config': node_data.get('config', {}),
-                        'enabled': node_data.get('enabled', True),
-                    }
-                )
+            # Update connections
+            if 'connections' in data:
+                # Delete all existing connections and recreate
+                workflow.connections.all().delete()
 
-        # Update connections
-        if 'connections' in data:
-            # Delete all existing connections and recreate
-            workflow.connections.all().delete()
+                for conn_data in data['connections']:
+                    source_node = workflow.nodes.get(node_id=conn_data['source'])
+                    target_node = workflow.nodes.get(node_id=conn_data['target'])
 
-            for conn_data in data['connections']:
-                source_node = workflow.nodes.get(node_id=conn_data['source'])
-                target_node = workflow.nodes.get(node_id=conn_data['target'])
-
-                WorkflowConnection.objects.create(
-                    workflow=workflow,
-                    source_node=source_node,
-                    target_node=target_node,
-                    source_handle=conn_data.get('sourceHandle', 'output'),
-                    target_handle=conn_data.get('targetHandle', 'input'),
-                )
+                    WorkflowConnection.objects.create(
+                        workflow=workflow,
+                        source_node=source_node,
+                        target_node=target_node,
+                        source_handle=conn_data.get('sourceHandle', 'output'),
+                        target_handle=conn_data.get('targetHandle', 'input'),
+                    )
+            
+            # Validate the workflow after all changes are made
+            from .validators import WorkflowValidator
+            is_valid, errors = WorkflowValidator.validate_workflow(workflow)
+            
+            if not is_valid:
+                # If validation fails, return the errors
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Workflow validation failed',
+                    'validation_errors': errors
+                }, status=400)
 
         return JsonResponse({
             'success': True,
@@ -220,6 +249,17 @@ def workflow_execute(request, workflow_id):
             'error': 'Workflow is disabled'
         }, status=400)
 
+    # Validate workflow before execution
+    from .validators import WorkflowValidator
+    is_valid, errors = WorkflowValidator.validate_workflow(workflow)
+    
+    if not is_valid:
+        return JsonResponse({
+            'success': False,
+            'error': 'Workflow validation failed',
+            'validation_errors': errors
+        }, status=400)
+
     try:
         # Get input data from request
         if request.content_type == 'application/json':
@@ -227,19 +267,31 @@ def workflow_execute(request, workflow_id):
         else:
             input_data = dict(request.POST)
 
-        # Execute workflow
-        execution = workflow_engine.execute_workflow(
+        # Create execution record first
+        execution = WorkflowExecution.objects.create(
             workflow=workflow,
-            input_data=input_data,
+            status=WorkflowExecution.Status.PENDING,
             triggered_by=request.user,
+            trigger_type='manual',
+            input_data=input_data,
+            trigger_data={'timestamp': timezone.now().isoformat()}
+        )
+
+        # Execute workflow asynchronously using Celery
+        from .tasks import execute_workflow_async
+        task = execute_workflow_async.delay(
+            workflow_id=workflow.id,
+            input_data=input_data,
+            triggered_by_id=request.user.id,
             trigger_type='manual'
         )
 
         return JsonResponse({
             'success': True,
             'execution_id': execution.id,
-            'status': execution.status,
-            'message': 'Workflow execution started'
+            'task_id': task.id,
+            'status': 'pending',
+            'message': 'Workflow execution queued'
         })
 
     except Exception as e:
@@ -543,3 +595,119 @@ def api_node_types(request):
     }
 
     return JsonResponse(node_types)
+
+
+@login_required
+@require_http_methods(["POST", "GET"])
+def webhook_trigger(request, workflow_id):
+    """
+    Trigger a workflow via webhook.
+    
+    This endpoint allows external systems to trigger workflows.
+    It supports both GET and POST requests.
+    """
+    workflow = get_object_or_404(Workflow, pk=workflow_id)
+    
+    # Check if workflow accepts webhook triggers
+    if workflow.trigger_type != Workflow.TriggerType.WEBHOOK:
+        return JsonResponse({
+            'success': False,
+            'error': 'Workflow does not accept webhook triggers'
+        }, status=400)
+    
+    if workflow.status != Workflow.Status.ACTIVE:
+        return JsonResponse({
+            'success': False,
+            'error': 'Workflow is not active'
+        }, status=400)
+    
+    try:
+        # Collect request data
+        headers = dict(request.headers)
+        method = request.method
+        
+        # Get request body
+        if method == 'POST':
+            try:
+                payload = json.loads(request.body)
+            except json.JSONDecodeError:
+                payload = request.body.decode('utf-8')
+        else:
+            payload = dict(request.GET)
+        
+        # Create execution record
+        execution = WorkflowExecution.objects.create(
+            workflow=workflow,
+            status=WorkflowExecution.Status.PENDING,
+            trigger_type='webhook',
+            input_data={'payload': payload},
+            trigger_data={
+                'timestamp': timezone.now().isoformat(),
+                'method': method,
+                'headers': headers,
+                'payload': payload
+            }
+        )
+        
+        # Execute workflow asynchronously using Celery
+        from .tasks import execute_workflow_async
+        task = execute_workflow_async.delay(
+            workflow_id=workflow.id,
+            input_data={'payload': payload},
+            trigger_type='webhook'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'execution_id': execution.id,
+            'task_id': task.id,
+            'status': 'pending',
+            'message': 'Webhook received and workflow execution queued'
+        })
+        
+    except Exception as e:
+        logger.error(f"Webhook trigger failed for workflow {workflow_id}: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def retry_execution(request, execution_id):
+    """
+    Retry a failed workflow execution.
+    """
+    execution = get_object_or_404(WorkflowExecution, pk=execution_id)
+    
+    # Check permission
+    if execution.workflow.owner != request.user:
+        return JsonResponse({
+            'success': False,
+            'error': 'Permission denied'
+        }, status=403)
+    
+    if execution.status != WorkflowExecution.Status.FAILED:
+        return JsonResponse({
+            'success': False,
+            'error': 'Only failed executions can be retried'
+        }, status=400)
+    
+    try:
+        # Retry execution asynchronously using Celery
+        from .tasks import retry_failed_execution
+        task = retry_failed_execution.delay(execution_id)
+        
+        return JsonResponse({
+            'success': True,
+            'task_id': task.id,
+            'message': 'Execution retry queued'
+        })
+        
+    except Exception as e:
+        logger.error(f"Retry failed for execution {execution_id}: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

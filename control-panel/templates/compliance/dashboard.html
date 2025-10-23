@@ -1,0 +1,706 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Compliance Dashboard - WebOps{% endblock %}
+
+{% block content %}
+<div class="webops-app-background"></div>
+<div class="webops-compliance-dashboard">
+    <div class="webops-page-header">
+        <h1 class="webops-h1">Compliance & Security Dashboard</h1>
+        <div class="webops-header-actions">
+            <button class="webops-btn webops-btn-primary" onclick="triggerScan()">
+                <i class="fas fa-shield-alt"></i> Run Security Scan
+            </button>
+            <button class="webops-btn webops-btn-secondary" onclick="generateReport()">
+                <i class="fas fa-file-alt"></i> Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="webops-dashboard-cards">
+        <div class="webops-overview-card">
+            <div class="webops-card-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="webops-card-content">
+                <h3>{{ total_controls }}</h3>
+                <p>Total Controls</p>
+                <small>{{ automation_percentage|floatformat:1 }}% Automated</small>
+            </div>
+        </div>
+        
+        <div class="webops-overview-card">
+            <div class="webops-card-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="webops-card-content">
+                <h3>{{ alert_count }}</h3>
+                <p>Active Alerts</p>
+                <small>Requires attention</small>
+            </div>
+        </div>
+        
+        <div class="webops-overview-card">
+            <div class="webops-card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="webops-card-content">
+                <h3>{{ recent_scans|length }}</h3>
+                <p>Recent Scans</p>
+                <small>Last 30 days</small>
+            </div>
+        </div>
+        
+        <div class="webops-overview-card">
+            <div class="webops-card-icon">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="webops-card-content">
+                <h3>{{ frameworks|length }}</h3>
+                <p>Frameworks</p>
+                <small>Active standards</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Framework Compliance Chart -->
+    <div class="webops-dashboard-section">
+        <div class="webops-section-header">
+            <h2 class="webops-h2">Compliance by Framework</h2>
+        </div>
+        <div class="webops-chart-container">
+            <canvas id="complianceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="webops-dashboard-columns">
+        <!-- Recent Security Scans -->
+        <div class="webops-dashboard-column">
+            <div class="webops-section-header">
+                <h2 class="webops-h2">Recent Security Scans</h2>
+                <a href="{% url 'compliance:security_scans' %}" class="webops-btn webops-btn-sm webops-btn-outline">View All</a>
+            </div>
+            <div class="webops-table-container">
+                <table class="webops-data-table">
+                    <thead>
+                        <tr>
+                            <th>Scan ID</th>
+                            <th>Type</th>
+                            <th>Target</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scan in recent_scans %}
+                        <tr>
+                            <td><a href="{% url 'compliance:scan_detail' scan.scan_id %}">{{ scan.scan_id }}</a></td>
+                            <td>{{ scan.get_scan_type_display }}</td>
+                            <td>{{ scan.target }}</td>
+                            <td>
+                                {% if scan.security_score %}
+                                    <span class="webops-score-badge webops-score-{{ scan.security_score|floatformat:0 }}">
+                                        {{ scan.security_score|floatformat:1 }}%
+                                    </span>
+                                {% else %}
+                                    <span class="webops-text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="webops-status-badge webops-status-{{ scan.status }}">
+                                    {{ scan.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="webops-text-center webops-text-muted">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <p class="webops-h3">No security scans found</p>
+                                <small>Run a security scan to get started</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Active Alerts -->
+        <div class="webops-dashboard-column">
+            <div class="webops-section-header">
+                <h2 class="webops-h2">Active Alerts</h2>
+                <a href="{% url 'compliance:compliance_alerts' %}" class="webops-btn webops-btn-sm webops-btn-outline">View All</a>
+            </div>
+            <div class="webops-alerts-container">
+                {% for alert in active_alerts %}
+                <div class="webops-alert-item webops-alert-{{ alert.severity }}">
+                    <div class="webops-alert-header">
+                        <h3 class="webops-h3">{{ alert.title }}</h3>
+                        <span class="webops-alert-time">{{ alert.created_at|timesince }} ago</span>
+                    </div>
+                    <p>{{ alert.description|truncatewords:20 }}</p>
+                    <div class="webops-alert-actions">
+                        <a href="{% url 'compliance:alert_detail' alert.alert_id %}" class="webops-btn webops-btn-sm webops-btn-outline">View</a>
+                        <button class="webops-btn webops-btn-sm webops-btn-success" onclick="resolveAlert('{{ alert.alert_id }}')">Resolve</button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="webops-text-center webops-text-muted">
+                    <i class="fas fa-check-circle fa-2x"></i>
+                    <p class="webops-h3">No active alerts</p>
+                    <small>All systems operating normally</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.webops-compliance-dashboard {
+    padding: var(--webops-space-3);
+}
+
+.webops-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-page-header h1 {
+    margin: 0;
+    font-size: var(--webops-font-size-3xl);
+    font-weight: var(--webops-font-weight-bold);
+    color: var(--webops-color-text-primary);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.webops-header-actions {
+    display: flex;
+    gap: var(--webops-space-2);
+}
+
+.webops-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-overview-card {
+    display: flex;
+    align-items: center;
+    padding: var(--webops-space-4);
+    background: var(--webops-color-bg-elevated);
+    border-radius: var(--webops-radius-lg);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    box-shadow: var(--webops-shadow-sm);
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+}
+
+.webops-overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--webops-shadow-md);
+    border-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-card-icon {
+    font-size: var(--webops-font-size-5xl);
+    margin-right: var(--webops-space-4);
+    color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--webops-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.webops-card-content h3 {
+    margin: 0 0 var(--webops-space-1) 0;
+    font-size: var(--webops-font-size-3xl);
+    font-weight: var(--webops-font-weight-bold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-card-content p {
+    margin: 0;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-card-content small {
+    color: var(--webops-color-text-tertiary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-dashboard-section {
+    background: var(--webops-color-bg-elevated);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-4);
+    margin-bottom: var(--webops-space-4);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-section-header h2 {
+    margin: 0;
+    font-size: var(--webops-font-size-xl);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-chart-container {
+    height: 300px;
+    position: relative;
+    background: var(--webops-color-bg-secondary);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-2);
+}
+
+.webops-dashboard-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--webops-space-4);
+}
+
+.webops-dashboard-column {
+    background: var(--webops-color-bg-elevated);
+    border-radius: var(--webops-radius-lg);
+    padding: var(--webops-space-4);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-table-container {
+    overflow-x: auto;
+    border-radius: var(--webops-radius-md);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--webops-color-bg-secondary);
+}
+
+.webops-data-table th,
+.webops-data-table td {
+    padding: var(--webops-space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-data-table th {
+    background: var(--webops-color-bg-tertiary);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+}
+
+.webops-data-table td {
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-score-badge {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    font-size: var(--webops-font-size-sm);
+    display: inline-block;
+}
+
+.webops-score-0, .webops-score-1, .webops-score-2, .webops-score-3, .webops-score-4, .webops-score-5, .webops-score-6 {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-score-7 {
+    background: var(--webops-color-warning-alpha-10);
+    color: var(--webops-color-warning);
+}
+
+.webops-score-8, .webops-score-9 {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-status-badge {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-xs);
+    text-transform: uppercase;
+    font-weight: var(--webops-font-weight-semibold);
+    letter-spacing: var(--webops-letter-spacing-wide);
+}
+
+.webops-status-running {
+    background: var(--webops-color-info-alpha-10);
+    color: var(--webops-color-info);
+}
+
+.webops-status-completed {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-status-failed {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-status-cancelled {
+    background: var(--webops-color-neutral-alpha-10);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-alerts-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-alert-item {
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-2);
+    border-left: 4px solid;
+    background: var(--webops-color-bg-secondary);
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+}
+
+.webops-alert-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-alert-critical {
+    background: var(--webops-color-error-alpha-10);
+    border-left-color: var(--webops-color-error);
+}
+
+.webops-alert-error {
+    background: var(--webops-color-warning-alpha-10);
+    border-left-color: var(--webops-color-warning);
+}
+
+.webops-alert-warning {
+    background: var(--webops-color-warning-alpha-10);
+    border-left-color: var(--webops-color-warning);
+}
+
+.webops-alert-info {
+    background: var(--webops-color-info-alpha-10);
+    border-left-color: var(--webops-color-info);
+}
+
+.webops-alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--webops-space-2);
+}
+
+.webops-alert-header h4 {
+    margin: 0;
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-alert-time {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-tertiary);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-alert-item p {
+    color: var(--webops-color-text-secondary);
+    margin: 0;
+    line-height: var(--webops-line-height-relaxed);
+}
+
+.webops-alert-actions {
+    display: flex;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-2);
+}
+
+/* WebOps Button Integration */
+.webops-btn {
+    padding: var(--webops-space-2) var(--webops-space-4);
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-btn-primary {
+    background: var(--webops-color-primary);
+    color: white;
+    border-color: var(--webops-color-primary);
+}
+
+.webops-btn-primary:hover {
+    background: var(--webops-color-primary-dark);
+    border-color: var(--webops-color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.webops-btn-secondary {
+    background: var(--webops-color-bg-tertiary);
+    color: var(--webops-color-text-primary);
+    border-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-btn-secondary:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-30);
+}
+
+.webops-btn-outline {
+    background: transparent;
+    color: var(--webops-color-primary);
+    border-color: var(--webops-color-primary-alpha-30);
+}
+
+.webops-btn-outline:hover {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary-light);
+}
+
+.webops-btn-sm {
+    padding: var(--webops-space-1-5) var(--webops-space-3);
+    font-size: var(--webops-font-size-xs);
+}
+
+.webops-btn-success {
+    background: var(--webops-color-success);
+    color: white;
+    border-color: var(--webops-color-success);
+}
+
+.webops-btn-success:hover {
+    background: var(--webops-color-primary-dark);
+    border-color: var(--webops-color-primary-dark);
+}
+
+.webops-text-muted {
+    color: var(--webops-color-text-tertiary) !important;
+}
+
+.webops-text-center {
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .webops-dashboard-columns {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-3);
+    }
+    
+    .webops-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .webops-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .webops-overview-card {
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-card-icon {
+        width: 50px;
+        height: 50px;
+        font-size: var(--webops-font-size-4xl);
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Compliance Chart
+const ctx = document.getElementById('complianceChart').getContext('2d');
+const frameworkStats = {{ framework_stats|safe }};
+
+const complianceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: frameworkStats.map(stat => stat.framework.name),
+        datasets: [{
+            label: 'Total Controls',
+            data: frameworkStats.map(stat => stat.total_controls),
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }, {
+            label: 'Implemented Controls',
+            data: frameworkStats.map(stat => stat.implemented_controls),
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }, {
+            label: 'Automated Controls',
+            data: frameworkStats.map(stat => stat.automated_controls),
+            backgroundColor: 'rgba(255, 159, 64, 0.8)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Compliance Controls Overview'
+            },
+            legend: {
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Trigger Security Scan
+function triggerScan() {
+    const scanType = prompt('Select scan type:', 'comprehensive');
+    if (!scanType) return;
+    
+    fetch('{% url "compliance:api_scan_now" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `scan_type=${scanType}&target=system`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Security scan initiated successfully!');
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+// Generate Report
+function generateReport() {
+    const frameworkId = prompt('Enter framework ID:');
+    if (!frameworkId) return;
+    
+    const reportType = prompt('Select report type:', 'assessment');
+    if (!reportType) return;
+    
+    const periodStart = prompt('Enter period start (YYYY-MM-DD):');
+    if (!periodStart) return;
+    
+    const periodEnd = prompt('Enter period end (YYYY-MM-DD):');
+    if (!periodEnd) return;
+    
+    fetch('{% url "compliance:api_generate_report" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `framework_id=${frameworkId}&report_type=${reportType}&period_start=${periodStart}&period_end=${periodEnd}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Report generated successfully!');
+            window.location.href = `{% url "compliance:report_detail" "0" %}`.replace('0', data.report_id);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+// Resolve Alert
+function resolveAlert(alertId) {
+    if (confirm('Are you sure you want to resolve this alert?')) {
+        fetch(`{% url "compliance:resolve_alert" "0" %}`.replace('0', alertId), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error resolving alert');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+// Auto-refresh dashboard every 30 seconds
+setInterval(function() {
+    fetch('{% url "compliance:api_dashboard_stats" %}')
+    .then(response => response.json())
+    .then(data => {
+        // Update dashboard cards with new data
+        // This is a simplified version - in a real implementation,
+        // you'd update specific elements rather than reloading
+        if (data.active_alerts !== {{ alert_count }}) {
+            window.location.reload();
+        }
+    })
+    .catch(error => console.error('Error refreshing dashboard:', error));
+}, 30000);
+</script>
+{% endblock %}

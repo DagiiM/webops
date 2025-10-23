@@ -69,7 +69,7 @@ class Command(BaseCommand):
         """Setup libvirt NAT network."""
         self.stdout.write('Setting up NAT network...')
 
-        from addons.kvm.networking import NetworkManager
+        from ...networking import NetworkManager
 
         network_mgr = NetworkManager()
 
@@ -92,7 +92,7 @@ class Command(BaseCommand):
         """Create default VM plans and OS templates."""
         self.stdout.write('Creating default plans and templates...')
 
-        from addons.kvm.models import VMPlan, OSTemplate
+        from ...models import VMPlan, OSTemplate
         from decimal import Decimal
 
         # Default VM plans

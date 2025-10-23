@@ -23,18 +23,41 @@
     <!-- Web App Manifest for PWA -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
     
+    <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <!-- Core CSS Variables (Custom Properties) -->
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    
+    <!-- Base Styles (Typography, Reset) -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    <!-- Theme System -->
     <link rel="stylesheet" href="{% static 'css/themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-transitions.css' %}">
+    
+    <!-- Component Library -->
+    <link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-layout.css' %}">
+    
+    <!-- Feature-Specific Styles -->
     <link rel="stylesheet" href="{% static 'css/toast.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications-center.css' %}">
+    <link rel="stylesheet" href="{% static 'css/workflow-toolbar.css' %}">
+    
+    <!-- Dynamic branding variables -->
     <style>
-    {{ branding.generate_css_variables|safe }}
+        {{ branding.generate_css_variables|safe }}
     </style>
-    {% block extra_css %}{% endblock %}
+    
+    <!-- Page-specific CSS (via extra_css_first block) -->
     {% block extra_css_first %}{% endblock %}
+    
+    <!-- Legacy layout styles (to be moved to webops-layout.css) -->
     <style>
+        /* Temporary legacy styles - these should be moved to webops-layout.css */
         .webops-app-layout {
             display: flex;
             min-height: 100vh;
@@ -46,8 +69,8 @@
             width: 260px;
             background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(0, 255, 136, 0.1);
-            padding: var(--webops-space-3);
+            border-right: 1px solid var(--webops-color-primary-alpha-15);
+            padding: var(--webops-space-6);
             position: fixed;
             left: 0;
             top: 0;
@@ -58,13 +81,13 @@
         }
 
         .webops-sidebar-header {
-            margin-bottom: var(--webops-space-3);
+            margin-bottom: var(--webops-space-6);
         }
 
         .webops-sidebar-brand {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-1-5);
+            gap: var(--webops-space-3);
             font-size: var(--webops-font-size-xl);
             font-weight: var(--webops-font-weight-bold);
             color: var(--webops-color-primary);
@@ -81,30 +104,30 @@
             color: var(--webops-color-text-tertiary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: var(--webops-space-1-5);
+            margin-bottom: var(--webops-space-3);
         }
 
         .webops-nav-item {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-1-5);
-            padding: var(--webops-space-1-5) var(--webops-space-3);
+            gap: var(--webops-space-3);
+            padding: var(--webops-space-3) var(--webops-space-4);
             color: var(--webops-color-text-secondary);
             text-decoration: none;
             border-radius: var(--webops-radius-md);
             transition: all var(--webops-transition-fast);
-            margin-bottom: var(--webops-space-0-5);
+            margin-bottom: var(--webops-space-1);
         }
 
         .webops-nav-item:hover {
-            background: rgba(0, 255, 136, 0.1);
+            background: var(--webops-color-primary-alpha-10);
             color: var(--webops-color-primary);
         }
 
         .webops-nav-item.active {
-            background: rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-20);
             color: var(--webops-color-primary);
-            border-left: 2px solid var(--webops-color-primary);
+            border-left: 3px solid var(--webops-color-primary);
         }
 
         .webops-main-content {
@@ -117,8 +140,8 @@
         .webops-header {
             background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
-            padding: var(--webops-space-3) var(--webops-space-3);
+            border-bottom: 1px solid var(--webops-color-primary-alpha-15);
+            padding: var(--webops-space-4) var(--webops-space-6);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -139,7 +162,7 @@
         .webops-user-menu {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-1-5);
+            gap: var(--webops-space-3);
             color: var(--webops-color-text);
         }
 
@@ -158,8 +181,8 @@
         .webops-theme-toggle {
             height: 40px;
             border-radius: var(--webops-radius-md);
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-10);
+            border: 1px solid var(--webops-color-primary-alpha-20);
             color: var(--webops-color-primary);
             cursor: pointer;
             display: flex;
@@ -169,7 +192,7 @@
         }
 
         .webops-theme-toggle:hover {
-            background: rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-20);
             border-color: var(--webops-color-primary);
         }
 
@@ -177,8 +200,8 @@
             width: 40px;
             height: 40px;
             border-radius: var(--webops-radius-md);
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-10);
+            border: 1px solid var(--webops-color-primary-alpha-20);
             color: var(--webops-color-primary);
             cursor: pointer;
             display: flex;
@@ -188,7 +211,7 @@
         }
 
         .webops-settings-button:hover {
-            background: rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-20);
             border-color: var(--webops-color-primary);
         }
 
@@ -200,12 +223,12 @@
         .webops-user-menu-trigger {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-1-5);
+            gap: var(--webops-space-3);
             background: transparent;
             border: none;
             color: var(--webops-color-text);
             cursor: pointer;
-            padding: var(--webops-space-1-5) var(--webops-space-3);
+            padding: var(--webops-space-3) var(--webops-space-4);
             border-radius: var(--webops-radius-md);
             transition: all var(--webops-transition-fast);
             font-family: inherit;
@@ -213,11 +236,11 @@
         }
 
         .webops-user-menu-trigger:hover {
-            background: rgba(0, 255, 136, 0.1);
+            background: var(--webops-color-primary-alpha-10);
         }
 
         .webops-user-menu-trigger.active {
-            background: rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-20);
         }
 
         .webops-dropdown-arrow {
@@ -233,10 +256,10 @@
             position: absolute;
             top: 100%;
             right: 0;
-            margin-top: var(--webops-space-1-5);
+            margin-top: var(--webops-space-3);
             background: var(--webops-color-bg-primary);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--webops-color-primary-alpha-20);
             border-radius: var(--webops-radius-lg);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             min-width: 280px;
@@ -257,8 +280,8 @@
             display: flex;
             align-items: center;
             gap: var(--webops-space-3);
-            padding: var(--webops-space-3);
-            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-6);
+            border-bottom: 1px solid var(--webops-color-primary-alpha-10);
         }
 
         .webops-user-avatar-large {
@@ -281,7 +304,7 @@
         .webops-user-name {
             font-weight: var(--webops-font-weight-semibold);
             color: var(--webops-color-text);
-            margin-bottom: var(--webops-space-0-5);
+            margin-bottom: var(--webops-space-1);
         }
 
         .webops-user-email {
@@ -291,15 +314,15 @@
 
         .webops-user-dropdown-divider {
             height: 1px;
-            background: rgba(0, 255, 136, 0.1);
-            margin: var(--webops-space-1-5) 0;
+            background: var(--webops-color-primary-alpha-10);
+            margin: var(--webops-space-3) 0;
         }
 
         .webops-user-dropdown-item {
             display: flex;
             align-items: center;
-            gap: var(--webops-space-1-5);
-            padding: var(--webops-space-3) var(--webops-space-3);
+            gap: var(--webops-space-3);
+            padding: var(--webops-space-3) var(--webops-space-4);
             color: var(--webops-color-text-secondary);
             text-decoration: none;
             background: transparent;
@@ -313,7 +336,7 @@
         }
 
         .webops-user-dropdown-item:hover {
-            background: rgba(0, 255, 136, 0.1);
+            background: var(--webops-color-primary-alpha-10);
             color: var(--webops-color-primary);
         }
 
@@ -322,7 +345,7 @@
         }
 
         .webops-user-dropdown-item-danger:hover {
-            background: rgba(255, 68, 68, 0.1);
+            background: var(--webops-color-error-alpha-10);
             color: var(--webops-color-error);
         }
 
@@ -337,7 +360,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--webops-color-modal-backdrop);
             backdrop-filter: blur(4px);
             display: none;
             align-items: center;
@@ -355,7 +378,7 @@
         .modal {
             background: var(--header-bg);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 136, 0.3);
+            border: 1px solid var(--webops-color-primary-alpha-30);
             border-radius: var(--webops-radius-lg);
             width: 90%;
             max-width: 500px;
@@ -370,26 +393,26 @@
         }
 
         .modal-header {
-            padding: var(--webops-space-3);
-            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-6);
+            border-bottom: 1px solid var(--webops-color-primary-alpha-10);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .modal-title {
-            font-size: var(--webops-font-size-sm);
-            font-weight: var(--font-weight-semibold);
+            font-size: var(--webops-font-size-lg);
+            font-weight: var(--webops-font-weight-semibold);
             color: var(--webops-color-text-primary);
         }
 
         .modal-close {
             width: 32px;
             height: 32px;
-            border-radius: var(--webops-radius-sm);
+            border-radius: var(--webops-radius-md);
             background: transparent;
             border: none;
-            color: var(--webops-color-text-secondary);
+            color: var(--webops-color-text-tertiary);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -399,20 +422,20 @@
         }
 
         .modal-close:hover {
-            background: rgba(255, 68, 68, 0.1);
-            color: var(--webops-color-error);
+            background: var(--webops-color-surface-hover);
+            color: var(--webops-color-text-primary);
         }
 
         .modal-body {
-            padding: var(--webops-space-3);
+            padding: var(--webops-space-6);
         }
 
         .setting-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--webops-space-3) 0;
-            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-6) 0;
+            border-bottom: 1px solid var(--webops-color-primary-alpha-10);
         }
 
         .setting-item:last-child {
@@ -420,10 +443,10 @@
         }
 
         .setting-info h4 {
-            font-size: var(--webops-font-size-sm);
+            font-size: var(--webops-font-size-lg);
             font-weight: var(--webops-font-weight-medium);
             color: var(--webops-color-text-primary);
-            margin-bottom: var(--webops-space-0-5);
+            margin-bottom: var(--webops-space-1);
         }
 
         .setting-info p {
@@ -451,8 +474,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(168, 201, 187, 0.2);
-            border: 1px solid rgba(168, 201, 187, 0.3);
+            background: var(--webops-color-surface);
+            border: 1px solid var(--webops-color-primary-alpha-20);
             transition: var(--webops-transition-base);
             border-radius: 28px;
         }
@@ -470,7 +493,7 @@
         }
 
         .toggle-switch input:checked + .toggle-slider {
-            background: rgba(0, 255, 136, 0.2);
+            background: var(--webops-color-primary-alpha-20);
             border-color: var(--webops-color-primary);
         }
 
@@ -481,47 +504,47 @@
 
         .container {
             flex: 1;
-            padding: var(--webops-space-3) var(--webops-space-3);
+            padding: var(--webops-space-6);
         }
 
         .messages {
-            margin-bottom: var(--webops-space-3);
+            margin-bottom: var(--webops-space-6);
         }
 
         .alert {
-            padding: var(--webops-space-3) var(--webops-space-3);
-            border-radius: var(--webops-radius-md);
-            margin-bottom: var(--webops-space-1-5);
+            padding: var(--webops-space-4);
+            border-radius: var(--webops-radius-lg);
+            margin-bottom: var(--webops-space-3);
             border-left: 3px solid;
         }
 
         .alert-success {
-            background: rgba(0, 255, 136, 0.1);
+            background: var(--webops-color-success-alpha-10);
             border-color: var(--webops-color-success);
             color: var(--webops-color-success);
         }
 
         .alert-error {
-            background: rgba(255, 68, 68, 0.1);
+            background: var(--webops-color-error-alpha-10);
             border-color: var(--webops-color-error);
             color: var(--webops-color-error);
         }
 
         .alert-warning {
-            background: rgba(255, 170, 0, 0.1);
+            background: var(--webops-color-warning-alpha-10);
             border-color: var(--webops-color-warning);
             color: var(--webops-color-warning);
         }
 
         .alert-info {
-            background: rgba(0, 170, 255, 0.1);
+            background: var(--webops-color-info-alpha-10);
             border-color: var(--webops-color-info);
             color: var(--webops-color-info);
         }
 
         footer {
-            padding: var(--webops-space-3) var(--webops-space-3);
-            border-top: 1px solid rgba(0, 255, 136, 0.1);
+            padding: var(--webops-space-6);
+            border-top: 1px solid var(--webops-color-primary-alpha-15);
             color: var(--webops-color-text-tertiary);
             text-align: center;
             font-size: var(--webops-font-size-sm);
@@ -542,11 +565,11 @@
         .sidebar-toggle {
             display: none;
             position: fixed;
-            top: var(--webops-space-3);
-            left: var(--webops-space-3);
+            top: var(--webops-space-4);
+            left: var(--webops-space-4);
             z-index: 1001;
-            background: var(--header-bg);
-            border: 1px solid rgba(0, 255, 136, 0.3);
+            background: var(--webops-color-bg-elevated);
+            border: 1px solid var(--webops-color-primary-alpha-20);
             color: var(--webops-color-primary);
             width: 40px;
             height: 40px;
@@ -556,32 +579,33 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
+            .webops-sidebar {
                 transform: translateX(-100%);
             }
 
-            .sidebar.active {
+            .webops-sidebar.active {
                 transform: translateX(0);
             }
 
-            .sidebar-overlay.active {
+            .webops-sidebar-overlay.active {
                 display: block;
             }
 
-            .sidebar-toggle {
+            .webops-sidebar-toggle {
                 display: block;
             }
 
-            .main-content {
+            .webops-main-content {
                 margin-left: 0;
             }
 
-            .header-title {
-                font-size: var(--webops-font-size-sm);
+            .webops-header-title {
+                font-size: var(--webops-font-size-lg);
                 margin-left: 48px;
             }
         }
     </style>
+  
 </head>
 <body>
     <div class="webops-app-background"></div>
@@ -647,43 +671,43 @@
     <!-- Settings Modal -->
     <div class="webops-modal-overlay" id="settingsModal">
         <div class="webops-modal">
-            <div class="webops-modal-header">
-                <h2 class="webops-modal-title">Settings</h2>
-                <button class="webops-modal-close" id="closeSettings">
-                    <span class="material-icons" style="font-size: 20px;">close</span>
+            <div class="webops-modal__header">
+                <h2 class="webops-modal__title">Settings</h2>
+                <button class="webops-modal__close" id="closeSettings">
+                    <span class="webops-icon webops-icon--small">close</span>
                 </button>
             </div>
-            <div class="webops-modal-body">
+            <div class="webops-modal__body">
                 <div class="webops-setting-item">
-                    <div class="webops-setting-info">
-                        <h4>Dark Mode</h4>
-                        <p>Switch between dark and light theme</p>
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Dark Mode</h4>
+                        <p class="webops-setting-item__description">Switch between dark and light theme</p>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="toggle-slider"></span>
+                    <label class="webops-toggle-switch">
+                        <input type="checkbox" class="webops-toggle-switch__input" id="darkModeToggle">
+                        <span class="webops-toggle-switch__slider"></span>
                     </label>
                 </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <h4>Animations</h4>
-                        <p>Enable or disable UI animations</p>
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Animations</h4>
+                        <p class="webops-setting-item__description">Enable or disable UI animations</p>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="animationsToggle" checked>
-                        <span class="toggle-slider"></span>
+                    <label class="webops-toggle-switch">
+                        <input type="checkbox" class="webops-toggle-switch__input" id="animationsToggle" checked>
+                        <span class="webops-toggle-switch__slider"></span>
                     </label>
                 </div>
 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <h4>Compact View</h4>
-                        <p>Reduce spacing for more content</p>
+                <div class="webops-setting-item">
+                    <div class="webops-setting-item__info">
+                        <h4 class="webops-setting-item__title">Compact View</h4>
+                        <p class="webops-setting-item__description">Reduce spacing for more content</p>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="compactToggle">
-                        <span class="toggle-slider"></span>
+                    <label class="webops-toggle-switch">
+                        <input type="checkbox" class="webops-toggle-switch__input" id="compactToggle">
+                        <span class="webops-toggle-switch__slider"></span>
                     </label>
                 </div>
             </div>
@@ -691,6 +715,7 @@
     </div>
 
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>
     <script src="{% static 'js/responsive-tables.js' %}"></script>
     <script src="{% static 'js/toast.js' %}"></script>
     <script src="{% static 'js/notifications-center.js' %}"></script>
@@ -713,119 +738,9 @@
                 });
             }
 
-            // Theme Management
-            const themeToggle = document.getElementById('themeToggle');
-            const themeLabel = document.querySelector('.webops-theme-toggle__label');
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            const themeSwitcher = document.querySelector('.webops-theme-switcher');
-            const themeDropdown = document.getElementById('themeDropdown');
-            const themeOptions = document.querySelectorAll('.webops-theme-option');
+            // Theme Management - Handled by theme-switcher.js
 
-            // Load saved theme
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeUI(savedTheme);
-            
-            // Set initial active theme option
-            themeOptions.forEach(option => {
-                if (option.getAttribute('data-theme') === savedTheme) {
-                    option.classList.add('active');
-                    if (themeLabel) {
-                        themeLabel.textContent = option.querySelector('.webops-theme-option__label').textContent;
-                    }
-                }
-            });
 
-            function updateThemeUI(theme) {
-                if (theme === 'light') {
-                    if (themeLabel) themeLabel.textContent = 'Light';
-                    if (darkModeToggle) darkModeToggle.checked = false;
-                } else {
-                    if (themeLabel) themeLabel.textContent = 'Dark';
-                    if (darkModeToggle) darkModeToggle.checked = true;
-                }
-            }
-
-            function toggleTheme() {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeUI(newTheme);
-            }
-
-            // Theme dropdown functionality
-
-            if (themeToggle && themeDropdown) {
-                themeToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const isOpen = themeSwitcher.classList.contains('open');
-                    themeSwitcher.classList.toggle('open', !isOpen);
-                    themeToggle.setAttribute('aria-expanded', !isOpen);
-                });
-            }
-
-            // Handle theme option selection
-            themeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const selectedTheme = this.getAttribute('data-theme');
-                    document.documentElement.setAttribute('data-theme', selectedTheme);
-                    localStorage.setItem('theme', selectedTheme);
-                    
-                    // Update active state
-                    themeOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update label
-                    if (themeLabel) {
-                        themeLabel.textContent = this.querySelector('.webops-theme-option__label').textContent;
-                    }
-                    
-                    // Close dropdown
-                    if (themeSwitcher) {
-                        themeSwitcher.classList.remove('open');
-                        themeToggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (themeSwitcher && !themeToggle.contains(e.target) && !themeDropdown.contains(e.target)) {
-                    themeSwitcher.classList.remove('open');
-                    themeToggle.setAttribute('aria-expanded', 'false');
-                }
-            });
-
-            if (darkModeToggle) {
-                darkModeToggle.addEventListener('change', function() {
-                    toggleTheme();
-                });
-            }
-
-            // Settings Modal
-            const settingsButton = document.getElementById('settingsButton');
-            const settingsModal = document.getElementById('settingsModal');
-            const closeSettings = document.getElementById('closeSettings');
-
-            if (settingsButton) {
-                settingsButton.addEventListener('click', function() {
-                    settingsModal.classList.add('active');
-                });
-            }
-
-            if (closeSettings) {
-                closeSettings.addEventListener('click', function() {
-                    settingsModal.classList.remove('active');
-                });
-            }
-
-            // Close modal on overlay click
-            settingsModal.addEventListener('click', function(e) {
-                if (e.target === settingsModal) {
-                    settingsModal.classList.remove('active');
-                }
-            });
 
             // User Dropdown Menu
             const userMenuTrigger = document.getElementById('userMenuTrigger');
@@ -864,9 +779,35 @@
 
             // User settings button in dropdown opens settings modal
             if (userSettingsButton) {
-                userSettingsButton.addEventListener('click', function() {
+                userSettingsButton.addEventListener('click', function(e) {
+                    e.preventDefault();
                     closeUserDropdown();
-                    settingsModal.classList.add('active');
+                    
+                    // Show the settings modal
+                    const settingsModal = document.getElementById('settingsModal');
+                    if (settingsModal) {
+                        settingsModal.classList.add('active');
+                        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    }
+                });
+            }
+            
+            // Close settings modal functionality
+            const settingsModal = document.getElementById('settingsModal');
+            const closeSettingsBtn = document.getElementById('closeSettings');
+            
+            if (closeSettingsBtn && settingsModal) {
+                closeSettingsBtn.addEventListener('click', function() {
+                    settingsModal.classList.remove('active');
+                    document.body.style.overflow = ''; // Restore scrolling
+                });
+                
+                // Close modal when clicking on the overlay
+                settingsModal.addEventListener('click', function(e) {
+                    if (e.target === settingsModal) {
+                        settingsModal.classList.remove('active');
+                        document.body.style.overflow = ''; // Restore scrolling
+                    }
                 });
             }
 
@@ -913,7 +854,9 @@
         });
     </script>
     <script src="{% static 'js/theme-switcher.js' %}"></script>
+    <script src="{% static 'js/theme-integration.js' %}"></script>
     <script src="{% static 'js/header.js' %}"></script>
+    <script src="{% static 'js/sidebar-toggle.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

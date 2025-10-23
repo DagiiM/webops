@@ -5,7 +5,7 @@ import time
 
 from django.contrib.auth.models import User
 from apps.api.models import APIToken
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment
 from apps.services.background.memory_adapter import InMemoryBackgroundProcessor
 
 
@@ -29,7 +29,7 @@ class APIDeploymentAdapterTests(TestCase):
         )
 
         with mock.patch('apps.api.views.get_background_processor', return_value=adapter), \
-             mock.patch('apps.deployments.service_manager.ServiceManager.ensure_celery_running', return_value=None):
+             mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             payload = {
                 'name': 'api-test-app',
                 'repo_url': 'https://github.com/user/repo',
@@ -64,18 +64,18 @@ class APIDeploymentAdapterTests(TestCase):
         )
 
         # Create a deployment owned by the API user
-        dep = Deployment.objects.create(
+        dep = ApplicationDeployment.objects.create(
             name='api-delete-app',
             repo_url='https://github.com/user/repo',
             branch='main',
             domain='',
             env_vars={},
             deployed_by=self.user,
-            status=Deployment.Status.PENDING,
+            status=ApplicationDeployment.Status.PENDING,
         )
 
         with mock.patch('apps.api.views.get_background_processor', return_value=adapter), \
-             mock.patch('apps.deployments.service_manager.ServiceManager.ensure_celery_running', return_value=None):
+             mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             resp = self.client.delete(
                 reverse('api_deployment_delete', kwargs={'name': dep.name}),
                 **self.auth_header,

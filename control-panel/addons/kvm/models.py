@@ -7,7 +7,7 @@ Extends WebOps with virtual machine deployment capabilities.
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
-from apps.core.models import BaseModel
+from apps.core.common.models import BaseModel
 from decimal import Decimal
 
 User = get_user_model()

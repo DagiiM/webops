@@ -1,11 +1,11 @@
 """
 Admin configuration for core app.
 
-Reference: CLAUDE.md "Django Admin" section
+"Django Admin" section
 """
 
 from django.contrib import admin
-from apps.core.models import (
+from .models import (
     TwoFactorAuth,
     GitHubConnection,
     HuggingFaceConnection,

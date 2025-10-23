@@ -226,7 +226,7 @@ from apps.deployments.models import Deployment
 from addons.kvm.deployment_service import KVMDeploymentService
 from addons.kvm.models import VMPlan, OSTemplate
 
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     user=request.user,
     name='my-vm',
     deployment_type='kvm',

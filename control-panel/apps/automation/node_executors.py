@@ -40,7 +40,7 @@ class GoogleDocsExecutor(BaseNodeExecutor):
     """Fetch data from Google Docs."""
 
     def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
-        from apps.core.integration_services import GoogleIntegrationService
+        from apps.core.integrations.services import GoogleIntegrationService
         
         config = node.config
         doc_id = config.get('document_id')
@@ -68,25 +68,45 @@ class GoogleDocsExecutor(BaseNodeExecutor):
             
             response = requests.get(docs_api_url, headers=headers, timeout=30)
             
+            # Check if response is JSON before trying to parse it
+            content_type = response.headers.get('content-type', '').lower()
+            
             if response.status_code == 200:
-                doc_data = response.json()
-                
-                # Extract text content from the document structure
-                content = self._extract_text_from_doc(doc_data)
-                
-                return {
-                    'content': content,
-                    'document_id': doc_id,
-                    'title': doc_data.get('title', 'Untitled Document'),
-                    'revision_id': doc_data.get('revisionId'),
-                    'document_url': f"https://docs.google.com/document/d/{doc_id}"
-                }
+                # Only try to parse JSON if content-type indicates JSON
+                if 'application/json' in content_type:
+                    try:
+                        doc_data = response.json()
+                        
+                        # Extract text content from the document structure
+                        content = self._extract_text_from_doc(doc_data)
+                        
+                        return {
+                            'content': content,
+                            'document_id': doc_id,
+                            'title': doc_data.get('title', 'Untitled Document'),
+                            'revision_id': doc_data.get('revisionId'),
+                            'document_url': f"https://docs.google.com/document/d/{doc_id}"
+                        }
+                    except ValueError as e:
+                        # If JSON parsing fails, log the response content for debugging
+                        logger.error(f"Failed to parse Google Docs API response as JSON. Response content: {response.text[:500]}")
+                        raise ValueError(f"Invalid response from Google Docs API. The API returned HTML instead of JSON. This usually indicates an authentication or permission issue.")
+                else:
+                    # If not JSON, log the response content
+                    logger.error(f"Google Docs API returned non-JSON response. Content-Type: {content_type}, Response: {response.text[:500]}")
+                    raise ValueError(f"Google Docs API returned an unexpected response format. Content-Type: {content_type}")
             elif response.status_code == 403:
                 raise ValueError(f"Access denied to Google Doc {doc_id}. Please check document permissions.")
             elif response.status_code == 404:
                 raise ValueError(f"Google Doc {doc_id} not found.")
             else:
-                raise ValueError(f"Failed to fetch Google Doc: HTTP {response.status_code}")
+                # For other error codes, try to get error message from response
+                try:
+                    error_data = response.json() if 'application/json' in content_type else {}
+                    error_msg = error_data.get('error', {}).get('message', f"HTTP {response.status_code}")
+                except:
+                    error_msg = f"HTTP {response.status_code}"
+                raise ValueError(f"Failed to fetch Google Doc: {error_msg}")
                 
         except Exception as e:
             logger.error(f"Failed to fetch Google Doc {doc_id}: {e}")
@@ -129,6 +149,9 @@ class CustomURLExecutor(BaseNodeExecutor):
 
         # Replace variables in URL with input data
         url = url.format(**input_data) if '{' in url else url
+        
+        # Validate URL to prevent SSRF attacks
+        self._validate_url(url)
 
         try:
             response = requests.request(
@@ -149,15 +172,113 @@ class CustomURLExecutor(BaseNodeExecutor):
                     'headers': dict(response.headers)
                 }
             except ValueError:
-                return {
-                    'data': response.text,
-                    'status_code': response.status_code,
-                    'headers': dict(response.headers)
-                }
+                # Response is not JSON - could be HTML error page or plain text
+                response_text = response.text
+                if response_text.strip().startswith('<!DOCTYPE') or response_text.strip().startswith('<html'):
+                    logger.warning(f"URL {url} returned HTML content instead of JSON. Status: {response.status_code}")
+                    return {
+                        'data': response_text[:500],  # Truncate HTML
+                        'status_code': response.status_code,
+                        'headers': dict(response.headers),
+                        'warning': 'Received HTML response instead of expected JSON format'
+                    }
+                else:
+                    return {
+                        'data': response_text,
+                        'status_code': response.status_code,
+                        'headers': dict(response.headers)
+                    }
 
-        except requests.RequestException as e:
-            logger.error(f"Failed to fetch from URL {url}: {e}")
+        except requests.exceptions.HTTPError as e:
+            error_msg = f"HTTP {e.response.status_code} error from URL {url}"
+            
+            # Try to extract meaningful error message from response
+            try:
+                if e.response.headers.get('content-type', '').lower().startswith('application/json'):
+                    error_data = e.response.json()
+                    if isinstance(error_data, dict) and 'error' in error_data:
+                        error_msg += f": {error_data['error']}"
+                    elif isinstance(error_data, dict) and 'message' in error_data:
+                        error_msg += f": {error_data['message']}"
+                    else:
+                        error_msg += f": {str(error_data)}"
+                else:
+                    # For non-JSON responses, include first 200 chars of response
+                    error_text = e.response.text[:200]
+                    if error_text.startswith('<!DOCTYPE') or error_text.startswith('<html'):
+                        error_msg += ": Received HTML error page (check URL endpoint)"
+                    else:
+                        error_msg += f": {error_text}"
+            except Exception:
+                # If we can't parse the error response, just include basic info
+                error_msg += f" (response parsing failed)"
+            
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Failed to fetch from URL {url}: {str(e)}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+    
+    def _validate_url(self, url: str) -> None:
+        """
+        Validate URL to prevent SSRF attacks.
+        
+        Only allows HTTP/HTTPS to external services, blocking internal network access.
+        """
+        from urllib.parse import urlparse
+        import ipaddress
+        import socket
+        
+        try:
+            parsed = urlparse(url)
+            
+            # Only allow HTTP and HTTPS schemes
+            if parsed.scheme not in ('http', 'https'):
+                raise ValueError(f"URL scheme '{parsed.scheme}' is not allowed. Only HTTP and HTTPS are permitted.")
+            
+            # Resolve hostname to IP address
+            if parsed.hostname:
+                # Block localhost and private IP ranges
+                try:
+                    ip = socket.gethostbyname(parsed.hostname)
+                    ip_obj = ipaddress.ip_address(ip)
+                    
+                    # Check if IP is private or localhost
+                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
+                        raise ValueError(f"Access to internal network address '{ip}' is not allowed")
+                    
+                    # Block common internal infrastructure IPs
+                    blocked_ranges = [
+                        ipaddress.ip_network('169.254.169.254/32'),  # AWS metadata
+                        ipaddress.ip_network('metadata.google.internal/32'),  # GCP metadata
+                    ]
+                    
+                    for blocked_range in blocked_ranges:
+                        if ip_obj in blocked_range:
+                            raise ValueError(f"Access to infrastructure address '{ip}' is not allowed")
+                
+                except socket.gaierror:
+                    # If hostname can't be resolved, allow it (might be a DNS name)
+                    pass
+                
+                # Block certain hostname patterns
+                blocked_hostnames = [
+                    'localhost',
+                    'metadata.google.internal',
+                    '169.254.169.254',
+                ]
+                
+                if parsed.hostname.lower() in blocked_hostnames:
+                    raise ValueError(f"Access to '{parsed.hostname}' is not allowed")
+            
+        except ValueError:
+            # Re-raise our custom validation errors
             raise
+        except Exception as e:
+            # For any other parsing errors, block the request
+            raise ValueError(f"Invalid URL format: {e}")
 
 
 class WebhookInputExecutor(BaseNodeExecutor):
@@ -190,13 +311,13 @@ class DatabaseQueryExecutor(BaseNodeExecutor):
         if not query:
             raise ValueError("Query not configured")
 
-        # Replace variables in query with input data
-        query = query.format(**input_data) if '{' in query else query
+        # Safe parameter substitution - never use string formatting for SQL
+        final_query, final_params = self._prepare_query_with_params(query, input_data, params)
 
         with connection.cursor() as cursor:
-            cursor.execute(query, params)
+            cursor.execute(final_query, final_params)
 
-            if query.strip().upper().startswith('SELECT'):
+            if final_query.strip().upper().startswith('SELECT'):
                 columns = [col[0] for col in cursor.description]
                 results = [
                     dict(zip(columns, row))
@@ -205,6 +326,39 @@ class DatabaseQueryExecutor(BaseNodeExecutor):
                 return {'data': results, 'count': len(results)}
             else:
                 return {'affected_rows': cursor.rowcount}
+    
+    def _prepare_query_with_params(self, query: str, input_data: Dict[str, Any], params: list) -> tuple:
+        """
+        Safely prepare query with parameters.
+        
+        Uses parameterized queries instead of string formatting.
+        """
+        # Don't allow string formatting in SQL queries
+        if '{' in query:
+            raise ValueError("Direct string formatting in SQL queries is not allowed for security reasons")
+        
+        # If input_data should be used, convert to parameters
+        if input_data and not params:
+            # Create a parameterized query from input_data
+            # This is a simplified approach - in production, you might want more sophisticated handling
+            param_list = []
+            param_dict = {}
+            
+            # Extract values from input_data
+            for key, value in input_data.items():
+                if isinstance(value, (str, int, float, bool)):
+                    param_dict[f"param_{key}"] = value
+                    param_list.append(value)
+            
+            # Replace named parameters with %s for PostgreSQL
+            # Note: This is a simplified approach and might need adjustment based on database
+            modified_query = query
+            for key in param_dict.keys():
+                modified_query = modified_query.replace(f"%({key})s", "%s")
+            
+            return modified_query, param_list
+        
+        return query, params
 
 
 # =============================================================================
@@ -277,9 +431,32 @@ class LLMProcessorExecutor(BaseNodeExecutor):
                 'finish_reason': response.choices[0].finish_reason
             }
 
+        except openai.error.AuthenticationError as e:
+            logger.error(f"OpenAI API authentication failed: {e}")
+            raise ValueError("OpenAI API key is invalid or expired")
+        except openai.error.RateLimitError as e:
+            logger.error(f"OpenAI API rate limit exceeded: {e}")
+            raise ValueError("OpenAI API rate limit exceeded. Please try again later.")
+        except openai.error.APIError as e:
+            logger.error(f"OpenAI API error: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                # Try to extract error message from response
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get('error', {}).get('message', str(e))
+                    raise ValueError(f"OpenAI API error: {error_msg}")
+                except (ValueError, AttributeError):
+                    # If response is not JSON (e.g., HTML error page)
+                    error_content = getattr(e.response, 'text', str(e))[:200]
+                    if error_content.startswith('<!DOCTYPE') or error_content.startswith('<html'):
+                        raise ValueError("OpenAI API returned an HTML error page instead of JSON. This may indicate a service issue or network problem.")
+                    else:
+                        raise ValueError(f"OpenAI API error: {error_content}")
+            else:
+                raise ValueError(f"OpenAI API error: {str(e)}")
         except Exception as e:
             logger.error(f"LLM API call failed: {e}")
-            raise
+            raise ValueError(f"LLM API call failed: {str(e)}")
 
 
 class TransformExecutor(BaseNodeExecutor):
@@ -303,15 +480,138 @@ class TransformExecutor(BaseNodeExecutor):
             return {'data': matches}
 
         elif transform_type == 'python':
-            # Execute Python code transformation
+            # Execute Python code transformation using a safe executor
             code = config.get('code')
-            local_vars = {'input_data': input_data, 'output': {}}
-
-            exec(code, {'__builtins__': {}}, local_vars)
-
-            return local_vars.get('output', {})
+            return self._safe_execute_transform(code, input_data)
 
         return {'data': input_data}
+    
+    def _safe_execute_transform(self, code: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Safely execute transformation code without using exec().
+        
+        Supports limited data transformation operations.
+        """
+        import ast
+        import json
+        import re
+        
+        # First, check for dangerous patterns using regex as a first line of defense
+        dangerous_patterns = [
+            r'\bimport\s+\w+',  # import statements
+            r'\bfrom\s+\w+\s+import',  # from imports
+            r'\bexec\s*\(',  # exec function
+            r'\beval\s*\(',  # eval function
+            r'\bcompile\s*\(',  # compile function
+            r'\b__import__\s*\(',  # __import__ function
+            r'\bos\.system\s*\(',  # os.system calls
+            r'\bsubprocess\.',  # subprocess module
+            r'\bopen\s*\(',  # file operations
+            r'\bfile\s*\(',  # file constructor
+            r'\binput\s*\(',  # input function
+            r'\braw_input\s*\(',  # raw_input function (Python 2)
+            r'\bglobals\s*\(',  # globals function
+            r'\blocals\s*\(',  # locals function
+            r'\bvars\s*\(',  # vars function
+            r'\bdir\s*\(',  # dir function
+            r'\bgetattr\s*\(',  # getattr function
+            r'\bhasattr\s*\(',  # hasattr function
+            r'\bsetattr\s*\(',  # setattr function
+            r'\bdelattr\s*\(',  # delattr function
+            r'\btype\s*\(',  # type function (can be dangerous)
+            r'\bsuper\s*\(',  # super function
+            r'\bclass\s+\w+',  # class definitions
+            r'\bdef\s+\w+',  # function definitions
+            r';',  # semicolon (multiple statements)
+            r'\bwhile\s+',  # while loops
+            r'\bfor\s+.*\bin\s+',  # for loops
+            r'\btry\s*:',  # try blocks
+            r'\bexcept\s*:',  # except blocks
+            r'\bfinally\s*:',  # finally blocks
+            r'\bwith\s+',  # with statements
+            r'\blambda\s+',  # lambda functions
+            r'\byield',  # yield statements
+            r'\bassert\s+',  # assert statements
+            r'\bprint\s*\(',  # print function (allowed but logged)
+        ]
+        
+        for pattern in dangerous_patterns:
+            if re.search(pattern, code, re.IGNORECASE):
+                if pattern == r';':
+                    raise ValueError("Multiple statements (semicolon) are not allowed")
+                else:
+                    match = re.search(pattern, code, re.IGNORECASE)
+                    dangerous_code = match.group(0) if match else pattern
+                    raise ValueError(f"Dangerous code pattern '{dangerous_code}' is not allowed")
+        
+        # Parse the code to check for safety using AST
+        try:
+            tree = ast.parse(code)
+        except SyntaxError as e:
+            raise ValueError(f"Invalid Python syntax: {e}")
+        
+        # Check for dangerous operations in AST
+        for node in ast.walk(tree):
+            # Disallow function definitions, imports, exec, eval, etc.
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Import, ast.ImportFrom)):
+                raise ValueError("Function definitions, classes, and imports are not allowed")
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id in ['exec', 'eval', 'compile', '__import__']:
+                    raise ValueError(f"Dangerous function '{node.func.id}' is not allowed")
+            # Disallow control flow statements
+            if isinstance(node, (ast.While, ast.For, ast.If, ast.With, ast.Try, ast.ExceptHandler)):
+                raise ValueError(f"Control flow statements like '{type(node).__name__}' are not allowed")
+            # Disallow lambda expressions
+            if isinstance(node, ast.Lambda):
+                raise ValueError("Lambda expressions are not allowed")
+        
+        # For now, implement a simple transformation based on common patterns
+        # In a production system, you might want to use a library like RestrictedPython
+        
+        # Extract common transformation patterns
+        output = {}
+        
+        # Pattern 1: output['field'] = input_data['field'] or some transformation
+        for node in ast.iter_child_nodes(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if (isinstance(target, ast.Subscript) and
+                        isinstance(target.value, ast.Name) and
+                        target.value.id == 'output' and
+                        isinstance(target.slice, ast.Constant)):
+                        
+                        field_name = target.slice.value
+                        
+                        # Simple assignment from input_data
+                        if (isinstance(node.value, ast.Subscript) and
+                            isinstance(node.value.value, ast.Name) and
+                            node.value.value.id == 'input_data' and
+                            isinstance(node.value.slice, ast.Constant)):
+                            
+                            input_field = node.value.slice.value
+                            if isinstance(input_data, dict):
+                                output[field_name] = input_data.get(input_field)
+                        
+                        # String formatting
+                        elif (isinstance(node.value, ast.BinOp) and
+                              isinstance(node.value.op, ast.Add) and
+                              isinstance(node.value.left, ast.Constant) and
+                              isinstance(node.value.right, ast.Subscript) and
+                              isinstance(node.value.right.value, ast.Name) and
+                              node.value.right.value.id == 'input_data'):
+                            
+                            template = node.value.left.value
+                            if isinstance(node.value.right.slice, ast.Constant):
+                                input_field = node.value.right.slice.value
+                                if isinstance(input_data, dict):
+                                    value = input_data.get(input_field, '')
+                                    output[field_name] = template + str(value)
+        
+        # If no valid transformations found, return a copy of input_data
+        if not output:
+            return {'data': input_data}
+        
+        return {'data': output}
 
 
 class FilterExecutor(BaseNodeExecutor):
@@ -330,12 +630,119 @@ class FilterExecutor(BaseNodeExecutor):
 
             filtered = [
                 item for item in data_list
-                if eval(expression, {'__builtins__': {}}, {'item': item})
+                if self._safe_eval_filter(expression, item)
             ]
 
             return {'data': filtered, 'count': len(filtered)}
 
         return {'data': input_data}
+    
+    def _safe_eval_filter(self, expression: str, item: Any) -> bool:
+        """
+        Safely evaluate a filter expression without using eval().
+        
+        Supports basic comparisons on item fields.
+        """
+        import ast
+        import operator
+        
+        # Define safe operators
+        operators = {
+            ast.Eq: operator.eq,
+            ast.NotEq: operator.ne,
+            ast.Lt: operator.lt,
+            ast.LtE: operator.le,
+            ast.Gt: operator.gt,
+            ast.GtE: operator.ge,
+            ast.And: lambda a, b: a and b,
+            ast.Or: lambda a, b: a or b,
+            ast.Not: lambda a: not a,
+            ast.In: lambda a, b: a in b,
+            ast.NotIn: lambda a, b: a not in b,
+        }
+        
+        def _eval(node):
+            if isinstance(node, ast.BoolOp):
+                result = True
+                if isinstance(node.op, ast.And):
+                    for value in node.values:
+                        result = result and _eval(value)
+                        if not result:
+                            break
+                elif isinstance(node.op, ast.Or):
+                    for value in node.values:
+                        result = result or _eval(value)
+                        if result:
+                            break
+                return result
+                
+            elif isinstance(node, ast.UnaryOp):
+                if isinstance(node.op, ast.Not):
+                    return not _eval(node.operand)
+                else:
+                    raise ValueError(f"Unsupported unary operator: {node.op}")
+                    
+            elif isinstance(node, ast.Compare):
+                left = _eval(node.left)
+                for op, right in zip(node.ops, node.comparators):
+                    right_val = _eval(right)
+                    if not isinstance(op, (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn)):
+                        raise ValueError(f"Unsupported comparison operator: {op}")
+                    if not operators[type(op)](left, right_val):
+                        return False
+                    left = right_val
+                return True
+                
+            elif isinstance(node, ast.Name):
+                # Allow access to 'item' variable
+                if node.id == 'item':
+                    return item
+                else:
+                    raise ValueError(f"Unknown variable: {node.id}")
+                    
+            elif isinstance(node, ast.Constant):
+                return node.value
+                
+            elif isinstance(node, ast.Attribute):
+                # Allow simple attribute access on item
+                if isinstance(node.value, ast.Name) and node.value.id == 'item':
+                    if isinstance(item, dict):
+                        return item.get(node.attr)
+                    else:
+                        return getattr(item, node.attr, None)
+                else:
+                    raise ValueError("Only attribute access on 'item' is allowed")
+                    
+            elif isinstance(node, ast.Subscript):
+                # Allow dictionary/list access on item
+                if isinstance(node.value, ast.Name) and node.value.id == 'item':
+                    item_val = item
+                    if isinstance(node.slice, ast.Constant):
+                        key = node.slice.value
+                    elif isinstance(node.slice, ast.Name):
+                        key = _eval(node.slice)
+                    else:
+                        raise ValueError("Only simple indexing is allowed")
+                    
+                    if isinstance(item_val, dict):
+                        return item_val.get(key)
+                    elif isinstance(item_val, (list, tuple)):
+                        return item_val[key] if isinstance(key, int) else None
+                    else:
+                        return None
+                else:
+                    raise ValueError("Only subscript access on 'item' is allowed")
+                    
+            else:
+                raise ValueError(f"Unsupported expression: {ast.dump(node)}")
+        
+        try:
+            # Parse the expression
+            tree = ast.parse(expression, mode='eval')
+            return _eval(tree.body)
+        except Exception as e:
+            logger.error(f"Filter expression evaluation error: {e}")
+            return False
 
 
 # =============================================================================
@@ -382,21 +789,127 @@ class WebhookOutputExecutor(BaseNodeExecutor):
 
         if not url:
             raise ValueError("Webhook URL not configured")
+        
+        # Validate URL to prevent SSRF attacks
+        self._validate_url(url)
 
-        response = requests.request(
-            method=method,
-            url=url,
-            json=input_data,
-            headers=headers,
-            timeout=node.timeout_seconds
-        )
-        response.raise_for_status()
+        try:
+            response = requests.request(
+                method=method,
+                url=url,
+                json=input_data,
+                headers=headers,
+                timeout=node.timeout_seconds
+            )
+            response.raise_for_status()
 
-        return {
-            'sent': True,
-            'status_code': response.status_code,
-            'response': response.text[:1000]  # Truncate response
-        }
+            # Check if response is HTML (error page) instead of expected data
+            content_type = response.headers.get('content-type', '').lower()
+            if 'text/html' in content_type or response.text.strip().startswith('<!DOCTYPE') or response.text.strip().startswith('<html'):
+                logger.warning(f"Webhook {url} returned HTML content instead of expected format. Status: {response.status_code}")
+                return {
+                    'sent': True,
+                    'status_code': response.status_code,
+                    'response': response.text[:500],  # Truncate HTML response
+                    'warning': 'Received HTML response instead of expected format'
+                }
+
+            return {
+                'sent': True,
+                'status_code': response.status_code,
+                'response': response.text[:1000]  # Truncate response
+            }
+
+        except requests.exceptions.HTTPError as e:
+            error_msg = f"HTTP {e.response.status_code} error from webhook {url}"
+            
+            # Try to extract meaningful error message from response
+            try:
+                if e.response.headers.get('content-type', '').lower().startswith('application/json'):
+                    error_data = e.response.json()
+                    if isinstance(error_data, dict) and 'error' in error_data:
+                        error_msg += f": {error_data['error']}"
+                    elif isinstance(error_data, dict) and 'message' in error_data:
+                        error_msg += f": {error_data['message']}"
+                    else:
+                        error_msg += f": {str(error_data)}"
+                else:
+                    # For non-JSON responses, include first 200 chars of response
+                    error_text = e.response.text[:200]
+                    if error_text.startswith('<!DOCTYPE') or error_text.startswith('<html'):
+                        error_msg += ": Received HTML error page (check webhook endpoint)"
+                    else:
+                        error_msg += f": {error_text}"
+            except Exception:
+                # If we can't parse the error response, just include basic info
+                error_msg += f" (response parsing failed)"
+            
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Webhook request to {url} failed: {str(e)}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+    
+    def _validate_url(self, url: str) -> None:
+        """
+        Validate URL to prevent SSRF attacks.
+        
+        Only allows HTTP/HTTPS to external services, blocking internal network access.
+        """
+        from urllib.parse import urlparse
+        import ipaddress
+        import socket
+        
+        try:
+            parsed = urlparse(url)
+            
+            # Only allow HTTP and HTTPS schemes
+            if parsed.scheme not in ('http', 'https'):
+                raise ValueError(f"URL scheme '{parsed.scheme}' is not allowed. Only HTTP and HTTPS are permitted.")
+            
+            # Resolve hostname to IP address
+            if parsed.hostname:
+                # Block localhost and private IP ranges
+                try:
+                    ip = socket.gethostbyname(parsed.hostname)
+                    ip_obj = ipaddress.ip_address(ip)
+                    
+                    # Check if IP is private or localhost
+                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local:
+                        raise ValueError(f"Access to internal network address '{ip}' is not allowed")
+                    
+                    # Block common internal infrastructure IPs
+                    blocked_ranges = [
+                        ipaddress.ip_network('169.254.169.254/32'),  # AWS metadata
+                        ipaddress.ip_network('metadata.google.internal/32'),  # GCP metadata
+                    ]
+                    
+                    for blocked_range in blocked_ranges:
+                        if ip_obj in blocked_range:
+                            raise ValueError(f"Access to infrastructure address '{ip}' is not allowed")
+                
+                except socket.gaierror:
+                    # If hostname can't be resolved, allow it (might be a DNS name)
+                    pass
+                
+                # Block certain hostname patterns
+                blocked_hostnames = [
+                    'localhost',
+                    'metadata.google.internal',
+                    '169.254.169.254',
+                ]
+                
+                if parsed.hostname.lower() in blocked_hostnames:
+                    raise ValueError(f"Access to '{parsed.hostname}' is not allowed")
+            
+        except ValueError:
+            # Re-raise our custom validation errors
+            raise
+        except Exception as e:
+            # For any other parsing errors, block the request
+            raise ValueError(f"Invalid URL format: {e}")
 
 
 class DatabaseWriteExecutor(BaseNodeExecutor):
@@ -412,14 +925,31 @@ class DatabaseWriteExecutor(BaseNodeExecutor):
         if not query:
             raise ValueError("Query not configured")
 
+        # Don't allow string formatting in SQL queries
+        if '{' in query:
+            raise ValueError("Direct string formatting in SQL queries is not allowed for security reasons")
+
         with connection.cursor() as cursor:
             if isinstance(data, list):
-                # Batch insert
+                # Batch insert with proper parameterization
                 for item in data:
-                    cursor.execute(query, item)
+                    if isinstance(item, dict):
+                        # For dict items, extract values in the order they appear in the query
+                        # This is a simplified approach - in production, you'd want more robust handling
+                        values = list(item.values())
+                        cursor.execute(query, values)
+                    else:
+                        # For simple values, use as-is
+                        cursor.execute(query, [item] if not isinstance(item, (list, tuple)) else item)
                 return {'inserted': len(data)}
             else:
-                cursor.execute(query, data)
+                if isinstance(data, dict):
+                    # For dict items, extract values in the order they appear in the query
+                    values = list(data.values())
+                    cursor.execute(query, values)
+                else:
+                    # For simple values, use as-is
+                    cursor.execute(query, [data] if not isinstance(data, (list, tuple)) else data)
                 return {'affected_rows': cursor.rowcount}
 
 
@@ -449,6 +979,16 @@ class NodeExecutorRegistry:
             'PROCESSOR_TRANSFORM': TransformExecutor(),
             'filter': FilterExecutor(),
             'PROCESSOR_FILTER': FilterExecutor(),
+
+            # Control Flow
+            'condition': PassthroughExecutor(),
+            'CONTROL_CONDITION': PassthroughExecutor(),
+            'error_handler': PassthroughExecutor(),
+            'CONTROL_ERROR_HANDLER': PassthroughExecutor(),
+            'delay': PassthroughExecutor(),
+            'CONTROL_DELAY': PassthroughExecutor(),
+            'loop': PassthroughExecutor(),
+            'CONTROL_LOOP': PassthroughExecutor(),
 
             # Outputs
             'email': EmailOutputExecutor(),

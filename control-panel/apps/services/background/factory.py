@@ -31,7 +31,12 @@ def get_background_processor() -> BackgroundProcessor:
         if _processor_instance is not None:
             return _processor_instance
 
-        choice = os.getenv("WEBOPS_BG_PROCESSOR", "celery").lower()
+        # Prefer database configuration via config manager, fallback to environment
+        try:
+            from apps.services.config_manager import config_manager
+            choice = str(config_manager.get('background.processor', 'celery')).lower()
+        except Exception:
+            choice = os.getenv("WEBOPS_BG_PROCESSOR", "celery").lower()
 
         if choice == "celery":
             try:

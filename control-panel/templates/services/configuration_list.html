@@ -162,7 +162,7 @@
             <div class="webops-flex webops-items-center webops-gap-sm">
                 <span class="material-icons webops-text-success">settings_applications</span>
                 <div>
-                    <h3 class="webops-h3">Celery Settings</h3>
+                    <h3 class="webops-h3">Background Processor Settings</h3>
                     <div class="webops-text-sm webops-text-secondary">Configure background task processing</div>
                 </div>
             </div>
@@ -199,6 +199,52 @@
                     <button type="submit" class="webops-btn webops-btn-primary">
                         <span class="material-icons">save</span>
                         Save Celery Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Background Processing Configuration -->
+    <div class="webops-card">
+        <div class="webops-card-header">
+            <div class="webops-flex webops-items-center webops-gap-sm">
+                <span class="material-icons webops-text-info">schedule</span>
+                <div>
+                    <h3 class="webops-h3">Background Processing</h3>
+                    <div class="webops-text-sm webops-text-secondary">Select the processor used for async tasks</div>
+                </div>
+            </div>
+        </div>
+        <div class="webops-card-body">
+            <form method="post" action="{% url 'monitoring:configuration_update' %}" class="webops-form">
+                {% csrf_token %}
+                <input type="hidden" name="category" value="background">
+
+                <div class="webops-grid webops-grid-2">
+                    {% for key, data in categories.background.items %}
+                    <div class="webops-form-group">
+                        <label class="webops-label" for="{{ key|slugify }}">
+                            {{ key|title|slice:"11:" }}
+                        </label>
+                        {% if key == 'background.processor' %}
+                        <select name="{{ key }}" id="{{ key|slugify }}" class="webops-input">
+                            {% for choice in data.schema.choices %}
+                            <option value="{{ choice }}" {% if data.value == choice %}selected{% endif %}>{{ choice|title }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <input type="text" name="{{ key }}" id="{{ key|slugify }}" class="webops-input" value="{{ data.value }}">
+                        {% endif %}
+                        <div class="webops-form-help">{{ data.schema.description|default:"" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="webops-flex webops-justify-end webops-mt-md">
+                    <button type="submit" class="webops-btn webops-btn-primary">
+                        <span class="material-icons">save</span>
+                        Save Background Settings
                     </button>
                 </div>
             </form>

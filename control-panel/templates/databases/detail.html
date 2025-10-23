@@ -9,7 +9,7 @@
         <h2 class="webops-page-title">{{ database.name }}</h2>
         <p class="webops-text-muted">Database credentials and connection information</p>
     </div>
-    <div style="display: flex; gap: var(--webops-space-1-5);">
+    <div class="webops-flex webops-gap-sm">
         {% if database.deployment %}
             <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
                 <span class="material-icons">launch</span>
@@ -27,7 +27,7 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">
-            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">settings_ethernet</span>
+            <span class="material-icons webops-align-middle webops-icon--small">settings_ethernet</span>
             Connection Information
         </h3>
         <button onclick="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-primary">
@@ -37,6 +37,15 @@
     </div>
     <div class="webops-card-body">
         <div class="webops-info-grid">
+            <div class="webops-info-item">
+                <label class="webops-label">Database Type</label>
+                <div class="webops-info-value">
+                    <span class="webops-badge webops-badge-{{ database.db_type|default:'postgresql' }}">
+                        {{ database.get_db_type_display|default:database.db_type|title }}
+                    </span>
+                </div>
+            </div>
+
             <div class="webops-info-item">
                 <label class="webops-label">Database Name</label>
                 <div class="webops-info-value">
@@ -107,7 +116,7 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">
-            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">info</span>
+            <span class="material-icons webops-align-middle webops-icon--small">info</span>
             Metadata
         </h3>
     </div>
@@ -135,12 +144,14 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">
-            <span class="material-icons" style="vertical-align: middle; font-size: 20px;">code</span>
+            <span class="material-icons webops-align-middle webops-icon--small">code</span>
             Connection Examples
         </h3>
     </div>
     <div class="webops-card-body">
         <div class="webops-code-examples">
+            <!-- PostgreSQL Examples -->
+            {% if database.db_type == 'postgresql' or database.db_type is None %}
             <div class="webops-code-example">
                 <h4 class="webops-h4">Python (psycopg2)</h4>
                 <pre class="webops-code-block"><code>import psycopg2
@@ -169,6 +180,126 @@ print(cursor.fetchone())</code></pre>
                 <h4 class="webops-h4">Command Line (psql)</h4>
                 <pre class="webops-code-block"><code>psql -h {{ database.host }} -p {{ database.port }} -U {{ database.username }} -d {{ database.name }}</code></pre>
             </div>
+            {% endif %}
+
+            <!-- MySQL Examples -->
+            {% if database.db_type == 'mysql' %}
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Python (mysql-connector-python)</h4>
+                <pre class="webops-code-block"><code>import mysql.connector
+
+conn = mysql.connector.connect(
+    host="{{ database.host }}",
+    port={{ database.port }},
+    user="{{ database.username }}",
+    password="{{ decrypted_password }}",
+    database="{{ database.name }}"
+)
+cursor = conn.cursor()
+cursor.execute("SELECT VERSION();")
+print(cursor.fetchone())</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Django settings.py</h4>
+                <pre class="webops-code-block"><code>DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '{{ database.name }}',
+        'USER': '{{ database.username }}',
+        'PASSWORD': '{{ decrypted_password }}',
+        'HOST': '{{ database.host }}',
+        'PORT': '{{ database.port }}',
+    }
+}</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Command Line (mysql)</h4>
+                <pre class="webops-code-block"><code>mysql -h {{ database.host }} -P {{ database.port }} -u {{ database.username }} -p{{ database.name }}</code></pre>
+            </div>
+            {% endif %}
+
+            <!-- MongoDB Examples -->
+            {% if database.db_type == 'mongodb' %}
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Python (pymongo)</h4>
+                <pre class="webops-code-block"><code>from pymongo import MongoClient
+
+# Connection string
+conn_str = "mongodb://{% if database.username %}{{ database.username }}:{{ decrypted_password }}@{% endif %}{{ database.host }}:{{ database.port }}/{{ database.name }}"
+client = MongoClient(conn_str)
+
+# Select database
+db = client[{{ database.name }}]
+
+# Test connection
+collections = db.list_collection_names()
+print(f"Collections: {collections}")</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Command Line (mongosh)</h4>
+                <pre class="webops-code-block"><code># Connect to MongoDB
+mongosh "mongodb://{% if database.username %}{{ database.username }}:{{ decrypted_password }}@{% endif %}{{ database.host }}:{{ database.port }}/{{ database.name }}"</code></pre>
+            </div>
+            {% endif %}
+
+            <!-- SQLite Examples -->
+            {% if database.db_type == 'sqlite' %}
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Python (sqlite3)</h4>
+                <pre class="webops-code-block"><code>import sqlite3
+
+# Connect to database
+conn = sqlite3.connect('{{ database.host }}')
+cursor = conn.cursor()
+
+# Test connection
+cursor.execute("SELECT sqlite_version();")
+print(cursor.fetchone())</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Django settings.py</h4>
+                <pre class="webops-code-block"><code>DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '{{ database.host }}',
+    }
+}</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Command Line (sqlite3)</h4>
+                <pre class="webops-code-block"><code>sqlite3 {{ database.host }}</code></pre>
+            </div>
+            {% endif %}
+
+            <!-- Redis Examples -->
+            {% if database.db_type == 'redis' %}
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Python (redis)</h4>
+                <pre class="webops-code-block"><code>import redis
+
+# Connect to Redis
+r = redis.Redis(
+    host="{{ database.host }}",
+    port={{ database.port }},
+    db={{ database.redis_db|default:0 }}{% if database.password %},
+    password="{{ decrypted_password }}"{% endif %}
+)
+
+# Test connection
+r.ping()
+print("Redis connection successful")</code></pre>
+            </div>
+
+            <div class="webops-code-example">
+                <h4 class="webops-h4">Command Line (redis-cli)</h4>
+                <pre class="webops-code-block"><code>redis-cli -h {{ database.host }} -p {{ database.port }}{% if database.redis_db %} -n {{ database.redis_db }}{% endif %}{% if database.password %} -a "{{ decrypted_password }}"{% endif %}</code></pre>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

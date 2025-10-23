@@ -1,7 +1,7 @@
 """
 Encryption utilities for WebOps.
 
-Reference: CLAUDE.md "Security Best Practices" section
+"Security Best Practices" section
 """
 
 import secrets

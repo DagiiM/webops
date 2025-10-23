@@ -1,7 +1,7 @@
 """
 Automated Restart Policies for Service Management.
 
-Reference: CLAUDE.md "Services Control System"
+"Services Control System"
 Architecture: Policy-based automated service recovery
 
 This module provides:
@@ -18,8 +18,8 @@ from django.utils import timezone
 from django.db import models
 import logging
 
-from apps.deployments.models import Deployment
-from apps.core.models import BaseModel
+from apps.deployments.models import BaseDeployment
+from apps.core.common.models import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class RestartPolicy(models.Model):
         BACKOFF = 'backoff', 'Exponential Backoff'
 
     deployment = models.OneToOneField(
-        Deployment,
+        BaseDeployment,
         on_delete=models.CASCADE,
         related_name='restart_policy'
     )
@@ -110,7 +110,7 @@ class RestartAttempt(BaseModel):
     """Track restart attempts for policy enforcement."""
 
     deployment = models.ForeignKey(
-        Deployment,
+        BaseDeployment,
         on_delete=models.CASCADE,
         related_name='restart_attempts'
     )
@@ -162,7 +162,7 @@ class RestartPolicyEnforcer:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def should_restart(self, deployment: Deployment) -> Tuple[bool, str]:
+    def should_restart(self, deployment: BaseDeployment) -> Tuple[bool, str]:
         """
         Determine if a deployment should be restarted based on policy.
 
@@ -207,7 +207,7 @@ class RestartPolicyEnforcer:
 
         return False, "Unknown policy type"
 
-    def calculate_restart_delay(self, deployment: Deployment) -> int:
+    def calculate_restart_delay(self, deployment: BaseDeployment) -> int:
         """
         Calculate delay before restart based on policy and attempt history.
 
@@ -240,7 +240,7 @@ class RestartPolicyEnforcer:
 
     def record_restart_attempt(
         self,
-        deployment: Deployment,
+        deployment: BaseDeployment,
         success: bool,
         delay_seconds: int,
         reason: str = "",
@@ -290,7 +290,7 @@ class RestartPolicyEnforcer:
 
         return attempt
 
-    def reset_restart_counter(self, deployment: Deployment) -> None:
+    def reset_restart_counter(self, deployment: BaseDeployment) -> None:
         """
         Reset restart counter for a deployment.
 
@@ -302,7 +302,7 @@ class RestartPolicyEnforcer:
         # Mark old attempts as archived by not deleting but noting reset
         self.logger.info(f"Reset restart counter for {deployment.name}")
 
-    def get_restart_statistics(self, deployment: Deployment, hours: int = 24) -> Dict[str, Any]:
+    def get_restart_statistics(self, deployment: BaseDeployment, hours: int = 24) -> Dict[str, Any]:
         """
         Get restart statistics for a deployment.
 
@@ -337,7 +337,7 @@ class RestartPolicyEnforcer:
     # PRIVATE HELPER METHODS
     # =========================================================================
 
-    def _is_in_cooldown(self, deployment: Deployment, policy: RestartPolicy) -> bool:
+    def _is_in_cooldown(self, deployment: BaseDeployment, policy: RestartPolicy) -> bool:
         """Check if deployment is in cooldown period."""
         cooldown_cutoff = timezone.now() - timedelta(minutes=policy.cooldown_minutes)
 
@@ -352,7 +352,7 @@ class RestartPolicyEnforcer:
 
         return False
 
-    def _exceeded_restart_limit(self, deployment: Deployment, policy: RestartPolicy) -> bool:
+    def _exceeded_restart_limit(self, deployment: BaseDeployment, policy: RestartPolicy) -> bool:
         """Check if restart limit has been exceeded."""
         time_window = timezone.now() - timedelta(minutes=policy.time_window_minutes)
 
@@ -363,7 +363,7 @@ class RestartPolicyEnforcer:
 
         return recent_attempts >= policy.max_restarts
 
-    def _health_check_confirms_failure(self, deployment: Deployment, policy: RestartPolicy) -> bool:
+    def _health_check_confirms_failure(self, deployment: BaseDeployment, policy: RestartPolicy) -> bool:
         """Check if health checks confirm the service has failed."""
         from .models import HealthCheck
 

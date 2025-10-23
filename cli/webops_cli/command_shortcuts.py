@@ -10,7 +10,7 @@ from rich.console import Console
 
 from .api import WebOpsAPIClient
 from .config import Config
-from .enhanced_cli import EnhancedCLI
+from .ui.display import display_deployment_table
 from .errors import WebOpsError
 
 console = Console()
@@ -28,10 +28,6 @@ class CommandShortcuts:
         """
         self.api_client = api_client
         self.config = config
-        if api_client:
-            self.enhanced_cli = EnhancedCLI(api_client, config)
-        else:
-            self.enhanced_cli = None
     
     def quick_deploy(
         self: Self,
@@ -118,10 +114,7 @@ class CommandShortcuts:
             else:
                 # Show all deployments
                 deployments = self.api_client.list_deployments()
-                if self.enhanced_cli:
-                    self.enhanced_cli.display_deployment_table(deployments)
-                else:
-                    console.print("[yellow]Enhanced CLI not available for table display[/yellow]")
+                display_deployment_table(deployments)
                 
         except WebOpsError as e:
             console.print(f"[red]✗ Status check failed: {e}[/red]")

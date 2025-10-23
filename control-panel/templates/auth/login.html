@@ -10,9 +10,86 @@
     {% else %}
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
     {% endif %}
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-transitions.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
+    
+    <style>
+        /* Login page specific styles */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--webops-color-bg-primary);
+            position: relative;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .webops-theme-switcher {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+        }
+    </style>
 </head>
 <body class="login-page">
+    <!-- Theme Switcher -->
+    <div class="webops-theme-switcher">
+        <div class="theme-switcher-container">
+            <button class="theme-switcher-toggle" id="theme-switcher-toggle" aria-label="Switch theme">
+                <span class="theme-switcher-icon material-icons">brightness_6</span>
+            </button>
+            <div class="theme-switcher-dropdown" id="theme-switcher-dropdown">
+                <div class="theme-switcher-header">
+                    <span class="theme-switcher-title">Theme</span>
+                    <button class="theme-switcher-close" id="theme-switcher-close">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="theme-switcher-options">
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-preview dark-preview"></div>
+                        <span class="theme-name">Dark</span>
+                        <span class="theme-check material-icons">check</span>
+                    </div>
+                    <div class="theme-option" data-theme="light">
+                        <div class="theme-preview light-preview"></div>
+                        <span class="theme-name">Light</span>
+                        <span class="theme-check material-icons">check</span>
+                    </div>
+                    <div class="theme-option" data-theme="forest">
+                        <div class="theme-preview forest-preview"></div>
+                        <span class="theme-name">Forest</span>
+                        <span class="theme-check material-icons">check</span>
+                    </div>
+                    <div class="theme-option" data-theme="high-contrast">
+                        <div class="theme-preview high-contrast-preview"></div>
+                        <span class="theme-name">High Contrast</span>
+                        <span class="theme-check material-icons">check</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="webops-app-background"></div>
     <div class="login-container">
         <div class="webops-card" style="max-width: 420px; margin: 0 auto;">
@@ -80,5 +157,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Theme JavaScript -->
+    <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>
+    <script src="{% static 'js/theme-switcher.js' %}"></script>
+    <script src="{% static 'js/theme-integration.js' %}"></script>
 </body>
 </html>

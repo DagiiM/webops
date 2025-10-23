@@ -45,7 +45,7 @@ class VMResizeService:
             )
 
             # Check quota
-            from apps.core.models import VMQuota
+            from .models import VMQuota
             quota = VMQuota.objects.filter(user=vm_deployment.deployment.user).first()
             if quota:
                 # Temporarily "free" current resources

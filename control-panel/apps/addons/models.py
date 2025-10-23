@@ -1,5 +1,5 @@
 from django.db import models
-from apps.core.models import BaseModel
+from apps.core.common.models import BaseModel
 
 class Addon(BaseModel):
     """Represents a discovered addon from addon.yaml manifest.

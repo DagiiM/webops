@@ -627,7 +627,7 @@ python manage.py shell
 
 # Check model integrity
 >>> from apps.deployments.models import Deployment
->>> deployments = Deployment.objects.all()
+>>> deployments = ApplicationDeployment.objects.all()
 >>> for d in deployments:
 ...     print(f"{d.name}: {d.status}")
 

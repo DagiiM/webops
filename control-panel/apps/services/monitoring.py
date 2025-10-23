@@ -1,7 +1,7 @@
 """
 System monitoring service for WebOps.
 
-Reference: CLAUDE.md "Services" section
+"Services" section
 Architecture: Real-time system monitoring using psutil
 """
 
@@ -10,7 +10,7 @@ import psutil
 import subprocess
 from django.utils import timezone
 from .models import ResourceUsage, ServiceStatus, Alert, HealthCheck
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 import requests
 import logging
 
@@ -124,7 +124,7 @@ class SystemMonitor:
                 }
             )
 
-    def _create_alert(self, alert_type: str, severity: str, title: str, message: str, metadata: Dict[str, Any], deployment: Optional[Deployment] = None) -> Alert:
+    def _create_alert(self, alert_type: str, severity: str, title: str, message: str, metadata: Dict[str, Any], deployment: Optional[BaseDeployment] = None) -> Alert:
         """Create an alert if one doesn't already exist for this issue."""
         # Check if similar unacknowledged alert exists (within last hour)
         one_hour_ago = timezone.now() - timezone.timedelta(hours=1)
@@ -154,7 +154,7 @@ class SystemMonitor:
         cutoff = timezone.now() - timezone.timedelta(hours=hours)
         return list(ResourceUsage.objects.filter(created_at__gte=cutoff))
 
-    def check_service_status(self, deployment: Deployment) -> ServiceStatus:
+    def check_service_status(self, deployment: BaseDeployment) -> ServiceStatus:
         """Check status of a deployed service."""
         service_name = f"webops-{deployment.name}"
 
@@ -240,7 +240,7 @@ class SystemMonitor:
             logger.error(f"Error checking service status for {service_name}: {e}")
             return self._get_or_create_failed_status(deployment, str(e))
 
-    def _get_or_create_failed_status(self, deployment: Deployment, error: str) -> ServiceStatus:
+    def _get_or_create_failed_status(self, deployment: BaseDeployment, error: str) -> ServiceStatus:
         """Get or create a failed status record."""
         service_status, _ = ServiceStatus.objects.get_or_create(
             deployment=deployment,
@@ -250,7 +250,7 @@ class SystemMonitor:
         service_status.save()
         return service_status
 
-    def perform_health_check(self, deployment: Deployment) -> Optional[HealthCheck]:
+    def perform_health_check(self, deployment: BaseDeployment) -> Optional[HealthCheck]:
         """Perform HTTP health check on deployment."""
         if not deployment.domain and not deployment.port:
             return None
@@ -331,7 +331,7 @@ class SystemMonitor:
         all_unacked_alerts = Alert.objects.filter(is_acknowledged=False)
 
         # Get service statuses
-        deployments = Deployment.objects.all()
+        deployments = ApplicationDeployment.objects.all()
         service_statuses = []
         for deployment in deployments:
             status = ServiceStatus.objects.filter(deployment=deployment).first()

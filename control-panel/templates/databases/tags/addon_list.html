@@ -1,0 +1,90 @@
+{% load installer_tags %}
+<div class="webops-addon-list">
+    {% if available_addons %}
+    <div class="webops-flex webops-items-center webops-gap-md">
+        <span class="material-icons webops-text-info">extension</span>
+        <div>
+            <h4 class="webops-h4">Available Addons</h4>
+            <p class="webops-text-sm webops-text-muted">
+                Select addons to enhance your {{ db_type|title }} database experience
+            </p>
+        </div>
+    </div>
+    
+    <div class="webops-mt-md">
+        {% for addon in available_addons %}
+        <div class="webops-addon-item">
+            <div class="webops-flex webops-items-center webops-gap-md">
+                <div class="webops-addon-checkbox">
+                    <input type="checkbox" name="addon" value="{{ addon.pk }}" id="addon-{{ addon.pk }}" {% if addon.enabled %}checked{% endif %}>
+                    <label for="addon-{{ addon.pk }}"></label>
+                </div>
+                <div class="webops-flex-grow">
+                    <strong>{{ addon.name }}</strong>
+                    <p class="webops-text-sm webops-text-muted">{{ addon.description }}</p>
+                </div>
+                <div class="webops-addon-status">
+                    {% if addon.enabled %}
+                    <span class="webops-badge webops-badge-success">Enabled</span>
+                    {% else %}
+                    <span class="webops-badge webops-badge-secondary">Available</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="webops-flex webops-items-center webops-gap-md">
+        <span class="material-icons webops-text-muted">info</span>
+        <div>
+            <p class="webops-text-sm webops-text-muted">
+                No addons available for {{ db_type|title }}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.webops-addon-list {
+    margin-top: var(--webops-space-3);
+}
+
+.webops-addon-item {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    transition: all var(--webops-transition-base);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-addon-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-addon-checkbox {
+    position: relative;
+}
+
+.webops-addon-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--webops-color-primary);
+}
+
+.webops-addon-checkbox label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.webops-addon-status {
+    margin-left: auto;
+}
+</style>

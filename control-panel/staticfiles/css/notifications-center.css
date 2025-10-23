@@ -1,0 +1,465 @@
+/**
+ * WebOps Notifications Center
+ * A dedicated area for viewing and managing notifications
+ * Adheres to the WebOps Design System variables and styles
+ */
+
+/* Notifications Center Container */
+.webops-notifications-center {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border-left: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-xl);
+    z-index: var(--webops-z-modal);
+    transform: translateX(100%);
+    transition: transform var(--webops-transition-medium);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.webops-notifications-center.webops-notifications-center--open {
+    transform: translateX(0);
+}
+
+/* Notifications Center Header */
+.webops-notifications-center__header {
+    padding: var(--webops-space-4);
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-10);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--webops-color-primary-alpha-03);
+    flex-shrink: 0;
+}
+
+.webops-notifications-center__title {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-notifications-center__badge {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-full);
+    min-width: 20px;
+    text-align: center;
+}
+
+.webops-notifications-center__close {
+    width: var(--webops-icon-size-lg);
+    height: var(--webops-icon-size-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-tertiary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-font-size-lg);
+}
+
+.webops-notifications-center__close:hover {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-notifications-center__close:focus-visible {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+/* Notifications Center Tabs */
+.webops-notifications-center__tabs {
+    display: flex;
+    border-bottom: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-10);
+    flex-shrink: 0;
+}
+
+.webops-notifications-center__tab {
+    flex: 1;
+    padding: var(--webops-space-3);
+    background: transparent;
+    border: none;
+    border-bottom: var(--webops-border-width-base) solid transparent;
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    transition: all var(--webops-transition-fast);
+    position: relative;
+}
+
+.webops-notifications-center__tab:hover {
+    color: var(--webops-color-text-primary);
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.webops-notifications-center__tab.webops-notifications-center__tab--active {
+    color: var(--webops-color-primary);
+    border-bottom-color: var(--webops-color-primary);
+}
+
+.webops-notifications-center__tab-count {
+    position: absolute;
+    top: var(--webops-space-1);
+    right: var(--webops-space-3);
+    background: var(--webops-color-error);
+    color: var(--webops-color-bg-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-full);
+    min-width: 16px;
+    text-align: center;
+}
+
+/* Notifications Center Content */
+.webops-notifications-center__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--webops-space-3);
+}
+
+/* Notifications Center Empty State */
+.webops-notifications-center__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-8) var(--webops-space-4);
+    text-align: center;
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-notifications-center__empty-icon {
+    font-size: var(--webops-icon-size-2xl);
+    margin-bottom: var(--webops-space-3);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-notifications-center__empty-title {
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-1-5);
+}
+
+.webops-notifications-center__empty-message {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    max-width: 280px;
+}
+
+/* Notifications Center List */
+.webops-notifications-center__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+/* Notifications Center Item */
+.webops-notifications-center__item {
+    background: var(--webops-color-surface);
+    border: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    transition: all var(--webops-transition-fast);
+    cursor: pointer;
+    position: relative;
+}
+
+.webops-notifications-center__item:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-20);
+    transform: translateY(-1px);
+}
+
+.webops-notifications-center__item.webops-notifications-center__item--unread {
+    border-left: var(--webops-border-width-base) solid var(--webops-color-primary);
+}
+
+.webops-notifications-center__item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--webops-space-2);
+}
+
+.webops-notifications-center__item-icon {
+    width: var(--webops-icon-size-base);
+    height: var(--webops-icon-size-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--webops-radius-full);
+    margin-right: var(--webops-space-2);
+    flex-shrink: 0;
+}
+
+.webops-notifications-center__item-icon--success {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-notifications-center__item-icon--error {
+    background: var(--webops-color-error-alpha-20);
+    color: var(--webops-color-error);
+}
+
+.webops-notifications-center__item-icon--warning {
+    background: var(--webops-color-warning-alpha-20);
+    color: var(--webops-color-warning);
+}
+
+.webops-notifications-center__item-icon--info {
+    background: var(--webops-color-info-alpha-20);
+    color: var(--webops-color-info);
+}
+
+.webops-notifications-center__item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.webops-notifications-center__item-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-0-5);
+    line-height: var(--webops-line-height-tight);
+}
+
+.webops-notifications-center__item-message {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    line-height: var(--webops-line-height-normal);
+    word-wrap: break-word;
+}
+
+.webops-notifications-center__item-time {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-tertiary);
+    white-space: nowrap;
+    margin-left: var(--webops-space-2);
+    flex-shrink: 0;
+}
+
+.webops-notifications-center__item-actions {
+    display: flex;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-2);
+}
+
+.webops-notifications-center__item-action {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: var(--webops-color-primary-alpha-10);
+    border: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-family: var(--webops-font-family-primary);
+}
+
+.webops-notifications-center__item-action:hover {
+    background: var(--webops-color-primary-alpha-20);
+    border-color: var(--webops-color-primary);
+}
+
+/* Notifications Center Footer */
+.webops-notifications-center__footer {
+    padding: var(--webops-space-3);
+    border-top: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-10);
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.webops-notifications-center__mark-all-read {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: transparent;
+    border: var(--webops-border-width-thin) solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-family: var(--webops-font-family-primary);
+}
+
+.webops-notifications-center__mark-all-read:hover {
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-notifications-center__clear-all {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: transparent;
+    border: var(--webops-border-width-thin) solid var(--webops-color-error-alpha-20);
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-error);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-family: var(--webops-font-family-primary);
+}
+
+.webops-notifications-center__clear-all:hover {
+    background: var(--webops-color-error-alpha-10);
+    border-color: var(--webops-color-error);
+}
+
+/* Notifications Center Overlay */
+.webops-notifications-center__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--webops-color-modal-backdrop);
+    z-index: calc(var(--webops-z-modal) - 1);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--webops-transition-medium);
+}
+
+.webops-notifications-center__overlay.webops-notifications-center__overlay--active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Notifications Center Toggle Button */
+.webops-notifications-center__toggle {
+    position: relative;
+    width: var(--webops-icon-size-lg);
+    height: var(--webops-icon-size-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    font-size: var(--webops-icon-size-base);
+}
+
+.webops-notifications-center__toggle:hover {
+    color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-notifications-center__toggle:focus-visible {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+.webops-notifications-center__toggle-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--webops-color-error);
+    color: var(--webops-color-bg-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-full);
+    min-width: 16px;
+    text-align: center;
+    transform: translate(25%, -25%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .webops-notifications-center {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .webops-notifications-center__header {
+        padding: var(--webops-space-3);
+    }
+    
+    .webops-notifications-center__title {
+        font-size: var(--webops-font-size-base);
+    }
+    
+    .webops-notifications-center__content {
+        padding: var(--webops-space-2);
+    }
+    
+    .webops-notifications-center__item {
+        padding: var(--webops-space-2);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .webops-notifications-center,
+    .webops-notifications-center__overlay,
+    .webops-notifications-center__tab,
+    .webops-notifications-center__item,
+    .webops-notifications-center__close,
+    .webops-notifications-center__toggle,
+    .webops-notifications-center__mark-all-read,
+    .webops-notifications-center__clear-all,
+    .webops-notifications-center__item-action {
+        transition: none;
+    }
+    
+    .webops-notifications-center {
+        transform: none;
+    }
+    
+    .webops-notifications-center.webops-notifications-center--open {
+        transform: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .webops-notifications-center {
+        border-left-width: var(--webops-border-width-thick);
+    }
+    
+    .webops-notifications-center__item {
+        border-width: var(--webops-border-width-thick);
+    }
+    
+    .webops-notifications-center__item.webops-notifications-center__item--unread {
+        border-left-width: var(--webops-border-width-thick);
+    }
+    
+    .webops-notifications-center__tab {
+        border-bottom-width: var(--webops-border-width-thick);
+    }
+    
+    .webops-notifications-center__mark-all-read,
+    .webops-notifications-center__clear-all,
+    .webops-notifications-center__item-action {
+        border-width: var(--webops-border-width-thick);
+    }
+}

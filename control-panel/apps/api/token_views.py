@@ -1,7 +1,7 @@
 """
 Views for API Token management UI.
 
-Reference: CLAUDE.md "Django App Structure" section
+"Django App Structure" section
 """
 
 from django.shortcuts import render, redirect, get_object_or_404

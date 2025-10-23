@@ -310,9 +310,9 @@ print(f"✓ Connected: {conn.username}" if conn else "✗ Failed")
 from apps.deployments.models import Deployment
 from apps.deployments.tasks import deploy_llm_model
 
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='gpt2-test',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='gpt2',
     tensor_parallel_size=1,
     gpu_memory_utilization=0.9,

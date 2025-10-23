@@ -5,8 +5,8 @@ Management command to register a compute node.
 """
 
 from django.core.management.base import BaseCommand
-from addons.kvm.models import ComputeNode
-from addons.kvm.libvirt_manager import LibvirtManager
+from ...models import ComputeNode
+from ...libvirt_manager import LibvirtManager
 import logging
 
 logger = logging.getLogger(__name__)

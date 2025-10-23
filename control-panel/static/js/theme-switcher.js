@@ -5,9 +5,34 @@
 
 class WebOpsThemeSwitcher {
     constructor() {
-        this.themes = ['dark', 'light', 'custom', 'high-contrast'];
+        this.themes = ['dark', 'light', 'forest', 'high-contrast'];
         this.currentTheme = this.getStoredTheme() || 'dark';
-        this.init();
+        this.container = null;
+        this.isInitialized = false;
+        this.dynamicLoader = null;
+        
+        // Wait for dynamic theme loader to be available
+        this.waitForDynamicLoader();
+    }
+    
+    /**
+     * Wait for dynamic theme loader to be available
+     */
+    waitForDynamicLoader() {
+        const checkLoader = () => {
+            if (window.WebOpsThemeLoader) {
+                this.dynamicLoader = window.WebOpsThemeLoader;
+                this.init();
+            } else {
+                setTimeout(checkLoader, 100);
+            }
+        };
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkLoader);
+        } else {
+            checkLoader();
+        }
     }
 
     /**
@@ -15,6 +40,7 @@ class WebOpsThemeSwitcher {
      */
     init() {
         this.applyTheme(this.currentTheme);
+        this.updateSwitcherUI();
         this.bindEvents();
     }
 
@@ -23,7 +49,7 @@ class WebOpsThemeSwitcher {
      * @returns {string|null} The stored theme or null
      */
     getStoredTheme() {
-        return localStorage.getItem('webops-theme');
+        return localStorage.getItem('theme');
     }
 
     /**
@@ -31,7 +57,7 @@ class WebOpsThemeSwitcher {
      * @param {string} theme - Theme name to store
      */
     storeTheme(theme) {
-        localStorage.setItem('webops-theme', theme);
+        localStorage.setItem('theme', theme);
     }
 
     /**
@@ -51,7 +77,19 @@ class WebOpsThemeSwitcher {
     cycleTheme() {
         const currentIndex = this.themes.indexOf(this.currentTheme);
         const nextIndex = (currentIndex + 1) % this.themes.length;
-        this.applyTheme(this.themes[nextIndex]);
+        const nextTheme = this.themes[nextIndex];
+        
+        this.currentTheme = nextTheme;
+        this.storeTheme(nextTheme);
+        
+        // Use dynamic loader if available
+        if (this.dynamicLoader) {
+            this.dynamicLoader.switchTheme(nextTheme);
+        } else {
+            this.applyTheme(nextTheme);
+        }
+        
+        this.updateSwitcherUI();
     }
 
     /**
@@ -110,15 +148,26 @@ class WebOpsThemeSwitcher {
         const switcher = document.querySelector('.webops-theme-switcher');
         if (!switcher) return;
 
-        const label = switcher.querySelector('.webops-theme-label');
-        const options = switcher.querySelectorAll('.webops-theme-option');
-
+        // Update the toggle button label
+        const label = switcher.querySelector('.webops-theme-toggle__label');
         if (label) {
             label.textContent = this.getThemeLabel(this.currentTheme);
         }
 
+        // Update the active state of theme options
+        const options = switcher.querySelectorAll('.webops-theme-option');
         options.forEach(option => {
             option.classList.toggle('active', option.dataset.theme === this.currentTheme);
+        });
+
+        // Update icon visibility based on current theme
+        const icons = switcher.querySelectorAll('.webops-theme-toggle__icon');
+        icons.forEach(icon => {
+            const themeClass = Array.from(icon.classList).find(cls => cls.includes('--'));
+            if (themeClass) {
+                const theme = themeClass.split('--').pop();
+                icon.style.display = theme === this.currentTheme ? 'block' : 'none';
+            }
         });
     }
 
@@ -131,9 +180,17 @@ class WebOpsThemeSwitcher {
             if (!switcher) return;
 
             // Toggle dropdown
-            if (e.target.closest('.webops-theme-toggle')) {
+            if (e.target.closest('#themeToggle')) {
                 e.preventDefault();
-                switcher.classList.toggle('open');
+                const isOpen = switcher.classList.contains('open');
+                
+                if (isOpen) {
+                    switcher.classList.remove('open');
+                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
+                } else {
+                    switcher.classList.add('open');
+                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'true');
+                }
                 return;
             }
 
@@ -141,14 +198,24 @@ class WebOpsThemeSwitcher {
             if (e.target.closest('.webops-theme-option')) {
                 e.preventDefault();
                 const theme = e.target.closest('.webops-theme-option').dataset.theme;
-                this.applyTheme(theme);
+                
+                // Use dynamic loader if available
+                if (this.dynamicLoader) {
+                    this.dynamicLoader.switchTheme(theme);
+                } else {
+                    this.applyTheme(theme);
+                }
+                
+                // Close dropdown
                 switcher.classList.remove('open');
+                document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
                 return;
             }
 
             // Close dropdown when clicking outside
             if (!e.target.closest('.webops-theme-switcher')) {
                 switcher.classList.remove('open');
+                document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
             }
         });
 
@@ -158,6 +225,7 @@ class WebOpsThemeSwitcher {
                 const switcher = document.querySelector('.webops-theme-switcher');
                 if (switcher) {
                     switcher.classList.remove('open');
+                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
                 }
             }
         });

@@ -1,7 +1,7 @@
 """
 Django admin configuration for services app.
 
-Reference: CLAUDE.md "Django Admin" section
+"Django Admin" section
 """
 
 from django.contrib import admin

@@ -103,7 +103,7 @@ from pathlib import Path
 from django.db import models
 from celery import shared_task
 
-from apps.core.models import BaseModel
+from apps.core.common.models import BaseModel
 
 
 def deploy_application(

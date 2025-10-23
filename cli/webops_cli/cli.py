@@ -1,9 +1,9 @@
-"""Main CLI interface for WebOps."""
+"""Main CLI interface for WebOps with enhanced features."""
 
 import sys
 import time
 import asyncio
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any, List, Self
 
 import click
 from rich.console import Console
@@ -12,20 +12,126 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.live import Live
 from rich.spinner import Spinner
+from rich.prompt import Confirm
 
 from .config import Config
-from .api import WebOpsAPIClient, WebOpsAPIError
+from .api import WebOpsAPIClient, WebOpsAPIError, RBACError, TokenExpiredError, Role, Permission
+from .validators import InputValidator, ValidationError
+from .security_logging import get_security_logger, SecurityEventType
+from .encryption import EncryptionError
+from .errors import ErrorHandler
 from .admin import admin
 from .system import system
-from .wizards import SetupWizard
-from .deployment_wizard import DeploymentWizard
-from .troubleshooting_wizard import TroubleshootingWizard
-from .interactive_commands import InteractiveCommands
+from .ui.interactive import InteractiveCommands
+from .ui.display import display_deployment_table, _get_status_style
 from .command_shortcuts import create_shortcut_commands
 from .websocket_client import DeploymentStatusMonitor, DeploymentListMonitor
 
 console = Console()
+error_handler = ErrorHandler()
 config = Config()
+
+
+def confirm_destructive_action(
+    action: str,
+    resource: str,
+    force: bool = False
+) -> bool:
+    """Confirm destructive actions with user.
+    
+    Args:
+        action: The action being performed (e.g., "delete", "stop").
+        resource: The resource being acted upon.
+        force: Whether to skip confirmation.
+        
+    Returns:
+        True if action should proceed, False otherwise.
+    """
+    if force:
+        return True
+        
+    console.print(
+        Panel(
+            f"[bold red]Warning:[/bold red] You are about to {action} '{resource}'.\n"
+            f"This action cannot be undone.",
+            title="Confirmation Required",
+            border_style="red"
+        )
+    )
+    
+    return Confirm.ask(f"Are you sure you want to {action} '{resource}'?")
+
+
+def display_logs_with_formatting(
+    logs: List[str],
+    deployment_name: str
+) -> None:
+    """Display logs with syntax highlighting and formatting.
+    
+    Args:
+        logs: List of log lines.
+        deployment_name: Name of the deployment.
+    """
+    if not logs:
+        console.print("[yellow]No logs available.[/yellow]")
+        return
+        
+    console.print(
+        Panel(
+            f"Logs for [cyan]{deployment_name}[/cyan]",
+            border_style="blue"
+        )
+    )
+    
+    for line in logs:
+        # Basic log level highlighting
+        if 'ERROR' in line or 'CRITICAL' in line:
+            console.print(f"[red]{line}[/red]")
+        elif 'WARNING' in line or 'WARN' in line:
+            console.print(f"[yellow]{line}[/yellow]")
+        elif 'INFO' in line:
+            console.print(f"[blue]{line}[/blue]")
+        elif 'DEBUG' in line:
+            console.print(f"[dim]{line}[/dim]")
+        else:
+            console.print(line)
+
+
+# Enhanced command decorators
+def handle_api_errors(func: Any) -> Any:
+    """Decorator to handle API errors gracefully.
+    
+    Args:
+        func: The function to wrap.
+        
+    Returns:
+        Wrapped function with error handling.
+    """
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            error_handler.display_error(e, f"Error in {func.__name__}")
+            return None
+    return wrapper
+
+
+def require_config(func: Any) -> Any:
+    """Decorator to ensure CLI is configured before running commands.
+    
+    Args:
+        func: The function to wrap.
+        
+    Returns:
+        Wrapped function with configuration check.
+    """
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        if not config.is_configured():
+            console.print("[red]Error:[/red] WebOps CLI is not configured.")
+            console.print("Run: [cyan]webops config --url <URL> --token <TOKEN>[/cyan]")
+            return None
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def get_api_client() -> WebOpsAPIClient:
@@ -35,10 +141,23 @@ def get_api_client() -> WebOpsAPIClient:
         console.print("Run: [cyan]webops config --url <URL> --token <TOKEN>[/cyan]")
         sys.exit(1)
 
-    return WebOpsAPIClient(
-        base_url=config.get_url(),
-        token=config.get_token()
-    )
+    try:
+        # Get user role from config or default to developer
+        user_role = config.get('role', Role.DEVELOPER)
+        
+        # Create enhanced API client with security features enabled
+        return WebOpsAPIClient(
+            base_url=config.get_url(),
+            token=config.get_token(),
+            user_role=user_role,
+            enable_security=True
+        )
+    except (ValidationError, EncryptionError) as e:
+        console.print(f"[red]Configuration Error:[/red] {e}")
+        sys.exit(1)
+    except RBACError as e:
+        console.print(f"[red]Authorization Error:[/red] {e}")
+        sys.exit(1)
 
 
 @click.group()
@@ -51,34 +170,81 @@ def main() -> None:
 @main.command()
 @click.option('--url', help='WebOps panel URL (e.g., https://panel.example.com)')
 @click.option('--token', help='API authentication token')
-def config_cmd(url: Optional[str], token: Optional[str]) -> None:
+@click.option('--role', type=click.Choice(['admin', 'developer', 'viewer']), help='User role for RBAC')
+def config_cmd(url: Optional[str], token: Optional[str], role: Optional[str]) -> None:
     """Configure WebOps CLI."""
-    if not url and not token:
+    security_logger = get_security_logger()
+    
+    if not url and not token and not role:
         # Show current configuration
         current_url = config.get_url()
         current_token = config.get_token()
+        current_role = config.get('role', 'developer')
 
         if current_url:
             console.print(f"[green]URL:[/green] {current_url}")
         if current_token:
             masked_token = current_token[:8] + "..." + current_token[-4:]
             console.print(f"[green]Token:[/green] {masked_token}")
+        console.print(f"[green]Role:[/green] {current_role}")
 
         if not (current_url and current_token):
             console.print("\n[yellow]Not fully configured.[/yellow]")
-            console.print("Usage: [cyan]webops config --url <URL> --token <TOKEN>[/cyan]")
+            console.print("Usage: [cyan]webops config --url <URL> --token <TOKEN> --role <ROLE>[/cyan]")
         return
 
-    if url:
-        config.set('url', url.rstrip('/'))
-        console.print(f"[green]✓[/green] URL set to: {url}")
+    try:
+        changes = []
+        
+        if url:
+            validated_url = InputValidator.validate_url(url)
+            old_url = config.get_url()
+            config.set('url', validated_url)
+            console.print(f"[green]✓[/green] URL set to: {validated_url}")
+            changes.append(('url', old_url, validated_url))
 
-    if token:
-        config.set('token', token)
-        console.print("[green]✓[/green] Token saved")
+        if token:
+            validated_token = InputValidator.validate_api_token(token)
+            old_token = config.get_token()
+            config.set('token', validated_token)
+            console.print("[green]✓[/green] Token saved")
+            changes.append(('token', old_token, '***MASKED***'))
 
-    if url and token:
-        console.print("\n[green]Configuration complete![/green]")
+        if role:
+            old_role = config.get('role', 'developer')
+            config.set('role', role)
+            console.print(f"[green]✓[/green] Role set to: {role}")
+            changes.append(('role', old_role, role))
+
+        # Log configuration changes
+        for setting, old_value, new_value in changes:
+            security_logger.log_configuration_change(
+                user=security_logger.get_user(),
+                setting=setting,
+                old_value=old_value,
+                new_value=new_value
+            )
+
+        if url and token:
+            console.print("\n[green]Configuration complete![/green]")
+            
+    except ValidationError as e:
+        security_logger.log_security_violation(
+            user=security_logger.get_user(),
+            violation_type="invalid_input",
+            description=f"Configuration validation failed: {e}",
+            severity="MEDIUM"
+        )
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    except EncryptionError as e:
+        security_logger.log_error(
+            user=security_logger.get_user(),
+            error_type="encryption_error",
+            error_message=str(e)
+        )
+        console.print(f"[red]Encryption Error:[/red] {e}")
+        sys.exit(1)
 
 
 @main.command(name='list')
@@ -87,49 +253,41 @@ def config_cmd(url: Optional[str], token: Optional[str]) -> None:
 @click.option('--per-page', default=20, help='Results per page')
 def list_deployments(status: Optional[str], page: int, per_page: int) -> None:
     """List all deployments."""
+    try:
+        # Validate pagination parameters
+        validated_page = InputValidator.validate_page_number(page)
+        validated_per_page = InputValidator.validate_per_page(per_page)
+        
+        # Validate status if provided
+        if status:
+            valid_statuses = ['pending', 'building', 'running', 'stopped', 'failed']
+            if status not in valid_statuses:
+                raise ValidationError(f"Invalid status '{status}'. Must be one of: {', '.join(valid_statuses)}")
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
         with console.status("[cyan]Fetching deployments...", spinner="dots"):
-            result = client.list_deployments(page=page, per_page=per_page, status=status)
+            result = client.list_deployments(page=validated_page, per_page=validated_per_page, status=status)
 
         deployments = result.get('deployments', [])
-
-        if not deployments:
-            console.print("[yellow]No deployments found.[/yellow]")
-            return
-
-        table = Table(show_header=True, header_style="bold cyan")
-        table.add_column("Name")
-        table.add_column("Status")
-        table.add_column("Type")
-        table.add_column("Domain")
-        table.add_column("Branch")
-
-        for d in deployments:
-            status_color = {
-                'pending': 'yellow',
-                'building': 'blue',
-                'running': 'green',
-                'stopped': 'white',
-                'failed': 'red'
-            }.get(d['status'], 'white')
-
-            table.add_row(
-                d['name'],
-                f"[{status_color}]{d['status']}[/{status_color}]",
-                d['project_type'],
-                d.get('domain', '-'),
-                d['branch']
-            )
-
-        console.print(table)
+        display_deployment_table(deployments)
 
         pagination = result.get('pagination', {})
         console.print(f"\nPage {pagination.get('page', 1)} of {pagination.get('pages', 1)}")
 
-    except WebOpsAPIError as e:
-        console.print(f"[red]Error:[/red] {e}")
+    except (WebOpsAPIError, RBACError, TokenExpiredError) as e:
+        if isinstance(e, RBACError):
+            console.print(f"[red]Authorization Error:[/red] {e}")
+            console.print("[yellow]Hint:[/yellow] Check your user role or contact an administrator")
+        elif isinstance(e, TokenExpiredError):
+            console.print(f"[red]Authentication Error:[/red] {e}")
+            console.print("[yellow]Hint:[/yellow] Please re-authenticate with a new token")
+        else:
+            console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
 
 
@@ -137,11 +295,17 @@ def list_deployments(status: Optional[str], page: int, per_page: int) -> None:
 @click.argument('name')
 def info(name: str) -> None:
     """Show deployment details."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
-        with console.status(f"[cyan]Fetching info for {name}...", spinner="dots"):
-            deployment = client.get_deployment(name)
+        with console.status(f"[cyan]Fetching info for {validated_name}...", spinner="dots"):
+            deployment = client.get_deployment(validated_name)
 
         status_color = {
             'pending': 'yellow',
@@ -177,18 +341,28 @@ def info(name: str) -> None:
 @click.option('--domain', default='', help='Domain name')
 def deploy(repo: str, name: str, branch: str, domain: str) -> None:
     """Deploy a new application."""
+    try:
+        # Validate all inputs
+        validated_name = InputValidator.validate_deployment_name(name)
+        validated_repo = InputValidator.validate_git_url(repo)
+        validated_branch = InputValidator.validate_git_branch(branch)
+        validated_domain = InputValidator.validate_domain_name(domain)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
-        console.print(f"[cyan]Creating deployment:[/cyan] {name}")
+        console.print(f"[cyan]Creating deployment:[/cyan] {validated_name}")
         result = client.create_deployment(
-            name=name,
-            repo_url=repo,
-            branch=branch,
-            domain=domain
+            name=validated_name,
+            repo_url=validated_repo,
+            branch=validated_branch,
+            domain=validated_domain
         )
 
-        sanitized_name = result.get('name', name)
+        sanitized_name = result.get('name', validated_name)
         console.print(f"[green]✓[/green] Deployment created: {result.get('message')}")
         console.print(f"[cyan]ID:[/cyan] {result.get('id')}")
         console.print(f"[cyan]Name:[/cyan] {sanitized_name}")
@@ -205,15 +379,22 @@ def deploy(repo: str, name: str, branch: str, domain: str) -> None:
 @click.option('--follow', '-f', is_flag=True, help='Follow log output')
 def logs(name: str, tail: Optional[int], follow: bool) -> None:
     """View deployment logs."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+        validated_tail = InputValidator.validate_tail_count(tail)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
         if follow:
-            console.print(f"[cyan]Following logs for {name}...[/cyan] (Ctrl+C to stop)\n")
+            console.print(f"[cyan]Following logs for {validated_name}...[/cyan] (Ctrl+C to stop)\n")
             last_log_count = 0
 
             while True:
-                result = client.get_deployment_logs(name, tail=tail)
+                result = client.get_deployment_logs(validated_name, tail=validated_tail)
                 logs_list = result.get('logs', [])
 
                 # Only show new logs
@@ -232,8 +413,8 @@ def logs(name: str, tail: Optional[int], follow: bool) -> None:
 
                 time.sleep(2)
         else:
-            with console.status(f"[cyan]Fetching logs for {name}...", spinner="dots"):
-                result = client.get_deployment_logs(name, tail=tail)
+            with console.status(f"[cyan]Fetching logs for {validated_name}...", spinner="dots"):
+                result = client.get_deployment_logs(validated_name, tail=validated_tail)
 
             logs_list = result.get('logs', [])
 
@@ -241,15 +422,9 @@ def logs(name: str, tail: Optional[int], follow: bool) -> None:
                 console.print("[yellow]No logs found.[/yellow]")
                 return
 
-            for log in logs_list:
-                level_color = {
-                    'info': 'cyan',
-                    'warning': 'yellow',
-                    'error': 'red',
-                    'success': 'green'
-                }.get(log['level'], 'white')
-
-                console.print(f"[{level_color}]{log['created_at']}[/{level_color}] {log['message']}")
+            # Convert log objects to strings for formatting
+            log_strings = [f"{log['created_at']} {log['level']} {log['message']}" for log in logs_list]
+            display_logs_with_formatting(log_strings, validated_name)
 
     except KeyboardInterrupt:
         console.print("\n[yellow]Stopped following logs.[/yellow]")
@@ -262,11 +437,17 @@ def logs(name: str, tail: Optional[int], follow: bool) -> None:
 @click.argument('name')
 def start(name: str) -> None:
     """Start a deployment."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
-        with console.status(f"[cyan]Starting {name}...", spinner="dots"):
-            result = client.start_deployment(name)
+        with console.status(f"[cyan]Starting {validated_name}...", spinner="dots"):
+            result = client.start_deployment(validated_name)
 
         console.print(f"[green]✓[/green] {result.get('message', 'Deployment started')}")
 
@@ -279,11 +460,17 @@ def start(name: str) -> None:
 @click.argument('name')
 def stop(name: str) -> None:
     """Stop a deployment."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
-        with console.status(f"[cyan]Stopping {name}...", spinner="dots"):
-            result = client.stop_deployment(name)
+        with console.status(f"[cyan]Stopping {validated_name}...", spinner="dots"):
+            result = client.stop_deployment(validated_name)
 
         console.print(f"[green]✓[/green] {result.get('message', 'Deployment stopped')}")
 
@@ -296,11 +483,17 @@ def stop(name: str) -> None:
 @click.argument('name')
 def restart(name: str) -> None:
     """Restart a deployment."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     client = get_api_client()
 
     try:
-        with console.status(f"[cyan]Restarting {name}...", spinner="dots"):
-            result = client.restart_deployment(name)
+        with console.status(f"[cyan]Restarting {validated_name}...", spinner="dots"):
+            result = client.restart_deployment(validated_name)
 
         console.print(f"[green]✓[/green] {result.get('message', 'Deployment restarted')}")
 
@@ -314,17 +507,22 @@ def restart(name: str) -> None:
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation')
 def delete(name: str, yes: bool) -> None:
     """Delete a deployment."""
+    try:
+        validated_name = InputValidator.validate_deployment_name(name)
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
     if not yes:
-        confirm = click.confirm(f"Are you sure you want to delete '{name}'? This cannot be undone.")
-        if not confirm:
+        if not confirm_destructive_action("delete", validated_name):
             console.print("[yellow]Cancelled.[/yellow]")
             return
 
     client = get_api_client()
 
     try:
-        with console.status(f"[cyan]Deleting {name}...", spinner="dots"):
-            result = client.delete_deployment(name)
+        with console.status(f"[cyan]Deleting {validated_name}...", spinner="dots"):
+            result = client.delete_deployment(validated_name)
 
         console.print(f"[green]✓[/green] {result.get('message', 'Deployment deleted')}")
 
@@ -589,8 +787,8 @@ def env_set(name: str, key: str, value: str, restart: bool) -> None:
         console.print(f"[green]✓[/green] {key} = {value}")
 
         if restart:
-            console.print(f"\n[cyan]Restarting {name}...[/cyan]")
-            restart_result = client.restart_deployment(name)
+            console.print(f"\n[cyan]Restarting {validated_name}...[/cyan]")
+            restart_result = client.restart_deployment(validated_name)
             console.print(f"[green]✓[/green] Deployment restarted")
         else:
             console.print(f"\n[dim]Tip: Use --restart to apply changes immediately[/dim]")
@@ -691,6 +889,7 @@ def project_validate(name: str) -> None:
 @main.command(name='setup')
 def setup_wizard():
     """Run the interactive WebOps setup wizard."""
+    from .wizards import SetupWizard
     wizard = SetupWizard()
     success = wizard.run()
 
@@ -703,6 +902,7 @@ def setup_wizard():
 @main.command(name='deploy-wizard')
 def deploy_wizard():
     """Run the interactive deployment wizard."""
+    from .wizards import DeploymentWizard
     wizard = DeploymentWizard()
     success = wizard.run()
 
@@ -715,6 +915,7 @@ def deploy_wizard():
 @main.command(name='troubleshoot')
 def troubleshoot_wizard():
     """Run the interactive troubleshooting wizard."""
+    from .wizards import TroubleshootingWizard
     wizard = TroubleshootingWizard()
     success = wizard.run()
 
@@ -789,6 +990,100 @@ def watch_deployments(deployment_name: Optional[str], all: bool) -> None:
             console.print(f"\n[yellow]Stopped watching {deployment_name}[/yellow]")
 
 
+from typing import Any, Dict, List, Optional, Self
+from rich.console import Console
+from rich.table import Table
+from rich.prompt import Confirm
+
+console = Console()
+
+
+class EnhancedCLI:
+    """Enhanced CLI components for WebOps."""
+    
+    def __init__(self: Self, api_client: Optional[Any] = None, config: Optional[Any] = None) -> None:
+        """Initialize enhanced CLI components.
+        
+        Args:
+            api_client: Optional WebOps API client instance.
+            config: Optional configuration instance.
+        """
+        self.api_client = api_client
+        self.config = config
+        self.console = console
+    
+    def display_deployment_table(self: Self, deployments: List[Dict[str, Any]]) -> None:
+        """Display deployments in a formatted table.
+        
+        Args:
+            deployments: List of deployment dictionaries.
+        """
+        if not deployments:
+            self.console.print("[yellow]No deployments found[/yellow]")
+            return
+        
+        table = Table(title="WebOps Deployments")
+        table.add_column("Name", style="cyan", no_wrap=True)
+        table.add_column("Status", justify="center")
+        table.add_column("Health", justify="center")
+        table.add_column("Domain", style="blue")
+        table.add_column("Repository", style="dim")
+        
+        for deployment in deployments:
+            if not isinstance(deployment, dict):
+                continue
+                
+            name = deployment.get('name', 'N/A')
+            status = deployment.get('status', 'unknown')
+            health = deployment.get('health', 'unknown')
+            domain = deployment.get('domain', 'N/A')
+            repo_url = deployment.get('repo_url', 'N/A')
+            
+            # Color code the status
+            if status == 'running':
+                status_text = "[green]●[/green] Running"
+            elif status == 'stopped':
+                status_text = "[red]●[/red] Stopped"
+            elif status == 'deploying':
+                status_text = "[yellow]◐[/yellow] Deploying"
+            elif status == 'error':
+                status_text = "[red]✗[/red] Error"
+            else:
+                status_text = f"[yellow]?[/yellow] {status}"
+            
+            # Color code the health
+            if health == 'healthy':
+                health_text = "[green]●[/green] Healthy"
+            elif health == 'unhealthy':
+                health_text = "[red]●[/red] Unhealthy"
+            elif health == 'degraded':
+                health_text = "[yellow]●[/yellow] Degraded"
+            else:
+                health_text = f"[yellow]?[/yellow] {health}"
+            
+            # Truncate long URLs
+            if len(repo_url) > 40:
+                repo_url = repo_url[:37] + "..."
+            
+            table.add_row(name, status_text, health_text, domain, repo_url)
+        
+        self.console.print(table)
+    
+    def confirm_destructive_action(self: Self, action: str, target: str) -> bool:
+        """Confirm a destructive action.
+        
+        Args:
+            action: The action being performed (e.g., "stop", "restart", "delete").
+            target: The target of the action (e.g., deployment name).
+            
+        Returns:
+            True if the user confirms the action, False otherwise.
+        """
+        self.console.print(f"\n[yellow]You are about to {action} '{target}'.[/yellow]")
+        self.console.print("[red]This action may have consequences.[/red]")
+        
+        return Confirm.ask(f"Are you sure you want to {action} '{target}'?", default=False)
+        
 # Register config command with proper name
 main.add_command(config_cmd, name='config')
 

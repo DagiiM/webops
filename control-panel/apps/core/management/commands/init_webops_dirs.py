@@ -11,7 +11,7 @@ Usage:
     # Production (requires sudo for /opt/webops):
     sudo python manage.py init_webops_dirs
 
-Reference: CLAUDE.md "File System Layout" section
+"File System Layout" section
 """
 
 import os

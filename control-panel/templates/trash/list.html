@@ -1,0 +1,1360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trash / Recycle Bin - {{ branding.site_name }}{% endblock %}
+
+{% block extra_css_first %}
+<style>
+/* Ultra-Sleek Trash Interface Styles */
+.webops-trash-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--webops-space-3);
+}
+
+/* Trash Header with Animated Background */
+.webops-trash-header {
+    padding: var(--webops-space-6) var(--webops-space-8);
+}
+
+.webops-trash-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 80%, var(--webops-color-primary-alpha-10) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, var(--webops-color-primary-alpha-05) 0%, transparent 50%);
+    animation: webopsTrashHeaderPulse 8s ease-in-out infinite;
+}
+
+@keyframes webopsTrashHeaderPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+.webops-trash-header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.webops-trash-title {
+    font-size: var(--webops-font-size-4xl);
+    font-weight: var(--webops-font-weight-extrabold);
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--webops-space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+}
+
+@keyframes webopsTrashIconFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(5deg); }
+}
+
+.webops-trash-title-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--webops-space-2);
+    position: relative;
+}
+
+.webops-trash-title-icon::after {
+    content: 'delete';
+    font-family: 'Material Icons';
+    font-size: var(--webops-font-size-2xl);
+    color: var(--webops-color-bg-primary);
+    animation: webopsTrashIconFloat 3s ease-in-out infinite;
+}
+
+.webops-trash-subtitle {
+    font-size: var(--webops-font-size-lg);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-4);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-trash-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--webops-space-4);
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-trash-stat-card {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-xl);
+    padding: var(--webops-space-4);
+    text-align: center;
+    transition: all var(--webops-transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.webops-trash-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-trash-stat-card:hover::before {
+    opacity: 1;
+}
+
+.webops-trash-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--webops-shadow-xl), 0 0 30px var(--webops-color-primary-glow);
+    border-color: var(--webops-color-primary-alpha-35);
+}
+
+.webops-trash-stat-value {
+    font-size: var(--webops-font-size-3xl);
+    font-weight: var(--webops-font-weight-extrabold);
+    color: var(--webops-color-primary);
+    margin-bottom: var(--webops-space-1);
+    text-shadow: 0 0 10px var(--webops-color-primary-glow);
+}
+
+.webops-trash-stat-label {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+/* Search and Filter Bar */
+.webops-trash-controls {
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-xl);
+    padding: var(--webops-space-4);
+    margin-bottom: var(--webops-space-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--webops-space-3);
+    align-items: center;
+}
+
+.webops-trash-search {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+}
+
+.webops-trash-search-input {
+    width: 100%;
+    padding: var(--webops-space-3) var(--webops-space-4);
+    padding-left: var(--webops-space-12);
+    background: var(--webops-color-surface);
+    border: 2px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-lg);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-base);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-trash-search-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-trash-search-icon {
+    position: absolute;
+    left: var(--webops-space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--webops-color-text-tertiary);
+    font-size: var(--webops-font-size-lg);
+    transition: color var(--webops-transition-base);
+}
+
+.webops-trash-search-input:focus + .webops-trash-search-icon {
+    color: var(--webops-color-primary);
+}
+
+.webops-trash-filters {
+    display: flex;
+    gap: var(--webops-space-3);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.webops-trash-filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+}
+
+.webops-trash-filter-label {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-secondary);
+    white-space: nowrap;
+}
+
+.webops-trash-filter-select {
+    padding: var(--webops-space-2) var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-md);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    cursor: pointer;
+    transition: all var(--webops-transition-base);
+}
+
+.webops-trash-filter-select:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+}
+
+/* Bulk Actions Bar */
+.webops-trash-bulk-actions {
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-xl);
+    padding: var(--webops-space-4);
+    margin-bottom: var(--webops-space-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--webops-space-4);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-trash-bulk-actions.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.webops-trash-bulk-info {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-trash-bulk-count {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    font-weight: var(--webops-font-weight-bold);
+}
+
+.webops-trash-bulk-buttons {
+    display: flex;
+    gap: var(--webops-space-3);
+}
+
+/* Trash Items Grid */
+.webops-trash-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--webops-space-4);
+}
+
+.webops-trash-item-card {
+    background: var(--webops-color-bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-xl);
+    padding: var(--webops-space-5);
+    transition: all var(--webops-transition-base);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.webops-trash-item-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-trash-item-card:hover::before {
+    opacity: 1;
+}
+
+.webops-trash-item-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--webops-shadow-xl), 0 0 40px var(--webops-color-primary-glow);
+    border-color: var(--webops-color-primary-alpha-30);
+}
+
+.webops-trash-item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-trash-item-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--webops-font-size-xl);
+    color: var(--webops-color-primary);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-trash-item-card:hover .webops-trash-item-icon {
+    background: var(--webops-color-primary-alpha-20);
+    transform: scale(1.1);
+}
+
+.webops-trash-item-title {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-1);
+    line-height: 1.3;
+}
+
+.webops-trash-item-type {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-trash-item-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-4);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-trash-item-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-1);
+}
+
+.webops-trash-item-meta-label {
+    color: var(--webops-color-text-tertiary);
+    font-size: var(--webops-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.webops-trash-item-meta-value {
+    color: var(--webops-color-text-secondary);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-trash-item-path {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-2);
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-secondary);
+    word-break: break-all;
+    margin-bottom: var(--webops-space-4);
+}
+
+.webops-trash-item-actions {
+    display: flex;
+    gap: var(--webops-space-3);
+    justify-content: flex-end;
+}
+
+.webops-trash-item-checkbox {
+    position: absolute;
+    top: var(--webops-space-4);
+    left: var(--webops-space-4);
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-trash-item-card:hover .webops-trash-item-checkbox {
+    opacity: 1;
+}
+
+/* Expiry Warning */
+.webops-trash-item-expiry-warning {
+    background: var(--webops-color-warning-alpha-10);
+    border: 1px solid var(--webops-color-warning-alpha-20);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-2) var(--webops-space-3);
+    margin-bottom: var(--webops-space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-warning);
+}
+
+.webops-trash-item-expiry-warning::before {
+    content: 'schedule';
+    font-family: 'Material Icons';
+    font-size: var(--webops-font-size-base);
+}
+
+/* Empty State */
+.webops-trash-empty {
+    text-align: center;
+    padding: var(--webops-space-12);
+    color: var(--webops-color-text-tertiary);
+    width: max-content;
+}
+
+.webops-trash-empty-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto var(--webops-space-4);
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--webops-color-primary-alpha-10);
+    border-radius: 50%;
+    position: relative;
+}
+
+.webops-trash-empty-icon::after {
+    content: 'delete';
+    font-family: 'Material Icons';
+    font-size: var(--webops-font-size-4xl);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-trash-empty-title {
+    font-size: var(--webops-font-size-2xl);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-2);
+}
+
+.webops-trash-empty-description {
+    font-size: var(--webops-font-size-base);
+    color: var(--webops-color-text-tertiary);
+    margin-bottom: var(--webops-space-6);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Loading State */
+.webops-trash-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--webops-space-12);
+    color: var(--webops-color-text-secondary);
+    gap: var(--webops-space-3);
+}
+
+.webops-trash-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--webops-color-primary-alpha-20);
+    border-top: 2px solid var(--webops-color-primary);
+    border-radius: 50%;
+    animation: webopsTrashSpin 1s linear infinite;
+}
+
+@keyframes webopsTrashSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .webops-trash-container {
+        padding: var(--webops-space-2);
+    }
+
+    .webops-trash-header {
+        padding: var(--webops-space-4) var(--webops-space-6);
+    }
+
+    .webops-trash-title {
+        font-size: var(--webops-font-size-3xl);
+    }
+
+    .webops-trash-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .webops-trash-search {
+        min-width: auto;
+    }
+
+    .webops-trash-filters {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-trash-items {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-3);
+    }
+
+    .webops-trash-header {
+        padding: var(--webops-space-3) var(--webops-space-4);
+        text-align: center;
+    }
+
+    .webops-trash-title {
+        font-size: var(--webops-font-size-2xl);
+        flex-direction: column;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-trash-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--webops-space-3);
+    }
+
+    .webops-trash-bulk-actions {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .webops-trash-bulk-buttons {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .webops-trash-item-meta {
+        grid-template-columns: 1fr;
+        gap: var(--webops-space-2);
+    }
+
+    .webops-trash-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-trash-container {
+        padding: var(--webops-space-1);
+    }
+
+    .webops-trash-header {
+        margin-bottom: var(--webops-space-4);
+    }
+
+    .webops-trash-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .webops-trash-item-card {
+        padding: var(--webops-space-4);
+    }
+
+    .webops-trash-empty-title {
+        font-size: var(--webops-font-size-xl);
+    }
+
+    .webops-trash-empty-description {
+        font-size: var(--webops-font-size-sm);
+    }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    .webops-trash-item-path {
+        background: var(--webops-color-bg-secondary);
+        border-color: var(--webops-color-primary-alpha-15);
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .webops-trash-item-card {
+        border-width: 2px;
+    }
+
+    .webops-trash-item-card:hover {
+        border-color: var(--webops-color-primary);
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .webops-trash-header::before,
+    .webops-trash-title::before,
+    .webops-trash-item-card::before,
+    .webops-trash-stat-card::before {
+        animation: none;
+    }
+
+    .webops-trash-item-card:hover,
+    .webops-trash-stat-card:hover {
+        transform: none;
+    }
+}
+
+/* Selection States */
+.webops-trash-item-card.selected {
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 2px var(--webops-color-primary-alpha-20);
+}
+
+.webops-trash-item-card.selected::before {
+    opacity: 1;
+}
+
+/* Focus States for Accessibility */
+.webops-trash-item-card:focus-visible {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    .webops-trash-controls,
+    .webops-trash-bulk-actions,
+    .webops-trash-item-actions {
+        display: none;
+    }
+
+    .webops-trash-item-card {
+        break-inside: avoid;
+        border: 1px solid #ccc;
+        margin-bottom: var(--webops-space-3);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="webops-trash-container">
+    <!-- Ultra-Sleek Header -->
+    <div class="webops-card webops-trash-header">
+        <div class="webops-trash-header-content">
+            <h1 class="webops-trash-title">Recycle Bin</h1>
+            <p class="webops-trash-subtitle">Manage your deleted items with style and precision</p>
+
+            <!-- Statistics Cards -->
+            <div class="webops-trash-stats">
+                <div class="webops-trash-stat-card">
+                    <div class="webops-trash-stat-value">{{ stats.total_items }}</div>
+                    <div class="webops-trash-stat-label">Total Items</div>
+                </div>
+                <div class="webops-trash-stat-card">
+                    <div class="webops-trash-stat-value">{{ stats.total_size|filesizeformat }}</div>
+                    <div class="webops-trash-stat-label">Total Size</div>
+                </div>
+                <div class="webops-trash-stat-card">
+                    <div class="webops-trash-stat-value">{{ stats.expiring_soon }}</div>
+                    <div class="webops-trash-stat-label">Expiring Soon</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Controls -->
+    <div class="webops-trash-controls">
+        <div class="webops-trash-search">
+            <input type="text"
+                   class="webops-trash-search-input"
+                   placeholder="Search items by name, type, or path..."
+                   id="trashSearch"
+                   value="{{ current_search }}">
+            <span class="webops-trash-search-icon material-icons">search</span>
+        </div>
+
+        <div class="webops-trash-filters">
+            <div class="webops-trash-filter-group">
+                <label class="webops-trash-filter-label" for="typeFilter">Type:</label>
+                <select class="webops-trash-filter-select" id="typeFilter">
+                    <option value="">All Types</option>
+                    {% for item_type in item_types %}
+                    <option value="{{ item_type }}" {% if current_type == item_type %}selected{% endif %}>
+                        {{ item_type|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="webops-trash-filter-group">
+                <label class="webops-trash-filter-label" for="dateFromFilter">From:</label>
+                <input type="date" class="webops-trash-filter-select" id="dateFromFilter" value="{{ current_date_from }}">
+            </div>
+
+            <div class="webops-trash-filter-group">
+                <label class="webops-trash-filter-label" for="dateToFilter">To:</label>
+                <input type="date" class="webops-trash-filter-select" id="dateToFilter" value="{{ current_date_to }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="webops-trash-bulk-actions" id="bulkActions">
+        <div class="webops-trash-bulk-info">
+            <span class="webops-trash-bulk-count" id="selectedCount">0</span>
+            <span>items selected</span>
+        </div>
+        <div class="webops-trash-bulk-buttons">
+            <button class="webops-btn webops-btn-success" onclick="bulkRestore()">
+                <span class="material-icons">restore</span>
+                Restore Selected
+            </button>
+            <button class="webops-btn webops-btn-danger" onclick="bulkDelete()">
+                <span class="material-icons">delete_forever</span>
+                Delete Selected
+            </button>
+            <button class="webops-btn webops-btn-secondary" onclick="clearSelection()">
+                <span class="material-icons">clear</span>
+                Clear Selection
+            </button>
+        </div>
+    </div>
+
+    <!-- Trash Items Grid -->
+    <div class="webops-trash-items" id="trashItems">
+        {% for item in trash_items %}
+        <div class="webops-trash-item-card" data-item-id="{{ item.id }}" onclick="selectItem(this, event)">
+            <input type="checkbox"
+                   class="webops-trash-item-checkbox"
+                   value="{{ item.id }}"
+                   onchange="updateBulkActions()"
+                   form="bulkActionForm">
+
+            <div class="webops-trash-item-header">
+                <div class="webops-trash-item-icon material-icons">
+                    {% if item.item_type == 'deployment' %}rocket_launch
+                    {% elif item.item_type == 'database' %}storage
+                    {% elif item.item_type == 'file' %}description
+                    {% elif item.item_type == 'directory' %}folder
+                    {% elif item.item_type == 'backup' %}backup
+                    {% elif item.item_type == 'configuration' %}settings
+                    {% elif item.item_type == 'log' %}article
+                    {% elif item.item_type == 'script' %}code
+                    {% else %}inventory_2
+                    {% endif %}
+                </div>
+
+                <div class="webops-trash-item-info">
+                    <div class="webops-trash-item-title">{{ item.item_name }}</div>
+                    <div class="webops-trash-item-type">{{ item.item_type }}</div>
+                </div>
+            </div>
+
+            <!-- Expiry Warning -->
+            {% if item.days_until_expiry <= 3 %}
+            <div class="webops-trash-item-expiry-warning">
+                {% if item.days_until_expiry == 0 %}
+                    Expires today!
+                {% else %}
+                    Expires in {{ item.days_until_expiry }} day{{ item.days_until_expiry|pluralize }}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Item Metadata -->
+            <div class="webops-trash-item-meta">
+                <div class="webops-trash-item-meta-item">
+                    <div class="webops-trash-item-meta-label">Deleted</div>
+                    <div class="webops-trash-item-meta-value">{{ item.deleted_at|date:"M j, Y g:i A" }}</div>
+                </div>
+                <div class="webops-trash-item-meta-item">
+                    <div class="webops-trash-item-meta-label">Size</div>
+                    <div class="webops-trash-item-meta-value">{{ item.size|filesizeformat }}</div>
+                </div>
+            </div>
+
+            <!-- Original Path -->
+            <div class="webops-trash-item-path" title="{{ item.original_path }}">
+                {{ item.original_path }}
+            </div>
+
+            <!-- Actions -->
+            <div class="webops-trash-item-actions">
+                <button class="webops-btn webops-btn-success webops-btn-sm"
+                        onclick="restoreItem({{ item.id }}, event)"
+                        title="Restore this item">
+                    <span class="material-icons">restore</span>
+                    Restore
+                </button>
+                <button class="webops-btn webops-btn-danger webops-btn-sm"
+                        onclick="deleteItem({{ item.id }}, event)"
+                        title="Permanently delete this item">
+                    <span class="material-icons">delete_forever</span>
+                    Delete
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Empty State -->
+        <div class="webops-trash-empty">
+            <div class="webops-trash-empty-icon"></div>
+            <h2 class="webops-trash-empty-title">Trash is Empty</h2>
+            <p class="webops-trash-empty-description">
+                Your recycle bin is clean! All deleted items will appear here when you remove them from your applications.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Loading State -->
+    <div class="webops-trash-loading" id="loadingState" style="display: none;">
+        <div class="webops-trash-loading-spinner"></div>
+        <span>Loading items...</span>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="webops-pagination" style="margin-top: var(--webops-space-6); text-align: center;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+           class="webops-btn webops-btn-secondary">← Previous</a>
+        {% endif %}
+
+        <span style="margin: 0 var(--webops-space-3); color: var(--webops-color-text-secondary);">
+            Page {{ page_obj.number }} of {{ paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+           class="webops-btn webops-btn-secondary">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Bulk Actions Form -->
+<form id="bulkActionForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Ultra-Sleek Trash Interface JavaScript
+class WebOpsTrashManager {
+    constructor() {
+        this.selectedItems = new Set();
+        this.searchTimeout = null;
+        this.isLoading = false;
+
+        this.initializeEventListeners();
+        this.loadSearchState();
+    }
+
+    initializeEventListeners() {
+        // Search functionality with debouncing
+        const searchInput = document.getElementById('trashSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    this.performSearch(e.target.value);
+                }, 300);
+            });
+        }
+
+        // Filter changes
+        ['typeFilter', 'dateFromFilter', 'dateToFilter'].forEach(filterId => {
+            const filter = document.getElementById(filterId);
+            if (filter) {
+                filter.addEventListener('change', () => this.applyFilters());
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+
+        // Click outside to deselect
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.webops-trash-item-card')) {
+                this.clearSelection();
+            }
+        });
+    }
+
+    handleKeyboardShortcuts(e) {
+        // Select all (Ctrl+A)
+        if (e.ctrlKey && e.key === 'a') {
+            e.preventDefault();
+            this.selectAllItems();
+        }
+
+        // Delete selected (Delete key)
+        if (e.key === 'Delete' && this.selectedItems.size > 0) {
+            e.preventDefault();
+            if (confirm(`Permanently delete ${this.selectedItems.size} selected items?`)) {
+                this.bulkDelete();
+            }
+        }
+
+        // Escape to clear selection
+        if (e.key === 'Escape') {
+            this.clearSelection();
+        }
+    }
+
+    selectItem(cardElement, event) {
+        // Don't select if clicking on checkbox or action buttons
+        if (event.target.type === 'checkbox' ||
+            event.target.closest('.webops-trash-item-actions') ||
+            event.target.tagName === 'BUTTON') {
+            return;
+        }
+
+        const itemId = parseInt(cardElement.dataset.itemId);
+        const checkbox = cardElement.querySelector('.webops-trash-item-checkbox');
+
+        if (event.ctrlKey || event.metaKey) {
+            // Multi-select with Ctrl/Cmd
+            this.toggleItemSelection(itemId, checkbox, cardElement);
+        } else {
+            // Single select - clear others first
+            if (this.selectedItems.size === 1 && this.selectedItems.has(itemId)) {
+                // Already selected, do nothing
+                return;
+            }
+
+            this.clearSelection();
+            this.selectItemDirect(itemId, checkbox, cardElement);
+        }
+    }
+
+    toggleItemSelection(itemId, checkbox, cardElement) {
+        if (this.selectedItems.has(itemId)) {
+            this.selectedItems.delete(itemId);
+            checkbox.checked = false;
+            cardElement.classList.remove('selected');
+        } else {
+            this.selectedItems.add(itemId);
+            checkbox.checked = true;
+            cardElement.classList.add('selected');
+        }
+        this.updateBulkActions();
+    }
+
+    selectItemDirect(itemId, checkbox, cardElement) {
+        this.selectedItems.add(itemId);
+        checkbox.checked = true;
+        cardElement.classList.add('selected');
+        this.updateBulkActions();
+    }
+
+    selectAllItems() {
+        const itemCards = document.querySelectorAll('.webops-trash-item-card');
+        itemCards.forEach(card => {
+            const itemId = parseInt(card.dataset.itemId);
+            const checkbox = card.querySelector('.webops-trash-item-checkbox');
+
+            this.selectedItems.add(itemId);
+            checkbox.checked = true;
+            card.classList.add('selected');
+        });
+        this.updateBulkActions();
+    }
+
+    clearSelection() {
+        this.selectedItems.clear();
+        document.querySelectorAll('.webops-trash-item-card').forEach(card => {
+            card.classList.remove('selected');
+            const checkbox = card.querySelector('.webops-trash-item-checkbox');
+            if (checkbox) checkbox.checked = false;
+        });
+        this.updateBulkActions();
+    }
+
+    updateBulkActions() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+
+        if (this.selectedItems.size > 0) {
+            selectedCount.textContent = this.selectedItems.size;
+            bulkActions.classList.add('active');
+        } else {
+            bulkActions.classList.remove('active');
+        }
+    }
+
+    async performSearch(query) {
+        if (this.isLoading) return;
+
+        this.isLoading = true;
+        const loadingState = document.getElementById('loadingState');
+        const trashItems = document.getElementById('trashItems');
+
+        try {
+            loadingState.style.display = 'flex';
+            trashItems.style.opacity = '0.5';
+
+            const response = await fetch(`/trash/api/search/?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update results with smooth transition
+                    trashItems.style.opacity = '0';
+                    setTimeout(() => {
+                        trashItems.innerHTML = data.html;
+                        trashItems.style.opacity = '1';
+                    }, 150);
+                }
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+        } finally {
+            this.isLoading = false;
+            loadingState.style.display = 'none';
+            trashItems.style.opacity = '1';
+        }
+    }
+
+    applyFilters() {
+        const typeFilter = document.getElementById('typeFilter').value;
+        const dateFromFilter = document.getElementById('dateFromFilter').value;
+        const dateToFilter = document.getElementById('dateToFilter').value;
+
+        // Build URL with current filters
+        const params = new URLSearchParams(window.location.search);
+
+        if (typeFilter) {
+            params.set('type', typeFilter);
+        } else {
+            params.delete('type');
+        }
+
+        if (dateFromFilter) {
+            params.set('date_from', dateFromFilter);
+        } else {
+            params.delete('date_from');
+        }
+
+        if (dateToFilter) {
+            params.set('date_to', dateToFilter);
+        } else {
+            params.delete('date_to');
+        }
+
+        // Preserve search if exists
+        const searchInput = document.getElementById('trashSearch');
+        if (searchInput && searchInput.value) {
+            params.set('search', searchInput.value);
+        }
+
+        // Navigate to filtered view
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    loadSearchState() {
+        // Restore search state from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchValue = urlParams.get('search');
+
+        if (searchValue) {
+            const searchInput = document.getElementById('trashSearch');
+            if (searchInput) {
+                searchInput.value = searchValue;
+            }
+        }
+    }
+
+    // Global functions for onclick handlers
+    async restoreItem(itemId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to restore this item?')) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            const response = await fetch(`/trash/${itemId}/restore/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                // Remove item from UI with animation
+                const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+                if (itemCard) {
+                    itemCard.style.transform = 'scale(0.95)';
+                    itemCard.style.opacity = '0';
+                    setTimeout(() => {
+                        itemCard.remove();
+                        this.updateStatsAfterAction();
+                    }, 300);
+                }
+            } else {
+                throw new Error('Restore failed');
+            }
+        } catch (error) {
+            console.error('Restore failed:', error);
+            alert('Failed to restore item. Please try again.');
+        }
+    }
+
+    async deleteItem(itemId, event) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            const response = await fetch(`/trash/${itemId}/delete/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                // Remove item from UI with animation
+                const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+                if (itemCard) {
+                    itemCard.style.transform = 'scale(0.95)';
+                    itemCard.style.opacity = '0';
+                    setTimeout(() => {
+                        itemCard.remove();
+                        this.updateStatsAfterAction();
+                    }, 300);
+                }
+            } else {
+                throw new Error('Delete failed');
+            }
+        } catch (error) {
+            console.error('Delete failed:', error);
+            alert('Failed to delete item. Please try again.');
+        }
+    }
+
+    async bulkRestore() {
+        if (this.selectedItems.size === 0) return;
+
+        if (!confirm(`Restore ${this.selectedItems.size} selected items?`)) {
+            return;
+        }
+
+        await this.performBulkAction('restore');
+    }
+
+    async bulkDelete() {
+        if (this.selectedItems.size === 0) return;
+
+        if (!confirm(`Permanently delete ${this.selectedItems.size} selected items? This action cannot be undone.`)) {
+            return;
+        }
+
+        await this.performBulkAction('delete');
+    }
+
+    async performBulkAction(action) {
+        const itemIds = Array.from(this.selectedItems);
+        const endpoint = action === 'restore' ? 'bulk/restore/' : 'bulk/delete/';
+
+        try {
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            itemIds.forEach(id => formData.append('item_ids', id));
+
+            const response = await fetch(`/trash/${endpoint}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                // Remove selected items from UI
+                itemIds.forEach(itemId => {
+                    const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+                    if (itemCard) {
+                        itemCard.style.transform = 'scale(0.95)';
+                        itemCard.style.opacity = '0';
+                    }
+                });
+
+                setTimeout(() => {
+                    itemIds.forEach(itemId => {
+                        const itemCard = document.querySelector(`[data-item-id="${itemId}"]`);
+                        if (itemCard) itemCard.remove();
+                    });
+                    this.clearSelection();
+                    this.updateStatsAfterAction();
+                }, 300);
+            } else {
+                throw new Error('Bulk action failed');
+            }
+        } catch (error) {
+            console.error('Bulk action failed:', error);
+            alert(`Failed to ${action} items. Please try again.`);
+        }
+    }
+
+    async updateStatsAfterAction() {
+        try {
+            const response = await fetch('/trash/api/stats/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update stats cards with animation
+                    const statsCards = document.querySelectorAll('.webops-trash-stat-value');
+                    statsCards.forEach((card, index) => {
+                        const keys = Object.keys(data.stats);
+                        if (keys[index]) {
+                            const newValue = data.stats[keys[index]];
+                            this.animateValue(card, newValue);
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to update stats:', error);
+        }
+    }
+
+    animateValue(element, newValue) {
+        const currentValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+        const difference = newValue - currentValue;
+
+        if (difference === 0) return;
+
+        const duration = 500; // Animation duration in ms
+        const steps = 20;
+        const stepValue = difference / steps;
+        let currentStep = 0;
+
+        const animate = () => {
+            currentStep++;
+            const progress = currentStep / steps;
+            const current = Math.round(currentValue + (difference * this.easeOutCubic(progress)));
+
+            // Format the value based on its type
+            if (element.textContent.includes('KB') || element.textContent.includes('MB') || element.textContent.includes('GB')) {
+                element.textContent = this.formatFileSize(current);
+            } else {
+                element.textContent = current;
+            }
+
+            if (currentStep < steps) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+}
+
+// Initialize the trash manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    window.trashManager = new WebOpsTrashManager();
+
+    // Make functions globally available for onclick handlers
+    window.selectItem = (card, event) => window.trashManager.selectItem(card, event);
+    window.restoreItem = (id, event) => window.trashManager.restoreItem(id, event);
+    window.deleteItem = (id, event) => window.trashManager.deleteItem(id, event);
+    window.bulkRestore = () => window.trashManager.bulkRestore();
+    window.bulkDelete = () => window.trashManager.bulkDelete();
+    window.clearSelection = () => window.trashManager.clearSelection();
+});
+
+// Utility function for global access
+function selectItem(cardElement, event) {
+    window.trashManager.selectItem(cardElement, event);
+}
+
+function restoreItem(itemId, event) {
+    window.trashManager.restoreItem(itemId, event);
+}
+
+function deleteItem(itemId, event) {
+    window.trashManager.deleteItem(itemId, event);
+}
+
+function bulkRestore() {
+    window.trashManager.bulkRestore();
+}
+
+function bulkDelete() {
+    window.trashManager.bulkDelete();
+}
+
+function clearSelection() {
+    window.trashManager.clearSelection();
+}
+</script>
+{% endblock %}

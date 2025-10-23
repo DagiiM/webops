@@ -23,7 +23,7 @@ class DynamicSettings:
         """Lazy load the configuration service to avoid circular imports."""
         if self._config_service is None:
             try:
-                from apps.core.config_service import config_service
+                from apps.core.services.config_service import config_service
                 self._config_service = config_service
             except ImportError:
                 # Fallback if the service is not available (e.g., during migrations)

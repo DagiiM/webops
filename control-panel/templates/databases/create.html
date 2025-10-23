@@ -1,90 +1,262 @@
 {% extends 'base.html' %}
+{% load js_filters installer_tags %}
 
 {% block title %}Create Database - WebOps{% endblock %}
+{% block header_title %}Create Database{% endblock %}
 
 {% block content %}
-<div class="webops-header">
+<div class="webops-page-header">
     <div>
-        <h2>📊 Create PostgreSQL Database</h2>
-        <p class="text-muted">Create a new PostgreSQL database with secure credentials</p>
+        <h2 class="webops-page-title">Create Database</h2>
+        <p class="webops-text-muted">Select your preferred database engine and configure connection details</p>
     </div>
-    <a href="{% url 'database_list' %}" class="webops-btn">← Back to Databases</a>
+    <a href="{% url 'database_list' %}" class="webops-btn webops-btn-secondary">
+        <span class="material-icons">arrow_back</span>
+        Back to Databases
+    </a>
 </div>
 
-<div class="webops-card" style="max-width: 600px; margin: 0 auto;">
+<div class="webops-card webops-max-w-lg webops-mx-auto">
     <div class="webops-card-header">
-        <h3>Database Configuration</h3>
+        <h3 class="webops-h3">Database Configuration</h3>
     </div>
     <div class="webops-card-body">
-        <form method="POST" id="create-form">
+        <form method="POST" id="create-form" class="webops-form">
             {% csrf_token %}
 
-            <div class="form-group">
-                <label for="name">Database Name *</label>
+            <!-- Database Type Selection -->
+            <div class="webops-form-group">
+                <label for="db_type" class="webops-label webops-label-required">Database Type</label>
+                <select id="db_type" name="db_type" class="webops-select" required>
+                    <option value="">Select Database Engine...</option>
+                    <option value="postgresql" data-port="5432" data-deps="psycopg2-binary>=2.9.0" data-install="pip install psycopg2-binary">
+                        PostgreSQL
+                    </option>
+                    <option value="mysql" data-port="3306" data-deps="pymysql>=1.0.0" data-install="pip install pymysql">
+                        MySQL
+                    </option>
+                    <option value="mongodb" data-port="27017" data-deps="pymongo>=4.0.0" data-install="pip install pymongo">
+                        MongoDB
+                    </option>
+                    <option value="sqlite" data-deps="" data-install="">
+                        SQLite
+                    </option>
+                    <option value="redis" data-port="6379" data-deps="redis>=4.0.0" data-install="pip install redis">
+                        Redis
+                    </option>
+                    <option value="pinecone" data-deps="pinecone-client>=2.0.0" data-install="pip install pinecone-client">
+                        Pinecone
+                    </option>
+                </select>
+                <small class="webops-input-help" id="db-description"></small>
+            </div>
+
+            <!-- Dependency Status Card -->
+            <div id="dependency-status-card" class="webops-card webops-hidden webops-mb-md">
+                <div class="webops-card-header">
+                    <h4 class="webops-h4">
+                        <span class="material-icons webops-icon webops-icon--align-middle webops-icon--small">extension</span>
+                        Dependency Status
+                    </h4>
+                    <div id="dependency-actions">
+                        <!-- Dynamic action buttons will be inserted here -->
+                    </div>
+                </div>
+                <div class="webops-card-body">
+                    <div id="dependency-overview" class="webops-flex webops-items-center webops-gap-md">
+                        <span id="dependency-icon" class="material-icons webops-icon"></span>
+                        <div>
+                            <div id="dependency-status-text" class="webops-badge"></div>
+                            <p id="dependency-summary" class="webops-text-sm webops-text-muted webops-mt-sm"></p>
+                        </div>
+                    </div>
+                    
+                    <div id="dependency-details" class="webops-mt-md webops-hidden">
+                        <h5 class="webops-h5">Required Dependencies</h5>
+                        <div id="dependency-list" class="webops-dependency-list">
+                            <!-- Dynamic dependency items will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dependency Warning (Legacy - will be removed after testing) -->
+            <div id="dependency-warning" class="webops-alert warning webops-hidden">
+                <div class="webops-flex webops-items-center webops-gap-md">
+                    <span class="material-icons webops-icon webops-icon--small">info</span>
+                    <div>
+                        <strong>Dependencies Required</strong>
+                        <p class="webops-text-sm webops-text-muted webops-mt-sm">
+                            <span id="dependency-list-legacy"></span>
+                        </p>
+                        <div class="webops-code webops-mt-sm">
+                            <code id="install-command-legacy"></code>
+                        </div>
+                        <div class="webops-mt-sm">
+                            <a href="#" id="check-deps-btn-legacy" class="webops-btn webops-btn-sm webops-btn-primary">
+                                <span class="material-icons webops-icon">download</span>
+                                Check & Install Dependencies
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Addon Selection -->
+            <div id="addon-selection" class="webops-form-group webops-hidden">
+                <label class="webops-label">Available Addons</label>
+                <p class="webops-input-help">Select addons to enhance your database experience</p>
+                <div id="addon-list">
+                    <!-- Addons will be loaded here via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="webops-form-group">
+                <label for="name" class="webops-label webops-label-required">Database Name</label>
                 <input
                     type="text"
                     id="name"
                     name="name"
-                    class="form-input"
+                    class="webops-input"
                     required
                     pattern="[a-z][a-z0-9_]*"
                     placeholder="myapp_db"
                     autocomplete="off"
                 >
-                <small class="form-help">
+                <small class="webops-input-help">
                     Must start with a letter, only lowercase letters, numbers, and underscores allowed
                 </small>
             </div>
 
-            <div class="form-group">
-                <label for="username">Database Username *</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-input"
-                    required
-                    pattern="[a-z][a-z0-9_]*"
-                    placeholder="myapp_user"
-                    autocomplete="off"
-                >
-                <small class="form-help">
-                    Must start with a letter, only lowercase letters, numbers, and underscores allowed
-                </small>
-            </div>
+            <!-- PostgreSQL/MySQL Fields -->
+            <div class="webops-form-group db-config db-config-relational webops-hidden">
+                <div class="webops-flex webops-gap-md">
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="host" class="webops-label">Host</label>
+                        <input type="text" id="host" name="host" class="webops-input" value="localhost">
+                    </div>
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="port" class="webops-label">Port</label>
+                        <input type="number" id="port" name="port" class="webops-input">
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <div class="info-box">
-                    <span style="font-size: 20px; margin-right: 8px;">🔐</span>
-                    <div>
-                        <strong>Password Generation</strong>
-                        <p style="margin: 4px 0 0 0; font-size: 0.875rem; color: var(--webops-gray-600);">
-                            A secure 32-character password will be automatically generated and encrypted
-                        </p>
+                <div class="webops-form-group">
+                    <label for="database_name" class="webops-label">Database Name</label>
+                    <input type="text" id="database_name" name="database_name" class="webops-input">
+                </div>
+
+                <div class="webops-flex webops-gap-md">
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="username" class="webops-label webops-label-required">Username</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            class="webops-input"
+                            pattern="[a-z][a-z0-9_]*"
+                            placeholder="myapp_user"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="password" class="webops-label webops-label-required">Password</label>
+                        <input type="password" id="password" name="password" class="webops-input">
                     </div>
                 </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="webops-btn webops-btn-primary btn-large">
-                    <span id="submit-text">🚀 Create Database</span>
-                    <span id="submit-loading" style="display: none;">⏳ Creating...</span>
+            <!-- MongoDB Fields -->
+            <div class="webops-form-group db-config db-config-mongodb webops-hidden">
+                <label for="connection_uri" class="webops-label">Connection URI (Optional)</label>
+                <textarea id="connection_uri" name="connection_uri" class="webops-textarea" rows="2"
+                    placeholder="mongodb://username:password@host:port/database"></textarea>
+                <small class="webops-input-help">Leave blank to use individual fields</small>
+            </div>
+
+            <!-- SQLite Fields -->
+            <div class="webops-form-group db-config db-config-sqlite webops-hidden">
+                <label for="database_name_sqlite" class="webops-label webops-label-required">Database File Path</label>
+                <input type="text" id="database_name_sqlite" name="database_name" class="webops-input"
+                    placeholder="/path/to/database.db">
+                <small class="webops-input-help">Path to the SQLite database file</small>
+            </div>
+
+            <!-- Cloud Database Fields (Pinecone, etc.) -->
+            <div class="webops-form-group db-config db-config-cloud webops-hidden">
+                <label for="api_key" class="webops-label webops-label-required">API Key</label>
+                <input type="password" id="api_key" name="api_key" class="webops-input">
+                
+                <label for="environment" class="webops-label">Environment</label>
+                <input type="text" id="environment" name="environment" class="webops-input"
+                    placeholder="us-west1-gcp">
+            </div>
+
+            <!-- Redis Fields -->
+            <div class="webops-form-group db-config db-config-redis webops-hidden">
+                <div class="webops-flex webops-gap-md">
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="host_redis" class="webops-label">Host</label>
+                        <input type="text" id="host_redis" name="host" class="webops-input" value="localhost">
+                    </div>
+                    <div class="webops-form-group webops-flex-1">
+                        <label for="port_redis" class="webops-label">Port</label>
+                        <input type="number" id="port_redis" name="port" class="webops-input">
+                    </div>
+                </div>
+                <div class="webops-form-group">
+                    <label for="password_redis" class="webops-label">Password (Optional)</label>
+                    <input type="password" id="password_redis" name="password" class="webops-input">
+                </div>
+            </div>
+
+            <!-- Advanced Options -->
+            <details class="webops-advanced-options">
+                <summary class="webops-advanced-summary">Advanced Options</summary>
+                <div class="webops-advanced-content">
+                    <div class="webops-form-group">
+                        <label class="webops-checkbox-label">
+                            <input type="checkbox" name="ssl_enabled" id="ssl_enabled" class="webops-checkbox">
+                            <span>Enable SSL/TLS</span>
+                        </label>
+                    </div>
+
+                    <div class="webops-flex webops-gap-md">
+                        <div class="webops-form-group" style="flex: 1;">
+                            <label for="connection_timeout" class="webops-label">Connection Timeout (seconds)</label>
+                            <input type="number" id="connection_timeout" name="connection_timeout"
+                                class="webops-input" value="30">
+                        </div>
+                        <div class="webops-form-group" style="flex: 1;">
+                            <label for="pool_size" class="webops-label">Connection Pool Size</label>
+                            <input type="number" id="pool_size" name="pool_size"
+                                class="webops-input" value="5">
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <div class="webops-form-actions">
+                <button type="submit" class="webops-btn webops-btn-primary webops-btn-lg">
+                    <span id="submit-text">Create Database</span>
+                    <span id="submit-loading" style="display: none;">Creating...</span>
                 </button>
-                <a href="{% url 'database_list' %}" class="webops-btn btn-outline">Cancel</a>
+                <a href="{% url 'database_list' %}" class="webops-btn webops-btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Help Card -->
-<div class="webops-card" style="max-width: 600px; margin: 2rem auto 0;">
+<div class="webops-card" style="max-width: 600px; margin: var(--webops-space-3) auto 0;">
     <div class="webops-card-header">
-        <h3>💡 Best Practices</h3>
+        <h3 class="webops-h3">Best Practices</h3>
     </div>
     <div class="webops-card-body">
-        <ul class="help-list">
+        <ul class="webops-help-list">
             <li>
-                <strong>Naming Convention:</strong> Use descriptive names like <code>myapp_production</code> or <code>blog_db</code>
+                <strong>Naming Convention:</strong> Use descriptive names like <code class="webops-code">myapp_production</code> or <code class="webops-code">blog_db</code>
             </li>
             <li>
                 <strong>Username:</strong> Create a dedicated user per application for better security isolation
@@ -100,103 +272,63 @@
 </div>
 
 <style>
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    font-weight: 600;
-    color: var(--webops-gray-700);
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.form-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid var(--webops-gray-300);
+.webops-advanced-options {
+    margin-top: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-tertiary);
     border-radius: var(--webops-radius-md);
-    font-size: 1rem;
-    transition: all 0.2s;
-    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    border: 1px solid var(--webops-color-primary-alpha-10);
 }
 
-.form-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.webops-advanced-summary {
+    font-weight: var(--webops-font-weight-semibold);
+    cursor: pointer;
+    padding: var(--webops-space-1);
+    margin: calc(-1 * var(--webops-space-1));
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-primary);
 }
 
-.form-input:invalid:not(:placeholder-shown) {
-    border-color: var(--danger);
+.webops-advanced-summary:hover {
+    background: var(--webops-color-surface-hover);
 }
 
-.form-help {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--webops-gray-600);
+.webops-advanced-content {
+    margin-top: var(--webops-space-3);
+    padding-top: var(--webops-space-3);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
 }
 
-.info-box {
+.webops-form-actions {
     display: flex;
-    align-items: flex-start;
-    padding: 1rem;
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-lighter) 100%);
-    border-radius: var(--webops-radius-md);
-    border-left: 4px solid var(--primary);
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-4);
 }
 
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.btn-large {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid var(--webops-gray-300);
-    color: var(--webops-gray-700);
-}
-
-.btn-outline:hover {
-    background: var(--webops-gray-50);
-    border-color: var(--webops-gray-400);
-}
-
-.help-list {
+.webops-help-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.help-list li {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--webops-gray-200);
+.webops-help-list li {
+    padding: var(--webops-space-1-5) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
-.help-list li:last-child {
+.webops-help-list li:last-child {
     border-bottom: none;
 }
 
-.help-list strong {
-    color: var(--webops-gray-700);
+.webops-help-list strong {
+    color: var(--webops-color-text-primary);
 }
 
-.help-list code {
-    background: var(--webops-gray-100);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.875rem;
+@media (max-width: 768px) {
+    .webops-flex.webops-gap-md {
+        flex-direction: column;
+        gap: 0;
+    }
 }
 </style>
 
@@ -213,30 +345,451 @@ document.getElementById('create-form').addEventListener('submit', function() {
     inputs.forEach(input => input.disabled = true);
 });
 
+// Database type descriptions
+const dbDescriptions = {
+    'postgresql': 'High-performance relational database (recommended for production)',
+    'mysql': 'Popular open-source relational database',
+    'mongodb': 'Flexible NoSQL document database for unstructured data',
+    'sqlite': 'Lightweight file-based database (ideal for development and small applications)',
+    'redis': 'In-memory key-value store for caching and messaging',
+    'pinecone': 'Vector database for AI/ML applications'
+};
+
+// Enhanced dependency status management
+class DependencyStatusManager {
+    constructor() {
+        this.currentDbType = null;
+        this.dependencies = [];
+        this.installationPromises = new Map();
+    }
+
+    async checkDependencies(dbType) {
+        try {
+            const response = await fetch(`/databases/check-dependencies/?db_type=${dbType}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Handle the case where the response is an error page (HTML)
+            if (typeof data === 'string' && data.includes('<!DOCTYPE')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Failed to check dependencies:', error);
+            return { success: false, status: 'error', message: 'Failed to check dependencies: ' + error.message };
+        }
+    }
+
+    async installDependency(dependency, dbType) {
+        try {
+            const response = await fetch('/databases/install-dependencies/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    db_type: dbType,
+                    dependencies: [dependency]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Handle the case where the response is an error page (HTML)
+            if (typeof data === 'string' && data.includes('<!DOCTYPE')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Failed to install dependency:', error);
+            return { success: false, status: 'error', message: 'Installation failed: ' + error.message };
+        }
+    }
+
+    async performInstallation(dependency, dbType) {
+        try {
+            const response = await fetch('/databases/install-dependencies/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    db_type: dbType,
+                    dependencies: [dependency]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Handle the case where the response is an error page (HTML)
+            if (typeof data === 'string' && data.includes('<!DOCTYPE')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('Failed to install dependency:', error);
+            return { success: false, status: 'error', message: 'Installation failed: ' + error.message };
+        }
+    }
+
+    getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+    }
+
+    updateDependencyCard(data) {
+        const card = document.getElementById('dependency-status-card');
+        const overview = document.getElementById('dependency-overview');
+        const statusText = document.getElementById('dependency-status-text');
+        const summary = document.getElementById('dependency-summary');
+        const icon = document.getElementById('dependency-icon');
+        const details = document.getElementById('dependency-details');
+        const list = document.getElementById('dependency-list');
+        const actions = document.getElementById('dependency-actions');
+
+        if (data.status === 'error') {
+            this.showErrorState(data.message);
+            return;
+        }
+
+        // Update overview
+        if (!data.success || data.status === 'error') {
+            this.showErrorState(data.message || 'Unknown error occurred');
+            return;
+        }
+        
+        const allInstalled = data.all_installed || (data.dependencies && data.dependencies.every(dep => dep.installed));
+        const hasMissing = !allInstalled;
+        
+        if (allInstalled) {
+            icon.textContent = 'check_circle';
+            icon.className = 'material-icons';
+            icon.style.color = 'var(--webops-color-success)';
+            statusText.textContent = 'All Dependencies Installed';
+            statusText.className = 'webops-badge webops-badge-success';
+            summary.textContent = 'All required dependencies are ready for use';
+            actions.innerHTML = '<button class="webops-btn webops-btn-sm webops-btn-success" disabled><span class="material-icons">check</span> Ready</button>';
+        } else if (hasMissing) {
+            icon.textContent = 'warning';
+            icon.className = 'material-icons';
+            icon.style.color = 'var(--webops-color-warning)';
+            statusText.textContent = 'Missing Dependencies';
+            statusText.className = 'webops-badge webops-badge-warning';
+            
+            const missingCount = data.dependencies ? data.dependencies.filter(dep => !dep.installed).length :
+                               (data.missing_deps ? data.missing_deps.length : 0);
+            summary.textContent = `${missingCount} dependencies need to be installed`;
+            actions.innerHTML = '<button id="install-all-btn" class="webops-btn webops-btn-sm webops-btn-primary"><span class="material-icons">download</span> Install All</button>';
+            
+            // Add install all functionality
+            document.getElementById('install-all-btn')?.addEventListener('click', () => {
+                this.installAllDependencies(data.dependencies);
+            });
+        }
+
+        // Update dependency list
+        list.innerHTML = '';
+        data.dependencies.forEach(dep => {
+            const item = this.createDependencyItem(dep);
+            list.appendChild(item);
+        });
+
+        // Show details
+        details.style.display = 'block';
+        card.classList.remove('webops-hidden');
+
+        // Also update legacy warning for backward compatibility
+        this.updateLegacyWarning(data);
+    }
+
+    createDependencyItem(dep) {
+        const item = document.createElement('div');
+        item.className = `dependency-item ${dep.installed ? 'installed' : 'missing'}`;
+        item.id = `dep-${dep.name}`;
+
+        item.innerHTML = `
+            <div class="dependency-info">
+                <span class="material-icons dependency-icon ${dep.installed ? 'installed' : 'missing'}">
+                    ${dep.installed ? 'check_circle' : 'warning'}
+                </span>
+                <div class="dependency-details">
+                    <div class="dependency-name">${dep.name}</div>
+                    <div class="dependency-description">${dep.description || 'Required dependency'}</div>
+                </div>
+            </div>
+            <div class="dependency-status ${dep.installed ? 'installed' : 'missing'}">
+                <span class="material-icons" style="font-size: 16px;">
+                    ${dep.installed ? 'check_circle' : 'warning'}
+                </span>
+                ${dep.installed ? 'Installed' : 'Missing'}
+            </div>
+            <div class="dependency-actions">
+                ${dep.installed ? 
+                    '<button class="dependency-install-btn installed" disabled><span class="material-icons">check</span>Installed</button>' :
+                    `<button class="dependency-install-btn missing" onclick="dependencyManager.installDependency('${dep.name}', '${this.currentDbType}')">
+                        <span class="material-icons">download</span>Install
+                    </button>`
+                }
+            </div>
+        `;
+
+        return item;
+    }
+
+    async installDependency(dependency, dbType) {
+        const button = document.querySelector(`#dep-${dependency} .dependency-install-btn`);
+        const status = document.querySelector(`#dep-${dependency} .dependency-status`);
+        const item = document.getElementById(`dep-${dependency}`);
+
+        if (this.installationPromises.has(dependency)) {
+            return; // Already installing
+        }
+
+        // Update UI to installing state
+        button.className = 'dependency-install-btn installing';
+        button.disabled = true;
+        button.innerHTML = '<span class="material-icons">hourglass_empty</span>Installing...';
+        
+        status.className = 'dependency-status installing';
+        status.innerHTML = '<span class="material-icons webops-icon--small">hourglass_empty</span>Installing...';
+        
+        item.className = 'dependency-item installing';
+
+        try {
+            console.log(`Installing dependency ${dependency} for ${dbType}...`);
+            const result = await this.performInstallation(dependency, dbType);
+            console.log('Installation result:', result);
+            
+            // Check if the installation was successful
+            const installSuccess = result.success &&
+                                  result.status !== 'error' &&
+                                  result.results &&
+                                  result.results[dependency] &&
+                                  result.results[dependency].success;
+            
+            console.log(`Install success for ${dependency}:`, installSuccess);
+            
+            if (installSuccess) {
+                // Update to installed state
+                button.className = 'dependency-install-btn installed';
+                button.disabled = true;
+                button.innerHTML = '<span class="material-icons">check</span>Installed';
+                
+                status.className = 'dependency-status installed';
+                status.innerHTML = '<span class="material-icons webops-icon--small">check_circle</span>Installed';
+                
+                item.className = 'dependency-item installed';
+                
+                // Check if all dependencies are now installed
+                console.log(`Re-checking dependencies for ${dbType} after installing ${dependency}...`);
+                this.checkDependencies(dbType).then(data => {
+                    console.log('Dependency check result after installation:', data);
+                    this.updateDependencyCard(data);
+                });
+            } else {
+                throw new Error(result.message || 'Installation failed');
+            }
+        } catch (error) {
+            // Update to failed state
+            button.className = 'dependency-install-btn failed';
+            button.disabled = false;
+            button.innerHTML = '<span class="material-icons">error</span>Retry';
+            
+            status.className = 'dependency-status failed';
+            status.innerHTML = '<span class="material-icons webops-icon--small">error</span>Failed';
+            
+            item.className = 'dependency-item failed';
+            
+            console.error('Installation failed:', error);
+        } finally {
+            this.installationPromises.delete(dependency);
+        }
+    }
+
+    async installAllDependencies(dependencies) {
+        const installAllBtn = document.getElementById('install-all-btn');
+        if (installAllBtn) {
+            installAllBtn.disabled = true;
+            installAllBtn.innerHTML = '<span class="material-icons webops-icon--small">hourglass_empty</span>Installing All...';
+        }
+
+        const missingDeps = dependencies.filter(dep => !dep.installed);
+        
+        for (const dep of missingDeps) {
+            await this.installDependency(dep.name, this.currentDbType);
+        }
+
+        if (installAllBtn) {
+            installAllBtn.classList.add('webops-hidden');
+        }
+    }
+
+    showErrorState(message) {
+        const card = document.getElementById('dependency-status-card');
+        const overview = document.getElementById('dependency-overview');
+        const icon = document.getElementById('dependency-icon');
+        const statusText = document.getElementById('dependency-status-text');
+        const summary = document.getElementById('dependency-summary');
+
+        icon.textContent = 'error';
+        icon.className = 'material-icons';
+        icon.classList.add('webops-text-error');
+        statusText.textContent = 'Error';
+        statusText.className = 'webops-badge webops-badge-error';
+        summary.textContent = message;
+        
+        card.style.display = 'block';
+    }
+
+    updateLegacyWarning(data) {
+        // Keep legacy warning updated for backward compatibility
+        const legacyWarning = document.getElementById('dependency-warning');
+        const legacyList = document.getElementById('dependency-list-legacy');
+        const legacyCmd = document.getElementById('install-command-legacy');
+        
+        // Hide legacy warning when using the new dependency status card
+        if (data.dependencies && data.dependencies.length > 0) {
+            if (data.dependencies.some(dep => !dep.installed)) {
+                const missingDeps = data.dependencies.filter(dep => !dep.installed);
+                legacyList.textContent = `Dependencies: ${missingDeps.map(dep => dep.name).join(', ')}`;
+                legacyCmd.textContent = data.install_command || 'pip install ' + missingDeps.map(dep => dep.name).join(' ');
+                legacyWarning.classList.remove('webops-hidden');
+            } else {
+                // All dependencies are installed, hide the legacy warning
+                legacyWarning.classList.add('webops-hidden');
+            }
+        } else {
+            // No dependencies to check (e.g., SQLite), hide the legacy warning
+            legacyWarning.classList.add('webops-hidden');
+        }
+    }
+}
+
+// Initialize dependency manager
+const dependencyManager = new DependencyStatusManager();
+
+// Dynamic form configuration based on selected database type
+document.getElementById('db_type').addEventListener('change', async function(e) {
+    const dbType = e.target.value;
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    
+    // Update description
+    document.getElementById('db-description').textContent = dbDescriptions[dbType] || '';
+    
+    // Update dependency manager
+    dependencyManager.currentDbType = dbType;
+    
+    // Check dependencies for databases that require them
+    if (['postgresql', 'mysql', 'mongodb', 'redis'].includes(dbType)) {
+        const data = await dependencyManager.checkDependencies(dbType);
+        dependencyManager.updateDependencyCard(data);
+    } else {
+        // Hide dependency card and legacy warning for databases that don't require dependencies
+        document.getElementById('dependency-status-card').classList.add('webops-hidden');
+        document.getElementById('dependency-warning').classList.add('webops-hidden');
+    }
+    
+    // Hide addon selection initially
+    document.getElementById('addon-selection').classList.add('webops-hidden');
+    
+    // Hide all config sections
+    document.querySelectorAll('.db-config').forEach(el => el.classList.add('webops-hidden'));
+    
+    // Show relevant config sections
+    if (dbType === 'postgresql' || dbType === 'mysql') {
+        document.querySelector('.db-config-relational').classList.remove('webops-hidden');
+        const port = selectedOption.dataset.port;
+        if (port) {
+            document.getElementById('port').value = port;
+        }
+    } else if (dbType === 'mongodb') {
+        document.querySelector('.db-config-relational').classList.remove('webops-hidden');
+        document.querySelector('.db-config-mongodb').classList.remove('webops-hidden');
+        const port = selectedOption.dataset.port;
+        if (port) {
+            document.getElementById('port').value = port;
+        }
+    } else if (dbType === 'sqlite') {
+        document.querySelector('.db-config-sqlite').classList.remove('webops-hidden');
+    } else if (dbType === 'pinecone') {
+        document.querySelector('.db-config-cloud').classList.remove('webops-hidden');
+    } else if (dbType === 'redis') {
+        document.querySelector('.db-config-redis').classList.remove('webops-hidden');
+        const port = selectedOption.dataset.port;
+        if (port) {
+            document.getElementById('port_redis').value = port;
+        }
+    }
+    
+    // Set up the check dependencies button for databases that require them (legacy)
+    if (['postgresql', 'mysql', 'mongodb', 'redis'].includes(dbType)) {
+        const checkDepsBtn = document.getElementById('check-deps-btn-legacy');
+        if (checkDepsBtn) {
+            checkDepsBtn.href = `{% dependency_check_url 'placeholder' %}`.replace('placeholder', dbType);
+        }
+    }
+});
+
 // Auto-generate username suggestion from database name
 document.getElementById('name').addEventListener('input', function(e) {
     const usernameInput = document.getElementById('username');
-    if (!usernameInput.value) {
+    if (usernameInput && !usernameInput.value) {
         const suggestion = e.target.value.replace(/_db$/, '_user');
         usernameInput.value = suggestion;
     }
 });
 
 // Real-time validation feedback
-document.querySelectorAll('.form-input[pattern]').forEach(input => {
+document.querySelectorAll('.webops-input[pattern]').forEach(input => {
     input.addEventListener('blur', function() {
         if (this.value && !this.validity.valid) {
-            this.style.borderColor = 'var(--danger)';
+            this.classList.add('webops-border-error');
+            this.classList.remove('webops-border-success');
         } else {
-            this.style.borderColor = '';
+            this.classList.remove('webops-border-error');
+            this.classList.remove('webops-border-success');
         }
     });
 
     input.addEventListener('input', function() {
         if (this.validity.valid) {
-            this.style.borderColor = 'var(--success)';
+            this.classList.add('webops-border-success');
+            this.classList.remove('webops-border-error');
         }
     });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Trigger change event to show initial configuration
+    const dbTypeSelect = document.getElementById('db_type');
+    if (dbTypeSelect.value) {
+        dbTypeSelect.dispatchEvent(new Event('change'));
+    }
 });
 </script>
 {% endblock %}

@@ -887,6 +887,29 @@
     justify-content: center;
 }
 
+/* Collapsed Properties Panel */
+.webops-properties-panel.collapsed {
+    width: 24px;
+    min-width: 24px;
+    overflow: hidden;
+}
+
+.webops-properties-panel.collapsed .webops-properties-header,
+.webops-properties-panel.collapsed .webops-properties-body {
+    display: none;
+}
+
+.webops-properties-panel.collapsed .webops-properties-toggle {
+    left: 0;
+    width: 24px;
+    height: 48px;
+    border-radius: 0 var(--webops-radius-md) var(--webops-radius-md) 0;
+}
+
+.webops-properties-panel.collapsed .webops-properties-toggle .material-icons {
+    transform: rotate(180deg);
+}
+
 /* Properties panel size toggle button */
 #btn-toggle-properties-size {
     transition: transform var(--webops-transition-base);

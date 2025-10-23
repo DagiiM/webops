@@ -1,0 +1,16 @@
+{% load installer_tags %}
+<div class="webops-service-status">
+    <div class="webops-flex webops-items-center webops-gap-md">
+        <span class="material-icons {% if is_running %}webops-text-success{% else %}webops-text-error{% endif %}">
+            {% service_icon is_running %}
+        </span>
+        <div>
+            <span class="webops-badge {% if is_running %}webops-badge-success{% else %}webops-badge-error %}">
+                {% if is_running %}Running{% else %}Stopped{% endif %}
+            </span>
+            <p class="webops-text-sm webops-text-muted webops-mt-xs">
+                Service: {{ service_name }}
+            </p>
+        </div>
+    </div>
+</div>

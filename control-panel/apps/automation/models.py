@@ -10,7 +10,7 @@ automation pipelines with:
 
 from django.db import models
 from django.contrib.auth.models import User
-from apps.core.models import BaseModel
+from apps.core.common.models import BaseModel
 import json
 
 
@@ -342,3 +342,81 @@ class DataSourceCredential(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.get_provider_display()})"
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to encrypt credentials before saving.
+        """
+        # Encrypt sensitive fields in credentials
+        if self.credentials:
+            self.credentials = self._encrypt_credentials(self.credentials)
+        
+        super().save(*args, **kwargs)
+
+    def get_credentials(self) -> dict:
+        """
+        Get decrypted credentials.
+        """
+        if not self.credentials:
+            return {}
+        
+        return self._decrypt_credentials(self.credentials)
+
+    def _encrypt_credentials(self, credentials: dict) -> dict:
+        """
+        Encrypt sensitive fields in credentials.
+        """
+        from apps.core.utils import encrypt_password
+        
+        # Fields that should be encrypted
+        sensitive_fields = [
+            'api_key', 'token', 'access_token', 'refresh_token',
+            'private_key', 'password', 'secret', 'client_secret'
+        ]
+        
+        encrypted = {}
+        for key, value in credentials.items():
+            if any(field in key.lower() for field in sensitive_fields) and value:
+                # Encrypt sensitive values
+                if isinstance(value, str):
+                    encrypted[key] = encrypt_password(value)
+                else:
+                    # For non-string values, convert to string, encrypt, and store
+                    encrypted[key] = encrypt_password(str(value))
+            else:
+                # Keep non-sensitive values as-is
+                encrypted[key] = value
+        
+        return encrypted
+
+    def _decrypt_credentials(self, credentials: dict) -> dict:
+        """
+        Decrypt sensitive fields in credentials.
+        """
+        from apps.core.utils import decrypt_password
+        
+        # Fields that would have been encrypted
+        sensitive_fields = [
+            'api_key', 'token', 'access_token', 'refresh_token',
+            'private_key', 'password', 'secret', 'client_secret'
+        ]
+        
+        decrypted = {}
+        for key, value in credentials.items():
+            if any(field in key.lower() for field in sensitive_fields) and value:
+                try:
+                    # Try to decrypt sensitive values
+                    if isinstance(value, str):
+                        decrypted[key] = decrypt_password(value)
+                    else:
+                        # For non-string values, convert to string first
+                        decrypted[key] = decrypt_password(str(value))
+                except Exception:
+                    # If decryption fails, keep the original value
+                    # This handles the case where the value wasn't encrypted
+                    decrypted[key] = value
+            else:
+                # Keep non-sensitive values as-is
+                decrypted[key] = value
+        
+        return decrypted

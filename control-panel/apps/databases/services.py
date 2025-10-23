@@ -1,7 +1,7 @@
 """
 Database service for WebOps.
 
-Reference: CLAUDE.md "Database Management" section
+"Database Management" section
 
 This module implements database operations:
 - PostgreSQL database creation

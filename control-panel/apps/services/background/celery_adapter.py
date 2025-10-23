@@ -78,6 +78,57 @@ class CeleryBackgroundProcessor(BackgroundProcessor):
             "timezone": getattr(self._app_ref.app.conf, "timezone", None),
         }
 
+    def get_status(self) -> Dict[str, Any]:
+        """Return comprehensive status information for the Celery processor."""
+        try:
+            from celery import current_app
+            inspect = current_app.control.inspect()
+            
+            # Get worker statistics
+            stats = inspect.stats() or {}
+            active_workers = len(stats.keys()) if stats else 0
+            
+            # Get task counts
+            active_tasks = inspect.active() or {}
+            scheduled_tasks = inspect.scheduled() or {}
+            reserved_tasks = inspect.reserved() or {}
+            
+            total_active = sum(len(tasks) for tasks in active_tasks.values())
+            total_scheduled = sum(len(tasks) for tasks in scheduled_tasks.values())
+            total_reserved = sum(len(tasks) for tasks in reserved_tasks.values())
+            
+            # Get queue information
+            from kombu import Connection
+            broker_url = getattr(self._app_ref.app.conf, "broker_url", None)
+            queue_info = {}
+            if broker_url:
+                try:
+                    with Connection(broker_url) as conn:
+                        # Get queue sizes (this is approximate)
+                        queue_info["broker_connected"] = True
+                        queue_info["broker_url"] = broker_url
+                except Exception as e:
+                    queue_info["broker_connected"] = False
+                    queue_info["broker_error"] = str(e)
+            
+            return {
+                "processor": "celery",
+                "status": "healthy" if active_workers > 0 else "no_workers",
+                "active_workers": active_workers,
+                "total_active": total_active,
+                "total_scheduled": total_scheduled,
+                "total_reserved": total_reserved,
+                "broker_info": queue_info,
+                "backend_info": self.backend_info()
+            }
+        except Exception as e:
+            return {
+                "processor": "celery",
+                "status": "error",
+                "error": str(e),
+                "backend_info": self.backend_info()
+            }
+
     def _get_async_result(self, handle: TaskHandle):
         # Lazily import Celery AsyncResult via app
         try:

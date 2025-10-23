@@ -7,12 +7,13 @@ Demonstrates how to use the KVM addon programmatically.
 # Example 1: Deploy a VM
 def deploy_example_vm(user):
     """Deploy a small Ubuntu VM for a user."""
-    from apps.deployments.models import Deployment
-    from addons.kvm.models import VMPlan, OSTemplate
-    from addons.kvm.deployment_service import KVMDeploymentService
+    from apps.deployments.models import BaseDeployment
+    from .models import VMPlan, OSTemplate
+    from .deployment_service import KVMDeploymentService
 
     # Create deployment record
-    deployment = Deployment.objects.create(
+    from apps.deployments.models import ApplicationDeployment
+    deployment = ApplicationDeployment.objects.create(
         user=user,
         name='example-vm',
         deployment_type='kvm',
@@ -50,7 +51,7 @@ def deploy_example_vm(user):
 # Example 2: Manage VM lifecycle
 def vm_lifecycle_example(vm_deployment):
     """Demonstrate VM lifecycle operations."""
-    from addons.kvm.deployment_service import KVMDeploymentService
+    from .deployment_service import KVMDeploymentService
 
     service = KVMDeploymentService()
 
@@ -82,7 +83,7 @@ def vm_lifecycle_example(vm_deployment):
 # Example 3: Check user quota
 def check_user_quota_example(user):
     """Check if user can create a VM."""
-    from addons.kvm.models import VMQuota, VMPlan
+    from .models import VMQuota, VMPlan
 
     # Get or create quota
     quota, created = VMQuota.objects.get_or_create(user=user)
@@ -98,7 +99,7 @@ def check_user_quota_example(user):
 
     # Display current usage
     from django.db.models import Sum
-    from addons.kvm.models import VMDeployment
+    from .models import VMDeployment
 
     vms = VMDeployment.objects.filter(
         deployment__user=user,
@@ -118,7 +119,7 @@ def check_user_quota_example(user):
 # Example 4: Get cluster statistics
 def cluster_stats_example():
     """Display cluster resource statistics."""
-    from addons.kvm.resource_manager import ResourceManager
+    from .resource_manager import ResourceManager
 
     mgr = ResourceManager()
     stats = mgr.get_cluster_stats()
@@ -148,7 +149,7 @@ def cluster_stats_example():
 # Example 5: Calculate monthly cost
 def calculate_vm_cost_example(vm_deployment, year, month):
     """Calculate monthly cost for a VM."""
-    from addons.kvm.models import VMUsageRecord
+    from .models import VMUsageRecord
     from django.db.models import Sum
 
     records = VMUsageRecord.objects.filter(
@@ -171,7 +172,7 @@ def calculate_vm_cost_example(vm_deployment, year, month):
 # Example 6: List user VMs
 def list_user_vms_example(user):
     """List all VMs for a user."""
-    from addons.kvm.models import VMDeployment
+    from .models import VMDeployment
 
     vms = VMDeployment.objects.filter(deployment__user=user).select_related(
         'compute_node',
@@ -194,7 +195,7 @@ def list_user_vms_example(user):
 # Example 7: Create custom VM plan
 def create_custom_plan_example():
     """Create a custom VM plan."""
-    from addons.kvm.models import VMPlan
+    from .models import VMPlan
     from decimal import Decimal
 
     plan = VMPlan.objects.create(
@@ -219,9 +220,9 @@ def create_custom_plan_example():
 # Example 8: Bulk deploy VMs
 def bulk_deploy_example(user, count=5):
     """Deploy multiple VMs for a user."""
-    from addons.kvm.models import VMPlan, OSTemplate
+    from .models import VMPlan, OSTemplate
     from apps.deployments.models import Deployment
-    from addons.kvm.deployment_service import KVMDeploymentService
+    from .deployment_service import KVMDeploymentService
 
     plan = VMPlan.objects.get(name='micro')
     template = OSTemplate.objects.get(name='ubuntu-22.04')
@@ -232,7 +233,8 @@ def bulk_deploy_example(user, count=5):
     deployed = []
 
     for i in range(count):
-        deployment = Deployment.objects.create(
+        from apps.deployments.models import ApplicationDeployment
+        deployment = ApplicationDeployment.objects.create(
             user=user,
             name=f'bulk-vm-{i+1}',
             deployment_type='kvm',
@@ -262,7 +264,7 @@ def bulk_deploy_example(user, count=5):
 # Example 9: Monitor VM resources
 def monitor_vm_resources_example(vm_deployment):
     """Monitor VM resource usage."""
-    from addons.kvm.libvirt_manager import LibvirtManager
+    from .libvirt_manager import LibvirtManager
 
     with LibvirtManager(vm_deployment.compute_node.libvirt_uri) as mgr:
         info = mgr.get_domain_info(vm_deployment.vm_name)
@@ -279,8 +281,8 @@ def cleanup_old_vms_example(days=30):
     """Delete VMs stopped for more than X days."""
     from django.utils import timezone
     from datetime import timedelta
-    from addons.kvm.models import VMDeployment
-    from addons.kvm.deployment_service import KVMDeploymentService
+    from .models import VMDeployment
+    from .deployment_service import KVMDeploymentService
 
     cutoff = timezone.now() - timedelta(days=days)
 

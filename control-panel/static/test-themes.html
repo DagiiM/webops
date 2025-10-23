@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test - WebOps Control Panel</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/themes.css">
+    <link rel="stylesheet" href="/static/css/theme-switcher.css">
+    <link rel="stylesheet" href="/static/css/theme-transitions.css">
+    <link rel="stylesheet" href="/static/css/webops-components.css">
+    <link rel="stylesheet" href="/static/css/webops-utilities.css">
+    <link rel="stylesheet" href="/static/css/webops-layout.css">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <style>
+        body {
+            padding: 2rem;
+            font-family: var(--webops-font-family-primary);
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .theme-preview {
+            margin: 2rem 0;
+            padding: 2rem;
+            border: 2px solid var(--webops-color-border);
+            border-radius: var(--webops-radius-lg);
+            background: var(--webops-color-bg-secondary);
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .color-swatch {
+            padding: 1rem;
+            border-radius: var(--webops-radius-md);
+            text-align: center;
+            font-size: var(--webops-font-size-sm);
+        }
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: var(--webops-radius-md);
+            font-size: var(--webops-font-size-xs);
+            font-weight: var(--webops-font-weight-semibold);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>WebOps Theme System Test</h1>
+        <p>This page tests the dynamic theme loading functionality.</p>
+        
+        <!-- Theme Switcher -->
+        <div class="webops-theme-switcher" style="position: relative; display: inline-block;">
+            <button id="themeToggle" class="webops-theme-toggle" aria-label="Toggle theme" aria-expanded="false">
+                <span class="webops-theme-toggle__icon material-icons">light_mode</span>
+                <span class="webops-theme-toggle__label">Light</span>
+                <span class="material-icons">expand_more</span>
+            </button>
+            <div id="themeDropdown" class="webops-theme-dropdown">
+                <button class="webops-theme-option" data-theme="light">
+                    <span class="material-icons">light_mode</span>
+                    <span>Light</span>
+                </button>
+                <button class="webops-theme-option" data-theme="dark">
+                    <span class="material-icons">dark_mode</span>
+                    <span>Dark</span>
+                </button>
+                <button class="webops-theme-option" data-theme="forest">
+                    <span class="material-icons">forest</span>
+                    <span>Forest</span>
+                </button>
+                <button class="webops-theme-option" data-theme="high-contrast">
+                    <span class="material-icons">contrast</span>
+                    <span>High Contrast</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Theme Preview -->
+        <div class="theme-preview">
+            <h2>Theme Preview</h2>
+            <p>Current theme: <span id="currentTheme">light</span></p>
+            
+            <h3>Primary Colors</h3>
+            <div class="color-grid">
+                <div class="color-swatch" style="background: var(--webops-color-primary); color: white;">
+                    Primary
+                </div>
+                <div class="color-swatch" style="background: var(--webops-color-primary-light); color: white;">
+                    Primary Light
+                </div>
+                <div class="color-swatch" style="background: var(--webops-color-primary-dark); color: white;">
+                    Primary Dark
+                </div>
+            </div>
+            
+            <h3>Status Colors</h3>
+            <div class="status-indicators">
+                <div class="status-badge" style="background: var(--webops-color-success); color: white;">
+                    Success
+                </div>
+                <div class="status-badge" style="background: var(--webops-color-warning); color: white;">
+                    Warning
+                </div>
+                <div class="status-badge" style="background: var(--webops-color-error); color: white;">
+                    Error
+                </div>
+                <div class="status-badge" style="background: var(--webops-color-info); color: white;">
+                    Info
+                </div>
+            </div>
+            
+            <h3>Background Colors</h3>
+            <div class="color-grid">
+                <div class="color-swatch" style="background: var(--webops-color-bg-primary); color: var(--webops-color-text);">
+                    BG Primary
+                </div>
+                <div class="color-swatch" style="background: var(--webops-color-bg-secondary); color: var(--webops-color-text);">
+                    BG Secondary
+                </div>
+                <div class="color-swatch" style="background: var(--webops-color-bg-tertiary); color: var(--webops-color-text);">
+                    BG Tertiary
+                </div>
+            </div>
+            
+            <h3>Text Colors</h3>
+            <div style="background: var(--webops-color-bg-primary); padding: 1rem; border-radius: var(--webops-radius-md);">
+                <p style="color: var(--webops-color-text);">Primary Text</p>
+                <p style="color: var(--webops-color-text-secondary);">Secondary Text</p>
+                <p style="color: var(--webops-color-text-tertiary);">Tertiary Text</p>
+            </div>
+        </div>
+        
+        <!-- Test Components -->
+        <div class="theme-preview">
+            <h3>Component Examples</h3>
+            <button class="webops-btn webops-btn-primary">Primary Button</button>
+            <button class="webops-btn webops-btn-secondary">Secondary Button</button>
+            <input type="text" class="webops-input" placeholder="Text input example">
+        </div>
+        
+        <div id="themeStatus" style="margin-top: 2rem; padding: 1rem; background: var(--webops-color-bg-tertiary); border-radius: var(--webops-radius-md); font-family: monospace; font-size: var(--webops-font-size-xs);">
+            Theme status will appear here...
+        </div>
+    </div>
+    
+    <!-- JavaScript Files -->
+    <script src="/static/js/dynamic-theme-loader.js"></script>
+    <script src="/static/js/theme-switcher.js"></script>
+    <script src="/static/js/theme-integration.js"></script>
+    
+    <script>
+        // Test the theme system
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('themeStatus');
+            const currentThemeSpan = document.getElementById('currentTheme');
+            
+            function updateStatus(message) {
+                statusDiv.innerHTML += message + '<br>';
+                statusDiv.scrollTop = statusDiv.scrollHeight;
+            }
+            
+            // Wait for dynamic loader
+            if (window.WebOpsDynamicThemeLoader) {
+                updateStatus('✅ Dynamic Theme Loader loaded');
+                
+                const loader = new WebOpsDynamicThemeLoader();
+                loader.init().then(() => {
+                    updateStatus('✅ Dynamic Theme Loader initialized');
+                    updateStatus(`Current theme: ${loader.currentTheme}`);
+                    currentThemeSpan.textContent = loader.currentTheme;
+                }).catch(err => {
+                    updateStatus(`❌ Error initializing loader: ${err.message}`);
+                });
+            } else {
+                updateStatus('❌ Dynamic Theme Loader not found');
+            }
+            
+            // Wait for theme switcher
+            if (window.WebOpsThemeSwitcher) {
+                updateStatus('✅ Theme Switcher loaded');
+            } else {
+                updateStatus('❌ Theme Switcher not found');
+            }
+            
+            // Wait for integration
+            if (window.WebOpsThemeIntegration) {
+                updateStatus('✅ Theme Integration loaded');
+                
+                const integration = new WebOpsThemeIntegration();
+                integration.init().then(() => {
+                    updateStatus('✅ Theme Integration initialized');
+                }).catch(err => {
+                    updateStatus(`❌ Error initializing integration: ${err.message}`);
+                });
+            } else {
+                updateStatus('❌ Theme Integration not found');
+            }
+            
+            // Listen for theme changes
+            window.addEventListener('webops-theme-changed', function(e) {
+                updateStatus(`🎨 Theme changed to: ${e.detail.theme}`);
+                currentThemeSpan.textContent = e.detail.theme;
+            });
+        });
+    </script>
+</body>
+</html>

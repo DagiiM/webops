@@ -1,689 +1,516 @@
-"""
-API views for WebOps.
-
-Reference: CLAUDE.md "API Design" section
-
-This module implements REST API endpoints for:
-- Deployments (CRUD + actions)
-- Databases (CRUD)
-- Logs
-"""
-
-import json
-from typing import Dict, Any
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from django.core.paginator import Paginator
+from django.utils import timezone
+from datetime import timedelta
+import secrets
+import json
+import os
+from pathlib import Path
 
-from apps.deployments.models import Deployment, DeploymentLog
-from apps.services.background import get_background_processor
-from apps.deployments.service_manager import ServiceManager
-from apps.databases.models import Database
-from apps.databases.services import DatabaseService
-
-from .authentication import api_authentication_required, validate_request_data
-from apps.core.utils import sanitize_deployment_name, validate_domain
+from .models import APIToken
 
 
-# ============================================================================
-# Deployment Endpoints
-# ============================================================================
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def deployment_list(request) -> JsonResponse:
-    """List all deployments with pagination."""
-    page = int(request.GET.get('page', 1))
-    per_page = min(int(request.GET.get('per_page', 20)), 100)
-    status_filter = request.GET.get('status')
-
-    deployments = Deployment.objects.filter(deployed_by=request.user)
-    if status_filter:
-        deployments = deployments.filter(status=status_filter)
-
-    paginator = Paginator(deployments, per_page)
-    page_obj = paginator.get_page(page)
-
-    deployment_list = [{
-        'id': d.id,
-        'name': d.name,
-        'repo_url': d.repo_url,
-        'branch': d.branch,
-        'status': d.status,
-        'project_type': d.project_type,
-        'port': d.port,
-        'domain': d.domain,
-        'created_at': d.created_at.isoformat(),
-        'updated_at': d.updated_at.isoformat(),
-    } for d in page_obj]
-
+def api_status(request):
+    """
+    Simple API status endpoint to check if the API is running.
+    """
     return JsonResponse({
-        'deployments': deployment_list,
-        'pagination': {
-            'page': page_obj.number,
-            'per_page': per_page,
-            'total': paginator.count,
-            'pages': paginator.num_pages
-        }
+        'status': 'ok',
+        'timestamp': timezone.now().isoformat()
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_websocket_token(request):
+    """
+    Generate a temporary WebSocket token for the authenticated user.
+    This token is specifically for WebSocket authentication and has a short expiry.
+    """
+    # Create a temporary token specifically for WebSocket use
+    token_name = f"WebSocket Token - {timezone.now().strftime('%Y-%m-%d %H:%M')}"
+    
+    # Create a new API token with short expiry (1 hour)
+    ws_token = APIToken.objects.create(
+        user=request.user,
+        name=token_name,
+        expires_at=timezone.now() + timedelta(hours=1)
+    )
+    
+    return JsonResponse({
+        'token': ws_token.token,
+        'expires_at': ws_token.expires_at.isoformat()
     })
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@api_authentication_required
-@validate_request_data(['name', 'repo_url'])
-def deployment_create(request) -> JsonResponse:
-    """Create new deployment."""
-    data = request.json_data
-
-    from apps.deployments.services import DeploymentService
-    service = DeploymentService()
-
-    if not service.validate_repo_url(data['repo_url']):
-        return JsonResponse({
-            'error': 'Invalid repository URL',
-            'message': 'Must be a valid GitHub HTTPS URL'
-        }, status=400)
-
-    # Sanitize and validate deployment name
-    try:
-        sanitized_name = sanitize_deployment_name(data['name'])
-    except ValueError as e:
-        return JsonResponse({
-            'error': 'Invalid deployment name',
-            'message': str(e)
-        }, status=400)
-
-    # Validate domain if provided
-    if data.get('domain') and not validate_domain(data['domain']):
-        return JsonResponse({
-            'error': 'Invalid domain name',
-            'message': 'Invalid domain name format'
-        }, status=400)
-
-    # Ensure name uniqueness (using sanitized value)
-    if Deployment.objects.filter(name=sanitized_name).exists():
-        return JsonResponse({
-            'error': f'Deployment {sanitized_name} already exists'
-        }, status=400)
-
-    try:
-        deployment = Deployment.objects.create(
-            name=sanitized_name,
-            repo_url=data['repo_url'],
-            branch=data.get('branch', 'main'),
-            domain=data.get('domain', ''),
-            env_vars=data.get('env_vars', {}),
-            deployed_by=request.user,
-            status=Deployment.Status.PENDING
-        )
-
-        # Ensure Celery worker is running (non-interactive)
-        ServiceManager().ensure_celery_running()
-        get_background_processor().submit('apps.deployments.tasks.deploy_application', deployment.id)
-
-        return JsonResponse({
-            'id': deployment.id,
-            'name': deployment.name,
-            'status': deployment.status,
-            'message': 'Deployment queued successfully'
-        }, status=201)
-
-    except Exception as e:
-        return JsonResponse({
-            'error': 'Failed to create deployment',
-            'message': str(e)
-        }, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def deployment_detail(request, name: str) -> JsonResponse:
-    """Get deployment details."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    return JsonResponse({
-        'id': deployment.id,
-        'name': deployment.name,
-        'repo_url': deployment.repo_url,
-        'branch': deployment.branch,
-        'status': deployment.status,
-        'project_type': deployment.project_type,
-        'port': deployment.port,
-        'domain': deployment.domain,
-        'env_vars': deployment.env_vars,
-        'created_at': deployment.created_at.isoformat(),
-        'updated_at': deployment.updated_at.isoformat(),
-    })
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@api_authentication_required
-def deployment_start(request, name: str) -> JsonResponse:
-    """Start a deployment service."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    service_manager = ServiceManager()
-    success, message = service_manager.start_service(deployment)
-
-    if success:
-        return JsonResponse({'success': True, 'message': message})
-    else:
-        return JsonResponse({'success': False, 'error': message}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@api_authentication_required
-def deployment_stop(request, name: str) -> JsonResponse:
-    """Stop a deployment service."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    service_manager = ServiceManager()
-    success, message = service_manager.stop_service(deployment)
-
-    if success:
-        return JsonResponse({'success': True, 'message': message})
-    else:
-        return JsonResponse({'success': False, 'error': message}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@api_authentication_required
-def deployment_restart(request, name: str) -> JsonResponse:
-    """Restart a deployment service."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    service_manager = ServiceManager()
-    success, message = service_manager.restart_service(deployment)
-
-    if success:
-        return JsonResponse({'success': True, 'message': message})
-    else:
-        return JsonResponse({'success': False, 'error': message}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["DELETE"])
-@api_authentication_required
-def deployment_delete(request, name: str) -> JsonResponse:
-    """Delete a deployment."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    deployment_id = deployment.id
-    deployment_name = deployment.name
-
-    # Ensure Celery worker is running (non-interactive)
-    ServiceManager().ensure_celery_running()
-    get_background_processor().submit('apps.deployments.tasks.delete_deployment', deployment_id)
-
-    return JsonResponse({
-        'success': True,
-        'message': f'Deployment {deployment_name} deletion queued'
-    })
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def deployment_logs(request, name: str) -> JsonResponse:
-    """Get deployment logs."""
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    tail = min(int(request.GET.get('tail', 100)), 1000)
-    level_filter = request.GET.get('level')
-
-    logs = deployment.logs.all()
-    if level_filter:
-        logs = logs.filter(level=level_filter)
-    logs = logs[:tail]
-
-    log_list = [{
-        'level': log.level,
-        'message': log.message,
-        'created_at': log.created_at.isoformat(),
-    } for log in logs]
-
-    return JsonResponse({'logs': log_list})
-
-
-# ============================================================================
-# Database Endpoints
-# ============================================================================
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def database_list(request) -> JsonResponse:
-    """List all databases."""
-    databases = Database.objects.filter(deployment__deployed_by=request.user)
-
-    database_list = [{
-        'id': db.id,
-        'name': db.name,
-        'username': db.username,
-        'host': db.host,
-        'port': db.port,
-        'deployment': db.deployment.name if db.deployment else None,
-        'created_at': db.created_at.isoformat(),
-    } for db in databases]
-
-    return JsonResponse({'databases': database_list})
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def database_detail(request, name: str) -> JsonResponse:
-    """Get database credentials."""
-    database = get_object_or_404(
-        Database,
-        name=name,
-        deployment__deployed_by=request.user
-    )
-
-    db_service = DatabaseService()
-    connection_string = db_service.get_connection_string(database, decrypted=True)
-
-    from apps.core.utils.encryption import decrypt_password
-    decrypted_password = decrypt_password(database.password)
-
-    return JsonResponse({
-        'name': database.name,
-        'username': database.username,
-        'password': decrypted_password,
-        'host': database.host,
-        'port': database.port,
-        'connection_string': connection_string
-    })
-
-
-# ============================================================================
-# File Editor Endpoints
-# ============================================================================
-
-from django.contrib.auth.decorators import login_required
-
-@require_http_methods(["GET"])
-def deployment_files_tree(request, deployment_id: int) -> JsonResponse:
-    """Get file tree for deployment."""
-    from pathlib import Path
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    deployment = get_object_or_404(
-        Deployment,
-        id=deployment_id,
-        deployed_by=request.user
-    )
-
-    # Block file operations for LLM deployments
-    if deployment.project_type == Deployment.ProjectType.LLM:
-        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
-
-    from apps.deployments.services import DeploymentService
-    service = DeploymentService()
-    repo_path = service.get_repo_path(deployment)
-
-    if not repo_path.exists():
-        return JsonResponse({
-            'error': 'Repository not cloned yet'
-        }, status=400)
-
-    def build_tree(path: Path, max_depth: int = 5, current_depth: int = 0) -> list:
-        """Recursively build file tree."""
-        if current_depth >= max_depth:
-            return []
-
-        items = []
-        try:
-            for item in sorted(path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())):
-                # Skip hidden and ignored files/folders
-                if item.name.startswith('.') and item.name not in ['.env.example', '.gitignore']:
-                    continue
-                if item.name in ['__pycache__', 'node_modules', '.git', 'venv', '.venv', 'dist', 'build']:
-                    continue
-
-                rel_path = str(item.relative_to(repo_path))
-
-                if item.is_dir():
-                    items.append({
-                        'name': item.name,
-                        'path': rel_path,
-                        'type': 'directory',
-                        'children': build_tree(item, max_depth, current_depth + 1)
-                    })
-                else:
-                    items.append({
-                        'name': item.name,
-                        'path': rel_path,
-                        'type': 'file'
-                    })
-        except PermissionError:
-            pass
-
-        return items
-
-    tree = build_tree(repo_path)
-
-    return JsonResponse({
-        'tree': tree,
-        'root': str(repo_path)
-    })
-
-
-@require_http_methods(["GET"])
-def deployment_file_read(request, deployment_id: int) -> JsonResponse:
-    """Read file content."""
-    from pathlib import Path
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    deployment = get_object_or_404(
-        Deployment,
-        id=deployment_id,
-        deployed_by=request.user
-    )
-
-    # Block file operations for LLM deployments
-    if deployment.project_type == Deployment.ProjectType.LLM:
-        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
-
-    from apps.deployments.services import DeploymentService
-    service = DeploymentService()
-    repo_path = service.get_repo_path(deployment)
-
-    if not repo_path.exists():
-        return JsonResponse({
-            'error': 'Repository not cloned yet'
-        }, status=400)
-
-    # Get file path from query parameter
-    file_path = request.GET.get('path', '')
-
-    # Security: prevent directory traversal
-    if '..' in file_path or file_path.startswith('/'):
-        return JsonResponse({
-            'error': 'Invalid path'
-        }, status=400)
-
-    target_path = repo_path / file_path
-
-    # Ensure path is within repo
-    try:
-        target_path.resolve().relative_to(repo_path.resolve())
-    except ValueError:
-        return JsonResponse({
-            'error': 'Invalid path - outside repository'
-        }, status=400)
-
-    if not target_path.exists():
-        return JsonResponse({
-            'error': 'File not found'
-        }, status=404)
-
-    if not target_path.is_file():
-        return JsonResponse({
-            'error': 'Not a file'
-        }, status=400)
-
-    # Check file size (limit to 5MB for editor)
-    file_size = target_path.stat().st_size
-    if file_size > 5 * 1024 * 1024:
-        return JsonResponse({
-            'error': 'File too large (>5MB)'
-        }, status=400)
-
-    # Try to read as text
-    try:
-        content = target_path.read_text(encoding='utf-8')
-        return JsonResponse({
-            'content': content,
-            'path': file_path,
-            'size': file_size,
-            'name': target_path.name
-        })
-    except UnicodeDecodeError:
-        return JsonResponse({
-            'error': 'Binary file - cannot display'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'error': str(e)
-        }, status=500)
-
-
-@require_http_methods(["POST"])
-def deployment_file_write(request, deployment_id: int) -> JsonResponse:
-    """Write file content."""
-    from pathlib import Path
-
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    deployment = get_object_or_404(
-        Deployment,
-        id=deployment_id,
-        deployed_by=request.user
-    )
-
-    # Block file operations for LLM deployments
-    if deployment.project_type == Deployment.ProjectType.LLM:
-        return JsonResponse({'error': 'File operations are not available for LLM deployments'}, status=400)
-
-    from apps.deployments.services import DeploymentService
-    service = DeploymentService()
-    repo_path = service.get_repo_path(deployment)
-
-    if not repo_path.exists():
-        return JsonResponse({
-            'error': 'Repository not cloned yet'
-        }, status=400)
-
+def refresh_websocket_token(request):
+    """
+    Refresh a WebSocket token. This endpoint accepts an existing token
+    and returns a new one if the old token is valid.
+    """
+    from .authentication import get_user_from_token
+    
     try:
         data = json.loads(request.body)
+        old_token = data.get('token')
+        
+        if not old_token:
+            return JsonResponse({'error': 'No token provided'}, status=400)
+        
+        # Verify the old token
+        user = get_user_from_token(old_token)
+        if not user:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+        
+        # Create a new token
+        token_name = f"WebSocket Token - {timezone.now().strftime('%Y-%m-%d %H:%M')}"
+        new_token = APIToken.objects.create(
+            user=user,
+            name=token_name,
+            expires_at=timezone.now() + timedelta(hours=1)
+        )
+        
+        # Deactivate the old token
+        try:
+            old_token_obj = APIToken.objects.get(token=old_token)
+            old_token_obj.is_active = False
+            old_token_obj.save()
+        except APIToken.DoesNotExist:
+            pass
+        
+        return JsonResponse({
+            'token': new_token.token,
+            'expires_at': new_token.expires_at.isoformat()
+        })
+        
     except json.JSONDecodeError:
-        return JsonResponse({
-            'error': 'Invalid JSON'
-        }, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
-    file_path = data.get('path')
-    content = data.get('content')
 
-    if not file_path or content is None:
-        return JsonResponse({
-            'error': 'Missing required fields: path and content'
-        }, status=400)
+# Import existing deployment API views
+from apps.deployments.api.deployments import (
+    list_deployments,
+    create_deployment,
+    get_deployment,
+    start_deployment_api,
+    stop_deployment_api,
+    restart_deployment_api,
+    delete_deployment_api,
+    get_deployment_logs,
+    generate_env_api,
+    validate_project_api,
+    validate_env_api,
+    get_env_vars_api,
+    set_env_var_api,
+    unset_env_var_api
+)
 
-    # Security: prevent directory traversal
-    if '..' in file_path or file_path.startswith('/'):
-        return JsonResponse({
-            'error': 'Invalid path'
-        }, status=400)
+# Wrapper functions for deployment API views with the expected names
+@login_required
+@require_http_methods(["GET"])
+def deployment_list(request):
+    """Wrapper for list_deployments"""
+    return list_deployments(request)
 
-    target_path = repo_path / file_path
 
-    # Ensure path is within repo
+@login_required
+@require_http_methods(["POST"])
+def deployment_create(request):
+    """Wrapper for create_deployment"""
+    return create_deployment(request)
+
+
+@login_required
+@require_http_methods(["GET"])
+def deployment_detail(request, name):
+    """Wrapper for get_deployment"""
+    return get_deployment(request, name)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_start(request, name):
+    """Wrapper for start_deployment_api"""
+    return start_deployment_api(request, name)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_stop(request, name):
+    """Wrapper for stop_deployment_api"""
+    return stop_deployment_api(request, name)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_restart(request, name):
+    """Wrapper for restart_deployment_api"""
+    return restart_deployment_api(request, name)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def deployment_delete(request, name):
+    """Wrapper for delete_deployment_api"""
+    return delete_deployment_api(request, name)
+
+
+@login_required
+@require_http_methods(["GET"])
+def deployment_logs(request, name):
+    """Wrapper for get_deployment_logs"""
+    return get_deployment_logs(request, name)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_env_generate(request, name):
+    """Wrapper for generate_env_api"""
+    return generate_env_api(request, name)
+
+
+@login_required
+@require_http_methods(["GET"])
+def deployment_project_validate(request, name):
+    """Wrapper for validate_project_api"""
+    return validate_project_api(request, name)
+
+
+@login_required
+@require_http_methods(["GET"])
+def deployment_env_validate(request, name):
+    """Wrapper for validate_env_api"""
+    return validate_env_api(request, name)
+
+
+@login_required
+@require_http_methods(["GET"])
+def deployment_env_vars(request, name):
+    """Wrapper for get_env_vars_api"""
+    return get_env_vars_api(request, name)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_env_set(request, name):
+    """Wrapper for set_env_var_api"""
+    return set_env_var_api(request, name)
+
+
+@login_required
+@require_http_methods(["DELETE", "POST"])
+def deployment_env_unset(request, name):
+    """Wrapper for unset_env_var_api"""
+    return unset_env_var_api(request, name)
+
+
+# File Editor API Views
+@login_required
+@require_http_methods(["GET"])
+def deployment_files_tree(request, deployment_id):
+    """
+    Get the file tree structure for a deployment.
+    
+    GET /api/deployments/{deployment_id}/files/tree/?path=/optional/subpath
+    """
     try:
-        target_path.resolve().relative_to(repo_path.resolve())
-    except ValueError:
+        from apps.deployments.models import ApplicationDeployment
+        from apps.deployments.services import DeploymentService
+        
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+        service = DeploymentService()
+        repo_path = service.get_repo_path(deployment)
+        
+        if not repo_path.exists():
+            return JsonResponse({'error': 'Repository not found'}, status=404)
+        
+        # Get the requested path, default to root
+        requested_path = request.GET.get('path', '/')
+        if requested_path == '/':
+            requested_path = repo_path
+        else:
+            # Ensure the path is within the repo
+            requested_path = repo_path / requested_path.lstrip('/')
+            if not requested_path.exists() or not str(requested_path).startswith(str(repo_path)):
+                return JsonResponse({'error': 'Invalid path'}, status=400)
+        
+        # Build file tree
+        def build_tree(path):
+            tree = []
+            try:
+                for item in path.iterdir():
+                    # Skip hidden files and directories
+                    if item.name.startswith('.'):
+                        continue
+                        
+                    node = {
+                        'name': item.name,
+                        'path': str(item.relative_to(repo_path)),
+                        'type': 'directory' if item.is_dir() else 'file'
+                    }
+                    
+                    if item.is_dir():
+                        node['children'] = build_tree(item)
+                    
+                    tree.append(node)
+            except PermissionError:
+                pass
+            return tree
+        
+        tree = build_tree(requested_path)
+        
         return JsonResponse({
-            'error': 'Invalid path - outside repository'
-        }, status=400)
+            'success': True,
+            'path': str(requested_path.relative_to(repo_path)),
+            'tree': tree
+        })
+        
+    except ApplicationDeployment.DoesNotExist:
+        return JsonResponse({'error': 'Deployment not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
-    # Don't allow writing to certain sensitive files
-    forbidden_files = ['.git', 'venv', '.venv', '__pycache__']
-    if any(part in target_path.parts for part in forbidden_files):
-        return JsonResponse({
-            'error': 'Cannot modify this file'
-        }, status=403)
 
+@login_required
+@require_http_methods(["GET"])
+def deployment_file_read(request, deployment_id):
+    """
+    Read the contents of a file in a deployment.
+    
+    GET /api/deployments/{deployment_id}/files/read/?path=/path/to/file
+    """
     try:
+        from apps.deployments.models import ApplicationDeployment
+        from apps.deployments.services import DeploymentService
+        
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+        service = DeploymentService()
+        repo_path = service.get_repo_path(deployment)
+        
+        if not repo_path.exists():
+            return JsonResponse({'error': 'Repository not found'}, status=404)
+        
+        # Get the requested file path
+        file_path = request.GET.get('path')
+        if not file_path:
+            return JsonResponse({'error': 'Path parameter is required'}, status=400)
+        
+        # Ensure the path is within the repo and is a file
+        full_path = repo_path / file_path.lstrip('/')
+        if not full_path.exists() or not full_path.is_file() or not str(full_path).startswith(str(repo_path)):
+            return JsonResponse({'error': 'Invalid file path'}, status=400)
+        
+        # Read file content with size limit
+        max_size = 1024 * 1024  # 1MB limit
+        file_size = full_path.stat().st_size
+        
+        if file_size > max_size:
+            return JsonResponse({'error': 'File too large'}, status=400)
+        
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            # Try with a different encoding
+            try:
+                with open(full_path, 'r', encoding='latin-1') as f:
+                    content = f.read()
+            except Exception:
+                return JsonResponse({'error': 'Cannot read binary file'}, status=400)
+        
+        return JsonResponse({
+            'success': True,
+            'path': file_path,
+            'content': content,
+            'size': file_size
+        })
+        
+    except ApplicationDeployment.DoesNotExist:
+        return JsonResponse({'error': 'Deployment not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deployment_file_write(request, deployment_id):
+    """
+    Write content to a file in a deployment.
+    
+    POST /api/deployments/{deployment_id}/files/write/
+    Body: {
+        "path": "/path/to/file",
+        "content": "file content",
+        "create_dirs": true
+    }
+    """
+    try:
+        from apps.deployments.models import ApplicationDeployment
+        from apps.deployments.services import DeploymentService
+        
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+        service = DeploymentService()
+        repo_path = service.get_repo_path(deployment)
+        
+        if not repo_path.exists():
+            return JsonResponse({'error': 'Repository not found'}, status=404)
+        
+        # Parse request body
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        file_path = data.get('path')
+        content = data.get('content', '')
+        create_dirs = data.get('create_dirs', True)
+        
+        if not file_path:
+            return JsonResponse({'error': 'Path parameter is required'}, status=400)
+        
+        # Ensure the path is within the repo
+        full_path = repo_path / file_path.lstrip('/')
+        if not str(full_path).startswith(str(repo_path)):
+            return JsonResponse({'error': 'Invalid file path'}, status=400)
+        
         # Create parent directories if needed
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Write file
-        target_path.write_text(content, encoding='utf-8')
-
+        if create_dirs:
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+        elif not full_path.parent.exists():
+            return JsonResponse({'error': 'Parent directory does not exist'}, status=400)
+        
+        # Write the file
+        try:
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+        except Exception as e:
+            return JsonResponse({'error': f'Failed to write file: {str(e)}'}, status=500)
+        
         return JsonResponse({
             'success': True,
             'message': f'File {file_path} saved successfully',
-            'size': len(content)
+            'path': file_path
         })
+        
+    except ApplicationDeployment.DoesNotExist:
+        return JsonResponse({'error': 'Deployment not found'}, status=404)
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# Database API Views
+@login_required
+@require_http_methods(["GET"])
+def database_list(request):
+    """
+    List all databases.
+    
+    GET /api/databases/
+    """
+    try:
+        from apps.databases.models import Database
+        
+        databases = Database.objects.all()
+        db_list = []
+        
+        for db in databases:
+            db_data = {
+                'id': db.id,
+                'name': db.name,
+                'db_type': db.db_type,
+                'host': db.host,
+                'port': db.port,
+                'database_name': db.database_name,
+                'username': db.username,
+                'is_active': db.is_active,
+                'created_at': db.created_at.isoformat(),
+                'updated_at': db.updated_at.isoformat(),
+            }
+            
+            # Include deployment info if available
+            if db.deployment:
+                db_data['deployment'] = {
+                    'id': db.deployment.id,
+                    'name': db.deployment.name
+                }
+            
+            # Include dependency status
+            db_data['dependency_status'] = db.get_dependency_status()
+            
+            db_list.append(db_data)
+        
         return JsonResponse({
-            'error': str(e)
-        }, status=500)
+            'databases': db_list,
+            'count': len(db_list)
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
-# ============================================================================
-# Environment Variable Management Endpoints
-# ============================================================================
-
-@csrf_exempt
+@login_required
 @require_http_methods(["GET"])
-@api_authentication_required
-def deployment_env_vars(request, name: str) -> JsonResponse:
-    """Get all environment variables for a deployment."""
-    from apps.deployments import api_views as deploy_api
-
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Call the deployment API view
-    return deploy_api.get_env_vars_api(request, name)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@api_authentication_required
-def deployment_env_generate(request, name: str) -> JsonResponse:
-    """Generate .env file from .env.example."""
-    from apps.deployments import api_views as deploy_api
-
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Call the deployment API view
-    return deploy_api.generate_env_api(request, name)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def deployment_env_validate(request, name: str) -> JsonResponse:
-    """Validate .env file for a deployment."""
-    from apps.deployments import api_views as deploy_api
-
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Call the deployment API view
-    return deploy_api.validate_env_api(request, name)
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@api_authentication_required
-def deployment_project_validate(request, name: str) -> JsonResponse:
-    """Validate project structure and requirements for a deployment."""
-    from apps.deployments import api_views as deploy_api
-
-    # Ensure the requesting user owns this deployment before delegating
-    _ = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Delegate to the deployments API view for actual validation
-    return deploy_api.validate_project_api(request, name)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@api_authentication_required
-def deployment_env_set(request, name: str) -> JsonResponse:
-    """Set an environment variable."""
-    from apps.deployments import api_views as deploy_api
-
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Call the deployment API view
-    return deploy_api.set_env_var_api(request, name)
-
-
-@csrf_exempt
-@require_http_methods(["DELETE", "POST"])
-@api_authentication_required
-def deployment_env_unset(request, name: str) -> JsonResponse:
-    """Remove an environment variable."""
-    from apps.deployments import api_views as deploy_api
-
-    deployment = get_object_or_404(
-        Deployment,
-        name=name,
-        deployed_by=request.user
-    )
-
-    # Call the deployment API view
-    return deploy_api.unset_env_var_api(request, name)
-
-
-# ============================================================================
-# Status Endpoint
-# ============================================================================
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def api_status(request) -> JsonResponse:
-    """API health check."""
-    return JsonResponse({
-        'status': 'ok',
-        'version': '0.3.0'
-    })
+def database_detail(request, name):
+    """
+    Get details of a specific database.
+    
+    GET /api/databases/{name}/
+    """
+    try:
+        from apps.databases.models import Database
+        from apps.core.utils import decrypt_password
+        from django.conf import settings
+        
+        try:
+            database = Database.objects.get(name=name)
+        except Database.DoesNotExist:
+            return JsonResponse({'error': f'Database {name} not found'}, status=404)
+        
+        db_data = {
+            'id': database.id,
+            'name': database.name,
+            'db_type': database.db_type,
+            'host': database.host,
+            'port': database.port,
+            'database_name': database.database_name,
+            'username': database.username,
+            'is_active': database.is_active,
+            'ssl_enabled': database.ssl_enabled,
+            'connection_timeout': database.connection_timeout,
+            'pool_size': database.pool_size,
+            'environment': database.environment,
+            'connection_uri': database.connection_uri,
+            'metadata': database.metadata,
+            'created_at': database.created_at.isoformat(),
+            'updated_at': database.updated_at.isoformat(),
+        }
+        
+        # Include deployment info if available
+        if database.deployment:
+            db_data['deployment'] = {
+                'id': database.deployment.id,
+                'name': database.deployment.name
+            }
+        
+        # Include masked password and connection string
+        db_data['connection_string'] = database.get_connection_string()
+        
+        # Include dependency status
+        db_data['dependency_status'] = database.get_dependency_status()
+        
+        # Include required addons
+        db_data['required_addons'] = [
+            {'id': addon.id, 'name': addon.name}
+            for addon in database.required_addons.all()
+        ]
+        
+        return JsonResponse(db_data)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

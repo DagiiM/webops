@@ -1,15 +1,79 @@
 
-/* ========================================
-   Light Mode (Optional – kept for reference)
-   ======================================== */
+/**
+ * WebOps Light Theme - Complete HSL-based implementation
+ * Clean, modern light theme with teal accent colors
+ */
+
 :root[data-theme="light"] {
-  --color-bg-primary: #f8faf9;
-  --color-bg-secondary: #ffffff;
-  --color-bg-tertiary: #f0f4f2;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f0f4f2;
-  --color-text-primary: #0a0e0d;
-  --color-text-secondary: #4a5652;
-  --color-text-tertiary: #8a9690;
-  --color-border: var(--webops-color-primary-alpha-20);
+    /* Light theme uses teal primary color for a fresh, modern look */
+    --webops-hue-primary: 170;       /* Teal primary */
+    --webops-sat-primary: 100%;
+    --webops-light-primary: 50%;
+
+    /* Light theme backgrounds */
+    --webops-color-bg-primary: #ffffff;        /* Pure white background */
+    --webops-color-bg-secondary: #f8fafb;      /* Light gray for cards */
+    --webops-color-bg-tertiary: #f1f5f3;      /* Slightly darker for sidebars */
+    --webops-color-bg-elevated: #ffffff;       /* White for elevated surfaces */
+
+    /* Interactive surfaces */
+    --webops-color-surface: #ffffff;           /* Default surface */
+    --webops-color-surface-hover: #f8fafb;     /* Hover state */
+    --webops-color-surface-active: #f1f5f3;   /* Active/pressed state */
+
+    /* Typography colors */
+    --webops-color-text-primary: #1a1a1a;     /* Dark text for headings */
+    --webops-color-text-secondary: #4a5568;   /* Medium gray for body text */
+    --webops-color-text-tertiary: #718096;    /* Light gray for captions */
+    --webops-color-text-disabled: #a0aec0;    /* Disabled text color */
+
+    /* Status colors (independent for accessibility) */
+    --webops-color-success: hsl(170 100% 50%); /* Teal success */
+    --webops-color-warning: #ed8936;           /* Orange warning */
+    --webops-color-error: #e53e3e;             /* Red error */
+    --webops-color-info: #3182ce;              /* Blue info */
+
+    /* Graph and visualization colors */
+    --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
+    --webops-color-graph-edge: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 15%);
+    --webops-color-graph-grid: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 5%);
+
+    /* Shadows for light theme */
+    --webops-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --webops-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --webops-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --webops-shadow-glow: 0 0 24px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
+
+    /* Border colors */
+    --webops-color-border: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 20%);
+    --webops-color-border-hover: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 40%);
+    --webops-color-border-focus: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
+}
+
+/* Light theme specific scrollbar styling */
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-left: 1px solid var(--webops-color-border);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 20%);
+    border: 2px solid var(--webops-color-bg-secondary);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 35%);
+}
+
+/* Light theme specific focus styles */
+:root[data-theme="light"] *:focus-visible {
+    outline: 2px solid hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
+    outline-offset: 2px;
+}
+
+:root[data-theme="light"] .webops-btn:focus-visible,
+:root[data-theme="light"] input:focus-visible,
+:root[data-theme="light"] textarea:focus-visible,
+:root[data-theme="light"] select:focus-visible {
+    box-shadow: 0 0 0 4px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
 }

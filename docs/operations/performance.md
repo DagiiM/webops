@@ -178,17 +178,17 @@ document.querySelectorAll('img[data-src]').forEach(img => {
 #### Query Optimization
 ```python
 # Bad: N+1 queries
-deployments = Deployment.objects.all()
+deployments = ApplicationDeployment.objects.all()
 for deployment in deployments:
     print(deployment.user.username)  # New query for each deployment
 
 # Good: Use select_related or prefetch_related
-deployments = Deployment.objects.select_related('user').all()
+deployments = ApplicationDeployment.objects.select_related('user').all()
 for deployment in deployments:
     print(deployment.user.username)  # No additional queries
 
 # Complex prefetching
-deployments = Deployment.objects.prefetch_related(
+deployments = ApplicationDeployment.objects.prefetch_related(
     Prefetch('logs', queryset=DeploymentLog.objects.order_by('-created_at'))
 ).all()
 ```
@@ -228,7 +228,7 @@ from django.views.decorators.cache import cache_page
 
 @cache_page(60 * 15)  # Cache for 15 minutes
 def deployment_list(request):
-    deployments = Deployment.objects.all()
+    deployments = ApplicationDeployment.objects.all()
     return render(request, 'deployments/list.html', {'deployments': deployments})
 
 # Template fragment caching
@@ -275,7 +275,7 @@ class DeploymentPagination(PageNumberPagination):
     max_page_size = 100
 
 class DeploymentListView(ListAPIView):
-    queryset = Deployment.objects.all()
+    queryset = ApplicationDeployment.objects.all()
     serializer_class = DeploymentSerializer
     pagination_class = DeploymentPagination
     filter_backends = [SearchFilter, OrderingFilter]

@@ -299,7 +299,7 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
-.loading-spinner {
+.webops-loading {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -308,7 +308,7 @@
     padding: var(--webops-space-8) var(--webops-space-6);
 }
 
-.spinner-ring {
+.webops-loading__ring {
     width: 48px;
     height: 48px;
     border: 4px solid rgba(59, 130, 246, 0.1);
@@ -318,26 +318,26 @@
 }
 
 /* Template Filters */
-.template-filters {
+.webops-template-list__filters {
     display: flex;
     flex-wrap: wrap;
     gap: 2rem;
     align-items: flex-end;
 }
 
-.filter-group {
+.webops-template-list__filter-group {
     flex: 1;
     min-width: 200px;
 }
 
-.filter-buttons {
+.webops-template-list__filter-buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.5rem;
 }
 
-.filter-btn {
+.webops-template-list__filter-btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -352,26 +352,26 @@
     font-weight: 500;
 }
 
-.filter-btn:hover {
+.webops-template-list__filter-btn:hover {
     border-color: var(--webops-color-primary);
     color: var(--webops-color-primary);
     transform: translateY(-1px);
 }
 
-.filter-btn.active {
+.webops-template-list__filter-btn--active {
     background: var(--webops-color-primary);
     border-color: var(--webops-color-primary);
     color: white;
 }
 
 /* Templates Grid */
-.templates-grid {
+.webops-template-list__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: var(--webops-space-6);
 }
 
-.template-card {
+.webops-template-card {
     background: var(--webops-color-bg-primary);
     border-radius: var(--webops-radius-2xl);
     border: 1px solid var(--webops-color-border);
@@ -380,12 +380,12 @@
     box-shadow: var(--webops-shadow-sm);
 }
 
-.template-card:hover {
+.webops-template-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--webops-shadow-lg);
 }
 
-.template-card-header {
+.webops-template-card__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -393,7 +393,7 @@
     background: var(--webops-color-bg-secondary);
 }
 
-.template-icon {
+.webops-template-card__icon {
     width: var(--webops-size-12);
     height: var(--webops-size-12);
     background: var(--webops-color-primary);
@@ -404,7 +404,7 @@
     color: var(--webops-color-text-inverse);
 }
 
-.template-category {
+.webops-template-card__category {
     font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-semibold);
     text-transform: uppercase;
@@ -415,29 +415,29 @@
     border-radius: var(--webops-radius-full);
 }
 
-.template-card-body {
+.webops-template-card__body {
     padding: var(--webops-space-6);
 }
 
-.template-title {
+.webops-template-card__title {
     margin: 0 0 var(--webops-space-3) 0;
     font-size: var(--webops-font-size-lg);
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
 }
 
-.template-description {
+.webops-template-card__description {
     margin: 0 0 var(--webops-space-4) 0;
     color: var(--webops-color-text-secondary);
     line-height: var(--webops-line-height-normal);
 }
 
-.template-meta {
+.webops-template-card__meta {
     display: flex;
     gap: var(--webops-space-4);
 }
 
-.meta-item {
+.webops-template-card__meta-item {
     display: flex;
     align-items: center;
     gap: var(--webops-space-2);
@@ -445,7 +445,7 @@
     color: var(--webops-color-text-secondary);
 }
 
-.template-card-footer {
+.webops-template-card__footer {
     display: flex;
     gap: var(--webops-space-3);
     padding: var(--webops-space-6);
@@ -466,16 +466,16 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .templates-grid {
+    .webops-template-list__grid {
         grid-template-columns: 1fr;
     }
     
-    .template-filters {
+    .webops-template-list__filters {
         flex-direction: column;
         gap: var(--webops-space-4);
     }
     
-    .filter-buttons {
+    .webops-template-list__filter-buttons {
         flex-direction: column;
     }
 
@@ -509,11 +509,11 @@
 }
 
 /* Template Preview Content Styles */
-.template-preview-content {
+.webops-template-preview {
     padding: 0;
 }
 
-.template-description {
+.webops-template-preview__description {
     margin-bottom: var(--webops-space-6);
     padding: var(--webops-space-5);
     background: var(--webops-color-bg-secondary);
@@ -521,62 +521,62 @@
     border-left: var(--webops-space-1) solid var(--webops-color-primary);
 }
 
-.template-description p {
+.webops-template-preview__description p {
     margin: 0;
     color: var(--webops-color-text-secondary);
     font-size: var(--webops-font-size-base);
     line-height: var(--webops-line-height-relaxed);
 }
 
-.workflow-summary {
+.webops-workflow-summary {
     margin-bottom: 24px;
     padding: 20px;
     border-radius: 12px;
 }
 
-.summary-stats {
+.webops-workflow-summary__stats {
     display: flex;
     justify-content: space-around;
     gap: 20px;
 }
 
-.stat-item {
+.webops-workflow-summary__stat-item {
     text-align: center;
     flex: 1;
 }
 
-.stat-number {
+.webops-workflow-summary__stat-number {
     display: block;
     font-size: 28px;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--webops-color-primary);
     margin-bottom: 4px;
 }
 
-.stat-label {
+.webops-workflow-summary__stat-label {
     display: block;
     font-size: 12px;
-    color: #64748b;
+    color: var(--webops-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 500;
 }
 
-.workflow-nodes {
+.webops-workflow-nodes {
     padding: 20px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--webops-color-bg-primary);
+    border: 1px solid var(--webops-color-border);
     border-radius: 12px;
 }
 
-.workflow-nodes h4 {
+.webops-workflow-nodes h4 {
     margin: 0 0 16px 0;
     font-size: 16px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--webops-color-text-primary);
 }
 
-.node-list {
+.webops-workflow-nodes__list {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -584,24 +584,24 @@
     overflow-y: auto;
 }
 
-.node-preview {
+.webops-workflow-node {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-border);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
-.node-preview:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+.webops-workflow-node:hover {
+    background: var(--webops-color-bg-tertiary);
+    border-color: var(--webops-color-border-hover);
     transform: translateX(4px);
 }
 
-.node-type-badge {
+.webops-workflow-node__type-badge {
     display: inline-block;
     padding: 4px 8px;
     font-size: 11px;
@@ -613,45 +613,45 @@
     text-align: center;
 }
 
-.node-type-trigger { background: #dbeafe; color: #1e40af; }
-.node-type-api { background: #dcfce7; color: #166534; }
-.node-type-database { background: #fef3c7; color: #92400e; }
-.node-type-condition { background: #fce7f3; color: #be185d; }
-.node-type-email { background: #e0e7ff; color: #3730a3; }
-.node-type-webhook { background: #f3e8ff; color: #6b21a8; }
-.node-type-transform { background: #fed7d7; color: #c53030; }
-.node-type-aggregate { background: #bee3f8; color: #2c5282; }
-.node-type-slack { background: #e6fffa; color: #234e52; }
-.node-type-file { background: #fbb6ce; color: #97266d; }
-.node-type-code { background: #d6f5d6; color: #22543d; }
+.webops-workflow-node__type-badge--trigger { background: var(--webops-color-status-info-bg); color: var(--webops-color-status-info); }
+.webops-workflow-node__type-badge--api { background: var(--webops-color-status-success-bg); color: var(--webops-color-status-success); }
+.webops-workflow-node__type-badge--database { background: var(--webops-color-status-warning-bg); color: var(--webops-color-status-warning); }
+.webops-workflow-node__type-badge--condition { background: var(--webops-color-status-error-bg); color: var(--webops-color-status-error); }
+.webops-workflow-node__type-badge--email { background: var(--webops-color-status-info-bg); color: var(--webops-color-status-info); }
+.webops-workflow-node__type-badge--webhook { background: var(--webops-color-status-purple-bg); color: var(--webops-color-status-purple); }
+.webops-workflow-node__type-badge--transform { background: var(--webops-color-status-error-bg); color: var(--webops-color-status-error); }
+.webops-workflow-node__type-badge--aggregate { background: var(--webops-color-status-blue-bg); color: var(--webops-color-status-blue); }
+.webops-workflow-node__type-badge--slack { background: var(--webops-color-status-cyan-bg); color: var(--webops-color-status-cyan); }
+.webops-workflow-node__type-badge--file { background: var(--webops-color-status-pink-bg); color: var(--webops-color-status-pink); }
+.webops-workflow-node__type-badge--code { background: var(--webops-color-status-success-bg); color: var(--webops-color-status-success); }
 
-.node-label {
+.webops-workflow-node__label {
     flex: 1;
     font-size: 14px;
     font-weight: 500;
-    color: #374151;
+    color: var(--webops-color-text-secondary);
 }
 
 /* Responsive adjustments for preview content */
 @media (max-width: 768px) {
-    .summary-stats {
+    .webops-workflow-summary__stats {
         flex-direction: column;
         gap: 16px;
     }
 
-    .stat-item {
+    .webops-workflow-summary__stat-item {
         padding: 12px;
-        background: #f8fafc;
+        background: var(--webops-color-bg-secondary);
         border-radius: 8px;
     }
 
-    .node-preview {
+    .webops-workflow-node {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
 
-    .node-type-badge {
+    .webops-workflow-node__type-badge {
         min-width: auto;
     }
 }
@@ -660,10 +660,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('template-search');
-    const filterBtns = document.querySelectorAll('.filter-btn');
+    const filterBtns = document.querySelectorAll('.webops-template-list__filter-btn');
     const templatesGrid = document.getElementById('templates-grid');
     const previewModal = document.getElementById('template-preview-modal');
-    const previewBtns = document.querySelectorAll('.template-preview-btn');
+    const previewBtns = document.querySelectorAll('.webops-template-card__preview-btn');
 
     let currentFilters = {
         category: 'all',
@@ -684,8 +684,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const filterValue = this.dataset.category;
             
             // Update active state
-            this.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+            this.parentElement.querySelectorAll('.webops-template-list__filter-btn').forEach(b => b.classList.remove('webops-template-list__filter-btn--active'));
+            this.classList.add('webops-template-list__filter-btn--active');
             
             // Update filter
             currentFilters.category = filterValue;
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function filterTemplates() {
-        const templateCards = document.querySelectorAll('.template-card');
+        const templateCards = document.querySelectorAll('.webops-template-card');
         let visibleCount = 0;
 
         templateCards.forEach(card => {
@@ -760,9 +760,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (searchInput) searchInput.value = '';
         filterBtns.forEach(btn => {
-            btn.classList.remove('active');
+            btn.classList.remove('webops-template-list__filter-btn--active');
             if (btn.dataset.category === 'all') {
-                btn.classList.add('active');
+                btn.classList.add('webops-template-list__filter-btn--active');
             }
         });
 

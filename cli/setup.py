@@ -28,6 +28,7 @@ setup(
         "click>=8.1.0",
         "requests>=2.31.0",
         "rich>=13.0.0",
+        "cryptography>=41.0.0",
     ],
     entry_points={
         "console_scripts": [

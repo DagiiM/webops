@@ -650,7 +650,7 @@ class OrganizationMetrics:
     
     def calculate_success_rate(self, period):
         """Calculate deployment success rate."""
-        deployments = Deployment.objects.filter(
+        deployments = ApplicationDeployment.objects.filter(
             organization=self.organization,
             created_at__gte=timezone.now() - parse_duration(period)
         )
@@ -936,7 +936,7 @@ def migrate_to_enterprise():
         )
     
     # Migrate deployments
-    for deployment in Deployment.objects.all():
+    for deployment in ApplicationDeployment.objects.all():
         deployment.organization = default_org
         deployment.save()
 ```

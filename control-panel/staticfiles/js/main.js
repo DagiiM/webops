@@ -34,31 +34,59 @@ class GraphBackground {
 class Loader {
     static timeout = null;
     static maxDuration = 30000; // 30 seconds max
+    static activeCount = 0; // reference count for concurrent operations
 
     static show(message = 'Loading') {
         const loader = document.getElementById('webopsLoader');
         const text = loader?.querySelector('.webops-loader-text');
 
+        // Increment active operations
+        this.activeCount = Math.max(0, this.activeCount) + 1;
+
         if (loader) {
             if (text) text.textContent = message;
             loader.classList.add('active');
+            loader.setAttribute('aria-hidden', 'false');
+            document.body.setAttribute('aria-busy', 'true');
 
             // Auto-hide after max duration to prevent stuck loaders
             if (this.timeout) clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
-                this.hide();
+                this.forceHide();
                 console.warn('Loader auto-hidden after timeout');
             }, this.maxDuration);
         }
     }
 
     static hide() {
+        // Decrement active operations and only hide when it reaches zero
+        this.activeCount = Math.max(0, this.activeCount - 1);
+
+        if (this.activeCount > 0) return;
+
         const loader = document.getElementById('webopsLoader');
         if (loader) {
             loader.classList.remove('active');
+            loader.setAttribute('aria-hidden', 'true');
+            document.body.removeAttribute('aria-busy');
         }
 
         // Clear timeout
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+        }
+    }
+
+    static forceHide() {
+        // Immediately reset and hide, useful for timeouts or hard resets
+        this.activeCount = 0;
+        const loader = document.getElementById('webopsLoader');
+        if (loader) {
+            loader.classList.remove('active');
+            loader.setAttribute('aria-hidden', 'true');
+            document.body.removeAttribute('aria-busy');
+        }
         if (this.timeout) {
             clearTimeout(this.timeout);
             this.timeout = null;
@@ -78,6 +106,12 @@ class Loader {
 
 class Toast {
     static show(message, type = 'info', duration = 5000) {
+        // Use the new toast system if available
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.show({ message, type, duration });
+        }
+        
+        // Fallback to the old implementation for backward compatibility
         const toast = document.createElement('div');
         toast.className = 'toast toast-' + type;
         toast.textContent = message;
@@ -94,8 +128,45 @@ class Toast {
         }, duration);
     }
 
-    static success(msg) { this.show(msg, 'success'); }
-    static error(msg) { this.show(msg, 'error'); }
+    static success(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.success(msg, options);
+        }
+        return this.show(msg, 'success');
+    }
+    
+    static error(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.error(msg, options);
+        }
+        return this.show(msg, 'error');
+    }
+    
+    static warning(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.warning(msg, options);
+        }
+        return this.show(msg, 'warning');
+    }
+    
+    static info(msg, options = {}) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.info(msg, options);
+        }
+        return this.show(msg, 'info');
+    }
+    
+    static hide(id) {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.hide(id);
+        }
+    }
+    
+    static hideAll() {
+        if (window.WebOpsToast) {
+            return window.WebOpsToast.hideAll();
+        }
+    }
 }
 
 class APIClient {
@@ -107,26 +178,44 @@ class APIClient {
         const url = this.baseURL + endpoint;
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+        const { showLoader: showGlobalLoader = true } = options;
+        // Remove our custom flag from fetch options
+        const fetchOptions = { ...options };
+        delete fetchOptions.showLoader;
+
         try {
+            if (showGlobalLoader && window.WebOps?.Loader) {
+                window.WebOps.Loader.show('Loading');
+            }
+
             const response = await fetch(url, {
-                ...options,
+                ...fetchOptions,
                 headers: {
                     'X-CSRFToken': token,
                     'Content-Type': 'application/json',
-                    ...options.headers,
+                    ...fetchOptions.headers,
                 },
             });
 
             if (!response.ok) throw new Error('HTTP ' + response.status);
-            return await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return await response.json();
+            }
+            // Fallback to text for non-JSON responses
+            return await response.text();
         } catch (error) {
             Toast.error(error.message);
             throw error;
+        } finally {
+            if (showGlobalLoader && window.WebOps?.Loader) {
+                window.WebOps.Loader.hide();
+            }
         }
     }
 
-    get(endpoint) { return this.request(endpoint); }
-    post(endpoint, data) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(data) }); }
+    get(endpoint, options = {}) { return this.request(endpoint, options); }
+    post(endpoint, data, options = {}) { return this.request(endpoint, { method: 'POST', body: JSON.stringify(data), ...options }); }
 }
 
 // Global error handlers for "no broken windows" philosophy
@@ -410,7 +499,182 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Global navigation loader hooks
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+        if (e.defaultPrevented) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#')) return;
+        if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
+        if (link.hasAttribute('download') || link.target) return;
+
+        // Same-origin navigation and not just a hash change
+        try {
+            const dest = new URL(href, document.baseURI);
+            const current = new URL(window.location.href);
+            const isSameOrigin = dest.origin === current.origin;
+            const onlyHashChange = isSameOrigin && dest.pathname === current.pathname && dest.search === current.search && dest.hash && dest.hash !== current.hash;
+            if (!isSameOrigin || onlyHashChange) return;
+        } catch (err) {
+            // If URL parsing fails, be conservative and do nothing
+            return;
+        }
+
+        // Don't show loader if explicitly disabled
+        if (link.dataset.noLoader !== undefined) return;
+
+        Loader.show('Navigating...');
+        // Safety timeout: hide if navigation is intercepted (SPA behavior)
+        setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+                Loader.hide();
+            }
+        }, 2000);
+    });
+
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (form && form.dataset && form.dataset.noLoader !== undefined) return;
+        Loader.show('Submitting...');
+        // Safety timeout: hide if submission is intercepted by JS and the page doesn't navigate
+        setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+                Loader.hide();
+            }
+        }, 2000);
+    });
+
+    window.addEventListener('beforeunload', () => {
+        Loader.show('Loading page...');
+    });
 });
+
+// Service Management Functions
+async function restartAllServices() {
+    // Get all failed services by checking for restart buttons that are visible
+    const failedServices = document.querySelectorAll('[id$="-restart-btn"]:not([style*="display: none"])');
+    const serviceNames = Array.from(failedServices).map(btn => {
+        const match = btn.id.match(/^(.+)-restart-btn$/);
+        return match ? match[1] : null;
+    }).filter(name => name);
+    
+    if (serviceNames.length === 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.info('No failed services to restart');
+        }
+        return;
+    }
+    
+    // Show loading state
+    const restartBtn = event.target.closest('button');
+    const originalText = restartBtn.innerHTML;
+    restartBtn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">autorenew</span> Restarting All...';
+    restartBtn.disabled = true;
+    
+    const results = [];
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    
+    // Restart services sequentially with delays to avoid rate limiting
+    for (let i = 0; i < serviceNames.length; i++) {
+        const serviceName = serviceNames[i];
+        
+        try {
+            // Add delay between requests (1 second between each service)
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            // Use the correct URL pattern for core services restart
+            const response = await fetch(`/deployments/core-services/restart/${serviceName}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = { success: false, message: 'Invalid response from server' };
+            }
+            
+            if (response.status === 429) {
+                results.push({ 
+                    service: serviceName, 
+                    success: false, 
+                    message: 'Rate limit exceeded. Please wait a moment and try again.' 
+                });
+            } else if (response.ok && data.success) {
+                results.push({ 
+                    service: serviceName, 
+                    success: true, 
+                    message: data.message || 'Service restarted successfully' 
+                });
+            } else {
+                results.push({ 
+                    service: serviceName, 
+                    success: false, 
+                    message: data.message || `Failed to restart ${serviceName}` 
+                });
+            }
+            
+        } catch (error) {
+            results.push({ 
+                service: serviceName, 
+                success: false, 
+                message: error.message || 'Network error occurred' 
+            });
+        }
+    }
+    
+    // Show results summary
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const rateLimited = results.filter(r => r.message.includes('Rate limit')).length;
+    
+    if (successful > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.success(`Successfully restarted ${successful} service(s)`);
+        }
+    }
+    
+    if (rateLimited > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.warning(`${rateLimited} service(s) hit rate limits. Please wait and try again.`);
+        }
+    }
+    
+    if (failed > rateLimited && failed > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.error(`Failed to restart ${failed - rateLimited} service(s)`);
+        }
+    }
+    
+    // Reset button state
+    restartBtn.innerHTML = originalText;
+    restartBtn.disabled = false;
+    
+    // Refresh status after all restarts
+    setTimeout(() => {
+        if (typeof refreshServiceStatus === 'function') {
+            refreshServiceStatus();
+        } else {
+            // Fallback: reload the page if refresh function not available
+            window.location.reload();
+        }
+    }, 2000);
+}
+
+function refreshServiceStatus() {
+    // Fallback function if not defined in template
+    window.location.reload();
+}
 
 // Global helper functions for convenience
 function showLoader(message) {

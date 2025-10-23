@@ -12,7 +12,7 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 # Import dependencies
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 from .docker_service import DockerService
 
 
@@ -24,9 +24,9 @@ def _get_deployment_from_context(context: Dict[str, Any]):
         return None
 
     try:
-        deployment = Deployment.objects.get(id=deployment_id)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
         return deployment
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         logger.error(f"Deployment {deployment_id} not found")
         return None
 
@@ -134,7 +134,7 @@ def docker_post_deployment(context: Dict[str, Any]) -> None:
     if not build_success:
         error_msg = f"Docker image build failed: {build_result}"
         deployment_service.log(deployment, error_msg, 'error')
-        deployment.status = Deployment.Status.FAILED
+        deployment.status = ApplicationDeployment.Status.FAILED
         deployment.save(update_fields=['status'])
         raise Exception(error_msg)
 
@@ -166,7 +166,7 @@ def docker_post_deployment(context: Dict[str, Any]) -> None:
     if not create_success:
         error_msg = f"Docker container creation failed: {create_result}"
         deployment_service.log(deployment, error_msg, 'error')
-        deployment.status = Deployment.Status.FAILED
+        deployment.status = ApplicationDeployment.Status.FAILED
         deployment.save(update_fields=['status'])
         raise Exception(error_msg)
 
@@ -177,7 +177,7 @@ def docker_post_deployment(context: Dict[str, Any]) -> None:
     )
 
     # Update deployment status
-    deployment.status = Deployment.Status.RUNNING
+    deployment.status = ApplicationDeployment.Status.RUNNING
     deployment.save(update_fields=['status'])
 
 

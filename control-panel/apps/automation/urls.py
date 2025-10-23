@@ -21,6 +21,12 @@ urlpatterns = [
     # =========================================================================
     path('<int:workflow_id>/executions/', views.execution_list, name='execution_list'),
     path('execution/<int:execution_id>/', views.execution_detail, name='execution_detail'),
+    path('execution/<int:execution_id>/retry/', views.retry_execution, name='retry_execution'),
+
+    # =========================================================================
+    # WEBHOOKS
+    # =========================================================================
+    path('webhook/<int:workflow_id>/', views.webhook_trigger, name='webhook_trigger'),
 
     # =========================================================================
     # TEMPLATES

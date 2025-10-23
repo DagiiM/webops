@@ -1022,8 +1022,8 @@ def check_deployment_health():
     from .service_manager import ServiceManager
 
     manager = ServiceManager()
-    stuck_deployments = Deployment.objects.filter(
-        status=Deployment.Status.BUILDING,
+    stuck_deployments = ApplicationDeployment.objects.filter(
+        status=ApplicationDeployment.Status.BUILDING,
         updated_at__lt=timezone.now() - timedelta(minutes=10)
     )
 

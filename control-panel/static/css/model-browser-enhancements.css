@@ -1,0 +1,331 @@
+/**
+ * WebOps Model Browser - Enhanced Styles
+ * 
+ * Additional styles for the enhanced model browser functionality
+ * including keyboard navigation, model comparison, and notifications.
+ */
+
+/* Model Card Focus State */
+.webops-model-card--focused {
+  border-color: var(--webops-color-primary);
+  box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-20);
+  transform: translateY(-2px);
+}
+
+/* Model Card Selected State */
+.webops-model-card--selected {
+  border-color: var(--webops-color-primary);
+  background: linear-gradient(135deg, var(--webops-color-primary-alpha-10) 0%, var(--webops-color-bg-elevated) 100%);
+}
+
+.webops-model-card__selected-indicator {
+  position: absolute;
+  top: var(--webops-space-3);
+  right: var(--webops-space-3);
+  color: var(--webops-color-primary);
+  z-index: 2;
+}
+
+.webops-model-card__selected-indicator .material-icons {
+  font-size: var(--webops-font-size-lg);
+}
+
+/* Model Card Compare Button */
+.webops-model-card__compare-btn {
+  margin-left: var(--webops-space-2);
+  flex-shrink: 0;
+}
+
+/* Model Card Author Icon */
+.webops-model-card__author-icon {
+  font-size: var(--webops-font-size-sm);
+  color: var(--webops-color-text-tertiary);
+}
+
+/* Notification System */
+.webops-notification {
+  position: fixed;
+  top: var(--webops-space-4);
+  right: var(--webops-space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--webops-space-3);
+  padding: var(--webops-space-3) var(--webops-space-4);
+  background: var(--webops-color-bg-elevated);
+  border: 1px solid var(--webops-color-primary-alpha-20);
+  border-radius: var(--webops-radius-lg);
+  box-shadow: var(--webops-shadow-lg);
+  z-index: var(--webops-z-toast);
+  transform: translateY(-100px);
+  opacity: 0;
+  transition: all var(--webops-transition-base);
+  max-width: 400px;
+}
+
+.webops-notification--show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.webops-notification--success {
+  border-color: var(--webops-color-success-alpha-40);
+  background: var(--webops-color-success-alpha-05);
+}
+
+.webops-notification--error {
+  border-color: var(--webops-color-error-alpha-40);
+  background: var(--webops-color-error-alpha-05);
+}
+
+.webops-notification--warning {
+  border-color: var(--webops-color-warning-alpha-40);
+  background: var(--webops-color-warning-alpha-05);
+}
+
+.webops-notification--info {
+  border-color: var(--webops-color-info-alpha-40);
+  background: var(--webops-color-info-alpha-05);
+}
+
+.webops-notification__icon {
+  font-size: var(--webops-font-size-lg);
+  flex-shrink: 0;
+}
+
+.webops-notification--success .webops-notification__icon {
+  color: var(--webops-color-success);
+}
+
+.webops-notification--error .webops-notification__icon {
+  color: var(--webops-color-error);
+}
+
+.webops-notification--warning .webops-notification__icon {
+  color: var(--webops-color-warning);
+}
+
+.webops-notification--info .webops-notification__icon {
+  color: var(--webops-color-info);
+}
+
+.webops-notification__message {
+  font-size: var(--webops-font-size-sm);
+  color: var(--webops-color-text-primary);
+  line-height: var(--webops-line-height-snug);
+}
+
+.webops-notification__close {
+  background: none;
+  border: none;
+  color: var(--webops-color-text-tertiary);
+  cursor: pointer;
+  padding: var(--webops-space-1);
+  border-radius: var(--webops-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--webops-transition-fast);
+  margin-left: var(--webops-space-2);
+}
+
+.webops-notification__close:hover {
+  background: var(--webops-color-surface-hover);
+  color: var(--webops-color-text-primary);
+}
+
+/* Screen Reader Only Content */
+.webops-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Model Comparison Panel */
+.webops-compare-panel {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 90%;
+  max-width: 800px;
+  height: 100vh;
+  background: var(--webops-color-bg-elevated);
+  border-left: 1px solid var(--webops-color-primary-alpha-20);
+  box-shadow: var(--webops-shadow-xl);
+  z-index: var(--webops-z-modal);
+  transition: right var(--webops-transition-medium);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.webops-compare-panel--open {
+  right: 0;
+}
+
+.webops-compare-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--webops-space-6);
+  border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+  background: var(--webops-color-bg-secondary);
+}
+
+.webops-compare-panel__header h3 {
+  margin: 0;
+  font-size: var(--webops-font-size-xl);
+  font-weight: var(--webops-font-weight-semibold);
+  color: var(--webops-color-text-primary);
+}
+
+.webops-compare-close {
+  background: none;
+  border: none;
+  color: var(--webops-color-text-tertiary);
+  cursor: pointer;
+  padding: var(--webops-space-2);
+  border-radius: var(--webops-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--webops-transition-fast);
+}
+
+.webops-compare-close:hover {
+  background: var(--webops-color-surface-hover);
+  color: var(--webops-color-text-primary);
+}
+
+.webops-compare-panel__content {
+  flex: 1;
+  padding: var(--webops-space-6);
+  overflow-y: auto;
+}
+
+.webops-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--webops-space-4);
+}
+
+.webops-compare-card {
+  background: var(--webops-color-bg-secondary);
+  border: 1px solid var(--webops-color-primary-alpha-15);
+  border-radius: var(--webops-radius-lg);
+  padding: var(--webops-space-4);
+  transition: all var(--webops-transition-base);
+}
+
+.webops-compare-card:hover {
+  border-color: var(--webops-color-primary-alpha-25);
+  transform: translateY(-2px);
+  box-shadow: var(--webops-shadow-md);
+}
+
+.webops-compare-card__title {
+  font-size: var(--webops-font-size-lg);
+  font-weight: var(--webops-font-weight-semibold);
+  color: var(--webops-color-text-primary);
+  margin: 0 0 var(--webops-space-2) 0;
+  line-height: var(--webops-line-height-tight);
+}
+
+.webops-compare-card__id {
+  font-family: var(--webops-font-family-mono);
+  font-size: var(--webops-font-size-xs);
+  color: var(--webops-color-text-tertiary);
+  background: var(--webops-color-bg-tertiary);
+  padding: var(--webops-space-1) var(--webops-space-2);
+  border-radius: var(--webops-radius-sm);
+  display: inline-block;
+  margin-bottom: var(--webops-space-3);
+}
+
+.webops-compare-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--webops-space-2);
+  margin-bottom: var(--webops-space-4);
+}
+
+.webops-compare-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--webops-space-2);
+  font-size: var(--webops-font-size-sm);
+  color: var(--webops-color-text-secondary);
+}
+
+.webops-compare-card__meta-item .material-icons {
+  font-size: var(--webops-font-size-sm);
+  color: var(--webops-color-text-tertiary);
+}
+
+.webops-compare-card__btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.webops-compare-panel__footer {
+  padding: var(--webops-space-4) var(--webops-space-6);
+  border-top: 1px solid var(--webops-color-primary-alpha-10);
+  background: var(--webops-color-bg-secondary);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.webops-compare-panel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: var(--webops-space-8);
+}
+
+.webops-compare-panel__empty p {
+  color: var(--webops-color-text-secondary);
+  font-size: var(--webops-font-size-lg);
+  margin-bottom: var(--webops-space-4);
+}
+
+/* Compare Button */
+#webops-compare-btn {
+  display: none;
+  position: fixed;
+  bottom: var(--webops-space-6);
+  right: var(--webops-space-6);
+  z-index: var(--webops-z-sticky);
+  box-shadow: var(--webops-shadow-lg);
+}
+
+/* Responsive Design for Model Browser */
+@media (max-width: 768px) {
+  .webops-compare-panel {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .webops-compare-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .webops-notification {
+    top: var(--webops-space-2);
+    right: var(--webops-space-2);
+    left: var(--webops-space-2);
+    max-width: none;
+  }
+  
+  #webops-compare-btn {
+    bottom: var(--webops-space-4);
+    right: var(--webops-space-4);
+  }
+}

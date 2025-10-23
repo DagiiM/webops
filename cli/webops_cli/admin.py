@@ -17,7 +17,7 @@ from rich.table import Table
 from rich.text import Text
 
 from .errors import ErrorHandler, handle_exception, require_root_privileges
-from .progress import ProgressManager, show_progress
+from .ui.progress import ProgressManager, show_progress
 
 console = Console()
 error_handler = ErrorHandler()

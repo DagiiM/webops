@@ -1,248 +1,262 @@
 """
 Core views for WebOps.
 
-Reference: CLAUDE.md "API Design" section
-Handles branding settings and core functionality.
+This module provides backward compatibility by importing views from their
+new domain-specific locations. For new code, please import directly from
+the domain modules instead of this compatibility layer.
 """
 
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-
-from apps.core.models import BrandingSettings
-from apps.core.forms import BrandingSettingsForm, GoogleOAuthConfigForm
-
+from .branding.views import branding_settings, reset_branding
+from .integrations.views import (
+    integrations_dashboard,
+    github_connect_oauth,
+    github_callback,
+    github_disconnect,
+    github_test,
+    huggingface_connect,
+    huggingface_disconnect,
+    huggingface_test,
+    huggingface_models,
+    google_connect,
+    google_connect_oauth,
+    google_callback,
+    google_disconnect,
+    google_test,
+)
+from .webhooks.views import (
+    webhook_list,
+    webhook_create,
+    webhook_detail,
+    webhook_toggle,
+    webhook_delete,
+    webhook_handler,
+    webhook_test,
+)
+from .notifications.views import (
+    notification_list,
+    notification_create,
+    notification_detail,
+    notification_toggle,
+    notification_test,
+    notification_delete,
+)
 
 def is_superuser(user):
     """Check if user is a superuser."""
     return user.is_superuser
 
-
 @login_required
-@user_passes_test(is_superuser)
-def branding_settings(request):
-    """View for managing branding settings (admin only)."""
-    settings = BrandingSettings.get_settings()
-
+def user_settings(request):
+    """View for general user settings with persistent preferences."""
+    from .auth.models import UserPreferences
+    
+    # Get or create user preferences
+    preferences = UserPreferences.get_preferences(request.user)
+    
     if request.method == 'POST':
-        form = BrandingSettingsForm(request.POST, request.FILES, instance=settings)
-        if form.is_valid():
-            # Update all settings including HSL fields
-            settings.site_name = form.cleaned_data['site_name']
-            
-            # HSL color generation fields
-            settings.primary_hue = form.cleaned_data['primary_hue']
-            settings.primary_saturation = form.cleaned_data['primary_saturation']
-            settings.primary_lightness = form.cleaned_data['primary_lightness']
-            settings.color_harmony = form.cleaned_data['color_harmony']
-            
-            # Accessibility options
-            settings.enforce_wcag_aa = form.cleaned_data['enforce_wcag_aa']
-            settings.enforce_wcag_aaa = form.cleaned_data['enforce_wcag_aaa']
-            settings.supports_dark_mode = form.cleaned_data['supports_dark_mode']
-
-            # Handle file uploads
-            if form.cleaned_data.get('logo'):
-                settings.logo = form.cleaned_data['logo']
-            if form.cleaned_data.get('favicon'):
-                settings.favicon = form.cleaned_data['favicon']
-
-            settings.save()
-            messages.success(request, 'Branding settings updated successfully!')
-            return redirect('branding_settings')
-    else:
-        # Populate form with current settings
-        form = BrandingSettingsForm(initial={
-            'site_name': settings.site_name,
-            'primary_hue': settings.primary_hue,
-            'primary_saturation': settings.primary_saturation,
-            'primary_lightness': settings.primary_lightness,
-            'color_harmony': settings.color_harmony,
-            'enforce_wcag_aa': settings.enforce_wcag_aa,
-            'enforce_wcag_aaa': settings.enforce_wcag_aaa,
-            'supports_dark_mode': settings.supports_dark_mode,
-            # Legacy hex colors (auto-generated, read-only)
-            'primary_color': settings.primary_color,
-            'secondary_color': settings.secondary_color,
-            'accent_color': settings.accent_color,
-            'header_bg_color': settings.header_bg_color,
-        })
-
-    return render(request, 'core/branding_settings.html', {
-        'form': form,
-        'settings': settings,
-    })
-
-
-@login_required
-def google_oauth_config(request):
-    """View for managing Google OAuth configuration (admin only)."""
-    from django.conf import settings
-    from apps.core.integration_services import GoogleIntegrationService
-    from apps.core.config_service import config_service
-    
-    # Check current OAuth configuration status using the config service
-    oauth_config = config_service.get_oauth_config('google')
-    oauth_configured = config_service.is_oauth_configured('google')
-    
-    # Get connection status if OAuth is configured
-    connection_status = None
-    user_connections = []
-    if oauth_configured:
-        google_service = GoogleIntegrationService()
+        # Handle form submission
         try:
-            # Test the OAuth configuration (not user connection)
-            is_valid, status_message = google_service.test_oauth_config()
-            connection_status = {
-                'is_valid': is_valid,
-                'message': status_message,
-                'client_id_partial': oauth_config['client_id'][:20] + '...' if oauth_config['client_id'] else None
-            }
-        except Exception as e:
-            connection_status = {
-                'is_valid': False,
-                'message': f'Error testing configuration: {str(e)}',
-                'client_id_partial': oauth_config['client_id'][:20] + '...' if oauth_config['client_id'] else None
-            }
-    
-    if request.method == 'POST':
-        action = request.POST.get('action', 'save')
-        
-        if action == 'test_connection':
-            # Handle AJAX test connection request
+            # Update user information
+            user = request.user
+            
+            # Update email
+            email = request.POST.get('email')
+            if email:
+                user.email = email
+            
+            # Update names
+            first_name = request.POST.get('first_name')
+            if first_name:
+                user.first_name = first_name
+                
+            last_name = request.POST.get('last_name')
+            if last_name:
+                user.last_name = last_name
+            
+            # Save user changes
+            user.save()
+            
+            # Handle appearance preferences
+            theme = request.POST.get('theme')
+            if theme:
+                preferences.theme = theme
+            
+            animations = request.POST.get('animations') == 'on'
+            preferences.animations_enabled = animations
+            
+            compact_view = request.POST.get('compact_view') == 'on'
+            preferences.compact_view = compact_view
+            
+            font_size = request.POST.get('font_size')
+            if font_size:
+                preferences.font_size = font_size
+            
+            # Handle language and regional preferences
+            interface_language = request.POST.get('interface_language')
+            if interface_language:
+                preferences.interface_language = interface_language
+            
+            timezone = request.POST.get('timezone')
+            if timezone:
+                preferences.timezone = timezone
+            
+            date_format = request.POST.get('date_format')
+            if date_format:
+                preferences.date_format = date_format
+            
+            time_format = request.POST.get('time_format')
+            if time_format:
+                preferences.time_format = time_format
+            
+            # Handle notification preferences
+            email_notifications = request.POST.get('email_notifications_enabled') == 'on'
+            preferences.email_notifications_enabled = email_notifications
+            
+            browser_notifications = request.POST.get('browser_notifications_enabled') == 'on'
+            preferences.browser_notifications_enabled = browser_notifications
+            
+            deployment_notifications = request.POST.get('deployment_notifications') == 'on'
+            preferences.deployment_notifications = deployment_notifications
+            
+            security_notifications = request.POST.get('security_notifications') == 'on'
+            preferences.security_notifications = security_notifications
+            
+            system_notifications = request.POST.get('system_notifications') == 'on'
+            preferences.system_notifications = system_notifications
+            
+            notification_frequency = request.POST.get('notification_frequency')
+            if notification_frequency:
+                preferences.notification_frequency = notification_frequency
+            
+            # Handle privacy preferences
+            activity_tracking = request.POST.get('activity_tracking') == 'on'
+            preferences.activity_tracking = activity_tracking
+            
+            personalized_recommendations = request.POST.get('personalized_recommendations') == 'on'
+            preferences.personalized_recommendations = personalized_recommendations
+            
+            third_party_integrations = request.POST.get('third_party_integrations') == 'on'
+            preferences.third_party_integrations = third_party_integrations
+            
+            analytics_sharing = request.POST.get('analytics_sharing') == 'on'
+            preferences.analytics_sharing = analytics_sharing
+            
+            # Handle dashboard preferences
+            dashboard_layout = request.POST.get('dashboard_layout')
+            if dashboard_layout:
+                preferences.dashboard_layout = dashboard_layout
+            
+            default_dashboard_tab = request.POST.get('default_dashboard_tab')
+            if default_dashboard_tab:
+                preferences.default_dashboard_tab = default_dashboard_tab
+            
+            items_per_page = request.POST.get('items_per_page')
+            if items_per_page:
+                preferences.items_per_page = int(items_per_page)
+            
+            # Handle security preferences
+            session_timeout = request.POST.get('session_timeout')
+            if session_timeout:
+                preferences.session_timeout = int(session_timeout)
+            
+            require_2fa_for_sensitive = request.POST.get('require_2fa_for_sensitive') == 'on'
+            preferences.require_2fa_for_sensitive = require_2fa_for_sensitive
+            
+            login_notifications = request.POST.get('login_notifications') == 'on'
+            preferences.login_notifications = login_notifications
+            
+            # Handle developer preferences
+            show_advanced_options = request.POST.get('show_advanced_options') == 'on'
+            preferences.show_advanced_options = show_advanced_options
+            
+            debug_mode = request.POST.get('debug_mode') == 'on'
+            preferences.debug_mode = debug_mode
+            
+            beta_features = request.POST.get('beta_features') == 'on'
+            preferences.beta_features = beta_features
+            
+            # Save preferences
+            preferences.save()
+            
+            # Apply theme to session for immediate effect
+            request.session['theme'] = preferences.theme
+            
+            # Return JSON response for AJAX requests
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                try:
-                    google_service = GoogleIntegrationService()
-                    is_valid, message = google_service.test_oauth_config()
-                    return JsonResponse({
-                        'success': is_valid,
-                        'error': message if not is_valid else None,
-                        'message': message
-                    })
-                except Exception as e:
-                    return JsonResponse({
-                        'success': False,
-                        'error': str(e)
-                    })
-            else:
-                # Non-AJAX fallback
-                if oauth_configured:
-                    google_service = GoogleIntegrationService()
-                    is_valid, message = google_service.test_oauth_config()
-                    if is_valid:
-                        messages.success(request, f'✅ Configuration test successful: {message}')
-                    else:
-                        messages.error(request, f'❌ Configuration test failed: {message}')
-                else:
-                    messages.error(request, 'OAuth is not configured. Please save your credentials first.')
-                return redirect('google_oauth_config')
-        
-        elif action == 'save':
-            form = GoogleOAuthConfigForm(request.POST)
-            if form.is_valid():
-                client_id = form.cleaned_data.get('google_oauth_client_id')
-                client_secret = form.cleaned_data.get('google_oauth_client_secret')
-                redirect_uri = form.cleaned_data.get('google_oauth_redirect_uri')
-                
-                try:
-                    if client_id and client_secret:
-                        # Validate the OAuth configuration
-                        is_valid, error_message = config_service.validate_oauth_config('google', client_id, client_secret)
-                        
-                        if is_valid:
-                            # Save the OAuth configuration to the database
-                            config_service.set_oauth_config('google', client_id, client_secret, redirect_uri or '')
-                            
-                            messages.success(
-                                request, 
-                                '✅ Google OAuth credentials have been saved successfully and are now active! '
-                                'The configuration has been applied dynamically without requiring a restart.'
-                            )
-                        else:
-                            messages.error(request, f'❌ Invalid OAuth configuration: {error_message}')
-                    else:
-                        # Clear OAuth configuration if credentials are empty
-                        config_service.delete_config(config_service.GOOGLE_OAUTH_CLIENT_ID)
-                        config_service.delete_config(config_service.GOOGLE_OAUTH_CLIENT_SECRET)
-                        config_service.delete_config(config_service.GOOGLE_OAUTH_REDIRECT_URI)
-                        
-                        messages.success(request, '⚠️ Google OAuth has been disabled and credentials removed.')
-                    
-                except Exception as e:
-                    messages.error(request, f'❌ Error saving OAuth configuration: {str(e)}')
-                
-                return redirect('google_oauth_config')
-    else:
-        # Pre-populate form with current configuration from database
-        form = GoogleOAuthConfigForm(initial={
-            'google_oauth_client_id': oauth_config['client_id'],
-            'google_oauth_client_secret': oauth_config['client_secret'],
-            'google_oauth_redirect_uri': oauth_config['redirect_uri'],
-        })
-        
-        # Set the redirect URI dynamically if not already set
-        if not oauth_config['redirect_uri']:
-            from django.urls import reverse
-            redirect_uri = request.build_absolute_uri(reverse('google_login_callback'))
-            form.fields['google_oauth_redirect_uri'].initial = redirect_uri
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Settings saved successfully!',
+                    'preferences': preferences.to_dict()
+                })
+            
+            # For non-AJAX requests, redirect back with success message
+            from django.contrib import messages
+            messages.success(request, 'Settings saved successfully!')
+            return redirect(request.path)
+            
+        except Exception as e:
+            # Handle errors
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e),
+                    'errors': {'__all__': [str(e)]}
+                }, status=400)
+            
+            # For non-AJAX requests, show error message
+            from django.contrib import messages
+            messages.error(request, f'Error saving settings: {str(e)}')
     
-    return render(request, 'core/google_oauth_config.html', {
-        'form': form,
-        'oauth_configured': oauth_configured,
-        'connection_status': connection_status,
+    # For GET requests, render the page with current preferences
+    return render(request, 'core/user_settings.html', {
+        'page_title': 'User Settings',
+        'preferences': preferences.to_dict(),
+        'user': request.user,
     })
 
-
-@login_required
-@user_passes_test(is_superuser)
-@require_http_methods(["POST"])
-def reset_branding(request):
-    """Reset branding to default values."""
-    settings = BrandingSettings.get_settings()
+# Re-export for backward compatibility
+__all__ = [
+    # Branding views
+    'branding_settings',
+    'reset_branding',
     
-    # Reset to default HSL values
-    settings.site_name = 'WebOps'
-    settings.primary_hue = 210  # Blue hue
-    settings.primary_saturation = 80
-    settings.primary_lightness = 50
-    settings.color_harmony = 'complementary'
-    settings.enforce_wcag_aa = True
-    settings.enforce_wcag_aaa = False
-    settings.supports_dark_mode = True
+    # General settings view
+    'user_settings',
     
-    # Clear file uploads
-    settings.logo = None
-    settings.favicon = None
+    # Integration views
+    'integrations_dashboard',
+    'github_connect',
+    'github_connect_oauth',
+    'github_callback',
+    'github_disconnect',
+    'github_test',
+    'huggingface_connect',
+    'huggingface_disconnect',
+    'huggingface_test',
+    'huggingface_models',
+    'google_connect',
+    'google_connect_oauth',
+    'google_callback',
+    'google_disconnect',
+    'google_test',
     
-    settings.save()
-
-    return JsonResponse({'status': 'success', 'message': 'Branding reset to defaults'})
-
-
-@login_required
-def toast_test(request):
-    """View for testing toast notifications."""
-    return render(request, 'toast-test.html')
-
-
-@login_required
-@require_http_methods(["POST"])
-def test_toast_messages(request):
-    """Test view for Django messages to toast conversion."""
-    message_type = request.POST.get('message_type', 'info')
-    message = request.POST.get('message', 'Test message')
+    # Webhook views
+    'webhook_list',
+    'webhook_create',
+    'webhook_detail',
+    'webhook_toggle',
+    'webhook_delete',
+    'webhook_handler',
+    'webhook_test',
     
-    # Add Django message based on type
-    if message_type == 'success':
-        messages.success(request, message)
-    elif message_type == 'error':
-        messages.error(request, message)
-    elif message_type == 'warning':
-        messages.warning(request, message)
-    else:
-        messages.info(request, message)
-    
-    return render(request, 'toast-test.html')
+    # Notification views
+    'notification_list',
+    'notification_create',
+    'notification_detail',
+    'notification_toggle',
+    'notification_test',
+    'notification_delete',
+]

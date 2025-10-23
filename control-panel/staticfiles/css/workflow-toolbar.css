@@ -1,0 +1,477 @@
+/**
+ * WebOps Workflow Toolbar Styles
+ * Ultra-sleek design with wrapping support
+ * References main.css and variables.css for consistency
+ */
+
+@import url('./variables.css');
+
+/* ==========================================================================
+   Workflow Toolbar Container
+   ========================================================================== */
+
+.webops-workflow-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--webops-space-2);
+    padding: var(--webops-space-3) var(--webops-space-4);
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-lg);
+    box-shadow: var(--webops-shadow-md);
+    margin-bottom: var(--webops-space-4);
+    position: relative;
+    overflow: visible;
+    min-height: 60px;
+}
+
+/* Responsive adjustments for toolbar */
+@media (max-width: 1200px) {
+    .webops-workflow-toolbar {
+        gap: var(--webops-space-1-5);
+        padding: var(--webops-space-2) var(--webops-space-3);
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-workflow-toolbar {
+        gap: var(--webops-space-1);
+        padding: var(--webops-space-2);
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Toolbar Sections
+   ========================================================================== */
+
+.webops-toolbar-left,
+.webops-toolbar-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--webops-space-2);
+    flex-shrink: 0;
+}
+
+.webops-toolbar-left {
+    flex: 1;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.webops-toolbar-right {
+    justify-content: flex-end;
+}
+
+/* Responsive adjustments for toolbar sections */
+@media (max-width: 1200px) {
+    .webops-toolbar-left,
+    .webops-toolbar-right {
+        gap: var(--webops-space-1-5);
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-toolbar-left,
+    .webops-toolbar-right {
+        gap: var(--webops-space-1);
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .webops-toolbar-left {
+        order: 1;
+    }
+    
+    .webops-toolbar-right {
+        order: 2;
+    }
+}
+
+/* ==========================================================================
+   Toolbar Items
+   ========================================================================== */
+
+.toolbar-item {
+    flex-shrink: 0;
+    transition: all var(--webops-transition-fast);
+}
+
+/* Ensure toolbar items wrap gracefully */
+.toolbar-item:not(.webops-workflow-title-edit) {
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Workflow Title Edit Section
+   ========================================================================== */
+
+.webops-workflow-title-edit {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    flex: 1;
+    min-width: 0;
+    max-width: 400px;
+}
+
+.webops-workflow-name-input {
+    flex: 1;
+    min-width: 150px;
+    max-width: 100%;
+    padding: var(--webops-space-2) var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-md);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-medium);
+    transition: all var(--webops-transition-fast);
+    backdrop-filter: blur(10px);
+}
+
+.webops-workflow-name-input:focus {
+    outline: none;
+    border-color: var(--webops-color-primary);
+    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-workflow-name-input:hover {
+    border-color: var(--webops-color-primary-alpha-30);
+    background: var(--webops-color-surface-hover);
+}
+
+/* Responsive adjustments for title edit */
+@media (max-width: 1200px) {
+    .webops-workflow-title-edit {
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .webops-workflow-title-edit {
+        max-width: 100%;
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-workflow-title-edit {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--webops-space-1);
+    }
+}
+
+/* ==========================================================================
+   Toolbar Buttons (Consistent with existing button styles)
+   ========================================================================== */
+
+.webops-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--webops-space-1);
+    padding: var(--webops-space-2) var(--webops-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.webops-btn-sm {
+    padding: var(--webops-space-1-5) var(--webops-space-2);
+    font-size: var(--webops-font-size-xs);
+}
+
+.webops-btn-secondary {
+    background: var(--webops-color-surface);
+    border-color: var(--webops-color-primary-alpha-20);
+    color: var(--webops-color-text-primary);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-btn-secondary:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-30);
+    transform: translateY(-1px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-btn-secondary:active {
+    transform: translateY(0px);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.webops-btn-primary {
+    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    border-color: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-btn-primary:hover {
+    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
+    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
+    transform: translateY(-1px);
+}
+
+.webops-btn-primary:active {
+    transform: translateY(0px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-btn-success {
+    background: linear-gradient(135deg, var(--webops-color-success), var(--webops-color-success-dark, #059669));
+    border-color: var(--webops-color-success);
+    color: var(--webops-color-bg-primary);
+    box-shadow: var(--webops-shadow-md);
+}
+
+.webops-btn-success:hover {
+    background: linear-gradient(135deg, var(--webops-color-success-light, #4ade80), var(--webops-color-success));
+    box-shadow: var(--webops-shadow-lg), 0 0 20px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+}
+
+.webops-btn-success:active {
+    transform: translateY(0px);
+    box-shadow: var(--webops-shadow-md);
+}
+
+/* Button icons */
+.webops-btn .material-icons {
+    font-size: var(--webops-icon-size-sm);
+}
+
+/* Hide text on very small screens */
+@media (max-width: 480px) {
+    .toolbar-text {
+        display: none;
+    }
+    
+    .webops-btn {
+        padding: var(--webops-space-2);
+        min-width: 36px;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Toolbar Divider
+   ========================================================================== */
+
+.webops-toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--webops-color-primary-alpha-20);
+    margin: 0 var(--webops-space-1);
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Zoom Indicator
+   ========================================================================== */
+
+.webops-zoom-indicator {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-primary);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    font-family: var(--webops-font-family-mono);
+    flex-shrink: 0;
+    min-width: 45px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   Toolbar More Dropdown
+   ========================================================================== */
+
+.webops-toolbar-more {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.webops-toolbar-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--webops-space-1);
+    background: var(--webops-color-bg-elevated);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-15);
+    border-radius: var(--webops-radius-lg);
+    box-shadow: var(--webops-shadow-lg);
+    min-width: 200px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-toolbar-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.webops-toolbar-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    width: 100%;
+    padding: var(--webops-space-3) var(--webops-space-4);
+    background: none;
+    border: none;
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.webops-toolbar-dropdown-item:hover {
+    background: var(--webops-color-surface-hover);
+    color: var(--webops-color-primary);
+}
+
+.webops-toolbar-dropdown-item:first-child {
+    border-radius: var(--webops-radius-lg) var(--webops-radius-lg) 0 0;
+}
+
+.webops-toolbar-dropdown-item:last-child {
+    border-radius: 0 0 var(--webops-radius-lg) var(--webops-radius-lg);
+}
+
+.webops-toolbar-dropdown-divider {
+    height: 1px;
+    background: var(--webops-color-primary-alpha-10);
+    margin: var(--webops-space-1) 0;
+}
+
+.webops-toolbar-dropdown-item .material-icons {
+    font-size: var(--webops-icon-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-toolbar-dropdown-item:hover .material-icons {
+    color: var(--webops-color-primary);
+}
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.webops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-full);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--webops-letter-spacing-wide);
+    flex-shrink: 0;
+}
+
+.webops-badge-draft {
+    background: var(--webops-color-warning-alpha-10);
+    border: 1px solid var(--webops-color-warning-alpha-30);
+    color: var(--webops-color-warning);
+}
+
+/* ==========================================================================
+   Focus and Accessibility
+   ========================================================================== */
+
+.webops-workflow-toolbar .webops-btn:focus,
+.webops-workflow-toolbar .webops-workflow-name-input:focus,
+.webops-workflow-toolbar .webops-toolbar-dropdown-item:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}
+
+/* ==========================================================================
+   Animation for smooth wrapping
+   ========================================================================== */
+
+@keyframes toolbarItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.webops-workflow-toolbar .toolbar-item {
+    animation: toolbarItemSlideIn 0.3s ease-out;
+}
+
+/* ==========================================================================
+   High contrast and accessibility support
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+    .webops-workflow-toolbar {
+        border-width: 2px;
+    }
+    
+    .webops-btn {
+        border-width: 2px;
+    }
+    
+    .webops-workflow-name-input {
+        border-width: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .webops-workflow-toolbar,
+    .webops-btn,
+    .webops-workflow-name-input,
+    .webops-toolbar-dropdown {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* ==========================================================================
+   Dark mode adjustments
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .webops-workflow-toolbar {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .webops-workflow-name-input {
+        background: rgba(0, 0, 0, 0.2);
+    }
+}

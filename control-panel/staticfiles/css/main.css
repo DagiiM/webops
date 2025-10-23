@@ -87,6 +87,7 @@ body {
 
 @keyframes webopsGridPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 @keyframes webopsGlowPulse { 0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.1); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* WebOps Typography */
 .webops-h1 {
@@ -173,18 +174,6 @@ body {
     background: var(--webops-color-success-alpha-05);
 }
 
-/* Light Mode Variables (Default) */
-:root[data-theme="light"] {
-    --color-bg-primary: #f8faf9;
-    --color-bg-secondary: #ffffff;
-    --color-bg-tertiary: #f0f4f2;
-    --color-surface: #ffffff;
-    --color-surface-hover: #f0f4f2;
-    --color-text-primary: #0a0e0d;
-    --color-text-secondary: #4a5652;
-    --color-text-tertiary: #8a9690;
-    --color-border: var(--webops-color-primary-alpha-20);
-}
 
 /* WebOps Grid System */
 .webops-grid { display: grid; gap: var(--webops-space-3); }
@@ -240,15 +229,7 @@ select:focus {
     }
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    :root {
-        --color-primary: #00ff00;
-        --color-text-primary: #ffffff;
-        --color-bg-primary: #000000;
-        --color-border: #ffffff;
-    }
-}
+
 
 /* Performance: GPU acceleration for animations */
 .webops-loader,
@@ -268,6 +249,119 @@ select:focus {
 @keyframes webopsSkeletonLoading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Global Loading Indicator */
+.webops-loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-loader-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.webops-loader {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: grid;
+    place-items: center;
+    filter: drop-shadow(0 0 12px var(--webops-color-primary-glow));
+}
+
+.webops-loader-ring {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid var(--webops-color-primary-alpha-15);
+    box-shadow: 0 0 0 1px var(--webops-color-primary-alpha-10) inset;
+    animation: webopsLoaderSpin 1.6s linear infinite;
+}
+
+.webops-loader-ring:nth-child(2) {
+    width: 80px;
+    height: 80px;
+    border-color: var(--webops-color-primary-alpha-25);
+    animation-duration: 1.2s;
+    animation-direction: reverse;
+}
+
+.webops-loader-ring:nth-child(3) {
+    width: 60px;
+    height: 60px;
+    border-color: var(--webops-color-primary-alpha-35);
+    animation-duration: 1s;
+}
+
+@keyframes webopsLoaderSpin {
+    to { transform: rotate(360deg); }
+}
+
+.webops-loader-core {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 70%);
+    box-shadow: 0 0 24px var(--webops-color-primary-glow);
+    animation: webopsCorePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes webopsCorePulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.15); opacity: 1; }
+}
+
+.webops-loader-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.webops-loader-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--webops-color-primary);
+    opacity: 0.7;
+    animation: webopsParticle 2.4s ease-in-out infinite;
+}
+
+.webops-loader-particle:nth-child(1) { top: 10%; left: 50%; }
+.webops-loader-particle:nth-child(2) { top: 50%; left: 88%; }
+.webops-loader-particle:nth-child(3) { top: 80%; left: 30%; }
+.webops-loader-particle:nth-child(4) { top: 20%; left: 20%; }
+
+@keyframes webopsParticle {
+    0%, 100% { transform: translate(0, 0); opacity: 0.6; }
+    50% { transform: translate(6px, -6px); opacity: 1; }
+}
+
+.webops-loader-text {
+    margin-top: 16px;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    text-shadow: 0 0 12px var(--webops-color-primary-glow);
+}
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .webops-loader-ring,
+    .webops-loader-core,
+    .webops-loader-particle {
+        animation: none !important;
+    }
 }
 
 /* WebOps Page Header */
@@ -926,6 +1020,10 @@ select:focus {
     margin-bottom: var(--webops-space-3);
 }
 
+input:-internal-autofill-selected{
+     background: var(--webops-color-surface);
+}
+
 .login-page .webops-input {
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-15);
@@ -1267,15 +1365,6 @@ select:focus {
     gap: var(--webops-space-1-5);
 }
 
-/* WebOps Compact View */
-:root.webops-compact-view {
-    --space-xs: 2px;
-    --space-sm: 4px;
-    --space-md: 8px;
-    --space-lg: 12px;
-    --space-xl: 16px;
-    --space-2xl: 24px;
-}
 
 :root.webops-compact-view .webops-stat-card,
 :root.webops-compact-view .webops-card {
@@ -1405,6 +1494,7 @@ select:focus {
 
 /* WebOps Modal Content (BEM Methodology) */
 .webops-modal__content {
+    z-index: 2001;
     background: var(--webops-color-bg-elevated);
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-20);
@@ -1898,7 +1988,6 @@ select:focus {
     padding: var(--webops-space-3);
     box-shadow: var(--webops-shadow-sm);
     transition: all var(--webops-transition-base);
-    border: 1px solid var(--webops-color-primary-alpha-20);
     position: relative;
     overflow: hidden;
 }
@@ -1956,6 +2045,31 @@ select:focus {
 .webops-badge-info {
     background: var(--webops-color-info-alpha-10);
     color: var(--webops-color-info);
+}
+
+.webops-badge-postgresql {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
+}
+
+.webops-badge-mysql {
+    background: rgba(0, 122, 204, 0.1);
+    color: #007acc;
+}
+
+.webops-badge-mongodb {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+}
+
+.webops-badge-sqlite {
+    background: rgba(0, 188, 212, 0.1);
+    color: #00bcd4;
+}
+
+.webops-badge-redis {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
 }
 
 /* WebOps Text Ellipsis Utilities */
@@ -2037,6 +2151,56 @@ select:focus {
 
 .webops-text-xs { font-size: var(--webops-font-size-xs); }
 .webops-text-sm { font-size: var(--webops-font-size-sm); }
+.webops-text-muted { color: var(--webops-color-text-secondary); }
+
+/* Background Colors */
+.webops-bg-error { background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); }
+
+/* Text Colors */
+.webops-text-white { color: white; }
+.webops-text-gray-700 { color: var(--webops-gray-700); }
+
+/* Opacity */
+.webops-opacity-90 { opacity: 0.9; }
+.webops-opacity-50 { opacity: 0.5; }
+
+/* Cursor */
+.webops-cursor-pointer { cursor: pointer; }
+.webops-cursor-not-allowed { cursor: not-allowed; }
+
+/* Spacing */
+.webops-m-0 { margin: 0; }
+.webops-mt-sm { margin-top: var(--webops-space-1); }
+.webops-mt-lg { margin-top: var(--webops-space-5); }
+.webops-mb-md { margin-bottom: var(--webops-space-3); }
+.webops-ml-sm { margin-left: var(--webops-space-1); }
+.webops-mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Max Width */
+.webops-max-w-md { max-width: 700px; }
+.webops-max-w-lg { max-width: 800px; }
+
+/* Border */
+.webops-border-l-primary { border-left: 4px solid var(--webops-color-primary); }
+.webops-border-error { border-color: var(--webops-color-error) !important; }
+.webops-border-success { border-color: var(--webops-color-success) !important; }
+.webops-text-secondary { color: var(--webops-color-text-secondary); }
+.webops-text-success { color: var(--webops-color-success); }
+.webops-text-warning { color: var(--webops-color-warning); }
+.webops-text-error { color: var(--webops-color-error); }
+.webops-hidden { display: none; }
+.webops-flex-1 { flex: 1; }
+.webops-input--max-w-sm { max-width: 300px; }
+.webops-icon--xl { font-size: 64px; }
+.webops-icon--small { font-size: 16px; }
+.webops-icon--x-small { font-size: 14px; }
+.webops-opacity-30 { opacity: 0.3; }
+.webops-ml-sm { margin-left: 8px; }
+.webops-mt-xs { margin-top: 4px; }
+.webops-mt-sm { margin-top: var(--webops-space-1); }
+.webops-mb-md { margin-bottom: var(--webops-space-4); }
+.webops-border-l-primary { border-left: 4px solid var(--webops-color-primary); }
+.webops-items-start { align-items: flex-start; }
 .webops-text-base { font-size: var(--webops-font-size-base); }
 .webops-text-lg { font-size: var(--webops-font-size-lg); }
 .webops-text-xl { font-size: var(--webops-font-size-xl); }
@@ -2047,6 +2211,7 @@ select:focus {
 
 .webops-text-center { text-align: center; }
 .webops-text-right { text-align: right; }
+.webops-align-middle { vertical-align: middle; }
 
 /* WebOps Width Utilities */
 .webops-w-full { width: 100%; }
@@ -2091,6 +2256,29 @@ select:focus {
     text-rendering: optimizeLegibility;
     font-feature-settings: 'liga';
     vertical-align: middle;
+}
+
+/* Notification styles */
+.webops-notification-fixed {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    box-shadow: var(--webops-shadow-lg);
+    z-index: 10000;
+    max-width: 500px;
+    animation: slideIn 0.3s ease;
+}
+
+.webops-notification-success {
+    background: var(--webops-color-success);
+    color: white;
+}
+
+.webops-notification-error {
+    background: var(--webops-color-error);
+    color: white;
 }
 
 /* ========================================
@@ -3294,11 +3482,69 @@ select:focus {
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
-    transition: transform var(--webops-transition-base);
+    transition: all var(--webops-transition-base);
     transform: translateX(0);
 }
 
+/* Sidebar Minimized State */
+.webops-sidebar.minimized {
+    width: 60px;
+}
 
+.webops-sidebar.minimized .sidebar-header {
+    padding: var(--webops-space-3) var(--webops-space-1);
+    justify-content: center;
+}
+
+.webops-sidebar.minimized .sidebar-header .sidebar-title {
+    display: none;
+}
+
+.webops-sidebar.minimized .sidebar-header .sidebar-toggle {
+    margin: 0;
+    transform: rotate(180deg);
+}
+
+.webops-sidebar.minimized .webops-nav-item {
+    padding: var(--webops-space-2);
+    justify-content: center;
+    border-left: none;
+    border-right: 3px solid transparent;
+    border-radius: 0;
+}
+
+.webops-sidebar.minimized .webops-nav-item:hover {
+    border-right-color: var(--webops-color-primary-alpha-20);
+}
+
+.webops-sidebar.minimized .webops-nav-item.active {
+    border-right-color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-sidebar.minimized .nav-item-text {
+    display: none;
+}
+
+.webops-sidebar.minimized .nav-item-icon {
+    margin: 0;
+}
+
+.webops-sidebar.minimized .nav-item-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.webops-sidebar.minimized .sidebar-footer {
+    padding: var(--webops-space-2);
+    justify-content: center;
+}
+
+.webops-sidebar.minimized .sidebar-footer .sidebar-user,
+.webops-sidebar.minimized .sidebar-footer .sidebar-actions {
+    display: none;
+}
 
 .webops-sidebar-toggle:hover {
     background: var(--webops-color-primary-hover);
@@ -3318,6 +3564,11 @@ select:focus {
     min-height: 100vh;
     background: var(--webops-color-bg-primary);
     transition: margin-left var(--webops-transition-base);
+}
+
+/* Main content adjustment for minimized sidebar */
+.webops-main-content.expanded {
+    margin-left: 60px;
 }
 
 .webops-sidebar-overlay {
@@ -3383,6 +3634,7 @@ select:focus {
 @media (max-width: 768px) {
     .webops-sidebar {
         transform: translateX(-100%);
+        width: 280px !important; /* Force full width on mobile */
     }
     
     .webops-sidebar.active {
@@ -3394,7 +3646,7 @@ select:focus {
     }
     
     .webops-main-content {
-        margin-left: 0;
+        margin-left: 0 !important; /* Remove sidebar margin on mobile */
     }
     
     .webops-sidebar-overlay {
@@ -3609,12 +3861,20 @@ select:focus {
     .webops-main-content {
         margin-left: 200px; /* Reduced sidebar width on tablets */
     }
+    
+    .webops-main-content.expanded {
+        margin-left: 60px; /* Minimized sidebar width on tablets */
+    }
 }
 
 @media (max-width: 768px) {
     .webops-main-content {
         margin-left: 0 !important; /* Remove sidebar margin on mobile */
         padding: var(--webops-space-2);
+    }
+    
+    .webops-main-content.expanded {
+        margin-left: 0 !important; /* Ensure no margin on mobile even when minimized */
     }
     
     .webops-container {
@@ -3661,6 +3921,10 @@ select:focus {
 @media (max-width: 480px) {
     .webops-main-content {
         margin-left: 0 !important; /* Ensure no margin on small screens */
+    }
+    
+    .webops-main-content.expanded {
+        margin-left: 0 !important; /* Ensure no margin on small screens even when minimized */
     }
     
     .webops-container {
@@ -3855,4 +4119,623 @@ select:focus {
     .login-page .webops-h1 {
         font-size: var(--webops-font-size-xl);
     }
+}
+
+/* ============================================================================
+   Dependency Status Card Styles
+   ============================================================================ */
+
+
+.webops-card:hover {
+    box-shadow: var(--webops-shadow-lg);
+    border-color: var(--webops-color-primary-alpha-25);
+}
+
+.webops-card-header {
+    padding: var(--webops-space-3) var(--webops-space-4);
+    background: var(--webops-color-bg-secondary);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.webops-card-header h4 {
+    margin: 0;
+    color: var(--webops-color-text-primary);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-card-body {
+    padding: var(--webops-space-4);
+}
+
+.webops-dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-2);
+}
+
+.dependency-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-2) var(--webops-space-3);
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    transition: all var(--webops-transition-fast);
+}
+
+.dependency-item:hover {
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary-alpha-20);
+}
+
+.dependency-item.installed {
+    border-left: 4px solid var(--webops-color-success);
+}
+
+.dependency-item.missing {
+    border-left: 4px solid var(--webops-color-warning);
+}
+
+.dependency-item.installing {
+    border-left: 4px solid var(--webops-color-primary);
+}
+
+.dependency-item.failed {
+    border-left: 4px solid var(--webops-color-error);
+}
+
+.dependency-info {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    flex: 1;
+}
+
+.dependency-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.dependency-icon.installed {
+    color: var(--webops-color-success);
+    background: var(--webops-color-success-alpha-10);
+}
+
+.dependency-icon.missing {
+    color: var(--webops-color-warning);
+    background: var(--webops-color-warning-alpha-10);
+}
+
+.dependency-icon.installing {
+    color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+    animation: webopsSpin 1s linear infinite;
+}
+
+.dependency-icon.failed {
+    color: var(--webops-color-error);
+    background: var(--webops-color-error-alpha-10);
+}
+
+.dependency-details {
+    flex: 1;
+}
+
+.dependency-name {
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-0-5);
+}
+
+.dependency-description {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    line-height: 1.4;
+}
+
+.dependency-status {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+.dependency-status.installed {
+    color: var(--webops-color-success);
+}
+
+.dependency-status.missing {
+    color: var(--webops-color-warning);
+}
+
+.dependency-status.installing {
+    color: var(--webops-color-primary);
+}
+
+.dependency-status.failed {
+    color: var(--webops-color-error);
+}
+
+.dependency-actions {
+    display: flex;
+    gap: var(--webops-space-2);
+}
+
+.dependency-install-btn {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    font-size: var(--webops-font-size-sm);
+    border-radius: var(--webops-radius-sm);
+    border: 1px solid var(--webops-color-primary);
+    background: var(--webops-color-primary);
+    color: white;
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1);
+}
+
+.dependency-install-btn:hover {
+    background: var(--webops-color-primary-light);
+    border-color: var(--webops-color-primary-light);
+    transform: translateY(-1px);
+}
+
+.dependency-install-btn:active {
+    transform: translateY(0);
+}
+
+.dependency-install-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.dependency-install-btn.installing {
+    background: var(--webops-color-primary-alpha-50);
+    border-color: var(--webops-color-primary-alpha-50);
+}
+
+.dependency-install-btn.failed {
+    background: var(--webops-color-error);
+    border-color: var(--webops-color-error);
+}
+
+.dependency-install-btn.installed {
+    background: var(--webops-color-success);
+    border-color: var(--webops-color-success);
+}
+
+@keyframes webopsSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ===== WEBOPS STAT COMPONENTS - BEM COMPLIANT ===== */
+
+/* Stat Icon Variants */
+.webops-stat-icon--success {
+    background: var(--webops-color-success-alpha-10);
+    color: var(--webops-color-success);
+}
+
+.webops-stat-icon--warning {
+    background: var(--webops-color-warning-alpha-10);
+    color: var(--webops-color-warning);
+}
+
+.webops-stat-icon--error {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-stat-icon--muted {
+    background: var(--webops-color-neutral-alpha-10);
+    color: var(--webops-color-text-secondary);
+}
+
+/* Stat Value Variants */
+.webops-stat-value--large {
+    font-size: 1.5rem;
+}
+
+.webops-stat-value--xl {
+    font-size: 2rem;
+}
+
+/* Utility Classes */
+.webops-text-center { text-align: center; }
+.webops-text-sm { font-size: var(--webops-font-size-sm); }
+.webops-flex { display: flex; }
+.webops-justify-around { justify-content: space-around; }
+.webops-mb-md { margin-bottom: var(--webops-space-2); }
+.webops-p-md { padding: var(--webops-space-2); }
+.webops-rounded-md { border-radius: var(--webops-radius-md); }
+.webops-bg-success-alpha-10 { background-color: var(--webops-color-success-alpha-10); }
+.webops-bg-warning-alpha-10 { background-color: var(--webops-color-warning-alpha-10); }
+.webops-bg-error-alpha-10 { background-color: var(--webops-color-error-alpha-10); }
+.webops-bg-neutral-alpha-10 { background-color: var(--webops-color-neutral-alpha-10); }
+
+/* Icon Alignment */
+.webops-icon--align-middle { vertical-align: middle; }
+
+/* ===== WEBOPS MODAL COMPONENTS - BEM COMPLIANT ===== */
+
+/* Modal Overlay */
+.webops-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity var(--webops-transition-base);
+}
+
+.webops-modal-overlay--active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Modal Container */
+.webops-modal {
+    background: var(--webops-color-bg-primary);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--webops-color-primary-alpha-30);
+    border-radius: var(--webops-radius-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: transform var(--webops-transition-base);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.webops-modal-overlay--active .webops-modal {
+    transform: scale(1);
+}
+
+/* Modal Header */
+.webops-modal__header {
+    padding: var(--webops-space-3);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--webops-color-bg-secondary);
+}
+
+.webops-modal__title {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin: 0;
+}
+
+/* Modal Close Button */
+.webops-modal__close {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--webops-radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--webops-transition-fast);
+    font-size: 24px;
+    padding: 0;
+}
+
+.webops-modal__close:hover {
+    background: var(--webops-color-error-alpha-10);
+    color: var(--webops-color-error);
+}
+
+.webops-modal__close:focus {
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
+}
+
+/* Modal Body */
+.webops-modal__body {
+    padding: var(--webops-space-3);
+}
+
+/* Modal Footer */
+.webops-modal__footer {
+    padding: var(--webops-space-3);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--webops-space-2);
+    background: var(--webops-color-bg-secondary);
+}
+
+/* Modal Actions */
+.webops-modal__actions {
+    display: flex;
+    gap: var(--webops-space-2);
+    justify-content: flex-end;
+}
+
+/* ===== WEBOPS SETTINGS COMPONENTS - BEM COMPLIANT ===== */
+
+/* Setting Item */
+.webops-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-3) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-setting-item:last-child {
+    border-bottom: none;
+}
+
+/* Setting Info */
+.webops-setting-item__info {
+    flex: 1;
+    margin-right: var(--webops-space-3);
+}
+
+.webops-setting-item__title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-0-5);
+    line-height: 1.4;
+}
+
+.webops-setting-item__description {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Toggle Switch */
+.webops-toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.webops-toggle-switch__input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.webops-toggle-switch__slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--webops-color-neutral-alpha-20);
+    border: 1px solid var(--webops-color-neutral-alpha-30);
+    transition: var(--webops-transition-base);
+    border-radius: 28px;
+}
+
+.webops-toggle-switch__slider::before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: var(--webops-color-text-secondary);
+    transition: var(--webops-transition-base);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.webops-toggle-switch__input:checked + .webops-toggle-switch__slider {
+    background: var(--webops-color-primary-alpha-20);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-toggle-switch__input:checked + .webops-toggle-switch__slider::before {
+    transform: translateX(24px);
+    background: var(--webops-color-primary);
+}
+
+.webops-toggle-switch__input:focus + .webops-toggle-switch__slider {
+    box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-30);
+}
+
+.webops-toggle-switch__input:disabled + .webops-toggle-switch__slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Material Icons - BEM Compliant */
+.webops-icon {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    vertical-align: middle;
+}
+
+/* Icon Sizes */
+.webops-icon--small { font-size: 18px; }
+.webops-icon--medium { font-size: 24px; }
+.webops-icon--large { font-size: 36px; }
+.webops-icon--xl { font-size: 48px; }
+.webops-icon--menu { font-size: 20px; }
+
+/* Icon Colors */
+.webops-icon--primary { color: var(--webops-color-primary); }
+.webops-icon--secondary { color: var(--webops-color-text-secondary); }
+.webops-icon--success { color: var(--webops-color-success); }
+.webops-icon--warning { color: var(--webops-color-warning); }
+.webops-icon--error { color: var(--webops-color-error); }
+.webops-icon--muted { color: var(--webops-color-text-tertiary); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .webops-modal {
+        width: 95%;
+        max-width: none;
+        margin: var(--webops-space-2);
+    }
+    
+    .webops-modal__header,
+    .webops-modal__body,
+    .webops-modal__footer {
+        padding: var(--webops-space-2);
+    }
+    
+    .webops-setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-2);
+    }
+    
+    .webops-setting-item__info {
+        margin-right: 0;
+        margin-bottom: var(--webops-space-1);
+    }
+    
+    .webops-modal__actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .webops-modal__actions .webops-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-modal {
+        margin: var(--webops-space-1);
+    }
+    
+    .webops-modal__header,
+    .webops-modal__body,
+    .webops-modal__footer {
+        padding: var(--webops-space-1-5);
+    }
+    
+    .webops-setting-item {
+        padding: var(--webops-space-2) 0;
+    }
+}
+
+/* Responsive adjustments for dependency status card */
+@media (max-width: 768px) {
+    .webops-card-header {
+        flex-direction: column;
+        gap: var(--webops-space-2);
+        align-items: flex-start;
+    }
+    
+    .dependency-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--webops-space-2);
+    }
+    
+    .dependency-info {
+        width: 100%;
+    }
+    
+    .dependency-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .webops-dependency-list {
+        gap: var(--webops-space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-card-header {
+        padding: var(--webops-space-2);
+    }
+    
+    .webops-card-body {
+        padding: var(--webops-space-2);
+    }
+    
+    .dependency-item {
+        padding: var(--webops-space-2);
+    }
+    
+    .dependency-install-btn {
+        padding: var(--webops-space-1);
+        font-size: var(--webops-font-size-xs);
+    }
+}
+
+/* Extra small button variant for list view */
+.webops-btn-xs {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: var(--webops-radius-sm);
+    line-height: 1.2;
+}
+
+/* Loading state for buttons */
+.webops-btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.webops-btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: webopsSpin 1s linear infinite;
+}
+
+@keyframes webopsSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

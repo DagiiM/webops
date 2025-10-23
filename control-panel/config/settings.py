@@ -1,7 +1,7 @@
 """
 Django settings for WebOps Control Panel.
 
-Reference: CLAUDE.md "Django Control Panel Setup" section
+"Django Control Panel Setup" section
 Architecture: Configuration for Django application with PostgreSQL, Celery, Redis
 
 This module follows WebOps coding standards:
@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'apps.api',
     'apps.addons',
     'apps.automation',
+    'apps.compliance',
+    'apps.trash',
     
     # WebSocket support
     'channels',
@@ -74,7 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'apps.core.context_processors.branding',
+                'apps.core.common.context_processors.branding',
                 'apps.addons.context_processors.enabled_addons',
             ],
         },
@@ -227,6 +229,16 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'webops.websocket.auth': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'webops.websocket.consumer': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
 
@@ -253,7 +265,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
 # CSRF Trusted Origins
-csrf_origins = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,https://localhost:8000')
+csrf_origins = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,https://localhost:8000,http://127.0.0.1:8000,https://127.0.0.1:8000')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins.split(',') if origin.strip()]
 
 # Cache Configuration for Rate Limiting

@@ -1,11 +1,15 @@
 """
 URL configuration for core app (authentication and integrations).
 
-Reference: CLAUDE.md "URL Routing" section
+"URL Routing" section
 """
 
 from django.urls import path
-from . import auth_views, views, integration_views
+from . import views
+from .auth import views as auth_views
+from .integrations import views as integration_views
+from .webhooks import views as webhook_views
+from .notifications import views as notification_views
 
 urlpatterns = [
     # Authentication
@@ -26,8 +30,8 @@ urlpatterns = [
     path('settings/branding/', views.branding_settings, name='branding_settings'),
     path('settings/branding/reset/', views.reset_branding, name='reset_branding'),
     
-    # Google OAuth Configuration
-    path('settings/google-oauth/', views.google_oauth_config, name='google_oauth_config'),
+    # General User Settings
+    path('settings/', views.user_settings, name='user_settings'),
 
     # Platform Integrations
     path('integrations/', integration_views.integrations_dashboard, name='integrations_dashboard'),
@@ -45,11 +49,11 @@ urlpatterns = [
     path('integrations/huggingface/test/', integration_views.huggingface_test, name='huggingface_test'),
     path('integrations/huggingface/models/', integration_views.huggingface_models, name='huggingface_models'),
 
-    # Webhooks (placeholder views to be implemented)
-    path('integrations/webhooks/', integration_views.webhook_list, name='webhook_list'),
+    # Webhooks
+    path('integrations/webhooks/', webhook_views.webhook_list, name='webhook_list'),
 
-    # Notifications (placeholder views to be implemented)
-    path('integrations/notifications/', integration_views.notification_list, name='notification_list'),
+    # Notifications
+    path('integrations/notifications/', notification_views.notification_list, name='notification_list'),
     path('login/google/', auth_views.google_login_start, name='google_login'),
     path('login/google/callback/', auth_views.google_login_callback, name='google_login_callback'),
     path('integrations/google/connect/', integration_views.google_connect, name='google_connect'),
@@ -58,7 +62,4 @@ urlpatterns = [
     path('integrations/google/disconnect/', integration_views.google_disconnect, name='google_disconnect'),
     path('integrations/google/test/', integration_views.google_test, name='google_test'),
     
-    # Toast Test Pages
-    path('test/toast/', views.toast_test, name='toast_test'),
-    path('test/toast-messages/', views.test_toast_messages, name='test-toast-messages'),
 ]

@@ -1,7 +1,7 @@
 """
 URL configuration for services app.
 
-Reference: CLAUDE.md "URL Routing" section
+"URL Routing" section
 """
 
 from django.urls import path
@@ -43,10 +43,16 @@ urlpatterns = [
     path('configuration/reset-all/', control_views.configuration_reset_all, name='configuration_reset_all'),
 
     # =========================================================================
-    # CELERY MANAGEMENT
+    # BACKGROUND PROCESSOR MANAGEMENT
     # =========================================================================
-    path('celery/', control_views.celery_status, name='celery_status'),
-    path('celery/restart/', control_views.celery_restart_workers, name='celery_restart_workers'),
+    path('background/', control_views.background_management, name='background_management'),
+    path('background/restart/', control_views.background_restart, name='background_restart'),
+
+    # =========================================================================
+    # LEGACY CELERY REDIRECTS (kept for bookmarks)
+    # =========================================================================
+    path('celery/', control_views.celery_status_redirect, name='celery_status'),
+    path('celery/restart/', control_views.celery_restart_redirect, name='celery_restart_workers'),
 
     # =========================================================================
     # ALERTS
@@ -75,4 +81,14 @@ urlpatterns = [
     path('api/celery/status/', control_views.api_celery_status, name='api_celery_status'),
     path('api/celery/inspect/', control_views.api_celery_inspect, name='api_celery_inspect'),
     path('api/configuration/', control_views.api_configuration, name='api_configuration'),
+
+    # =========================================================================
+    # SSL MANAGEMENT
+    # =========================================================================
+    path('ssl/status/<int:deployment_id>/', control_views.ssl_status, name='ssl_status'),
+    path('ssl/configure/<int:deployment_id>/', control_views.ssl_configuration, name='ssl_configure'),
+    path('ssl/toggle/<int:deployment_id>/', control_views.ssl_toggle, name='ssl_toggle'),
+    path('ssl/upload-certificate/<int:deployment_id>/', control_views.ssl_upload_certificate, name='ssl_upload_certificate'),
+    path('ssl/update-configuration/<int:deployment_id>/', control_views.ssl_update_configuration, name='ssl_update_configuration'),
+    path('ssl/validate/<int:deployment_id>/', control_views.ssl_validate, name='ssl_validate'),
 ]

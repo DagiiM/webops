@@ -8,7 +8,7 @@ Usage:
 
 from django.core.management.base import BaseCommand, CommandError
 from pathlib import Path
-from apps.core.env_manager import EnvManager
+from apps.core.managers.env_manager import EnvManager
 import sys
 
 

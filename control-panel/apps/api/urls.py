@@ -11,6 +11,10 @@ urlpatterns = [
     # Status
     path('status/', views.api_status, name='api_status'),
 
+    # WebSocket Authentication
+    path('ws/token/', views.get_websocket_token, name='api_ws_token'),
+    path('ws/token/refresh/', views.refresh_websocket_token, name='api_ws_token_refresh'),
+
     # API Token Management (UI)
     path('tokens/', token_views.token_list, name='token_list'),
     path('tokens/create/', token_views.token_create, name='token_create'),

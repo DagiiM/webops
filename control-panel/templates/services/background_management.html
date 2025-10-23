@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+
+{% block title %}Background Process Management - WebOps{% endblock %}
+{% block header_title %}Background Process Management{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Background Process Management</h2>
+        <p class="webops-text-muted">Monitor and manage background task processors</p>
+        <div class="webops-text-sm webops-text-secondary">Processor: <strong>{{ backend_type|title }}</strong></div>
+    </div>
+    <div class="webops-flex webops-gap-sm">
+        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">arrow_back</span>
+            Back to Control
+        </button>
+        <button onclick="refreshStatus()" class="webops-btn webops-btn-info">
+            <span class="material-icons">refresh</span>
+            Refresh
+        </button>
+        {% if backend_type == 'celery' %}
+        <button onclick="restartWorkers()" class="webops-btn webops-btn-warning" id="restartBtn">
+            <span class="material-icons">restart_alt</span>
+            Restart Workers
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Background Processor Health Overview -->
+<div class="webops-stats-grid webops-mb-lg">
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba({% if processor_status.healthy %}0, 255, 136{% else %}255, 68, 68{% endif %}, 0.1); color: var(--webops-color-{% if processor_status.healthy %}success{% else %}error{% endif %});">
+            <span class="material-icons">{{ processor_status.healthy|yesno:"check_circle,cancel" }}</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.healthy|yesno:"Healthy,Unhealthy" }}</div>
+        <div class="webops-stat-label">{{ backend_type|title }} Status</div>
+    </div>
+
+    {% if backend_type == 'celery' %}
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">group</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.worker_count|default:0 }}</div>
+        <div class="webops-stat-label">Active Workers</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <span class="material-icons">schedule</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.beat_running|yesno:"Running,Stopped" }}</div>
+        <div class="webops-stat-label">Beat Scheduler</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <span class="material-icons">task</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.scheduled_tasks|length|default:0 }}</div>
+        <div class="webops-stat-label">Scheduled Tasks</div>
+    </div>
+    {% else %}
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+            <span class="material-icons">memory</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.active_tasks|default:0 }}</div>
+        <div class="webops-stat-label">Active Tasks</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+            <span class="material-icons">queue</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.queued_tasks|default:0 }}</div>
+        <div class="webops-stat-label">Queued Tasks</div>
+    </div>
+
+    <div class="webops-stat-card">
+        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+            <span class="material-icons">check_circle</span>
+        </div>
+        <div class="webops-stat-value">{{ processor_status.completed_tasks|default:0 }}</div>
+        <div class="webops-stat-label">Completed</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Processor Details -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Processor Details</h3>
+        <div class="webops-text-sm webops-text-secondary">{{ backend_type|title }} processor information</div>
+    </div>
+
+    <div class="webops-card-body">
+        <div class="webops-grid webops-grid-2">
+            <div>
+                <h4 class="webops-h4">Backend Information</h4>
+                <table class="webops-table webops-table-sm">
+                    <tbody>
+                        <tr>
+                            <td><strong>Backend Type:</strong></td>
+                            <td><code>{{ backend_type|title }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Health Status:</strong></td>
+                            <td>
+                                <span class="webops-badge webops-badge-{% if processor_status.healthy %}success{% else %}danger{% endif %}">
+                                    {{ processor_status.healthy|yesno:"Healthy,Unhealthy" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% if backend_type == 'celery' %}
+                        <tr>
+                            <td><strong>Broker:</strong></td>
+                            <td><code>{{ processor_status.broker|default:"Unknown" }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Beat Scheduler:</strong></td>
+                            <td>
+                                <span class="webops-badge webops-badge-{% if processor_status.beat_running %}success{% else %}secondary{% endif %}">
+                                    {{ processor_status.beat_running|yesno:"Running,Stopped" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h4 class="webops-h4">Task Statistics</h4>
+                <table class="webops-table webops-table-sm">
+                    <tbody>
+                        {% if backend_type == 'celery' %}
+                        <tr>
+                            <td><strong>Active Workers:</strong></td>
+                            <td>{{ processor_status.worker_count|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scheduled Tasks:</strong></td>
+                            <td>{{ processor_status.scheduled_tasks|length|default:0 }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td><strong>Active Tasks:</strong></td>
+                            <td>{{ processor_status.active_tasks|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Queued Tasks:</strong></td>
+                            <td>{{ processor_status.queued_tasks|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Completed Tasks:</strong></td>
+                            <td>{{ processor_status.completed_tasks|default:0 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if queue_stats %}
+                        <tr>
+                            <td><strong>Pending (24h):</strong></td>
+                            <td>{{ queue_stats.pending|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Completed (24h):</strong></td>
+                            <td>{{ queue_stats.completed_24h|default:0 }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Failed (24h):</strong></td>
+                            <td>{{ queue_stats.failed_24h|default:0 }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if backend_type == 'celery' and processor_status.workers %}
+<!-- Worker Details (Celery only) -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Worker Details</h3>
+        <div class="webops-text-sm webops-text-secondary">Active {{ backend_type|title }} workers and their status</div>
+    </div>
+
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Worker Name</th>
+                    <th>Status</th>
+                    <th>Active Tasks</th>
+                    <th>Processed</th>
+                    <th>Pool</th>
+                    <th>Concurrency</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in processor_status.workers %}
+                <tr>
+                    <td>
+                        <div class="webops-font-semibold">{{ worker.name }}</div>
+                        <div class="webops-text-xs webops-text-secondary">{{ worker.hostname }}</div>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-success">
+                            <span class="material-icons webops-icon-xs">check_circle</span>
+                            Online
+                        </span>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-info">{{ worker.active|default:0 }}</span>
+                    </td>
+                    <td>{{ worker.processed|default:0 }}</td>
+                    <td><code>{{ worker.pool|default:"prefork" }}</code></td>
+                    <td>{{ worker.concurrency|default:4 }}</td>
+                    <td>
+                        <div class="webops-btn-group">
+                            <button onclick="inspectWorker('{{ worker.name }}')"
+                                    class="webops-btn webops-btn-xs webops-btn-info"
+                                    title="Inspect">
+                                <span class="material-icons">visibility</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if backend_type == 'celery' and processor_status.scheduled_tasks %}
+<!-- Scheduled Tasks (Celery only) -->
+<div class="webops-card webops-mb-lg">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Scheduled Tasks (Beat Schedule)</h3>
+        <div class="webops-text-sm webops-text-secondary">Periodic tasks configured in {{ backend_type|title }} Beat</div>
+    </div>
+
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Schedule</th>
+                    <th>Task Function</th>
+                    <th>Last Run</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in processor_status.scheduled_tasks %}
+                <tr>
+                    <td>
+                        <div class="webops-font-semibold">{{ task.name }}</div>
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-secondary">
+                            {{ task.schedule }}
+                        </span>
+                    </td>
+                    <td><code>{{ task.task }}</code></td>
+                    <td>
+                        {% if task.last_run_at %}
+                            {{ task.last_run_at|timesince }} ago
+                        {% else %}
+                            <span class="webops-text-muted">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="webops-badge webops-badge-{% if task.enabled %}success{% else %}secondary{% endif %}">
+                            {{ task.enabled|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Task Executions -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">Recent Task Executions</h3>
+        <div class="webops-text-sm webops-text-secondary">Last 20 task runs</div>
+    </div>
+
+    {% if processor_status.recent_tasks %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in processor_status.recent_tasks %}
+                <tr>
+                    <td>
+                        <code>{{ task.name }}</code>
+                    </td>
+                    <td>
+                        {% if task.status == 'SUCCESS' %}
+                            <span class="webops-badge webops-badge-success">
+                                <span class="material-icons webops-icon-xs">check_circle</span>
+                                Success
+                            </span>
+                        {% elif task.status == 'FAILURE' %}
+                            <span class="webops-badge webops-badge-danger">
+                                <span class="material-icons webops-icon-xs">error</span>
+                                Failed
+                            </span>
+                        {% elif task.status == 'PENDING' %}
+                            <span class="webops-badge webops-badge-warning">
+                                <span class="material-icons webops-icon-xs">schedule</span>
+                                Pending
+                            </span>
+                        {% else %}
+                            <span class="webops-badge webops-badge-info">{{ task.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ task.started|timesince }} ago</td>
+                    <td>
+                        {% if task.duration %}
+                            {{ task.duration|floatformat:2 }}s
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="webops-text-sm">
+                            {{ task.result|truncatechars:50 }}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="webops-empty-state">
+        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">inbox</span>
+        <h3 class="webops-empty-state-title">No recent task executions</h3>
+        <p class="webops-empty-state-description">Task history will appear here once tasks start running</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function refreshStatus() {
+    location.reload();
+}
+
+{% if backend_type == 'celery' %}
+function inspectWorker(workerName) {
+    fetch(`{% url 'monitoring:api_celery_inspect' %}?worker=${workerName}`, {
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        let info = `Worker: ${workerName}\n\n`;
+        info += `Active Tasks: ${data.active || 0}\n`;
+        info += `Scheduled: ${data.scheduled || 0}\n`;
+        info += `Reserved: ${data.reserved || 0}\n`;
+        info += `\nConfiguration:\n`;
+        info += JSON.stringify(data.config, null, 2);
+
+        alert(info);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to inspect worker');
+    });
+}
+
+function restartWorkers() {
+    if (!confirm('Are you sure you want to restart all Celery workers? This may temporarily interrupt background task processing.')) {
+        return;
+    }
+
+    const btn = document.getElementById('restartBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Restarting...';
+
+    fetch(`{% url 'monitoring:background_restart' %}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Workers restarted successfully!');
+            refreshStatus();
+        } else {
+            alert('Failed to restart workers: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to restart workers');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">restart_alt</span> Restart Workers';
+    });
+}
+{% endif %}
+
+// Auto-refresh every 30 seconds
+let refreshInterval;
+
+document.addEventListener('DOMContentLoaded', () => {
+    refreshInterval = setInterval(() => {
+        console.log('Auto-refreshing background processor status...');
+        refreshStatus();
+    }, 30000);
+});
+
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+
+<style>
+.webops-btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.webops-table-sm td {
+    padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

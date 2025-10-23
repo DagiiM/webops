@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from unittest import mock
 import time
 
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment
 from apps.services.background import factory as bg_factory
 from apps.services.background.memory_adapter import InMemoryBackgroundProcessor
 
@@ -37,7 +37,7 @@ class ServiceControlAdapterTests(TestCase):
         bg_factory._processor_instance = adapter
 
         self._ensure_patch = mock.patch(
-            'apps.deployments.service_manager.ServiceManager.ensure_celery_running',
+            'apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running',
             return_value=(True, 'mocked')
         )
         self._ensure_patch.start()
@@ -52,7 +52,7 @@ class ServiceControlAdapterTests(TestCase):
         return False
 
     def test_start_service_background_queues_adapter_task(self):
-        dep = Deployment.objects.create(
+        dep = ApplicationDeployment.objects.create(
             name='svc1',
             repo_url='https://github.com/example/repo',
             branch='main',
@@ -64,7 +64,7 @@ class ServiceControlAdapterTests(TestCase):
         self.assertTrue(self._wait_for('start', dep.id))
 
     def test_stop_service_background_queues_adapter_task(self):
-        dep = Deployment.objects.create(
+        dep = ApplicationDeployment.objects.create(
             name='svc2',
             repo_url='https://github.com/example/repo',
             branch='main',
@@ -76,7 +76,7 @@ class ServiceControlAdapterTests(TestCase):
         self.assertTrue(self._wait_for('stop', dep.id))
 
     def test_restart_service_background_queues_adapter_task(self):
-        dep = Deployment.objects.create(
+        dep = ApplicationDeployment.objects.create(
             name='svc3',
             repo_url='https://github.com/example/repo',
             branch='main',

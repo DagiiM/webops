@@ -69,6 +69,26 @@ class InMemoryBackgroundProcessor(BackgroundProcessor):
     def backend_info(self) -> Dict[str, Any]:
         return {"type": "in-memory", "registry_size": len(self._registry)}
 
+    def get_status(self) -> Dict[str, Any]:
+        """Return comprehensive status information for the in-memory processor."""
+        with self._lock:
+            total_tasks = len(self._tasks)
+            pending_tasks = sum(1 for entry in self._tasks.values() if entry.status == TaskStatus.PENDING)
+            running_tasks = sum(1 for entry in self._tasks.values() if entry.status == TaskStatus.STARTED)
+            completed_tasks = sum(1 for entry in self._tasks.values() if entry.status == TaskStatus.SUCCESS)
+            failed_tasks = sum(1 for entry in self._tasks.values() if entry.status == TaskStatus.FAILED)
+            
+            return {
+                "processor": "memory",
+                "status": "healthy",
+                "total_tasks": total_tasks,
+                "pending_tasks": pending_tasks,
+                "running_tasks": running_tasks,
+                "completed_tasks": completed_tasks,
+                "failed_tasks": failed_tasks,
+                "backend_info": self.backend_info()
+            }
+
     def _run_task(self, task_id: str) -> None:
         with self._lock:
             entry = self._tasks.get(task_id)

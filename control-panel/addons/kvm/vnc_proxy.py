@@ -156,7 +156,7 @@ class VNCProxyConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def _get_vm_deployment(self, deployment_id):
         """Get VM deployment from database."""
-        from addons.kvm.models import VMDeployment
+        from .models import VMDeployment
 
         return VMDeployment.objects.select_related(
             'deployment',
@@ -181,7 +181,7 @@ class VNCProxyConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def _log_console_access(self, user, vm_deployment, action):
         """Log console access for security audit."""
-        from apps.core.models import SecurityAuditLog
+        from apps.core.security.models import SecurityAuditLog
 
         SecurityAuditLog.objects.create(
             user=user,

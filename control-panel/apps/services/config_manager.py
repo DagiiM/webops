@@ -1,7 +1,7 @@
 """
 Configuration Management Service for centralized settings.
 
-Reference: CLAUDE.md "Configuration Management"
+"Configuration Management"
 Architecture: Database-backed configuration with validation and defaults
 
 This module provides:
@@ -17,7 +17,7 @@ import logging
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.core.models import Configuration
+from apps.core.common.models import Configuration
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,14 @@ class ConfigurationManager:
             'min': 300,
             'max': 1800,
             'description': 'Interval for Celery worker health checks (seconds)'
+        },
+
+        # Background processing
+        'background.processor': {
+            'type': str,
+            'default': 'celery',
+            'choices': ['celery', 'memory'],
+            'description': 'Active background processor for async tasks (celery or memory)'
         },
 
         # Data retention
@@ -396,6 +404,11 @@ class ConfigurationManager:
                 raise ValueError(f"Value {value} is below minimum {schema['min']}")
             if 'max' in schema and value > schema['max']:
                 raise ValueError(f"Value {value} is above maximum {schema['max']}")
+
+        # Choices validation for enumerated string settings
+        if expected_type == str and 'choices' in schema:
+            if value not in schema['choices']:
+                raise ValueError(f"Invalid value '{value}'. Allowed: {', '.join(schema['choices'])}")
 
         return value
 

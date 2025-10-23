@@ -552,6 +552,130 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Service Management Functions
+async function restartAllServices() {
+    // Get all failed services by checking for restart buttons that are visible
+    const failedServices = document.querySelectorAll('[id$="-restart-btn"]:not([style*="display: none"])');
+    const serviceNames = Array.from(failedServices).map(btn => {
+        const match = btn.id.match(/^(.+)-restart-btn$/);
+        return match ? match[1] : null;
+    }).filter(name => name);
+    
+    if (serviceNames.length === 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.info('No failed services to restart');
+        }
+        return;
+    }
+    
+    // Show loading state
+    const restartBtn = event.target.closest('button');
+    const originalText = restartBtn.innerHTML;
+    restartBtn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">autorenew</span> Restarting All...';
+    restartBtn.disabled = true;
+    
+    const results = [];
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    
+    // Restart services sequentially with delays to avoid rate limiting
+    for (let i = 0; i < serviceNames.length; i++) {
+        const serviceName = serviceNames[i];
+        
+        try {
+            // Add delay between requests (1 second between each service)
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            // Use the correct URL pattern for core services restart
+            const response = await fetch(`/deployments/core-services/restart/${serviceName}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = { success: false, message: 'Invalid response from server' };
+            }
+            
+            if (response.status === 429) {
+                results.push({ 
+                    service: serviceName, 
+                    success: false, 
+                    message: 'Rate limit exceeded. Please wait a moment and try again.' 
+                });
+            } else if (response.ok && data.success) {
+                results.push({ 
+                    service: serviceName, 
+                    success: true, 
+                    message: data.message || 'Service restarted successfully' 
+                });
+            } else {
+                results.push({ 
+                    service: serviceName, 
+                    success: false, 
+                    message: data.message || `Failed to restart ${serviceName}` 
+                });
+            }
+            
+        } catch (error) {
+            results.push({ 
+                service: serviceName, 
+                success: false, 
+                message: error.message || 'Network error occurred' 
+            });
+        }
+    }
+    
+    // Show results summary
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const rateLimited = results.filter(r => r.message.includes('Rate limit')).length;
+    
+    if (successful > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.success(`Successfully restarted ${successful} service(s)`);
+        }
+    }
+    
+    if (rateLimited > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.warning(`${rateLimited} service(s) hit rate limits. Please wait and try again.`);
+        }
+    }
+    
+    if (failed > rateLimited && failed > 0) {
+        if (window.WebOps && window.WebOps.Toast) {
+            window.WebOps.Toast.error(`Failed to restart ${failed - rateLimited} service(s)`);
+        }
+    }
+    
+    // Reset button state
+    restartBtn.innerHTML = originalText;
+    restartBtn.disabled = false;
+    
+    // Refresh status after all restarts
+    setTimeout(() => {
+        if (typeof refreshServiceStatus === 'function') {
+            refreshServiceStatus();
+        } else {
+            // Fallback: reload the page if refresh function not available
+            window.location.reload();
+        }
+    }, 2000);
+}
+
+function refreshServiceStatus() {
+    // Fallback function if not defined in template
+    window.location.reload();
+}
+
 // Global helper functions for convenience
 function showLoader(message) {
     if (window.WebOps && window.WebOps.Loader) {

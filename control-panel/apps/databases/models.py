@@ -1,38 +1,156 @@
 """
 Database models for WebOps.
 
-Reference: CLAUDE.md "Database Models" section
+"Database Models" section
 """
 
 from django.db import models
-from apps.core.models import BaseModel
-from apps.deployments.models import Deployment
+from django.core.exceptions import ValidationError
+from apps.core.common.models import BaseModel
+from apps.deployments.models import BaseDeployment
+from apps.addons.models import Addon
+from .adapters.base import DatabaseType
+from .installer import DatabaseInstaller
 
 
 class Database(BaseModel):
-    """PostgreSQL database credentials."""
+    """
+    Multi-database credentials and configuration.
 
+    Supports PostgreSQL, MongoDB, MySQL, SQLite, Redis, Pinecone, etc.
+    """
+
+    # Basic Info
     name = models.CharField(max_length=100, unique=True)
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=500)  # Encrypted
-    host = models.CharField(max_length=255, default='localhost')
-    port = models.IntegerField(default=5432)
+    db_type = models.CharField(
+        max_length=50,
+        choices=[(t.value, t.value.title()) for t in DatabaseType],
+        default=DatabaseType.POSTGRESQL.value
+    )
+
+    # Connection Details
+    host = models.CharField(max_length=255, default='localhost', blank=True)
+    port = models.IntegerField(null=True, blank=True)
+    username = models.CharField(max_length=100, blank=True)
+    password = models.CharField(max_length=500, blank=True)  # Encrypted
+
+    # Database/Collection Name
+    database_name = models.CharField(max_length=100, blank=True)
+
+    # Cloud Database Fields
+    api_key = models.CharField(max_length=500, blank=True)  # Encrypted
+    environment = models.CharField(max_length=100, blank=True)
+    connection_uri = models.TextField(blank=True)
+
+    # Advanced Options
+    ssl_enabled = models.BooleanField(default=False)
+    connection_timeout = models.IntegerField(default=30)
+    pool_size = models.IntegerField(default=5)
+
+    # Metadata
+    is_active = models.BooleanField(default=True)
     deployment = models.ForeignKey(
-        Deployment,
+        BaseDeployment,
         on_delete=models.CASCADE,
         related_name='databases',
         null=True,
         blank=True
     )
 
-    def __str__(self) -> str:
-        return self.name
+    # Dependency Info (JSON field for storing install commands, etc.)
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    # Required addons for this database
+    required_addons = models.ManyToManyField(
+        Addon,
+        blank=True,
+        related_name='databases',
+        help_text="Addons required for this database to function properly"
+    )
 
-    def get_connection_string(self, decrypted_password: str) -> str:
-        """Generate PostgreSQL connection string."""
-        return f"postgresql://{self.username}:{decrypted_password}@{self.host}:{self.port}/{self.name}"
+    def __str__(self) -> str:
+        return f"{self.name} ({self.db_type})"
+
+    def clean(self):
+        """Validate database configuration."""
+        super().clean()
+
+        # Validate required fields based on database type
+        db_type = DatabaseType(self.db_type)
+
+        if db_type == DatabaseType.POSTGRESQL:
+            required = ['host', 'port', 'database_name', 'username', 'password']
+            for field in required:
+                if not getattr(self, field.replace('database_name', 'database_name'), None):
+                    raise ValidationError(f"{field} is required for PostgreSQL")
+
+        elif db_type == DatabaseType.MONGODB:
+            if not self.connection_uri and not (self.host and self.port):
+                raise ValidationError(
+                    "Either connection_uri or host+port is required for MongoDB"
+                )
+
+        elif db_type == DatabaseType.SQLITE:
+            if not self.database_name:
+                raise ValidationError("database_name (file path) is required for SQLite")
+
+        elif db_type == DatabaseType.PINECONE:
+            if not self.api_key or not self.environment:
+                raise ValidationError("api_key and environment are required for Pinecone")
+
+    def get_connection_string(self, decrypted_password: str = None) -> str:
+        """
+        Generate connection string for the database.
+
+        Args:
+            decrypted_password: Decrypted password (if None, uses masked password)
+
+        Returns:
+            Database connection string
+        """
+        password = decrypted_password or '****'
+        db_type = DatabaseType(self.db_type)
+
+        if db_type == DatabaseType.POSTGRESQL:
+            return f"postgresql://{self.username}:{password}@{self.host}:{self.port}/{self.database_name}"
+
+        elif db_type == DatabaseType.MONGODB:
+            if self.connection_uri:
+                return self.connection_uri.replace(self.password, password)
+            return f"mongodb://{self.username}:{password}@{self.host}:{self.port}/{self.database_name}"
+
+        elif db_type == DatabaseType.MYSQL:
+            return f"mysql://{self.username}:{password}@{self.host}:{self.port}/{self.database_name}"
+
+        elif db_type == DatabaseType.SQLITE:
+            return f"sqlite:///{self.database_name}"
+
+        elif db_type == DatabaseType.REDIS:
+            return f"redis://{self.host}:{self.port}"
+
+        return "Connection string not available"
+
+    def get_dependency_status(self):
+        """
+        Get dependency status for this database.
+        
+        Returns:
+            Dictionary with dependency information
+        """
+        try:
+            db_type_enum = DatabaseType(self.db_type)
+            return DatabaseInstaller.get_dependency_info(db_type_enum)
+        except ValueError:
+            return {
+                'dependencies': [],
+                'all_installed': False,
+                'missing': [],
+                'install_commands': {},
+                'error': f'Invalid database type: {self.db_type}'
+            }
 
     class Meta:
         db_table = 'databases'
         verbose_name = 'Database'
         verbose_name_plural = 'Databases'
+        ordering = ['-created_at']

@@ -55,6 +55,7 @@ class WorkflowCanvas {
         this.setupEventListeners();
         this.loadWorkflowData();
         this.initPaletteState();
+        this.initPropertiesPanelState();
         this.setupToolbarOverflowHandling();
         this.initSidebarState();
         this.render();
@@ -841,6 +842,10 @@ class WorkflowCanvas {
         const panel = document.getElementById('properties-panel');
         panel.classList.toggle('collapsed');
         
+        // Save collapsed state to localStorage
+        const isCollapsed = panel.classList.contains('collapsed');
+        localStorage.setItem('properties-collapsed', isCollapsed);
+        
         // Resize canvas after panel toggle
         setTimeout(() => {
             this.resize();
@@ -917,6 +922,21 @@ class WorkflowCanvas {
             const label = node.querySelector('.node-label').textContent;
             node.setAttribute('data-tooltip', label);
         });
+    }
+    
+    initPropertiesPanelState() {
+        // Restore properties panel state from localStorage
+        const isMinimized = localStorage.getItem('properties-minimized') === 'true';
+        const isCollapsed = localStorage.getItem('properties-collapsed') === 'true';
+        const panel = document.getElementById('properties-panel');
+        
+        if (isMinimized) {
+            panel.classList.add('minimized');
+        }
+        
+        if (isCollapsed) {
+            panel.classList.add('collapsed');
+        }
     }
     
     setupToolbarOverflowHandling() {
@@ -1434,7 +1454,7 @@ class WorkflowCanvas {
     }
 
     getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
     showNotification(message, type) {
@@ -1447,13 +1467,35 @@ class WorkflowCanvas {
             top: 80px;
             right: 20px;
             padding: 1rem 1.5rem;
-            background: ${type === 'success' ? '#10B981' : '#EF4444'};
+            background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#F59E0B'};
             color: white;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: var(--webops-radius-md);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             z-index: 9999;
             animation: slideIn 0.3s ease;
+            font-family: var(--webops-font-sans);
+            font-size: var(--webops-font-size-sm);
+            font-weight: 500;
+            max-width: 300px;
+            word-wrap: break-word;
         `;
+
+        // Add animation styles if not already present
+        if (!document.getElementById('notification-animations')) {
+            const style = document.createElement('style');
+            style.id = 'notification-animations';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
         document.body.appendChild(notification);
 
@@ -1461,6 +1503,289 @@ class WorkflowCanvas {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+
+    exportWorkflow() {
+        const workflowData = {
+            name: document.getElementById('workflow-name').value,
+            nodes: this.nodes.map(node => ({
+                id: node.id,
+                type: node.type,
+                label: node.label,
+                position: { x: node.x, y: node.y },
+                config: node.config,
+                enabled: node.enabled
+            })),
+            connections: this.connections.map(conn => ({
+                source: conn.source.id,
+                target: conn.target.id,
+                sourceHandle: conn.sourceHandle,
+                targetHandle: conn.targetHandle
+            })),
+            exportDate: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const dataStr = JSON.stringify(workflowData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const workflowName = document.getElementById('workflow-name').value || 'workflow';
+        const filename = `${workflowName.replace(/\s+/g, '_')}_${new Date().getTime()}.json`;
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = filename;
+        link.click();
+        
+        URL.revokeObjectURL(link.href);
+        
+        this.showNotification('Workflow exported successfully', 'success');
+    }
+
+    importWorkflow() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const workflowData = JSON.parse(event.target.result);
+                    
+                    // Validate workflow data structure
+                    if (!workflowData.nodes || !workflowData.connections) {
+                        throw new Error('Invalid workflow file format');
+                    }
+                    
+                    // Clear current workflow
+                    this.nodes = [];
+                    this.connections = [];
+                    this.selectedNode = null;
+                    this.selectedConnection = null;
+                    
+                    // Import nodes
+                    workflowData.nodes.forEach(nodeData => {
+                        this.nodes.push({
+                            id: nodeData.id,
+                            type: nodeData.type,
+                            label: nodeData.label,
+                            x: nodeData.position.x,
+                            y: nodeData.position.y,
+                            config: nodeData.config || {},
+                            enabled: nodeData.enabled !== false,
+                            width: 180,
+                            height: 60
+                        });
+                    });
+                    
+                    // Import connections
+                    workflowData.connections.forEach(connData => {
+                        const source = this.nodes.find(n => n.id === connData.source);
+                        const target = this.nodes.find(n => n.id === connData.target);
+                        if (source && target) {
+                            this.connections.push({
+                                source: source,
+                                target: target,
+                                sourceHandle: connData.sourceHandle || 'output',
+                                targetHandle: connData.targetHandle || 'input'
+                            });
+                        }
+                    });
+                    
+                    // Update workflow name if provided
+                    if (workflowData.name) {
+                        document.getElementById('workflow-name').value = workflowData.name;
+                    }
+                    
+                    // Reset view
+                    this.fitView();
+                    this.saveHistory();
+                    this.updateMinimapVisibility();
+                    this.render();
+                    
+                    this.showNotification('Workflow imported successfully', 'success');
+                    
+                } catch (error) {
+                    this.showNotification('Error importing workflow: ' + error.message, 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
+    duplicateWorkflow() {
+        if (this.nodes.length === 0) {
+            this.showNotification('No workflow to duplicate', 'warning');
+            return;
+        }
+        
+        // Create a copy of the current workflow
+        const originalName = document.getElementById('workflow-name').value;
+        const duplicatedName = `${originalName} (Copy)`;
+        
+        // Update the workflow name
+        document.getElementById('workflow-name').value = duplicatedName;
+        
+        // Mark as unsaved by clearing history
+        this.history = [];
+        this.historyIndex = -1;
+        this.updateUndoRedoButtons();
+        
+        this.showNotification('Workflow duplicated. Remember to save the new workflow.', 'success');
+    }
+
+    clearCanvas() {
+        if (this.nodes.length === 0) {
+            this.showNotification('Canvas is already empty', 'info');
+            return;
+        }
+        
+        // Confirm before clearing
+        if (confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
+            this.nodes = [];
+            this.connections = [];
+            this.selectedNode = null;
+            this.selectedConnection = null;
+            
+            // Reset view
+            this.offset = { x: 0, y: 0 };
+            this.zoom = 1;
+            this.updateZoomDisplay();
+            
+            // Clear history
+            this.history = [];
+            this.historyIndex = -1;
+            this.updateUndoRedoButtons();
+            
+            this.updateMinimapVisibility();
+            this.render();
+            
+            this.showNotification('Canvas cleared successfully', 'success');
+        }
+    }
+
+    openSettings() {
+        // Create a simple settings modal
+        const modal = document.createElement('div');
+        modal.className = 'webops-settings-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        `;
+        
+        const settingsContent = document.createElement('div');
+        settingsContent.className = 'webops-settings-content';
+        settingsContent.style.cssText = `
+            background: var(--webops-color-bg-card);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-6);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--webops-color-border);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        `;
+        
+        settingsContent.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--webops-space-4);">
+                <h2 style="margin: 0; color: var(--webops-color-text-primary); font-size: var(--webops-font-size-xl);">Workflow Settings</h2>
+                <button id="btn-close-settings" class="webops-btn webops-btn-icon" style="background: none; border: none; color: var(--webops-color-text-secondary);">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="webops-form-group" style="margin-bottom: var(--webops-space-4);">
+                <label class="webops-label" style="display: block; margin-bottom: var(--webops-space-1); color: var(--webops-color-text-primary);">Auto-save interval (seconds)</label>
+                <input type="number" id="auto-save-interval" class="webops-input" value="30" min="10" max="300" style="width: 100%; padding: var(--webops-space-2); border: 1px solid var(--webops-color-border); border-radius: var(--webops-radius-sm); background: var(--webops-color-bg-primary); color: var(--webops-color-text-primary);">
+                <small class="webops-text-muted" style="color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-sm);">Set to 0 to disable auto-save</small>
+            </div>
+            
+            <div class="webops-form-group" style="margin-bottom: var(--webops-space-4);">
+                <label class="webops-label" style="display: block; margin-bottom: var(--webops-space-1); color: var(--webops-color-text-primary);">Grid size</label>
+                <select id="grid-size" class="webops-select" style="width: 100%; padding: var(--webops-space-2); border: 1px solid var(--webops-color-border); border-radius: var(--webops-radius-sm); background: var(--webops-color-bg-primary); color: var(--webops-color-text-primary);">
+                    <option value="20">Small (20px)</option>
+                    <option value="30" selected>Medium (30px)</option>
+                    <option value="40">Large (40px)</option>
+                </select>
+            </div>
+            
+            <div class="webops-form-group" style="margin-bottom: var(--webops-space-3);">
+                <label class="webops-checkbox" style="display: flex; align-items: center; color: var(--webops-color-text-primary);">
+                    <input type="checkbox" id="show-node-labels" checked style="margin-right: var(--webops-space-2);">
+                    Show node labels
+                </label>
+            </div>
+            
+            <div class="webops-form-group" style="margin-bottom: var(--webops-space-6);">
+                <label class="webops-checkbox" style="display: flex; align-items: center; color: var(--webops-color-text-primary);">
+                    <input type="checkbox" id="enable-snap-to-grid" checked style="margin-right: var(--webops-space-2);">
+                    Snap to grid
+                </label>
+            </div>
+            
+            <div class="webops-form-group" style="display: flex; gap: var(--webops-space-2); justify-content: flex-end;">
+                <button id="btn-reset-settings" class="webops-btn webops-btn-secondary">Reset to Defaults</button>
+                <button id="btn-save-settings" class="webops-btn webops-btn-primary">Save Settings</button>
+            </div>
+        `;
+        
+        modal.appendChild(settingsContent);
+        document.body.appendChild(modal);
+        
+        // Add event listeners
+        document.getElementById('btn-close-settings').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('btn-save-settings').addEventListener('click', () => {
+            const settings = {
+                autoSaveInterval: parseInt(document.getElementById('auto-save-interval').value),
+                gridSize: parseInt(document.getElementById('grid-size').value),
+                showNodeLabels: document.getElementById('show-node-labels').checked,
+                enableSnapToGrid: document.getElementById('enable-snap-to-grid').checked
+            };
+            
+            // Save settings to localStorage
+            localStorage.setItem('workflow-settings', JSON.stringify(settings));
+            
+            this.showNotification('Settings saved successfully', 'success');
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('btn-reset-settings').addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                localStorage.removeItem('workflow-settings');
+                document.getElementById('auto-save-interval').value = 30;
+                document.getElementById('grid-size').value = 30;
+                document.getElementById('show-node-labels').checked = true;
+                document.getElementById('enable-snap-to-grid').checked = true;
+                
+                this.showNotification('Settings reset to defaults', 'success');
+            }
+        });
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
     }
 }
 

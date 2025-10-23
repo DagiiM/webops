@@ -9,8 +9,8 @@ Usage:
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from apps.deployments.monitoring import DeploymentMonitor, DeploymentAnalytics
-from apps.deployments.models import Deployment
+from apps.deployments.shared.monitoring import DeploymentMonitor, DeploymentAnalytics
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 
 
 class Command(BaseCommand):
@@ -89,8 +89,8 @@ class Command(BaseCommand):
         
         # Find deployments stuck in building state for > 1 hour
         one_hour_ago = timezone.now() - timezone.timedelta(hours=1)
-        stuck_deployments = Deployment.objects.filter(
-            status=Deployment.Status.BUILDING,
+        stuck_deployments = ApplicationDeployment.objects.filter(
+            status=ApplicationDeployment.Status.BUILDING,
             updated_at__lt=one_hour_ago
         )
         
@@ -100,7 +100,7 @@ class Command(BaseCommand):
         
         for deployment in stuck_deployments:
             self.stdout.write(f'  Fixing stuck deployment: {deployment.name}')
-            deployment.status = Deployment.Status.FAILED
+            deployment.status = ApplicationDeployment.Status.FAILED
             deployment.save()
             
             self.stdout.write(

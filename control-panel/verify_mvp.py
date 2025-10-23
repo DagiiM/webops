@@ -60,8 +60,8 @@ def check_database():
 def check_models():
     """Check if models are properly defined."""
     try:
-        from apps.core.models import BaseModel
-        from apps.deployments.models import Deployment, DeploymentLog
+        from apps.core.common.models import BaseModel
+        from apps.deployments.models import BaseDeployment, ApplicationDeployment,  DeploymentLog
         from apps.databases.models import Database
         log_success("All models imported successfully")
         return True

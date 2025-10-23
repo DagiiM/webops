@@ -358,7 +358,7 @@ from apps.deployments.models import Deployment
 from apps.services.restart_policy import RestartPolicy
 
 # Get deployment
-deployment = Deployment.objects.get(name='critical-api')
+deployment = ApplicationDeployment.objects.get(name='critical-api')
 
 # Create aggressive restart policy
 policy = RestartPolicy.objects.create(
@@ -384,7 +384,7 @@ from apps.services.service_controller import service_controller
 from apps.deployments.models import Deployment
 
 # Get failed deployments
-failed = Deployment.objects.filter(status=Deployment.Status.FAILED)
+failed = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.FAILED)
 
 for deployment in failed:
     print(f"Recovering {deployment.name}...")

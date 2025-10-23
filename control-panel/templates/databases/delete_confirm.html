@@ -5,26 +5,26 @@
 {% block content %}
 <div class="webops-page-header">
     <div>
-        <h2 class="webops-page-title">🗑️ Delete Database</h2>
+        <h2 class="webops-page-title">Delete Database</h2>
         <p class="webops-text-muted">Permanently delete database and associated credentials</p>
     </div>
     <a href="{% url 'database_detail' database.pk %}" class="webops-btn webops-btn-secondary">← Back to Database</a>
 </div>
 
 <!-- Warning Card -->
-<div class="webops-card warning-card" style="max-width: 700px; margin: 0 auto;">
-    <div class="webops-card-header" style="background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); color: white; border: none;">
+<div class="webops-card warning-card webops-max-w-md webops-mx-auto">
+    <div class="webops-card-header webops-bg-error webops-text-white">
         <div class="webops-flex webops-items-center webops-gap-md">
-            <span style="font-size: 32px;">⚠️</span>
+            <span class="material-icons webops-icon--large">warning</span>
             <div>
-                <h3 class="webops-h3" style="margin: 0; color: white;">Danger Zone - Irreversible Action</h3>
-                <p style="margin: 0.25rem 0 0 0; opacity: 0.9;">This action cannot be undone. All data will be permanently lost.</p>
+                <h3 class="webops-h3 webops-m-0 webops-text-white">Danger Zone - Irreversible Action</h3>
+                <p class="webops-mt-sm webops-opacity-90">This action cannot be undone. All data will be permanently lost.</p>
             </div>
         </div>
     </div>
     <div class="webops-card-body">
         <div class="database-info">
-            <h4 style="margin-bottom: 1rem; color: var(--webops-gray-700);">Database Details</h4>
+            <h4 class="webops-h4 webops-mb-md webops-text-gray-700">Database Details</h4>
 
             <div class="info-grid">
                 <div class="info-row">
@@ -59,35 +59,35 @@
         </div>
 
         <div class="impact-section">
-            <h4 style="margin-bottom: 1rem; color: var(--webops-danger);">⚡ What Will Be Deleted:</h4>
+            <h4 class="webops-h4 webops-mb-md webops-text-error">What Will Be Deleted:</h4>
             <ul class="impact-list">
                 <li>
-                    <span class="impact-icon">🗄️</span>
+                    <span class="material-icons impact-icon">storage</span>
                     <div>
-                        <strong>PostgreSQL Database:</strong> The entire <code>{{ database.name }}</code> database will be dropped
+                        <strong>Database:</strong> The entire <code>{{ database.name }}</code> database will be dropped
                     </div>
                 </li>
                 <li>
-                    <span class="impact-icon">👤</span>
+                    <span class="material-icons impact-icon">person</span>
                     <div>
-                        <strong>Database User:</strong> PostgreSQL user <code>{{ database.username }}</code> will be removed
+                        <strong>Database User:</strong> User <code>{{ database.username }}</code> will be removed
                     </div>
                 </li>
                 <li>
-                    <span class="impact-icon">📊</span>
+                    <span class="material-icons impact-icon">data_object</span>
                     <div>
                         <strong>All Data:</strong> All tables, rows, indexes, and database contents will be permanently lost
                     </div>
                 </li>
                 <li>
-                    <span class="impact-icon">🔐</span>
+                    <span class="material-icons impact-icon">lock</span>
                     <div>
                         <strong>Credentials:</strong> Stored credentials will be removed from WebOps
                     </div>
                 </li>
                 {% if database.deployment %}
                 <li>
-                    <span class="impact-icon">⚠️</span>
+                    <span class="material-icons impact-icon">warning</span>
                     <div>
                         <strong>Deployment Impact:</strong> The deployment <strong>{{ database.deployment.name }}</strong> will lose its database connection
                     </div>
@@ -111,8 +111,8 @@
 
                 <div class="form-actions webops-flex webops-gap-sm">
                     <button type="submit" class="webops-btn webops-btn-danger btn-large" id="delete-btn" disabled>
-                        <span id="delete-text">🗑️ Permanently Delete Database</span>
-                        <span id="delete-loading" style="display: none;">⏳ Deleting...</span>
+                        <span id="delete-text">Permanently Delete Database</span>
+                        <span id="delete-loading" class="webops-hidden">Deleting...</span>
                     </button>
                     <a href="{% url 'database_detail' database.pk %}" class="webops-btn webops-btn-secondary btn-large">
                         ← Cancel and Go Back
@@ -124,9 +124,9 @@
 </div>
 
 <!-- Safety Tips -->
-<div class="webops-card" style="max-width: 700px; margin: 2rem auto 0; border-left: 4px solid var(--webops-color-primary);">
+<div class="webops-card webops-max-w-md webops-mx-auto webops-mt-lg webops-border-l-primary">
     <div class="webops-card-body">
-        <h4 class="webops-h3 webops-text-primary webops-mb-md">💡 Before You Delete</h4>
+        <h4 class="webops-h3 webops-text-primary webops-mb-md">Before You Delete</h4>
         <ul class="help-list">
             <li>
                 <strong>Backup First:</strong> Consider backing up your data using <code>pg_dump</code> before deletion
@@ -143,47 +143,47 @@
 
 <style>
 .warning-card {
-    border: 3px solid var(--danger);
+    border: 3px solid var(--webops-color-error);
     box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
 }
 
 .database-info {
-    padding: 1.5rem;
-    background: var(--webops-gray-50);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-tertiary);
     border-radius: var(--webops-radius-md);
-    margin-bottom: 2rem;
+    margin-bottom: var(--webops-space-3);
 }
 
 .info-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--webops-space-1-5);
 }
 
 .info-row {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--webops-space-3);
 }
 
 .info-label {
-    font-weight: 600;
-    color: var(--webops-gray-700);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
     min-width: 180px;
 }
 
 .info-value {
-    background: var(--webops-color-bg-tertiary);
-    padding: 0.375rem 0.75rem;
-    border-radius: 4px;
-    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-    font-size: 0.875rem;
+    background: var(--webops-color-surface);
+    padding: var(--webops-space-0-5) var(--webops-space-1-5);
+    border-radius: var(--webops-radius-sm);
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
 }
 
 .deployment-link {
-    color: var(--primary);
+    color: var(--webops-color-primary);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: var(--webops-font-weight-semibold);
 }
 
 .deployment-link:hover {
@@ -191,11 +191,11 @@
 }
 
 .impact-section {
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    padding: var(--webops-space-3);
+    background: linear-gradient(135deg, var(--webops-color-error-alpha-10) 0%, var(--webops-color-error-alpha-20) 100%);
     border-radius: var(--webops-radius-md);
-    border: 2px solid var(--danger-light);
-    margin-bottom: 2rem;
+    border: 2px solid var(--webops-color-error-alpha-30);
+    margin-bottom: var(--webops-space-3);
 }
 
 .impact-list {
@@ -207,12 +207,12 @@
 .impact-list li {
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--webops-color-bg-tertiary);
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-surface);
     border-radius: var(--webops-radius-md);
-    margin-bottom: 0.75rem;
-    border: 1px solid var(--danger-light);
+    margin-bottom: var(--webops-space-1-5);
+    border: 1px solid var(--webops-color-error-alpha-20);
 }
 
 .impact-list li:last-child {
@@ -222,72 +222,74 @@
 .impact-icon {
     font-size: 24px;
     flex-shrink: 0;
+    color: var(--webops-color-error);
 }
 
 .impact-list code {
-    background: var(--webops-gray-100);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.875rem;
+    background: var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-sm);
 }
 
 .confirmation-section {
-    padding-top: 2rem;
-    border-top: 2px solid var(--webops-gray-200);
+    padding-top: var(--webops-space-3);
+    border-top: 2px solid var(--webops-color-primary-alpha-20);
 }
 
 .checkbox-group {
-    margin-bottom: 2rem;
+    margin-bottom: var(--webops-space-3);
 }
 
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--webops-space-1-5);
     cursor: pointer;
-    padding: 1rem;
-    background: var(--webops-gray-50);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-tertiary);
     border-radius: var(--webops-radius-md);
-    border: 2px solid var(--webops-gray-300);
-    transition: all 0.2s;
+    border: 2px solid var(--webops-color-primary-alpha-20);
+    transition: all var(--webops-transition-fast);
 }
 
 .checkbox-label:hover {
-    background: var(--webops-color-bg-tertiary);
-    border-color: var(--primary);
+    background: var(--webops-color-surface-hover);
+    border-color: var(--webops-color-primary);
 }
 
 .checkbox-label input[type="checkbox"] {
     width: 20px;
     height: 20px;
     cursor: pointer;
+    accent-color: var(--webops-color-primary);
 }
 
 .checkbox-text {
-    font-weight: 600;
-    color: var(--webops-gray-700);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
 }
 
 .form-actions {
     display: flex;
-    gap: 1rem;
+    gap: var(--webops-space-3);
     flex-wrap: wrap;
 }
 
 .btn-large {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: var(--webops-space-2-5) var(--webops-space-4);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
 }
 
 .btn-danger {
-    background: var(--danger);
+    background: var(--webops-color-error);
     color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: #dc2626;
-    transform: scale(1.02);
+    background: var(--webops-color-error-dark);
+    transform: translateY(-1px);
 }
 
 .btn-danger:disabled {
@@ -297,13 +299,13 @@
 
 .btn-outline {
     background: transparent;
-    border: 2px solid var(--webops-gray-300);
-    color: var(--webops-gray-700);
+    border: 2px solid var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-primary);
 }
 
 .btn-outline:hover {
-    background: var(--webops-gray-50);
-    border-color: var(--webops-gray-400);
+    background: var(--webops-color-primary-alpha-10);
+    border-color: var(--webops-color-primary);
 }
 
 .help-list {
@@ -313,8 +315,8 @@
 }
 
 .help-list li {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--webops-gray-200);
+    padding: var(--webops-space-1-5) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .help-list li:last-child {
@@ -322,14 +324,14 @@
 }
 
 .help-list strong {
-    color: var(--webops-gray-700);
+    color: var(--webops-color-text-primary);
 }
 
 .help-list code {
-    background: var(--webops-gray-100);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.875rem;
+    background: var(--webops-color-primary-alpha-10);
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-sm);
 }
 </style>
 
@@ -341,11 +343,11 @@ const deleteBtn = document.getElementById('delete-btn');
 confirmCheckbox.addEventListener('change', function() {
     deleteBtn.disabled = !this.checked;
     if (this.checked) {
-        deleteBtn.style.opacity = '1';
-        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.classList.remove('webops-opacity-50');
+        deleteBtn.classList.add('webops-cursor-pointer');
     } else {
-        deleteBtn.style.opacity = '0.5';
-        deleteBtn.style.cursor = 'not-allowed';
+        deleteBtn.classList.add('webops-opacity-50');
+        deleteBtn.classList.remove('webops-cursor-pointer');
     }
 });
 
@@ -354,8 +356,8 @@ document.getElementById('delete-form').addEventListener('submit', function(e) {
     const deleteText = document.getElementById('delete-text');
     const deleteLoading = document.getElementById('delete-loading');
 
-    deleteText.style.display = 'none';
-    deleteLoading.style.display = 'inline';
+    deleteText.classList.add('webops-hidden');
+    deleteLoading.classList.remove('webops-hidden');
 
     // Disable form inputs
     const inputs = this.querySelectorAll('input, button');

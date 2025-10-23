@@ -116,7 +116,20 @@ class WorkflowExecutionEngine:
 
                 # Check for errors
                 if node_result['status'] == 'error':
-                    if not workflow.retry_on_failure:
+                    # Handle node failure with retry logic
+                    if self._should_retry_node(node, node_result, execution):
+                        # Retry the node
+                        retry_result = self._retry_node(node, node_input, execution)
+                        if retry_result['status'] == 'error':
+                            # Still failed after retry
+                            if not workflow.retry_on_failure:
+                                raise Exception(f"Node {node.label} failed after retry: {retry_result.get('error')}")
+                            node_result = retry_result
+                        else:
+                            # Retry succeeded
+                            node_result = retry_result
+                            node_data[node.node_id] = node_result['output']
+                    elif not workflow.retry_on_failure:
                         raise Exception(f"Node {node.label} failed: {node_result.get('error')}")
 
             # Calculate final output (from last nodes)
@@ -131,15 +144,37 @@ class WorkflowExecutionEngine:
             execution.node_logs = node_logs
             execution.save()
 
-            # Update workflow statistics
-            workflow.total_executions += 1
-            workflow.successful_executions += 1
-            workflow.last_executed_at = timezone.now()
-            workflow.average_duration_ms = (
-                (workflow.average_duration_ms * (workflow.total_executions - 1) + duration_ms)
-                / workflow.total_executions
-            )
-            workflow.save()
+            # Update workflow statistics atomically
+            from django.db.models import F
+            from django.db import transaction
+            
+            with transaction.atomic():
+                # Lock the workflow row to prevent race conditions
+                workflow = Workflow.objects.select_for_update().get(pk=workflow.pk)
+                
+                # Update statistics atomically
+                workflow.total_executions = F('total_executions') + 1
+                workflow.successful_executions = F('successful_executions') + 1
+                workflow.last_executed_at = timezone.now()
+                
+                # Calculate new average duration
+                # We need to fetch the current values first for the calculation
+                current_total = workflow.total_executions
+                current_avg = workflow.average_duration_ms
+                
+                # Save the atomic updates
+                workflow.save()
+                
+                # Refresh to get the updated values
+                workflow.refresh_from_db()
+                
+                # Now update the average duration
+                new_avg = (
+                    (current_avg * (workflow.total_executions - 1) + duration_ms)
+                    / workflow.total_executions
+                )
+                workflow.average_duration_ms = new_avg
+                workflow.save()
 
             self.logger.info(f"Workflow {workflow.name} executed successfully in {duration_ms}ms")
 
@@ -151,10 +186,19 @@ class WorkflowExecutionEngine:
             execution.error_traceback = traceback.format_exc()
             execution.save()
 
-            # Update workflow statistics
-            workflow.total_executions += 1
-            workflow.failed_executions += 1
-            workflow.save()
+            # Update workflow statistics atomically
+            from django.db.models import F
+            from django.db import transaction
+            
+            with transaction.atomic():
+                # Lock the workflow row to prevent race conditions
+                workflow = Workflow.objects.select_for_update().get(pk=workflow.pk)
+                
+                # Update statistics atomically
+                workflow.total_executions = F('total_executions') + 1
+                workflow.failed_executions = F('failed_executions') + 1
+                
+                workflow.save()
 
             self.logger.error(f"Workflow {workflow.name} execution failed: {e}")
             self.logger.error(traceback.format_exc())
@@ -167,8 +211,11 @@ class WorkflowExecutionEngine:
 
         Returns None if workflow contains cycles.
         """
+        from collections import deque
+        
+        # Optimize query with prefetch_related
         nodes = list(workflow.nodes.all())
-        connections = list(workflow.connections.all())
+        connections = list(workflow.connections.select_related('source_node', 'target_node').all())
 
         # Build adjacency list
         adjacency = {node.node_id: [] for node in nodes}
@@ -178,12 +225,12 @@ class WorkflowExecutionEngine:
             adjacency[conn.source_node.node_id].append(conn.target_node.node_id)
             in_degree[conn.target_node.node_id] += 1
 
-        # Kahn's algorithm for topological sort
-        queue = [node_id for node_id, degree in in_degree.items() if degree == 0]
+        # Kahn's algorithm for topological sort using deque for O(1) operations
+        queue = deque([node_id for node_id, degree in in_degree.items() if degree == 0])
         result = []
 
         while queue:
-            node_id = queue.pop(0)
+            node_id = queue.popleft()  # O(1) operation with deque
             result.append(node_id)
 
             for neighbor in adjacency[node_id]:
@@ -191,8 +238,14 @@ class WorkflowExecutionEngine:
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
 
-        # Check for cycles
+        # Check for cycles and provide detailed information
         if len(result) != len(nodes):
+            # Find nodes involved in cycles
+            cycle_nodes = [node_id for node_id in in_degree if in_degree[node_id] > 0]
+            node_labels = [next((n.label for n in nodes if n.node_id == node_id), node_id)
+                          for node_id in cycle_nodes]
+            
+            self.logger.error(f"Workflow contains cycles involving nodes: {', '.join(node_labels)}")
             return None
 
         # Convert node IDs back to node objects
@@ -208,10 +261,11 @@ class WorkflowExecutionEngine:
         """
         Get input data for a node from its predecessors.
         """
-        # Get incoming connections
-        incoming = workflow.connections.filter(target_node=node)
+        # Get incoming connections (optimized by using cached connections from execution_order)
+        # In a real implementation, we'd pass the connections list to avoid another query
+        incoming = [conn for conn in workflow.connections.all() if conn.target_node_id == node.id]
 
-        if not incoming.exists():
+        if not incoming:
             # No incoming connections, use workflow input
             return node_data.get('input', {})
 
@@ -350,8 +404,8 @@ class WorkflowExecutionEngine:
             # Simple expression evaluation
             expression = condition.get('expression')
             try:
-                # Safe evaluation with limited scope
-                return eval(expression, {'__builtins__': {}}, {'data': data})
+                # Safe evaluation using a simple expression parser
+                return self._safe_eval_expression(expression, data)
             except Exception as e:
                 self.logger.warning(f"Condition evaluation failed: {e}")
                 return False
@@ -383,6 +437,181 @@ class WorkflowExecutionEngine:
                 return value in str(data_value)
 
         return True
+
+    def _should_retry_node(self, node: WorkflowNode, node_result: Dict[str, Any], execution: WorkflowExecution) -> bool:
+        """
+        Determine if a node should be retried based on configuration and error type.
+        """
+        # Check if node has retry enabled
+        if not node.retry_on_failure:
+            return False
+        
+        # Check if we've exceeded max retries
+        retry_count = execution.node_logs.count()
+        if retry_count >= node.max_retries:
+            return False
+        
+        # Check error type - some errors shouldn't be retried
+        error_message = node_result.get('error', '').lower()
+        
+        # Don't retry configuration errors
+        non_retryable_errors = [
+            'not configured',
+            'not found',
+            'permission denied',
+            'authentication',
+            'invalid',
+            'malformed'
+        ]
+        
+        for error_type in non_retryable_errors:
+            if error_type in error_message:
+                return False
+        
+        # Retry for network errors, timeouts, etc.
+        retryable_errors = [
+            'timeout',
+            'connection',
+            'network',
+            'temporary',
+            'rate limit'
+        ]
+        
+        for error_type in retryable_errors:
+            if error_type in error_message:
+                return True
+        
+        # Default to retry for unknown errors if retries are enabled
+        return True
+    
+    def _retry_node(self, node: WorkflowNode, input_data: Dict[str, Any], execution: WorkflowExecution) -> Dict[str, Any]:
+        """
+        Retry a node execution with exponential backoff.
+        """
+        import time
+        
+        # Calculate backoff delay (exponential with jitter)
+        retry_count = len([log for log in execution.node_logs if log.get('node_id') == node.node_id])
+        base_delay = 2  # seconds
+        max_delay = 30  # seconds
+        delay = min(base_delay * (2 ** retry_count), max_delay)
+        
+        # Add jitter to prevent thundering herd
+        import random
+        jitter = random.uniform(0, 0.1 * delay)
+        time.sleep(delay + jitter)
+        
+        self.logger.info(f"Retrying node {node.label} (attempt {retry_count + 1}) after {delay:.2f}s delay")
+        
+        # Execute the node again
+        return self._execute_node(node, input_data, execution)
+
+    def _safe_eval_expression(self, expression: str, data: Any) -> bool:
+        """
+        Safely evaluate a simple expression without using eval().
+        
+        Supports basic comparisons and logical operations on data fields.
+        """
+        import ast
+        import operator
+        
+        # Define safe operators
+        operators = {
+            ast.Eq: operator.eq,
+            ast.NotEq: operator.ne,
+            ast.Lt: operator.lt,
+            ast.LtE: operator.le,
+            ast.Gt: operator.gt,
+            ast.GtE: operator.ge,
+            ast.And: lambda a, b: a and b,
+            ast.Or: lambda a, b: a or b,
+            ast.Not: lambda a: not a,
+            ast.In: lambda a, b: a in b,
+            ast.NotIn: lambda a, b: a not in b,
+        }
+        
+        def _eval(node):
+            if isinstance(node, ast.BoolOp):
+                result = True
+                if isinstance(node.op, ast.And):
+                    for value in node.values:
+                        result = result and _eval(value)
+                        if not result:
+                            break
+                elif isinstance(node.op, ast.Or):
+                    for value in node.values:
+                        result = result or _eval(value)
+                        if result:
+                            break
+                return result
+                
+            elif isinstance(node, ast.UnaryOp):
+                if isinstance(node.op, ast.Not):
+                    return not _eval(node.operand)
+                else:
+                    raise ValueError(f"Unsupported unary operator: {node.op}")
+                    
+            elif isinstance(node, ast.Compare):
+                left = _eval(node.left)
+                for op, right in zip(node.ops, node.comparators):
+                    right_val = _eval(right)
+                    if not isinstance(op, (ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn)):
+                        raise ValueError(f"Unsupported comparison operator: {op}")
+                    if not operators[type(op)](left, right_val):
+                        return False
+                    left = right_val
+                return True
+                
+            elif isinstance(node, ast.Name):
+                # Allow access to 'data' variable
+                if node.id == 'data':
+                    return data
+                else:
+                    raise ValueError(f"Unknown variable: {node.id}")
+                    
+            elif isinstance(node, ast.Constant):
+                return node.value
+                
+            elif isinstance(node, ast.Attribute):
+                # Allow simple attribute access on data
+                if isinstance(node.value, ast.Name) and node.value.id == 'data':
+                    if isinstance(data, dict):
+                        return data.get(node.attr)
+                    else:
+                        return getattr(data, node.attr, None)
+                else:
+                    raise ValueError("Only attribute access on 'data' is allowed")
+                    
+            elif isinstance(node, ast.Subscript):
+                # Allow dictionary/list access on data
+                if isinstance(node.value, ast.Name) and node.value.id == 'data':
+                    data_val = data
+                    if isinstance(node.slice, ast.Constant):
+                        key = node.slice.value
+                    elif isinstance(node.slice, ast.Name):
+                        key = _eval(node.slice)
+                    else:
+                        raise ValueError("Only simple indexing is allowed")
+                    
+                    if isinstance(data_val, dict):
+                        return data_val.get(key)
+                    elif isinstance(data_val, (list, tuple)):
+                        return data_val[key] if isinstance(key, int) else None
+                    else:
+                        return None
+                else:
+                    raise ValueError("Only subscript access on 'data' is allowed")
+                    
+            else:
+                raise ValueError(f"Unsupported expression: {ast.dump(node)}")
+        
+        try:
+            # Parse the expression
+            tree = ast.parse(expression, mode='eval')
+            return _eval(tree.body)
+        except Exception as e:
+            self.logger.error(f"Expression evaluation error: {e}")
+            return False
 
 
 # Singleton instance

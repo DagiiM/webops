@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Overview of your WebOps infrastructure</p>
     </div>
     <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
-        <span class="material-icons">add</span>
+        <span class="webops-icon webops-icon--small">add</span>
         New Deployment
     </a>
 </div>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+        <div class="webops-stat-icon webops-stat-icon--success">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
             </svg>
@@ -38,7 +38,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+        <div class="webops-stat-icon webops-stat-icon--warning">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="currentColor"/>
             </svg>
@@ -48,7 +48,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+        <div class="webops-stat-icon webops-stat-icon--error">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
             </svg>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(168, 201, 187, 0.1); color: var(--webops-color-text-secondary);">
+        <div class="webops-stat-icon webops-stat-icon--muted">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 16h2V8H9v8zm3-14C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-4h2V8h-2v8z" fill="currentColor"/>
             </svg>
@@ -73,24 +73,24 @@
     <div class="webops-card">
         <div class="webops-card-header">
             <h3 class="webops-h3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="webops-icon--align-middle">
                     <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" fill="currentColor"/>
                 </svg>
                 Databases
             </h3>
         </div>
         <div class="webops-card-body">
-            <div style="display: flex; justify-content: space-around; margin-bottom: 1rem;">
-                <div style="text-align: center;">
-                    <div class="webops-stat-value" style="font-size: 1.5rem;">{{ database_stats.total }}</div>
+            <div class="webops-flex webops-justify-around webops-mb-md">
+                <div class="webops-text-center">
+                    <div class="webops-stat-value webops-stat-value--large">{{ database_stats.total }}</div>
                     <div class="webops-stat-label">TOTAL</div>
                 </div>
-                <div style="text-align: center;">
-                    <div class="webops-stat-value" style="font-size: 1.5rem;">{{ database_stats.with_deployment }}</div>
+                <div class="webops-text-center">
+                    <div class="webops-stat-value webops-stat-value--large">{{ database_stats.with_deployment }}</div>
                     <div class="webops-stat-label">ATTACHED</div>
                 </div>
-                <div style="text-align: center;">
-                    <div class="webops-stat-value" style="font-size: 1.5rem;">{{ database_stats.standalone }}</div>
+                <div class="webops-text-center">
+                    <div class="webops-stat-value webops-stat-value--large">{{ database_stats.standalone }}</div>
                     <div class="webops-stat-label">STANDALONE</div>
                 </div>
             </div>
@@ -103,16 +103,16 @@
     <div class="webops-card">
         <div class="webops-card-header">
             <h3 class="webops-h3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="webops-icon--align-middle">
                     <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="currentColor"/>
                 </svg>
                 API Tokens
             </h3>
         </div>
         <div class="webops-card-body">
-            <div style="display: flex; justify-content: space-around; margin-bottom: 1rem;">
-                <div style="text-align: center;">
-                    <div class="webops-stat-value" style="font-size: 1.5rem;">{{ token_stats.total }}</div>
+            <div class="webops-flex webops-justify-around webops-mb-md">
+                <div class="webops-text-center">
+                    <div class="webops-stat-value webops-stat-value--large">{{ token_stats.total }}</div>
                     <div class="webops-stat-label">TOTAL</div>
                 </div>
                 <div style="text-align: center;">
@@ -133,16 +133,16 @@
     <div class="webops-card">
         <div class="webops-card-header">
             <h3 class="webops-h3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="webops-icon--align-middle">
                     <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 4.3-4.29L22 12V6z" fill="currentColor"/>
                 </svg>
                 Activity
             </h3>
         </div>
         <div class="webops-card-body">
-            <div style="text-align: center; padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); margin-bottom: 1rem;">
-                <div class="webops-stat-value" style="font-size: 2rem;">{{ recent_deployments }}</div>
-                <div class="webops-text-secondary" style="font-size: 0.875rem;">deployments in last 7 days</div>
+            <div class="webops-text-center webops-p-md webops-mb-md webops-bg-success-alpha-10 webops-rounded-md">
+                <div class="webops-stat-value webops-stat-value--xl">{{ recent_deployments }}</div>
+                <div class="webops-text-secondary webops-text-sm">deployments in last 7 days</div>
             </div>
             <a href="{% url 'deployments:deployment_list' %}" class="webops-btn webops-btn-sm webops-btn-primary webops-w-full">
                 View All Deployments
@@ -156,7 +156,7 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="webops-icon--align-middle">
                     <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z" fill="currentColor"/>
                 </svg>
                 Project Types

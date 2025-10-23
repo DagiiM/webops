@@ -285,17 +285,17 @@ python manage.py shell
 from apps.deployments.models import Deployment
 
 # Get all deployments
-deployments = Deployment.objects.all()
+deployments = ApplicationDeployment.objects.all()
 
 # Create deployment
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='test-app',
     repo_url='https://github.com/user/repo',
     deployed_by=user
 )
 
 # Filter
-running = Deployment.objects.filter(status='running')
+running = ApplicationDeployment.objects.filter(status='running')
 ```
 
 ### Reset Database
@@ -334,11 +334,11 @@ MAX_PORT=9000
 
 ```python
 # Bad - N+1 queries
-for deployment in Deployment.objects.all():
+for deployment in ApplicationDeployment.objects.all():
     print(deployment.deployed_by.username)
 
 # Good - Use select_related
-for deployment in Deployment.objects.select_related('deployed_by'):
+for deployment in ApplicationDeployment.objects.select_related('deployed_by'):
     print(deployment.deployed_by.username)
 ```
 

@@ -39,6 +39,7 @@ django-redis==5.4.0
 # WebSocket Support
 channels==4.0.0
 channels-redis==4.2.0
+daphne==4.2.1
 
 # Testing
 coverage==7.4.0

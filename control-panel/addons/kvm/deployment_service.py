@@ -157,7 +157,7 @@ class KVMDeploymentService:
                     )
 
                 # 10. Create VMDeployment record
-                from apps.core.utils.encryption import encrypt_value
+                from apps.core.utils import encrypt_value
                 encrypted_password = encrypt_value(root_password, settings.ENCRYPTION_KEY)
 
                 vm_deployment = VMDeployment.objects.create(

@@ -1,7 +1,7 @@
 """
 Views for Services monitoring app.
 
-Reference: CLAUDE.md "Django App Structure" section
+"Django App Structure" section
 """
 
 from typing import Dict, Any
@@ -14,7 +14,7 @@ from datetime import timedelta
 
 from .models import ServiceStatus, ResourceUsage, Alert, HealthCheck
 from .monitoring import SystemMonitor
-from apps.deployments.models import Deployment
+from apps.deployments.models import BaseDeployment,ApplicationDeployment
 
 
 @login_required
@@ -37,7 +37,7 @@ def monitoring_dashboard(request):
     history = monitor.get_metrics_history(hours=24)
 
     # Service statuses
-    deployments = Deployment.objects.all()
+    deployments = ApplicationDeployment.objects.all()
     service_statuses = []
     for deployment in deployments:
         status = ServiceStatus.objects.filter(deployment=deployment).first()
@@ -158,7 +158,7 @@ def metrics_history(request):
 @login_required
 def service_status_detail(request, deployment_id):
     """Get detailed service status."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)
@@ -193,7 +193,7 @@ def service_status_detail(request, deployment_id):
 @login_required
 def refresh_service_status(request, deployment_id):
     """Manually refresh service status."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)

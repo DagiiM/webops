@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load installer_tags %}
+{% load js_filters %}
+
+{% block title %}Database Dependencies - WebOps{% endblock %}
+{% block header_title %}Database Dependencies{% endblock %}
+
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Database Dependencies</h2>
+        <p class="webops-text-muted">Install required dependencies for {{ db_type|title }}</p>
+    </div>
+    <button onclick="history.back()" class="webops-btn webops-btn-secondary">
+        <span class="material-icons">arrow_back</span>
+        Back
+    </button>
+</div>
+
+<!-- Dependency Status Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons webops-align-middle webops-icon--small">extension</span>
+            Dependency Status
+        </h3>
+        {% if not all_installed %}
+        <button onclick="installAllDependencies()" class="webops-btn webops-btn-primary">
+            <span class="material-icons">download</span>
+            Install All
+        </button>
+        {% endif %}
+    </div>
+    <div class="webops-card-body">
+        {% if all_installed %}
+        <div class="webops-alert success">
+            <div class="webops-flex webops-items-center webops-gap-md">
+                <span class="material-icons">check_circle</span>
+                <div>
+                    <strong>All dependencies are installed!</strong>
+                    <p class="webops-mt-xs">You can proceed with creating your {{ db_type|title }} database.</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="webops-alert warning">
+            <div class="webops-flex webops-items-center webops-gap-md">
+                <span class="material-icons">warning</span>
+                <div>
+                    <strong>Missing dependencies</strong>
+                    <p class="webops-mt-xs">The following dependencies need to be installed:</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% dependency_status db_type %}
+    </div>
+</div>
+
+<!-- Available Addons Card -->
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons webops-align-middle webops-icon--small">extension</span>
+            Available Addons
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        {% addon_list db_type %}
+    </div>
+</div>
+
+<!-- Installation Results -->
+{% if install_results %}
+<div class="webops-card">
+    <div class="webops-card-header">
+        <h3 class="webops-h3">
+            <span class="material-icons webops-align-middle webops-icon--small">history</span>
+            Installation Results
+        </h3>
+    </div>
+    <div class="webops-card-body">
+        {% for dep, result in install_results.items %}
+        <div class="webops-install-result {% if result.success %}success{% else %}error{% endif %}">
+            <div class="webops-flex webops-items-center webops-gap-md">
+                <span class="material-icons {% if result.success %}webops-text-success{% else %}webops-text-error{% endif %}">
+                    {% if result.success %}check_circle{% else %}error{% endif %}
+                </span>
+                <div class="webops-flex-grow">
+                    <strong>{{ dep }}</strong>
+                    {% if result.success %}
+                    <span class="webops-badge webops-badge-success">Success</span>
+                    {% else %}
+                    <span class="webops-badge webops-badge-error">Failed</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if not result.success and result.error %}
+            <div class="webops-install-error">
+                <code class="webops-code">{{ result.error }}</code>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="webops-mt-lg">
+            <a href="{% url 'database_create' %}" class="webops-btn webops-btn-primary">
+                <span class="material-icons">add</span>
+                Create Database
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.webops-dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+.webops-dependency-item {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-dependency-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-dependency-item.installed {
+    border-color: var(--webops-color-success-alpha-20);
+    background: var(--webops-color-success-alpha-05);
+}
+
+.webops-dependency-command {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1-5);
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-sm);
+}
+
+.webops-addons-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-3);
+}
+
+.webops-addon-item {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    transition: all var(--webops-transition-base);
+}
+
+.webops-addon-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-addon-checkbox {
+    position: relative;
+}
+
+.webops-addon-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--webops-color-primary);
+}
+
+.webops-addon-checkbox label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.webops-install-result {
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-install-result.success {
+    background: var(--webops-color-success-alpha-10);
+    border-left: 4px solid var(--webops-color-success);
+}
+
+.webops-install-result.error {
+    background: var(--webops-color-error-alpha-10);
+    border-left: 4px solid var(--webops-color-error);
+}
+
+.webops-install-error {
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-sm);
+    overflow-x: auto;
+}
+</style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Copied to clipboard!', 'success');
+    });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `webops-notification webops-notification-${type}`;
+    notification.innerHTML = `
+        <div class="webops-flex webops-items-center webops-gap-md">
+            <span class="material-icons">
+                ${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}
+            </span>
+            <div>${message}</div>
+        </div>
+    `;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: var(--webops-space-3);
+        border-radius: var(--webops-radius-md);
+        box-shadow: var(--webops-shadow-lg);
+        z-index: 10000;
+        max-width: 500px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    // Set background color based on type
+    if (type === 'success') {
+        notification.style.background = 'var(--webops-color-success)';
+        notification.style.color = 'white';
+    } else if (type === 'error') {
+        notification.style.background = 'var(--webops-color-error)';
+        notification.style.color = 'white';
+    } else {
+        notification.style.background = 'var(--webops-color-primary)';
+        notification.style.color = 'white';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Add slide animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

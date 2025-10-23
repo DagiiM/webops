@@ -54,3 +54,7 @@ class BackgroundProcessor(Protocol):
     def backend_info(self) -> Dict[str, Any]:
         """Return diagnostic information for the processor backend."""
         ...
+
+    def get_status(self) -> Dict[str, Any]:
+        """Return comprehensive status information for the processor."""
+        ...

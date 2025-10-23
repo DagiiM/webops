@@ -212,9 +212,9 @@ from apps.deployments.tasks import deploy_llm_model
 user = User.objects.get(username='your_username')
 
 # Create deployment configuration
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='gpt2-test',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='gpt2',
     tensor_parallel_size=1,
     gpu_memory_utilization=0.9,
@@ -289,9 +289,9 @@ Expected response:
 
 #### Llama 2 7B Chat
 ```python
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='llama2-7b-chat',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='meta-llama/Llama-2-7b-chat-hf',
     tensor_parallel_size=1,
     gpu_memory_utilization=0.9,
@@ -303,9 +303,9 @@ deployment = Deployment.objects.create(
 
 #### Code Llama 13B (Multi-GPU)
 ```python
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='codellama-13b',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='codellama/CodeLlama-13b-Instruct-hf',
     tensor_parallel_size=2,  # Use 2 GPUs
     gpu_memory_utilization=0.85,
@@ -317,9 +317,9 @@ deployment = Deployment.objects.create(
 
 #### Quantized Model (AWQ)
 ```python
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='llama2-7b-awq',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='TheBloke/Llama-2-7B-Chat-AWQ',
     tensor_parallel_size=1,
     gpu_memory_utilization=0.9,
@@ -337,17 +337,17 @@ deployment = Deployment.objects.create(
 
 ```python
 # Minimal setup (good for testing)
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='model-name',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='gpt2',
     deployed_by=user
 )
 
 # Standard configuration
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='llama-2-7b',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='meta-llama/Llama-2-7b-chat-hf',
     tensor_parallel_size=1,
     gpu_memory_utilization=0.9,
@@ -360,9 +360,9 @@ deployment = Deployment.objects.create(
 
 ```python
 # Full configuration example
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='custom-model',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     
     # Model Configuration
     model_name='microsoft/DialoGPT-large',
@@ -406,12 +406,12 @@ deployment = Deployment.objects.create(
 
 ```python
 # List all deployments
-deployments = Deployment.objects.filter(project_type=Deployment.ProjectType.LLM)
+deployments = ApplicationDeployment.objects.filter(project_type=ApplicationDeployment.ProjectType.LLM)
 for dep in deployments:
     print(f"{dep.name}: {dep.status} (Port: {dep.port})")
 
 # Get specific deployment
-deployment = Deployment.objects.get(name='llama2-7b-chat')
+deployment = ApplicationDeployment.objects.get(name='llama2-7b-chat')
 print(f"Status: {deployment.status}")
 print(f"Model: {deployment.model_name}")
 print(f"Port: {deployment.port}")
@@ -659,7 +659,7 @@ cd control-panel
 **Check Deployment Logs:**
 ```python
 from apps.deployments.models import Deployment
-d = Deployment.objects.get(name='your-model')
+d = ApplicationDeployment.objects.get(name='your-model')
 for log in d.logs.all():
     print(f"[{log.level}] {log.message}")
 ```
@@ -886,9 +886,9 @@ sudo sysctl -p
 
 ```python
 # Use environment variables for sensitive configuration
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='secure-llm',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='private-org/private-model',
     env_vars={
         'API_KEY_REQUIRED': 'true',
@@ -964,8 +964,8 @@ models_config = [
 
 deployments = []
 for config in models_config:
-    deployment = Deployment.objects.create(
-        project_type=Deployment.ProjectType.LLM,
+    deployment = ApplicationDeployment.objects.create(
+        project_type=ApplicationDeployment.ProjectType.LLM,
         deployed_by=user,
         **config
     )
@@ -996,7 +996,7 @@ base_config = {
 
 # Create multiple instances
 for i in range(3):
-    deployment = Deployment.objects.create(
+    deployment = ApplicationDeployment.objects.create(
         name=f'llama2-7b-instance-{i+1}',
         **base_config
     )
@@ -1009,9 +1009,9 @@ for i in range(3):
 Deploy with custom domain:
 
 ```python
-deployment = Deployment.objects.create(
+deployment = ApplicationDeployment.objects.create(
     name='production-llm',
-    project_type=Deployment.ProjectType.LLM,
+    project_type=ApplicationDeployment.ProjectType.LLM,
     model_name='meta-llama/Llama-2-7b-chat-hf',
     domain='api.yourcompany.com',  # Custom domain
     tensor_parallel_size=1,

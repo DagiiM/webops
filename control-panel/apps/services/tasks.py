@@ -1,7 +1,7 @@
 """
 Celery tasks for service control and monitoring.
 
-Reference: CLAUDE.md "Celery Tasks" section
+"Celery Tasks" section
 Architecture: Background tasks for periodic monitoring and service management
 
 This module implements:
@@ -70,11 +70,11 @@ def check_all_service_statuses() -> Dict[str, Any]:
         Dict with status summary
     """
     from .monitoring import SystemMonitor
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
 
     try:
         monitor = SystemMonitor()
-        deployments = Deployment.objects.all()
+        deployments = ApplicationDeployment.objects.all()
 
         results = []
         for deployment in deployments:
@@ -153,14 +153,14 @@ def auto_recover_failed_services() -> Dict[str, Any]:
     Returns:
         Dict with recovery results
     """
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
     from .restart_policy import restart_policy_enforcer
     from .service_controller import service_controller
     import time
 
     try:
-        failed_deployments = Deployment.objects.filter(
-            status=Deployment.Status.FAILED
+        failed_deployments = ApplicationDeployment.objects.filter(
+            status=ApplicationDeployment.Status.FAILED
         )
 
         recovery_results = []
@@ -304,11 +304,11 @@ def restart_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with restart result
     """
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
     from .service_controller import service_controller
 
     try:
-        deployment = Deployment.objects.get(id=deployment_id)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Restarting service via task: {deployment.name}")
 
         result = service_controller.restart_service(deployment)
@@ -341,11 +341,11 @@ def start_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with start result
     """
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
     from .service_controller import service_controller
 
     try:
-        deployment = Deployment.objects.get(id=deployment_id)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Starting service via task: {deployment.name}")
 
         result = service_controller.start_service(deployment)
@@ -378,11 +378,11 @@ def stop_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with stop result
     """
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
     from .service_controller import service_controller
 
     try:
-        deployment = Deployment.objects.get(id=deployment_id)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Stopping service via task: {deployment.name}")
 
         result = service_controller.stop_service(deployment)
@@ -462,7 +462,7 @@ def generate_daily_report() -> Dict[str, Any]:
         Dict with report data
     """
     from .models import ResourceUsage, Alert, ServiceStatus
-    from apps.deployments.models import Deployment
+    from apps.deployments.models import BaseDeployment
     from django.db.models import Avg, Max, Min, Count
 
     try:
@@ -491,7 +491,7 @@ def generate_daily_report() -> Dict[str, Any]:
         ).values('severity').annotate(count=Count('id'))
 
         # Service statistics
-        total_deployments = Deployment.objects.count()
+        total_deployments = ApplicationDeployment.objects.count()
         running_services = ServiceStatus.objects.filter(
             status=ServiceStatus.Status.RUNNING
         ).count()

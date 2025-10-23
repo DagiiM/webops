@@ -1,7 +1,7 @@
 """
 Celery configuration for WebOps.
 
-Reference: CLAUDE.md "Celery Tasks" section
+"Celery Tasks" section
 Architecture: Background task processing for deployments
 
 This module configures Celery for handling asynchronous tasks:

@@ -12,7 +12,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import json
 
-from .models import Deployment, DeploymentLog, HealthCheckRecord
+from .models import BaseDeployment, ApplicationDeployment, DeploymentLog, HealthCheckRecord
 
 
 def broadcast_to_websocket(group_name: str, message: Dict[str, Any]) -> None:
@@ -34,8 +34,8 @@ def broadcast_to_websocket(group_name: str, message: Dict[str, Any]) -> None:
         )
 
 
-@receiver(post_save, sender=Deployment)
-def deployment_status_changed(sender: type, instance: Deployment, created: bool, **kwargs: Any) -> None:
+@receiver(post_save, sender=BaseDeployment)
+def deployment_status_changed(sender: type, instance: BaseDeployment, created: bool, **kwargs: Any) -> None:
     """
     Signal handler for deployment status changes.
     
@@ -73,8 +73,8 @@ def deployment_status_changed(sender: type, instance: Deployment, created: bool,
     broadcast_to_websocket(f'deployment_{instance.name}', message)
 
 
-@receiver(post_delete, sender=Deployment)
-def deployment_deleted(sender: type, instance: Deployment, **kwargs: Any) -> None:
+@receiver(post_delete, sender=BaseDeployment)
+def deployment_deleted(sender: type, instance: BaseDeployment, **kwargs: Any) -> None:
     """
     Signal handler for deployment deletion.
     

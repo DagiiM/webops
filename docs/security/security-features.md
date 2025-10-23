@@ -26,7 +26,7 @@
 
 **Usage:**
 ```python
-from apps.core.security_services import TwoFactorService
+from apps.core.services.security_service import TwoFactorService
 
 # Setup 2FA for user
 two_factor, uri, backup_codes = TwoFactorService.setup_2fa(user)
@@ -74,7 +74,7 @@ GITHUB_CLIENT_SECRET=your_client_secret
 
 **OAuth Flow:**
 ```python
-from apps.core.security_services import GitHubOAuthService
+from apps.core.services.security_service import GitHubOAuthService
 
 # 1. Get authorization URL
 auth_url = GitHubOAuthService.get_authorization_url(redirect_uri)
@@ -120,7 +120,7 @@ connection = GitHubOAuthService.create_connection(user, access_token, user_info)
 
 **Usage:**
 ```python
-from apps.core.security_services import SecurityAuditService
+from apps.core.services.security_service import SecurityAuditService
 
 # Log security event
 SecurityAuditService.log_event(
@@ -174,7 +174,7 @@ if failed_attempts >= 5:
 
 **Usage:**
 ```python
-from apps.core.security_services import SystemHealthService
+from apps.core.services.security_service import SystemHealthService
 
 # Run health check
 health = SystemHealthService.run_health_check()

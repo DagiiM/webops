@@ -2,7 +2,7 @@
 API Documentation Generator for WebOps.
 
 Auto-discovers API endpoints and generates live, interactive examples.
-Reference: CLAUDE.md "API Design" section
+"API Design" section
 """
 
 from typing import Dict, List, Any, Optional
@@ -177,11 +177,42 @@ class APIDocumentationGenerator:
 
         if 'deployment_create' in endpoint_name:
             return {
-                'name': {'type': 'string', 'required': True, 'description': 'Deployment name (lowercase, alphanumeric, hyphens)'},
-                'repo_url': {'type': 'string', 'required': True, 'description': 'GitHub repository URL (HTTPS)'},
-                'branch': {'type': 'string', 'required': False, 'default': 'main', 'description': 'Git branch to deploy'},
-                'domain': {'type': 'string', 'required': False, 'description': 'Custom domain (optional)'},
-                'env_vars': {'type': 'object', 'required': False, 'description': 'Environment variables as key-value pairs'}
+                'name': {
+                    'type': 'string',
+                    'required': True,
+                    'description': (
+                        'Deployment name: lowercase letters, digits, hyphens, underscores; '
+                        'must start and end with alphanumeric; max 100 characters. '
+                        'Server sanitizes using these rules.'
+                    )
+                },
+                'repo_url': {
+                    'type': 'string',
+                    'required': True,
+                    'description': (
+                        'GitHub repository URL (HTTPS or SSH). Supports '
+                        '`https://github.com/owner/repo[.git]` and `git@github.com:owner/repo[.git]`.'
+                    )
+                },
+                'branch': {
+                    'type': 'string',
+                    'required': False,
+                    'default': 'main',
+                    'description': 'Git branch to deploy (default: main)'
+                },
+                'domain': {
+                    'type': 'string',
+                    'required': False,
+                    'description': (
+                        'Fully-qualified domain name (optional, e.g., example.com). Must match '
+                        '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$'
+                    )
+                },
+                'env_vars': {
+                    'type': 'object',
+                    'required': False,
+                    'description': 'Environment variables as key-value pairs'
+                }
             }
         elif 'file_write' in endpoint_name:
             return {
