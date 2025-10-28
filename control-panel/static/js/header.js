@@ -83,7 +83,10 @@ function initializeThemeSwitcher() {
             // Update toggle label
             const label = themeToggle.querySelector('.webops-theme-toggle__label');
             if (label) {
-                label.textContent = selectedOption.querySelector('.webops-theme-option__label').textContent;
+                const optionLabel = selectedOption.querySelector('.webops-theme-option__label');
+                if (optionLabel) {
+                    label.textContent = optionLabel.textContent;
+                }
             }
             
             // Update icon visibility

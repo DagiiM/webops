@@ -11,6 +11,7 @@ from datetime import datetime
 from functools import wraps
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .models import APIToken
 
 
@@ -31,11 +32,11 @@ def get_user_from_token(token_string: str) -> Optional[User]:
         )
 
         # Check if token is expired
-        if token.expires_at and token.expires_at < datetime.now(token.expires_at.tzinfo):
+        if token.expires_at and token.expires_at < timezone.now():
             return None
 
         # Update last used timestamp
-        token.last_used = datetime.now()
+        token.last_used = timezone.now()
         token.save(update_fields=['last_used'])
 
         return token.user

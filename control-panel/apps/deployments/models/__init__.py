@@ -14,6 +14,7 @@ New organized structure:
 from .base import BaseDeployment, DeploymentLog, HealthCheckRecord
 from .application import ApplicationDeployment
 from .llm import LLMDeployment
+from .configuration import DeploymentConfiguration
 
 __all__ = [
     'BaseDeployment',
@@ -21,4 +22,5 @@ __all__ = [
     'LLMDeployment',
     'DeploymentLog',
     'HealthCheckRecord',
+    'DeploymentConfiguration',
 ]

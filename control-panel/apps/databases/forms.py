@@ -131,33 +131,50 @@ class DatabaseForm(forms.ModelForm):
 
     def _validate_relational_db(self, cleaned_data, db_name):
         """Validate fields for relational databases (PostgreSQL, MySQL)."""
-        required_fields = ['host', 'port', 'database_name', 'username', 'password']
+        # Password is optional (will be auto-generated if not provided)
+        # database_name is optional (will default to 'name' field if not provided)
+        required_fields = ['host', 'port', 'username']
         for field in required_fields:
             if not cleaned_data.get(field):
                 raise ValidationError(f"{field.replace('_', ' ').title()} is required for {db_name}")
 
+        # Set database_name to name if not provided
+        if not cleaned_data.get('database_name'):
+            cleaned_data['database_name'] = cleaned_data.get('name')
+
     def _validate_mongodb(self, cleaned_data):
         """Validate fields for MongoDB."""
         if not cleaned_data.get('connection_uri'):
-            # If no URI, require host, port, and database_name
-            required_fields = ['host', 'port', 'database_name']
+            # If no URI, require host and port
+            required_fields = ['host', 'port']
             for field in required_fields:
                 if not cleaned_data.get(field):
                     raise ValidationError(f"{field.replace('_', ' ').title()} is required for MongoDB when not using connection URI")
+
+            # Set database_name to name if not provided
+            if not cleaned_data.get('database_name'):
+                cleaned_data['database_name'] = cleaned_data.get('name')
         else:
             # If URI is provided, username/password are optional
             pass
 
+    def _post_clean(self):
+        """Override to skip model validation since form already validated."""
+        # We skip calling super()._post_clean() which would call instance.clean()
+        # This prevents duplicate validation errors since we've already validated
+        # everything in the form's clean() method
+        pass
+
     def save(self, commit=True):
         """Save the form instance."""
         instance = super().save(commit=False)
-        
+
         # Set default values if not provided
         if not instance.connection_timeout:
             instance.connection_timeout = 30
         if not instance.pool_size:
             instance.pool_size = 5
-            
+
         if commit:
             instance.save()
         return instance

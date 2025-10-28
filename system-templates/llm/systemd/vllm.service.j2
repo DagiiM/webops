@@ -1,0 +1,34 @@
+[Unit]
+Description=vLLM LLM Model Server - {{ app_name }}
+After=network.target
+
+[Service]
+Type=simple
+User={{ webops_user }}
+WorkingDirectory={{ venv_path }}
+Environment="PATH={{ venv_path }}/bin"
+Environment="HF_HOME={{ model_cache_path }}"
+Environment="TRANSFORMERS_CACHE={{ model_cache_path }}"
+Environment="VLLM_TARGET_DEVICE=cpu"
+Environment="CMAKE_DISABLE_FIND_PACKAGE_CUDA=ON"
+Environment="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4:$LD_PRELOAD"
+Environment="VLLM_LOGGING_LEVEL={{ logging_level }}"
+
+# vLLM server command
+ExecStart={{ python_path }} -m vllm.entrypoints.openai.api_server {{ vllm_args }}
+
+# Logging
+StandardOutput=append:{{ log_path }}/vllm.log
+StandardError=append:{{ log_path }}/vllm-error.log
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Resource limits
+# vLLM can use significant GPU memory
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

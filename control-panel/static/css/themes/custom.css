@@ -1,0 +1,58 @@
+/**
+ * WebOps Custom Theme
+ * A customizable theme for WebOps Control Panel
+ */
+
+:root {
+  /* Background Colors */
+  --webops-color-bg-primary: #1a1f1e;
+  --webops-color-bg-secondary: #222a28;
+  --webops-color-bg-tertiary: #2a3432;
+  --webops-color-bg-accent: #0f1413;
+  
+  /* Text Colors */
+  --webops-color-text-primary: #e8f5f0;
+  --webops-color-text-secondary: #b8d1c8;
+  --webops-color-text-muted: #88a89a;
+  --webops-color-text-inverse: #1a1f1e;
+  
+  /* Primary Brand Color */
+  --webops-color-primary: #00ff88;
+  --webops-color-primary-hover: #00e67a;
+  --webops-color-primary-light: rgba(0, 255, 136, 0.1);
+  --webops-color-primary-dark: #00cc6a;
+  
+  /* Secondary Colors */
+  --webops-color-secondary: #00aaff;
+  --webops-color-secondary-hover: #0099ee;
+  --webops-color-secondary-light: rgba(0, 170, 255, 0.1);
+  
+  /* Status Colors */
+  --webops-color-success: #00ff88;
+  --webops-color-warning: #ffaa00;
+  --webops-color-error: #ff5555;
+  --webops-color-info: #00aaff;
+  
+  /* Border Colors */
+  --webops-color-border: #33403d;
+  --webops-color-border-light: #2a3432;
+  --webops-color-border-focus: var(--webops-color-primary);
+  
+  /* Shadow Colors */
+  --webops-color-shadow: rgba(0, 0, 0, 0.3);
+  --webops-color-shadow-light: rgba(0, 0, 0, 0.1);
+  
+  /* Component Specific */
+  --webops-color-card-bg: var(--webops-color-bg-secondary);
+  --webops-color-modal-bg: var(--webops-color-bg-primary);
+  --webops-color-dropdown-bg: var(--webops-color-bg-secondary);
+  --webops-color-input-bg: var(--webops-color-bg-tertiary);
+  --webops-color-button-bg: var(--webops-color-primary);
+  --webops-color-button-text: var(--webops-color-text-inverse);
+  
+  /* Custom Theme Specific */
+  --webops-color-accent-1: #7c4dff;
+  --webops-color-accent-2: #ff6e40;
+  --webops-color-gradient-start: #1a1f1e;
+  --webops-color-gradient-end: #2a3432;
+}

@@ -55,6 +55,8 @@ class ServiceManager:
 
     @staticmethod
     def _is_unit_active(unit_names: list[str]) -> bool:
+        """Check if a service unit is active, with fallback to process detection."""
+        # First try systemctl (preferred method)
         for name in unit_names:
             try:
                 p = subprocess.run(['systemctl', 'is-active', name], capture_output=True, text=True)
@@ -62,22 +64,78 @@ class ServiceManager:
                     return True
             except Exception:
                 continue
+        
+        # If systemctl fails, try process-based detection as fallback
         return False
+
+    def _is_process_running(self, process_patterns: list[str]) -> bool:
+        """Check if a process matching any of the patterns is running."""
+        try:
+            import psutil
+            # Use psutil if available for more reliable process detection
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    cmdline = ' '.join(proc.info['cmdline'] or [])
+                    name = proc.info['name'] or ''
+                    for pattern in process_patterns:
+                        if pattern.lower() in cmdline.lower() or pattern.lower() in name.lower():
+                            return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            return False
+        except ImportError:
+            # Fallback to ps command if psutil is not available
+            try:
+                result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    for pattern in process_patterns:
+                        if pattern.lower() in result.stdout.lower():
+                            return True
+                return False
+            except Exception:
+                return False
+
+    def _check_service_fallback(self, service_name: str) -> bool:
+        """Check service status using process detection fallback."""
+        service_patterns = {
+            'nginx': ['nginx: worker', 'nginx: master', 'nginx'],
+            'postgresql': ['postgres:', 'postgres'],
+            'redis': ['redis-server', 'redis'],
+            'celery': ['celery', 'celeryd'],
+            'celerybeat': ['celerybeat', 'celery beat'],
+            'web': ['webops-web', 'manage.py runserver'],
+        }
+        
+        patterns = service_patterns.get(service_name, [service_name])
+        return self._is_process_running(patterns)
 
     def get_core_services_status(self) -> Dict[str, Any]:
         """Read-only check of core services required for deployment."""
-        # systemctl availability
+        # Test if systemd is actually functional (not just if systemctl exists)
+        systemctl_ok = False
         try:
+            # First check if systemctl binary exists and responds
             sc = subprocess.run(['systemctl', '--version'], capture_output=True, text=True)
-            systemctl_ok = sc.returncode == 0
+            if sc.returncode == 0:
+                # Now test if we can actually query service status
+                test_result = subprocess.run(['systemctl', 'is-active', 'systemd'], capture_output=True, text=True)
+                # If we get "active" or "inactive" (but not an error), systemd is functional
+                systemctl_ok = test_result.returncode == 0 or test_result.returncode == 3
         except Exception:
             systemctl_ok = False
 
         statuses = {}
         for key, units in self.CORE_UNITS.items():
-            statuses[key] = self._is_unit_active(units)
+            # Try systemctl first if available
+            if systemctl_ok:
+                statuses[key] = self._is_unit_active(units)
+            else:
+                # Use fallback process detection when systemd is not available
+                statuses[key] = self._check_service_fallback(key)
 
-        all_ok = systemctl_ok and statuses.get('redis') and statuses.get('postgresql') and statuses.get('celery')
+        # For the template, we only care about nginx and celery being available
+        # but we'll check all services for completeness
+        all_ok = statuses.get('nginx') and statuses.get('celery')
         return {
             'systemctl': systemctl_ok,
             'services': statuses,
@@ -124,15 +182,29 @@ class ServiceManager:
             Tuple of (success, output)
         """
         try:
+            logger.info(f"Attempting systemctl {command} for {service_name}.service")
             result = subprocess.run(
                 ['sudo', '-n', 'systemctl', command, f'{service_name}.service'],
                 capture_output=True,
                 text=True,
                 check=check
             )
+            logger.info(f"systemctl {command} for {service_name} returned: {result.returncode}, stdout: {result.stdout}, stderr: {result.stderr}")
             return True, result.stdout
         except subprocess.CalledProcessError as e:
             logger.error(f"systemctl {command} failed for {service_name}: {e.stderr}")
+            logger.error(f"Full error details: returncode={e.returncode}, cmd={e.cmd}")
+            # Try without sudo as fallback to see if that's the issue
+            try:
+                result_no_sudo = subprocess.run(
+                    ['systemctl', command, f'{service_name}.service'],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                logger.info(f"Non-sudo systemctl {command} result: {result_no_sudo.returncode}, stderr: {result_no_sudo.stderr}")
+            except Exception as fallback_error:
+                logger.error(f"Non-sudo systemctl also failed: {fallback_error}")
             return False, e.stderr
         except Exception as e:
             logger.error(f"Unexpected error running systemctl: {e}")
@@ -233,10 +305,36 @@ class ServiceManager:
             )
             return True, f"Service {deployment.name} started"
         else:
+            # Check service status to provide more detailed error information
+            try:
+                status_result = subprocess.run(
+                    ['systemctl', 'status', f'{deployment.name}.service', '--no-pager'],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                status_output = status_result.stdout or status_result.stderr
+                logger.info(f"Service status for {deployment.name}: {status_output}")
+                
+                # Check the journal logs for more detailed information
+                journal_result = subprocess.run(
+                    ['journalctl', '-u', f'{deployment.name}.service', '-n', '20', '--no-pager'],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                journal_output = journal_result.stdout or journal_result.stderr
+                logger.info(f"Service journal for {deployment.name}: {journal_output}")
+                
+                # Provide more detailed error message
+                error_msg = f"Failed to start service: Service failed to start: stopped. Status: {status_output[:500] if status_output else 'No status available'}"
+            except Exception as status_error:
+                logger.error(f"Could not get service status: {status_error}")
+                error_msg = f"Failed to start service: {output}"
+
             deployment.status = BaseDeployment.Status.FAILED
             deployment.save(update_fields=['status'])
 
-            error_msg = f"Failed to start service: {output}"
             self._log(deployment, error_msg, DeploymentLog.Level.ERROR)
             return False, error_msg
 

@@ -12,12 +12,16 @@ This module configures Celery for handling asynchronous tasks:
 """
 
 import os
+import sys
 from celery import Celery
 from celery.schedules import crontab
 from decouple import config
 
 # Set default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+# Add system-templates directory to Python path for template_registry
+sys.path.insert(0, '/home/douglas/webops/system-templates')
 
 # Create Celery application
 app = Celery('webops')

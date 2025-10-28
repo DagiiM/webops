@@ -36,7 +36,7 @@ class DeploymentService:
         self.base_path = Path(settings.WEBOPS_INSTALL_PATH) / "deployments"
 
         # Set up Jinja2 for template rendering
-        template_path = Path(__file__).parent.parent.parent.parent / "system-templates"
+        template_path = Path(settings.WEBOPS_INSTALL_PATH).parent / "system-templates"
         self.jinja_env = Environment(loader=FileSystemLoader(str(template_path)))
         
         # Import template registry
@@ -74,6 +74,128 @@ class DeploymentService:
     def get_repo_path(self, deployment: ApplicationDeployment) -> Path:
         """Get the repository path for a deployment."""
         return self.get_deployment_path(deployment) / "repo"
+
+    def get_project_root(self, deployment: ApplicationDeployment) -> Path:
+        """
+        Get the actual Django project root (where manage.py lives).
+
+        Uses detected configuration if available, falls back to repo root.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            Path to project root
+        """
+        from ..models import DeploymentConfiguration
+
+        try:
+            config = deployment.configuration
+            if config.project_root:
+                repo_path = self.get_repo_path(deployment)
+                return repo_path / config.project_root
+        except DeploymentConfiguration.DoesNotExist:
+            pass
+
+        # Fallback to repo root
+        return self.get_repo_path(deployment)
+
+    def detect_and_store_structure(self, deployment: ApplicationDeployment) -> bool:
+        """
+        Intelligently detect project structure and store configuration.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            True if detection successful, False otherwise
+        """
+        from ..models import DeploymentConfiguration
+        from ..shared.project_detector import ProjectStructureDetector
+
+        repo_path = self.get_repo_path(deployment)
+
+        self.log(deployment, "Detecting project structure...")
+
+        # Run detection
+        detector = ProjectStructureDetector(repo_path)
+        structure = detector.detect_all()
+
+        # Log detection results
+        if structure.get('is_django'):
+            self.log(
+                deployment,
+                f"Django project detected at: {structure.get('project_root', 'repo root')}",
+                DeploymentLog.Level.SUCCESS
+            )
+
+            if structure.get('is_monorepo'):
+                self.log(deployment, "Monorepo structure detected (backend directory found)")
+
+            if structure.get('settings_module'):
+                self.log(deployment, f"Settings module: {structure['settings_module']}")
+
+            if structure.get('asgi_module'):
+                self.log(deployment, f"ASGI support detected: {structure['asgi_module']}")
+            elif structure.get('wsgi_module'):
+                self.log(deployment, f"WSGI support detected: {structure['wsgi_module']}")
+
+            # Log requirements files
+            req_files = structure.get('requirements_files', [])
+            if req_files:
+                self.log(deployment, f"Found {len(req_files)} requirements file(s)")
+        else:
+            self.log(
+                deployment,
+                "No Django project structure detected",
+                DeploymentLog.Level.WARNING
+            )
+
+        # Store or update configuration
+        config, created = DeploymentConfiguration.objects.get_or_create(
+            deployment=deployment
+        )
+
+        # Update configuration fields
+        if structure.get('project_root'):
+            # Make path relative to repo root
+            project_root = Path(structure['project_root'])
+            repo_path_obj = Path(repo_path)
+            try:
+                relative_root = project_root.relative_to(repo_path_obj)
+                config.project_root = str(relative_root)
+            except ValueError:
+                config.project_root = ''
+
+        config.manage_py_path = structure.get('manage_py_path', '')
+        config.settings_module = structure.get('settings_module', '')
+        config.settings_path = structure.get('settings_path', '')
+        config.wsgi_module = structure.get('wsgi_module', '')
+        config.asgi_module = structure.get('asgi_module', '')
+        config.is_monorepo = structure.get('is_monorepo', False)
+        config.has_backend_dir = structure.get('has_backend_dir', False)
+        config.detection_data = structure
+        config.detection_complete = True
+        config.is_auto_detected = True
+
+        # Check for split settings
+        config.has_split_settings = 'settings_environments' in structure
+
+        # Set requirements file
+        req_files = structure.get('requirements_files', [])
+        if req_files:
+            # Use the first one (base or main)
+            req_path = Path(req_files[0]['path'])
+            try:
+                relative_req = req_path.relative_to(repo_path)
+                config.requirements_file = str(relative_req)
+            except ValueError:
+                config.requirements_file = req_files[0]['path']
+
+        config.save()
+
+        return structure.get('is_django', False)
+
 
     def get_venv_path(self, deployment: ApplicationDeployment) -> Path:
         """Get the virtual environment path for a deployment."""
@@ -415,7 +537,9 @@ class DeploymentService:
 
     def install_dependencies(self, deployment: ApplicationDeployment) -> bool:
         """
-        Install Python dependencies from requirements.txt.
+        Install Python dependencies from requirements file.
+
+        Uses detected requirements file location from configuration.
 
         Args:
             deployment: Deployment instance
@@ -423,14 +547,35 @@ class DeploymentService:
         Returns:
             True if successful, False otherwise
         """
+        from ..models import DeploymentConfiguration
+
         repo_path = self.get_repo_path(deployment)
         venv_path = self.get_venv_path(deployment)
-        requirements_file = repo_path / "requirements.txt"
 
-        if not requirements_file.exists():
+        # Try to get requirements file from configuration
+        requirements_file = None
+        try:
+            config = deployment.configuration
+            if config.requirements_file:
+                requirements_file = repo_path / config.requirements_file
+                self.log(deployment, f"Using detected requirements: {config.requirements_file}")
+        except DeploymentConfiguration.DoesNotExist:
+            pass
+
+        # Fallback to standard locations
+        if not requirements_file or not requirements_file.exists():
+            # Try standard paths
+            for path in ['requirements.txt', 'requirements/base.txt', 'backend/requirements.txt', 'backend/requirements/base.txt']:
+                test_path = repo_path / path
+                if test_path.exists():
+                    requirements_file = test_path
+                    self.log(deployment, f"Found requirements at: {path}")
+                    break
+
+        if not requirements_file or not requirements_file.exists():
             self.log(
                 deployment,
-                "No requirements.txt found, skipping dependency installation",
+                "No requirements file found, skipping dependency installation",
                 DeploymentLog.Level.WARNING
             )
             return True
@@ -621,6 +766,9 @@ class DeploymentService:
         # Fallback: Create basic .env file manually
         self.log(deployment, "Creating basic .env file (no .env.example found)")
 
+        repo_path = self.get_repo_path(deployment)
+        logs_dir = repo_path / "logs"
+
         env_content = f"""# WebOps Generated Environment File
 # Generated automatically on {deployment.created_at.strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -638,6 +786,10 @@ CELERY_BROKER_URL=redis://localhost:6379/0
 
 # Application Settings
 PORT={deployment.port}
+
+# Logging Configuration (for projects that support it)
+DJANGO_LOG_DIR={logs_dir}
+LOG_DIR={logs_dir}
 """
 
         # Add any custom env vars from deployment
@@ -758,9 +910,13 @@ PORT={deployment.port}
         # Final fallback
         return "settings"
 
-    def run_django_migrations(self, deployment: ApplicationDeployment) -> bool:
+    def setup_log_directories(self, deployment: ApplicationDeployment) -> bool:
         """
-        Run Django migrations with improved error handling.
+        Create log directories that Django applications might need.
+
+        Creates common log directory patterns used by Django projects:
+        - /var/log/<deployment-name>/
+        - <repo>/logs/
 
         Args:
             deployment: Deployment instance
@@ -768,6 +924,89 @@ PORT={deployment.port}
         Returns:
             True if successful, False otherwise
         """
+        import stat
+        import subprocess
+
+        deployment_name = deployment.name
+        repo_path = self.get_repo_path(deployment)
+
+        # System log directory (requires sudo)
+        system_log_dir = Path(f"/var/log/{deployment_name}")
+
+        if not system_log_dir.exists():
+            try:
+                # Use sudo to create system log directory
+                result = subprocess.run(
+                    ["sudo", "mkdir", "-p", str(system_log_dir)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+
+                # Set permissions to 777 so the deployment user can write to it
+                subprocess.run(
+                    ["sudo", "chmod", "777", str(system_log_dir)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+
+                self.log(
+                    deployment,
+                    f"Created system log directory: {system_log_dir}",
+                    DeploymentLog.Level.INFO
+                )
+            except subprocess.CalledProcessError as e:
+                self.log(
+                    deployment,
+                    f"Failed to create system log directory {system_log_dir}: {e.stderr}. Continuing anyway.",
+                    DeploymentLog.Level.WARNING
+                )
+            except Exception as e:
+                self.log(
+                    deployment,
+                    f"Failed to create system log directory {system_log_dir}: {e}. Continuing anyway.",
+                    DeploymentLog.Level.WARNING
+                )
+
+        # Application log directory (doesn't require sudo)
+        app_log_dir = repo_path / "logs"
+
+        if not app_log_dir.exists():
+            try:
+                app_log_dir.mkdir(parents=True, exist_ok=True)
+                # Set permissions to 755 (rwxr-xr-x)
+                app_log_dir.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+                self.log(
+                    deployment,
+                    f"Created application log directory: {app_log_dir}",
+                    DeploymentLog.Level.INFO
+                )
+            except Exception as e:
+                self.log(
+                    deployment,
+                    f"Failed to create application log directory {app_log_dir}: {e}",
+                    DeploymentLog.Level.WARNING
+                )
+
+        return True
+
+    def run_django_migrations(self, deployment: ApplicationDeployment) -> bool:
+        """
+        Run Django migrations with improved error handling.
+
+        Uses detected project root and settings module from configuration.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            True if successful, False otherwise
+        """
+        from ..models import DeploymentConfiguration
+
         repo_path = self.get_repo_path(deployment)
         venv_path = self.get_venv_path(deployment)
         python_path = venv_path / "bin" / "python"
@@ -776,15 +1015,31 @@ PORT={deployment.port}
         if not self.setup_django_environment(deployment):
             return False
 
+        # Create log directories before running migrations
+        self.setup_log_directories(deployment)
+
         self.log(deployment, "Running Django migrations")
 
-        # Use smart settings detection
-        settings_module = self.detect_django_settings_module(deployment)
+        # Get project root and settings module from configuration
+        project_root = self.get_project_root(deployment)
+        settings_module = None
+
+        try:
+            config = deployment.configuration
+            if config.settings_module:
+                settings_module = config.get_settings_for_environment()
+                self.log(deployment, f"Using configured settings: {settings_module}")
+        except DeploymentConfiguration.DoesNotExist:
+            pass
+
+        # Fallback to old detection if no configuration
+        if not settings_module:
+            settings_module = self.detect_django_settings_module(deployment)
 
         # Enhanced environment variables
         env = {
             **os.environ,
-            "PYTHONPATH": str(repo_path),
+            "PYTHONPATH": str(project_root),
             "DJANGO_SETTINGS_MODULE": settings_module,
         }
 
@@ -794,7 +1049,7 @@ PORT={deployment.port}
                 check=True,
                 capture_output=True,
                 text=True,
-                cwd=str(repo_path),
+                cwd=str(project_root),  # Use project root, not repo root
                 env=env,
                 timeout=300  # 5 minute timeout
             )
@@ -895,13 +1150,15 @@ PORT={deployment.port}
         """
         Collect Django static files.
 
+        Uses detected project root from configuration.
+
         Args:
             deployment: Deployment instance
 
         Returns:
             True if successful, False otherwise
         """
-        repo_path = self.get_repo_path(deployment)
+        project_root = self.get_project_root(deployment)
         venv_path = self.get_venv_path(deployment)
         python_path = venv_path / "bin" / "python"
 
@@ -913,8 +1170,8 @@ PORT={deployment.port}
                 check=True,
                 capture_output=True,
                 text=True,
-                cwd=str(repo_path),
-                env={**os.environ, "PYTHONPATH": str(repo_path)}
+                cwd=str(project_root),
+                env={**os.environ, "PYTHONPATH": str(project_root)}
             )
             self.log(
                 deployment,
@@ -976,38 +1233,60 @@ PORT={deployment.port}
         """
         Render systemd service file from template.
 
+        Uses detected ASGI/WSGI modules from configuration.
+
         Args:
             deployment: Deployment instance
 
         Returns:
             Rendered systemd service configuration
         """
-        repo_path = self.get_repo_path(deployment)
+        from ..models import DeploymentConfiguration
+
+        project_root = self.get_project_root(deployment)
         venv_path = self.get_venv_path(deployment)
-        
+
         # Determine template based on deployment characteristics
         deployment_type = 'app'
         template_path = self.template_registry.get_template_path(deployment_type, 'systemd')
         if not template_path:
             # Fallback to unified template
             template_path = 'unified/systemd/unified.service.j2'
-        
+
         template = self.jinja_env.get_template(template_path)
 
-        # Detect ASGI/WSGI module paths
-        excluded_dirs = {'migrations', 'tests', 'test', 'venv', 'env', '__pycache__', '.git'}
+        # Try to get ASGI/WSGI modules from configuration
+        asgi_module = None
+        wsgi_module = None
 
-        def _find_module(filename: str):
-            files = list(repo_path.rglob(filename))
-            valid = [f for f in files if not any(part in excluded_dirs for part in f.relative_to(repo_path).parts)]
-            if not valid:
-                return None
-            rel = valid[0].relative_to(repo_path)
-            dotted = ".".join(rel.with_suffix('').parts)
-            return f"{dotted}:application"
+        try:
+            config = deployment.configuration
+            asgi_module = config.asgi_module if config.asgi_module else None
+            wsgi_module = config.wsgi_module if config.wsgi_module else None
 
-        asgi_module = _find_module('asgi.py')
-        wsgi_module = _find_module('wsgi.py')
+            if asgi_module:
+                self.log(deployment, f"Using configured ASGI module: {asgi_module}")
+            elif wsgi_module:
+                self.log(deployment, f"Using configured WSGI module: {wsgi_module}")
+        except DeploymentConfiguration.DoesNotExist:
+            pass
+
+        # Fallback to old detection if no configuration
+        if not asgi_module and not wsgi_module:
+            repo_path = self.get_repo_path(deployment)
+            excluded_dirs = {'migrations', 'tests', 'test', 'venv', 'env', '__pycache__', '.git'}
+
+            def _find_module(filename: str):
+                files = list(repo_path.rglob(filename))
+                valid = [f for f in files if not any(part in excluded_dirs for part in f.relative_to(repo_path).parts)]
+                if not valid:
+                    return None
+                rel = valid[0].relative_to(repo_path)
+                dotted = ".".join(rel.with_suffix('').parts)
+                return f"{dotted}:application"
+
+            asgi_module = _find_module('asgi.py')
+            wsgi_module = _find_module('wsgi.py')
 
         is_asgi = asgi_module is not None
         app_module = asgi_module if is_asgi else (wsgi_module or f"{deployment.name}.wsgi:application")
@@ -1015,14 +1294,14 @@ PORT={deployment.port}
         extra_gunicorn_args = f"--worker-class {worker_class}" if worker_class else ""
 
         if is_asgi:
-            self.log(deployment, f"ASGI module detected: {asgi_module}. Using UvicornWorker.")
+            self.log(deployment, f"Using ASGI with UvicornWorker: {asgi_module}")
         else:
-            self.log(deployment, f"ASGI module not found. Using WSGI: {app_module}")
+            self.log(deployment, f"Using WSGI: {app_module}")
 
         context = {
             'app_name': deployment.name,
             'webops_user': settings.WEBOPS_USER,
-            'repo_path': str(repo_path),
+            'repo_path': str(project_root),  # Use project root
             'venv_path': str(venv_path),
             'port': deployment.port,
             'workers': 2,
@@ -1032,7 +1311,7 @@ PORT={deployment.port}
             'env_vars': deployment.env_vars or {},
             'service_type_name': 'general',
             'service_subtype': None,
-            'working_directory': str(repo_path),
+            'working_directory': str(project_root),  # Use project root
             'restart_policy': 'always',
             'restart_sec': '5',
             'security_enabled': True,
@@ -1144,23 +1423,33 @@ PORT={deployment.port}
                 pass
 
             # Update status
-            deployment.status = Deployment.Status.BUILDING
+            deployment.status = ApplicationDeployment.Status.BUILDING
             deployment.save(update_fields=['status'])
 
             # Clone repository
             repo_path = self.clone_repository(deployment)
 
-            # Detect project type
-            project_type = self.detect_project_type(deployment)
-            if deployment.project_type != project_type:
-                deployment.project_type = project_type
-                deployment.save(update_fields=['project_type'])
+            # Detect and store project structure
+            is_django = self.detect_and_store_structure(deployment)
+
+            # Set project type based on detection
+            if is_django:
+                project_type = ApplicationDeployment.ProjectType.DJANGO
+                if deployment.project_type != project_type:
+                    deployment.project_type = project_type
+                    deployment.save(update_fields=['project_type'])
+            else:
+                # Fall back to old detection method
+                project_type = self.detect_project_type(deployment)
+                if deployment.project_type != project_type:
+                    deployment.project_type = project_type
+                    deployment.save(update_fields=['project_type'])
 
             # Allocate port
             self.allocate_port(deployment)
 
             # For Django projects
-            if deployment.project_type == Deployment.ProjectType.DJANGO:
+            if deployment.project_type == ApplicationDeployment.ProjectType.DJANGO:
                 # Create virtual environment
                 self.create_virtualenv(deployment)
 
@@ -1185,7 +1474,7 @@ PORT={deployment.port}
         except Exception as e:
             error_msg = f"Deployment preparation failed: {str(e)}"
             self.log(deployment, error_msg, DeploymentLog.Level.ERROR)
-            deployment.status = Deployment.Status.FAILED
+            deployment.status = ApplicationDeployment.Status.FAILED
             deployment.save(update_fields=['status'])
             return False, error_msg
 
@@ -1233,7 +1522,7 @@ PORT={deployment.port}
                     "Project validation failed; aborting service creation",
                     DeploymentLog.Level.ERROR
                 )
-                deployment.status = Deployment.Status.FAILED
+                deployment.status = ApplicationDeployment.Status.FAILED
                 deployment.save(update_fields=['status'])
                 return {
                     'success': False,
@@ -1248,7 +1537,7 @@ PORT={deployment.port}
         service_manager = ServiceManager()
 
         # For Django projects, create and start services
-        if deployment.project_type == Deployment.ProjectType.DJANGO:
+        if deployment.project_type == ApplicationDeployment.ProjectType.DJANGO:
             # Create Nginx configuration
             self.log(deployment, "Creating Nginx configuration")
             nginx_config = self.render_nginx_config(deployment)
@@ -1282,7 +1571,7 @@ PORT={deployment.port}
                     DeploymentLog.Level.WARNING
                 )
                 # In dev mode, mark as pending
-                deployment.status = Deployment.Status.PENDING
+                deployment.status = ApplicationDeployment.Status.PENDING
                 deployment.save(update_fields=['status'])
 
                 # Trigger post-deployment hooks even in pending dev mode
@@ -1319,7 +1608,7 @@ PORT={deployment.port}
                     f"Failed to start service: {start_msg}",
                     DeploymentLog.Level.ERROR
                 )
-                deployment.status = Deployment.Status.FAILED
+                deployment.status = ApplicationDeployment.Status.FAILED
                 deployment.save(update_fields=['status'])
 
                 return {
@@ -1367,7 +1656,7 @@ PORT={deployment.port}
 
             if nginx_success:
                 service_manager.reload_nginx(deployment)
-                deployment.status = Deployment.Status.RUNNING
+                deployment.status = ApplicationDeployment.Status.RUNNING
                 deployment.save(update_fields=['status'])
 
                 self.log(
@@ -1381,7 +1670,7 @@ PORT={deployment.port}
                     f"Nginx config creation skipped (dev mode): {nginx_msg}",
                     DeploymentLog.Level.WARNING
                 )
-                deployment.status = Deployment.Status.PENDING
+                deployment.status = ApplicationDeployment.Status.PENDING
                 deployment.save(update_fields=['status'])
 
             # Trigger post-deployment hooks

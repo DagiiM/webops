@@ -6,7 +6,7 @@
 
 class WebOpsDynamicThemeLoader {
     constructor() {
-        this.availableThemes = ['dark', 'light', 'forest', 'high-contrast'];
+        this.availableThemes = ['dark', 'light', 'forest', 'high-contrast', 'custom'];
         this.currentTheme = this.detectInitialTheme();
         this.themeLinks = new Map();
         this.isLoading = false;

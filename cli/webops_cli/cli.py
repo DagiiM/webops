@@ -26,6 +26,7 @@ from .ui.interactive import InteractiveCommands
 from .ui.display import display_deployment_table, _get_status_style
 from .command_shortcuts import create_shortcut_commands
 from .websocket_client import DeploymentStatusMonitor, DeploymentListMonitor
+from .project_setup import ProjectSetupWorkflow
 
 console = Console()
 error_handler = ErrorHandler()
@@ -952,6 +953,93 @@ def interactive_logs(deployment_name: str) -> None:
     config = Config()
     interactive_cmd = InteractiveCommands(api_client, config)
     interactive_cmd.interactive_logs_viewer(deployment_name)
+
+
+@main.command(name='project:setup')
+@click.option('--repo', required=True, help='GitHub repository URL')
+@click.option('--name', help='Project name (auto-detected from repo if not provided)')
+@click.option('--no-deploy', is_flag=True, help='Skip WebOps deployment creation')
+@click.option('--no-verify', is_flag=True, help='Skip web access verification')
+def project_setup(repo: str, name: Optional[str], no_deploy: bool, no_verify: bool) -> None:
+    """
+    Complete project setup workflow.
+    
+    This command automates the entire process of setting up a project:
+    1. Clones the project from GitHub
+    2. Detects project type and entry point
+    3. Sets up the project (dependencies, environment, etc.)
+    4. Verifies web access on the specified port
+    
+    Examples:
+        webops project:setup --repo https://github.com/user/myproject.git
+        webops project:setup --repo github.com/user/myproject --name myproject
+        webops project:setup --repo https://github.com/user/myproject.git --no-deploy
+    """
+    try:
+        # Validate repository URL
+        validated_repo = InputValidator.validate_git_url(repo)
+        
+        # Extract project name from repo URL if not provided
+        if not name:
+            # Extract from URL like https://github.com/user/project.git
+            repo_parts = validated_repo.rstrip('/').split('/')
+            if len(repo_parts) >= 2:
+                name = repo_parts[-1].replace('.git', '')
+            else:
+                console.print("[red]Error:[/red] Could not extract project name from URL. Please provide --name parameter.")
+                sys.exit(1)
+        
+        # Validate project name
+        validated_name = InputValidator.validate_deployment_name(name)
+        
+    except ValidationError as e:
+        console.print(f"[red]Validation Error:[/red] {e}")
+        sys.exit(1)
+    
+    # Get API client
+    api_client = get_api_client()
+    
+    # Create and run workflow
+    workflow = ProjectSetupWorkflow(api_client)
+    
+    try:
+        result = workflow.run_complete_workflow(
+            repo_url=validated_repo,
+            project_name=validated_name,
+            create_deployment=not no_deploy,
+            verify_access=not no_verify
+        )
+        
+        # Display summary
+        workflow.display_result_summary(result)
+        
+        # Log the operation
+        if result.success:
+            security_logger.log_security_event(
+                user=security_logger.get_user(),
+                event_type="project_setup_completed",
+                description=f"Successfully set up project: {validated_name}",
+                severity="INFO"
+            )
+        else:
+            security_logger.log_security_event(
+                user=security_logger.get_user(),
+                event_type="project_setup_failed",
+                description=f"Failed to set up project: {validated_name} - {result.error_message}",
+                severity="MEDIUM"
+            )
+            
+        # Exit with appropriate code
+        sys.exit(0 if result.success else 1)
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Project setup cancelled by user.[/yellow]")
+        workflow.cleanup()
+        sys.exit(130)
+    except Exception as e:
+        console.print(f"\n[red]Unexpected error during project setup:[/red] {e}")
+        workflow.cleanup()
+        sys.exit(1)
 
 
 @main.command(name='watch')

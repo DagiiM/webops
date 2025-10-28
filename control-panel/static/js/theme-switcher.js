@@ -5,7 +5,7 @@
 
 class WebOpsThemeSwitcher {
     constructor() {
-        this.themes = ['dark', 'light', 'forest', 'high-contrast'];
+        this.themes = ['dark', 'light', 'forest', 'high-contrast', 'custom'];
         this.currentTheme = this.getStoredTheme() || 'dark';
         this.container = null;
         this.isInitialized = false;

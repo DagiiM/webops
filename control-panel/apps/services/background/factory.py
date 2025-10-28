@@ -41,6 +41,11 @@ def get_background_processor() -> BackgroundProcessor:
         if choice == "celery":
             try:
                 from config.celery_app import app as celery_app
+                # Import all task modules to ensure they're registered with Celery
+                import apps.deployments.tasks
+                import apps.services.tasks
+                # Force task discovery after imports
+                celery_app.autodiscover_tasks()
             except Exception:
                 celery_app = None
             if celery_app is not None:
@@ -55,6 +60,11 @@ def get_background_processor() -> BackgroundProcessor:
         # Default fallback
         try:
             from config.celery_app import app as celery_app
+            # Import all task modules to ensure they're registered with Celery
+            import apps.deployments.tasks
+            import apps.services.tasks
+            # Force task discovery after imports
+            celery_app.autodiscover_tasks()
             _processor_instance = CeleryBackgroundProcessor(app=celery_app)
         except Exception:
             _processor_instance = InMemoryBackgroundProcessor()

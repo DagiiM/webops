@@ -70,7 +70,7 @@ def check_all_service_statuses() -> Dict[str, Any]:
         Dict with status summary
     """
     from .monitoring import SystemMonitor
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
 
     try:
         monitor = SystemMonitor()
@@ -83,6 +83,22 @@ def check_all_service_statuses() -> Dict[str, Any]:
                 'deployment': deployment.name,
                 'status': status.status,
                 'pid': status.pid
+            })
+
+        # Add Celery worker status
+        celery_status = check_celery_health()
+        if celery_status['healthy']:
+            results.append({
+                'deployment': 'Celery Worker',
+                'status': 'running',
+                'pid': None # PID is not directly available from check_celery_health
+            })
+        else:
+            status = 'failed' if celery_status.get('error') else 'stopped'
+            results.append({
+                'deployment': 'Celery Worker',
+                'status': status,
+                'pid': None
             })
 
         running = len([r for r in results if r['status'] == 'running'])
@@ -153,7 +169,7 @@ def auto_recover_failed_services() -> Dict[str, Any]:
     Returns:
         Dict with recovery results
     """
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
     from .restart_policy import restart_policy_enforcer
     from .service_controller import service_controller
     import time
@@ -304,7 +320,7 @@ def restart_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with restart result
     """
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
     from .service_controller import service_controller
 
     try:
@@ -315,7 +331,7 @@ def restart_service_task(deployment_id: int) -> Dict[str, Any]:
 
         return result
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error = f"Deployment {deployment_id} not found"
         logger.error(error)
         return {
@@ -341,7 +357,7 @@ def start_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with start result
     """
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
     from .service_controller import service_controller
 
     try:
@@ -352,7 +368,7 @@ def start_service_task(deployment_id: int) -> Dict[str, Any]:
 
         return result
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error = f"Deployment {deployment_id} not found"
         logger.error(error)
         return {
@@ -378,7 +394,7 @@ def stop_service_task(deployment_id: int) -> Dict[str, Any]:
     Returns:
         Dict with stop result
     """
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
     from .service_controller import service_controller
 
     try:
@@ -389,7 +405,7 @@ def stop_service_task(deployment_id: int) -> Dict[str, Any]:
 
         return result
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error = f"Deployment {deployment_id} not found"
         logger.error(error)
         return {
@@ -462,7 +478,7 @@ def generate_daily_report() -> Dict[str, Any]:
         Dict with report data
     """
     from .models import ResourceUsage, Alert, ServiceStatus
-    from apps.deployments.models import BaseDeployment
+    from apps.deployments.models import BaseDeployment, ApplicationDeployment
     from django.db.models import Avg, Max, Min, Count
 
     try:

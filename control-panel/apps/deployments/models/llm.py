@@ -18,7 +18,20 @@ class LLMDeployment(BaseDeployment):
     )
 
     model_name = models.CharField(max_length=255)
-    
+
+    class Backend(models.TextChoices):
+        VLLM = 'vllm', 'vLLM (GPU/CPU - High Performance)'
+        TRANSFORMERS = 'transformers', 'Transformers (CPU-Optimized - Fast Setup)'
+        OLLAMA = 'ollama', 'Ollama (Easy CPU Deployment)'
+        TGI = 'tgi', 'Text Generation Inference (Flexible)'
+
+    backend = models.CharField(
+        max_length=20,
+        choices=Backend.choices,
+        default=Backend.TRANSFORMERS,
+        help_text='LLM serving backend to use'
+    )
+
     tensor_parallel_size = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     gpu_memory_utilization = models.FloatField(
         default=0.9,

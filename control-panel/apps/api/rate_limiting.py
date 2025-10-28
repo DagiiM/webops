@@ -150,19 +150,33 @@ def rate_limit(limiter: RateLimiter, key_func: Optional[callable] = None):
             
             # Check rate limit
             allowed, info = limiter.is_allowed(identifier)
-            
+
             if not allowed:
-                response = JsonResponse({
-                    'error': 'Rate limit exceeded',
-                    'retry_after': info['retry_after']
-                }, status=429)
-                
+                # Check if request expects JSON (API request)
+                if request.path.startswith('/api/') or request.META.get('HTTP_ACCEPT', '').startswith('application/json'):
+                    response = JsonResponse({
+                        'error': 'Rate limit exceeded',
+                        'retry_after': info['retry_after'],
+                        'limit': info['limit'],
+                        'remaining': info['remaining'],
+                        'reset': info['reset']
+                    }, status=429)
+                else:
+                    # Return HTML page for browser requests
+                    from django.shortcuts import render
+                    response = render(request, 'errors/429.html', {
+                        'retry_after': info['retry_after'],
+                        'limit': info['limit'],
+                        'remaining': info['remaining'],
+                        'reset': info['reset']
+                    }, status=429)
+
                 # Add rate limit headers
                 response['X-RateLimit-Limit'] = str(info['limit'])
                 response['X-RateLimit-Remaining'] = str(info['remaining'])
                 response['X-RateLimit-Reset'] = str(info['reset'])
                 response['Retry-After'] = str(info['retry_after'])
-                
+
                 return response
             
             # Add rate limit headers to successful response
@@ -230,12 +244,24 @@ class RateLimitMiddleware:
         
         if not allowed:
             print(f"Rate limit exceeded for {identifier}")
-            response = JsonResponse({
-                'error': 'Global rate limit exceeded',
-                'message': 'Too many requests from this IP address',
-                'retry_after': info['retry_after']
-            }, status=429)
-            
+
+            # Check if request expects JSON (API request)
+            if request.path.startswith('/api/') or request.META.get('HTTP_ACCEPT', '').startswith('application/json'):
+                response = JsonResponse({
+                    'error': 'Global rate limit exceeded',
+                    'message': 'Too many requests from this IP address',
+                    'retry_after': info['retry_after']
+                }, status=429)
+            else:
+                # Return HTML page for browser requests
+                from django.shortcuts import render
+                response = render(request, 'errors/429.html', {
+                    'retry_after': info['retry_after'],
+                    'limit': info['limit'],
+                    'remaining': info['remaining'],
+                    'reset': info['reset']
+                }, status=429)
+
             response['Retry-After'] = str(info['retry_after'])
             return response
         
