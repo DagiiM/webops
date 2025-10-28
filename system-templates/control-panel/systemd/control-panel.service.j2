@@ -1,0 +1,50 @@
+[Unit]
+Description=WebOps Control Panel
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User={{ webops_user|default('webops') }}
+Group={{ webops_group|default('webops') }}
+WorkingDirectory={{ webops_dir|default('/opt/webops') }}/control-panel
+
+# Environment variables
+Environment="PATH={{ venv_path|default('/opt/webops/venv') }}/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="WEBOPS_DIR={{ webops_dir|default('/opt/webops') }}"
+{% for key, value in env_vars.items() %}
+Environment="{{ key }}={{ value }}"
+{% endfor %}
+
+# Gunicorn for Django application
+ExecStart={{ venv_path|default('/opt/webops/venv') }}/bin/gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers {{ workers|default(4) }} \
+    --max-requests {{ max_requests|default(1000) }} \
+    --max-requests-jitter {{ max_requests_jitter|default(100) }} \
+    --timeout {{ timeout|default(60) }} \
+    --keep-alive {{ keep_alive|default(2) }} \
+    --access-logfile {{ log_path|default('/var/log/webops') }}/control-panel-access.log \
+    --error-logfile {{ log_path|default('/var/log/webops') }}/control-panel-error.log \
+    --log-level {{ log_level|default('info') }} \
+    --capture-output \
+    config.wsgi:application
+
+# Restart policy
+Restart=always
+RestartSec=5
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ webops_dir|default('/opt/webops') }}/control-panel/media {{ webops_dir|default('/opt/webops') }}/control-panel/staticfiles {{ log_path|default('/var/log/webops') }}
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

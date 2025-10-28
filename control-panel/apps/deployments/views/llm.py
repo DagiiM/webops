@@ -310,3 +310,42 @@ def llm_playground(request, pk):
     }
 
     return render(request, 'deployments/llm_playground.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def llm_update_backend(request, pk):
+    """
+    Update the LLM backend for a pending or failed deployment.
+    """
+    deployment = get_object_or_404(LLMDeployment, pk=pk)
+
+    # Only allow backend changes for pending or failed deployments
+    if deployment.status not in ['pending', 'failed']:
+        messages.error(request, 'Cannot change backend for a running or building deployment.')
+        return redirect('deployments:llm_detail', pk=pk)
+
+    backend = request.POST.get('backend', '').strip()
+
+    # Validate backend choice
+    valid_backends = [choice[0] for choice in LLMDeployment.Backend.choices]
+    if backend not in valid_backends:
+        messages.error(request, f'Invalid backend choice: {backend}')
+        return redirect('deployments:llm_detail', pk=pk)
+
+    # Update backend
+    old_backend = deployment.backend
+    deployment.backend = backend
+    deployment.status = 'pending'  # Reset to pending
+    deployment.save(update_fields=['backend', 'status'])
+
+    # Log the change
+    from ..models import DeploymentLog
+    DeploymentLog.objects.create(
+        deployment=deployment,
+        level=DeploymentLog.Level.INFO,
+        message=f'Backend changed from {old_backend} to {backend}'
+    )
+
+    messages.success(request, f'Backend updated to {deployment.get_backend_display()}. Click "Start Deployment" to begin.')
+    return redirect('deployments:llm_detail', pk=pk)

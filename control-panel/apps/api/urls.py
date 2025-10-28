@@ -11,6 +11,9 @@ urlpatterns = [
     # Status
     path('status/', views.api_status, name='api_status'),
 
+    # Rate Limit Preview (for testing only)
+    path('rate-limit-preview/', views.rate_limit_preview, name='rate_limit_preview'),
+
     # WebSocket Authentication
     path('ws/token/', views.get_websocket_token, name='api_ws_token'),
     path('ws/token/refresh/', views.refresh_websocket_token, name='api_ws_token_refresh'),

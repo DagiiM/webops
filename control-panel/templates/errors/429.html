@@ -1,0 +1,645 @@
+ {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limit Exceeded - WebOps</title>
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+   
+    <style>
+        /* Ultra-Sleek Rate Limit Page Styles */
+        .rate-limit-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--webops-space-6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background grid */
+        .rate-limit-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background: var(--webops-color-bg-primary);
+        }
+
+        .rate-limit-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px);
+            animation: gridSlide 20s linear infinite;
+        }
+
+        .rate-limit-bg::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1000px;
+            height: 1000px;
+            background: radial-gradient(circle, var(--webops-color-warning-alpha-30) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes gridSlide {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Main card */
+        .rate-limit-card {
+            position: relative;
+            z-index: 1;
+            background: var(--webops-color-bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--webops-color-primary-alpha-15);
+            border-radius: var(--webops-radius-2xl);
+            padding: var(--webops-space-12);
+            max-width: 640px;
+            width: 100%;
+            box-shadow:
+                var(--webops-shadow-2xl),
+                0 0 60px var(--webops-color-warning-alpha-30);
+            animation: cardSlideIn 0.6s var(--webops-ease-out);
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Icon */
+        .rate-limit-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--webops-space-8);
+            position: relative;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .rate-limit-icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px var(--webops-color-warning-alpha-50));
+        }
+
+        .rate-limit-icon circle {
+            stroke: var(--webops-color-warning);
+            stroke-width: 4;
+            fill: none;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            animation: progressFill 2s ease-out forwards;
+            transform-origin: center;
+            transform: rotate(-90deg);
+        }
+
+        @keyframes progressFill {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .rate-limit-icon path {
+            fill: var(--webops-color-warning);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Typography */
+        .rate-limit-title {
+            font-size: var(--webops-font-size-4xl);
+            font-weight: var(--webops-font-weight-bold);
+            text-align: center;
+            margin-bottom: var(--webops-space-4);
+            background: linear-gradient(135deg,
+                var(--webops-color-warning),
+                var(--webops-color-warning-light)
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleSlide 0.8s var(--webops-ease-out) 0.2s backwards;
+        }
+
+        @keyframes titleSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rate-limit-message {
+            font-size: var(--webops-font-size-lg);
+            color: var(--webops-color-text-secondary);
+            text-align: center;
+            margin-bottom: var(--webops-space-10);
+            line-height: var(--webops-line-height-relaxed);
+            animation: messageSlide 0.8s var(--webops-ease-out) 0.3s backwards;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Countdown timer */
+        .rate-limit-timer {
+            background: var(--webops-color-bg-elevated);
+            border: 2px solid var(--webops-color-warning-alpha-30);
+            border-radius: var(--webops-radius-xl);
+            padding: var(--webops-space-8);
+            margin-bottom: var(--webops-space-8);
+            position: relative;
+            overflow: hidden;
+            animation: timerSlide 0.8s var(--webops-ease-out) 0.4s backwards;
+        }
+
+        @keyframes timerSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .rate-limit-timer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--webops-color-warning-alpha-10),
+                transparent
+            );
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .timer-label {
+            font-size: var(--webops-font-size-sm);
+            color: var(--webops-color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: var(--webops-letter-spacing-wider);
+            margin-bottom: var(--webops-space-3);
+            text-align: center;
+            font-weight: var(--webops-font-weight-semibold);
+        }
+
+        .timer-display {
+            font-size: var(--webops-font-size-5xl);
+            font-weight: var(--webops-font-weight-extrabold);
+            font-family: var(--webops-font-family-mono);
+            text-align: center;
+            color: var(--webops-color-warning);
+            text-shadow: 0 0 30px var(--webops-color-warning-alpha-50);
+            letter-spacing: var(--webops-letter-spacing-tight);
+            position: relative;
+            z-index: 1;
+        }
+
+        .timer-subtext {
+            font-size: var(--webops-font-size-sm);
+            color: var(--webops-color-text-tertiary);
+            text-align: center;
+            margin-top: var(--webops-space-2);
+        }
+
+        /* Info grid */
+        .rate-limit-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--webops-space-4);
+            margin-bottom: var(--webops-space-8);
+            animation: infoSlide 0.8s var(--webops-ease-out) 0.5s backwards;
+        }
+
+        @keyframes infoSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-item {
+            background: var(--webops-color-bg-elevated);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-4);
+            text-align: center;
+            transition: all var(--webops-transition-medium);
+        }
+
+        .info-item:hover {
+            border-color: var(--webops-color-primary-alpha-30);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--webops-color-primary-alpha-20);
+        }
+
+        .info-label {
+            font-size: var(--webops-font-size-xs);
+            color: var(--webops-color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: var(--webops-letter-spacing-wide);
+            margin-bottom: var(--webops-space-2);
+            font-weight: var(--webops-font-weight-semibold);
+        }
+
+        .info-value {
+            font-size: var(--webops-font-size-2xl);
+            font-weight: var(--webops-font-weight-bold);
+            color: var(--webops-color-text-primary);
+            font-family: var(--webops-font-family-mono);
+        }
+
+        .info-value.warning {
+            color: var(--webops-color-warning);
+        }
+
+        .info-value.success {
+            color: var(--webops-color-success);
+        }
+
+        /* Progress bar */
+        .rate-limit-progress {
+            height: 8px;
+            background: var(--webops-color-bg-elevated);
+            border-radius: var(--webops-radius-full);
+            overflow: hidden;
+            margin-bottom: var(--webops-space-8);
+            position: relative;
+            animation: progressSlide 0.8s var(--webops-ease-out) 0.6s backwards;
+        }
+
+        @keyframes progressSlide {
+            from {
+                opacity: 0;
+                transform: scaleX(0);
+            }
+            to {
+                opacity: 1;
+                transform: scaleX(1);
+            }
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg,
+                var(--webops-color-warning-dark),
+                var(--webops-color-warning),
+                var(--webops-color-warning-light)
+            );
+            border-radius: var(--webops-radius-full);
+            transition: width var(--webops-transition-slow);
+            position: relative;
+            overflow: hidden;
+            animation: progressPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes progressPulse {
+            0%, 100% { box-shadow: 0 0 10px var(--webops-color-warning-alpha-30); }
+            50% { box-shadow: 0 0 20px var(--webops-color-warning-alpha-50); }
+        }
+
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: progressShine 2s ease-in-out infinite;
+        }
+
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Action buttons */
+        .rate-limit-actions {
+            display: flex;
+            gap: var(--webops-space-4);
+            animation: actionsSlide 0.8s var(--webops-ease-out) 0.7s backwards;
+        }
+
+        @keyframes actionsSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .webops-btn {
+            flex: 1;
+            padding: var(--webops-space-4) var(--webops-space-6);
+            border-radius: var(--webops-radius-lg);
+            font-size: var(--webops-font-size-base);
+            font-weight: var(--webops-font-weight-semibold);
+            text-align: center;
+            text-decoration: none;
+            transition: all var(--webops-transition-medium);
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .webops-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .webops-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .webops-btn-primary {
+            background: var(--webops-color-primary);
+            color: var(--webops-gray-950);
+        }
+
+        .webops-btn-primary:hover {
+            background: var(--webops-color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--webops-color-primary-alpha-30);
+        }
+
+        .webops-btn-secondary {
+            background: var(--webops-color-surface);
+            color: var(--webops-color-text-primary);
+            border: 1px solid var(--webops-color-primary-alpha-20);
+        }
+
+        .webops-btn-secondary:hover {
+            background: var(--webops-color-surface-hover);
+            border-color: var(--webops-color-primary-alpha-35);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 640px) {
+            .rate-limit-card {
+                padding: var(--webops-space-8);
+            }
+
+            .rate-limit-title {
+                font-size: var(--webops-font-size-3xl);
+            }
+
+            .timer-display {
+                font-size: var(--webops-font-size-4xl);
+            }
+
+            .rate-limit-info {
+                grid-template-columns: 1fr;
+            }
+
+            .rate-limit-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Real-time update indicator */
+        .update-indicator {
+            position: absolute;
+            top: var(--webops-space-4);
+            right: var(--webops-space-4);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--webops-color-success);
+            box-shadow: 0 0 10px var(--webops-color-success);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="rate-limit-bg"></div>
+
+    <!-- Main container -->
+    <div class="rate-limit-container">
+        <div class="rate-limit-card">
+            <!-- Live update indicator -->
+            <div class="update-indicator" title="Real-time countdown"></div>
+
+            <!-- Icon -->
+            <div class="rate-limit-icon">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" />
+                    <path d="M50 15 L50 35 M50 50 L65 35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M30 25 L70 25 L70 75 L30 75 Z M40 35 L60 35 M40 50 L60 50 M40 65 L60 65" />
+                </svg>
+            </div>
+
+            <!-- Title and message -->
+            <h1 class="rate-limit-title">Rate Limit Exceeded</h1>
+            <p class="rate-limit-message">
+                You've made too many requests. Please wait for the countdown to complete before trying again.
+            </p>
+
+            <!-- Countdown timer -->
+            <div class="rate-limit-timer">
+                <div class="timer-label">Time Until Reset</div>
+                <div class="timer-display" id="countdown">{{ retry_after }}s</div>
+                <div class="timer-subtext" id="reset-time">Resets at <span id="reset-timestamp"></span></div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="rate-limit-progress">
+                <div class="progress-fill" id="progress-bar" style="width: 100%;"></div>
+            </div>
+
+            <!-- Rate limit info -->
+            <div class="rate-limit-info">
+                <div class="info-item">
+                    <div class="info-label">Requests Limit</div>
+                    <div class="info-value">{{ limit|default:"100" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Remaining</div>
+                    <div class="info-value warning">{{ remaining|default:"0" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Reset In</div>
+                    <div class="info-value success" id="countdown-short">{{ retry_after }}s</div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="rate-limit-actions">
+                <a href="/" class="webops-btn webops-btn-primary">Go to Dashboard</a>
+                <button class="webops-btn webops-btn-secondary" onclick="location.reload()">Refresh Page</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Rate limit data from server
+        const retryAfter = {{ retry_after|default:"60" }};
+        const resetTimestamp = {{ reset|default:"0" }} * 1000; // Convert to milliseconds
+        const initialRetryAfter = retryAfter;
+
+        // DOM elements
+        const countdownEl = document.getElementById('countdown');
+        const countdownShortEl = document.getElementById('countdown-short');
+        const progressBarEl = document.getElementById('progress-bar');
+        const resetTimeEl = document.getElementById('reset-timestamp');
+
+        // Format time display
+        function formatTime(seconds) {
+            if (seconds <= 0) return '0s';
+
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString();
+        }
+
+        // Update countdown display
+        function updateCountdown() {
+            const now = Date.now();
+            const remaining = Math.max(0, Math.ceil((resetTimestamp - now) / 1000));
+
+            // Update countdown displays
+            countdownEl.textContent = formatTime(remaining);
+            countdownShortEl.textContent = formatTime(remaining);
+
+            // Update progress bar
+            const progress = ((initialRetryAfter - remaining) / initialRetryAfter) * 100;
+            progressBarEl.style.width = `${progress}%`;
+
+            // Auto-reload when countdown reaches 0
+            if (remaining <= 0) {
+                countdownEl.textContent = 'Ready!';
+                countdownShortEl.textContent = 'Ready!';
+                progressBarEl.style.width = '100%';
+
+                // Show success message
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+
+                return;
+            }
+
+            // Continue countdown
+            requestAnimationFrame(() => setTimeout(updateCountdown, 1000));
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set reset timestamp display
+            if (resetTimestamp > 0) {
+                resetTimeEl.textContent = formatTimestamp(resetTimestamp);
+            } else {
+                document.getElementById('reset-time').style.display = 'none';
+            }
+
+            // Start countdown
+            updateCountdown();
+        });
+
+        // Handle page visibility (pause/resume countdown)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Recalculate when page becomes visible
+                updateCountdown();
+            }
+        });
+    </script>
+</body>
+</html>

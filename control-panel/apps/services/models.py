@@ -21,10 +21,10 @@ class ServiceStatus(BaseModel):
         STARTING = 'starting', 'Starting'
         STOPPING = 'stopping', 'Stopping'
 
-    deployment = models.ForeignKey(
+    deployment = models.OneToOneField(
         BaseDeployment,
         on_delete=models.CASCADE,
-        related_name='service_statuses'
+        related_name='service_status'
     )
     status = models.CharField(
         max_length=20,

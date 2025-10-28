@@ -34,6 +34,7 @@ from .views import (
     llm_test_endpoint,
     llm_search_models,
     llm_playground,
+    llm_update_backend,
 )
 
 urlpatterns = [
@@ -70,5 +71,6 @@ urlpatterns = [
     path('llm/<int:pk>/', llm_detail, name='llm_detail'),
     path('llm/<int:pk>/test/', llm_test_endpoint, name='llm_test'),
     path('llm/<int:pk>/playground/', llm_playground, name='llm_playground'),
+    path('llm/<int:pk>/update-backend/', llm_update_backend, name='llm_update_backend'),
     path('llm/search/', llm_search_models, name='llm_search'),
 ]

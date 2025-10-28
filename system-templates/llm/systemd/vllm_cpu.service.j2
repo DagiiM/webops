@@ -1,0 +1,26 @@
+## vLLM CPU systemd service
+[Unit]
+Description=vLLM OpenAI-Compatible API Server (CPU) - {{ app_name }}
+After=network.target
+
+[Service]
+Type=simple
+User={{ webops_user }}
+WorkingDirectory={{ work_dir }}
+Environment="VLLM_TARGET_DEVICE=cpu"
+Environment="CMAKE_DISABLE_FIND_PACKAGE_CUDA=ON"
+Environment="HF_HOME={{ model_cache_path }}"
+Environment="TRANSFORMERS_CACHE={{ model_cache_path }}"
+{% if ld_preload %}Environment="LD_PRELOAD={{ ld_preload }}"{% endif %}
+Environment="PYTHONUNBUFFERED=1"
+
+ExecStart={{ python_path }} -m vllm.entrypoints.openai.api_server {{ vllm_args }}
+Restart=always
+RestartSec=5
+
+# Logging to journal; higher verbosity can be set via args
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

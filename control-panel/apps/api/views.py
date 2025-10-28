@@ -511,6 +511,28 @@ def database_detail(request, name):
         ]
         
         return JsonResponse(db_data)
-        
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def rate_limit_preview(request):
+    """
+    Preview the rate limit page.
+
+    For testing/demo purposes only.
+    Shows the ultra-sleek rate limit UI with real-time countdown.
+    """
+    import time
+    from django.shortcuts import render
+
+    # Sample data for preview (60 second countdown)
+    now = int(time.time())
+    context = {
+        'retry_after': 60,  # 60 seconds
+        'limit': 100,
+        'remaining': 0,
+        'reset': now + 60,  # Reset in 60 seconds
+    }
+
+    return render(request, 'errors/429.html', context, status=429)

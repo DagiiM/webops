@@ -33,10 +33,11 @@ def deploy_llm_model(
     """
     from ..models import LLMDeployment, DeploymentLog
     from ..services import LLMDeploymentService
+    from ..services.llm_transformers import TransformersLLMService
 
     try:
         deployment = LLMDeployment.objects.get(id=deployment_id)
-        logger.info(f"Starting LLM deployment {deployment.name} (Model: {deployment.model_name})")
+        logger.info(f"Starting LLM deployment {deployment.name} (Model: {deployment.model_name}, Backend: {deployment.backend})")
 
         # Verify this is an LLM deployment
         if deployment.project_type != LLMDeployment.ProjectType.LLM:
@@ -44,9 +45,28 @@ def deploy_llm_model(
             logger.error(error_msg)
             return {'success': False, 'error': error_msg}
 
-        # Use LLM deployment service
-        llm_service = LLMDeploymentService()
-        result = llm_service.deploy_llm(deployment)
+        # Route to correct backend
+        if deployment.backend == 'transformers':
+            logger.info(f"Using Transformers backend for {deployment.name}")
+            service = TransformersLLMService()
+            result = service.deploy_transformers(deployment)
+        elif deployment.backend == 'vllm':
+            logger.info(f"Using vLLM backend for {deployment.name}")
+            service = LLMDeploymentService()
+            result = service.deploy_llm(deployment)
+        else:
+            error_msg = f"Backend '{deployment.backend}' is not yet implemented"
+            logger.error(error_msg)
+            DeploymentLog.objects.create(
+                deployment=deployment,
+                level=DeploymentLog.Level.ERROR,
+                message=error_msg
+            )
+            deployment.status = 'failed'
+            deployment.save(update_fields=['status'])
+            return {'success': False, 'error': error_msg}
+
+        result = result  # Result from backend service
 
         if result['success']:
             logger.info(

@@ -39,6 +39,7 @@ from .llm import (
     llm_test_endpoint,
     llm_search_models,
     llm_playground,
+    llm_update_backend,
 )
 
 __all__ = [
@@ -75,4 +76,5 @@ __all__ = [
     'llm_test_endpoint',
     'llm_search_models',
     'llm_playground',
+    'llm_update_backend',
 ]

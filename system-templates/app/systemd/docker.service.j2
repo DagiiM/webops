@@ -1,0 +1,34 @@
+[Unit]
+Description=WebOps Docker Container - {{ app_name }}
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory={{ repo_path }}
+
+# Stop existing container
+ExecStartPre=-/usr/bin/docker stop webops-{{ app_name }}
+ExecStartPre=-/usr/bin/docker rm webops-{{ app_name }}
+
+# Start container
+ExecStart=/usr/bin/docker run -d \
+    --name webops-{{ app_name }} \
+    --restart unless-stopped \
+    --network {{ network_mode }} \
+    -p {{ port }}:{{ port }} \
+    {% for key, value in env_vars.items() %}-e {{ key }}="{{ value }}" \
+    {% endfor %}-e PORT={{ port }} \
+    {% for volume in volumes %}-v {{ volume.host }}:{{ volume.container }} \
+    {% endfor %}{% for port_map in additional_ports %}-p {{ port_map.host }}:{{ port_map.container }} \
+    {% endfor %}{{ image_name }}
+
+# Stop container
+ExecStop=/usr/bin/docker stop webops-{{ app_name }}
+
+# Restart = always handled by docker --restart flag
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

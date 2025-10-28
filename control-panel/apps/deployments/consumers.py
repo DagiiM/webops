@@ -8,7 +8,7 @@ from typing import Any, Dict
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
-from .models import ApplicationDeployment
+from .models import BaseDeployment
 
 
 class DeploymentConsumer(AsyncWebsocketConsumer):
@@ -266,16 +266,16 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def check_deployment_exists(self, deployment_id: str) -> bool:
         """Check if deployment exists in database."""
         try:
-            ApplicationDeployment.objects.get(id=deployment_id)
+            BaseDeployment.objects.get(id=deployment_id)
             return True
-        except ApplicationDeployment.DoesNotExist:
+        except BaseDeployment.DoesNotExist:
             return False
 
     @database_sync_to_async
     def get_deployment_data(self, deployment_id: str) -> Dict[str, Any] | None:
         """Get deployment data from database."""
         try:
-            deployment = ApplicationDeployment.objects.get(id=deployment_id)
+            deployment = BaseDeployment.objects.get(id=deployment_id)
             return {
                 'id': str(deployment.id),
                 'name': deployment.name,
@@ -285,24 +285,24 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
                 'created_at': deployment.created_at.isoformat(),
                 'updated_at': deployment.updated_at.isoformat(),
             }
-        except ApplicationDeployment.DoesNotExist:
+        except BaseDeployment.DoesNotExist:
             return None
 
     @database_sync_to_async
     def user_can_access_deployment(self, deployment_id: str, user: User) -> bool:
         """Check if user can access specific deployment."""
         try:
-            deployment = ApplicationDeployment.objects.get(id=deployment_id)
+            deployment = BaseDeployment.objects.get(id=deployment_id)
             if getattr(user, 'is_superuser', False):
                 return True
             return deployment.deployed_by_id == user.id
-        except ApplicationDeployment.DoesNotExist:
+        except BaseDeployment.DoesNotExist:
             return False
 
     @database_sync_to_async
     def get_deployment_name(self, deployment_id: str) -> str | None:
         """Resolve deployment name by id."""
         try:
-            return ApplicationDeployment.objects.get(id=deployment_id).name
-        except ApplicationDeployment.DoesNotExist:
+            return BaseDeployment.objects.get(id=deployment_id).name
+        except BaseDeployment.DoesNotExist:
             return None

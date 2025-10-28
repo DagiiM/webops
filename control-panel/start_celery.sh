@@ -5,8 +5,6 @@
 # Author: Douglas Mutethia
 # Reference: Project refinement proposal - Step 1
 
-set -e
-
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
@@ -55,6 +53,9 @@ check_worker_status() {
 start_worker() {
     print_status "Starting Celery worker for WebOps..."
     
+    # Ensure any existing worker is stopped
+    stop_worker
+
     # Check if already running
     if check_worker_status; then
         print_warning "Celery worker is already running (PID: $(cat $PIDFILE))"
@@ -96,7 +97,7 @@ start_worker() {
         --concurrency="$CONCURRENCY" \
         --pidfile="$PIDFILE" \
         --logfile="$LOGFILE" \
-        --detach > /dev/null 2>&1
+        --detach > "$LOGFILE" 2>&1
     
     # Wait a moment and check if worker started successfully
     sleep 2

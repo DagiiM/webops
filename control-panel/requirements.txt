@@ -21,6 +21,9 @@ Pillow==10.2.0
 # HTTP Requests
 requests==2.31.0
 
+# HuggingFace Integration
+huggingface-hub==0.20.3
+
 # Git Integration
 GitPython==3.1.41
 
