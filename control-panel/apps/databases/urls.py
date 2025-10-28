@@ -6,7 +6,6 @@ from . import views
 urlpatterns = [
     path('', views.database_list, name='database_list'),
     path('create/', views.DatabaseCreateView.as_view(), name='database_create'),
-    path('create-legacy/', views.database_create_legacy, name='database_create_legacy'),
     path('<int:pk>/', views.database_detail, name='database_detail'),
     path('<int:pk>/delete/', views.database_delete, name='database_delete'),
     path('<int:pk>/credentials/', views.database_credentials_json, name='database_credentials_json'),

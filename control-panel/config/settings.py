@@ -229,6 +229,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
         'webops.websocket.auth': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',

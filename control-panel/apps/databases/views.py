@@ -4,6 +4,8 @@ Views for Databases app.
 "Django App Structure" section
 """
 
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -19,6 +21,8 @@ from .adapters.base import DatabaseType
 from .installer import DatabaseInstaller, DatabaseServiceInstaller
 from apps.core.utils import decrypt_password, encrypt_password
 from apps.addons.models import Addon
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -64,14 +68,22 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
     success_url = '/databases/'
 
     def dispatch(self, request, *args, **kwargs):
-        print(f"User authenticated: {request.user.is_authenticated}")
-        print(f"User: {request.user}")
-        print(f"Request method: {request.method}")
-        print(f"Request headers: {dict(request.headers)}")
+        logger.debug(
+            "Database create view dispatch",
+            extra={
+                'user_authenticated': request.user.is_authenticated,
+                'user': str(request.user),
+                'method': request.method,
+            }
+        )
         if request.method == 'POST':
-            print(f"POST data: {dict(request.POST)}")
-            print(f"CSRF token from POST: {request.POST.get('csrfmiddlewaretoken', 'NOT_FOUND')}")
-            print(f"Session CSRF token: {request.META.get('CSRF_COOKIE', 'NOT_FOUND')}")
+            logger.debug(
+                "POST request to database create",
+                extra={
+                    'has_csrf': bool(request.POST.get('csrfmiddlewaretoken')),
+                    'db_type': request.POST.get('db_type'),
+                }
+            )
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -90,9 +102,17 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
             try:
                 db_type_enum = DatabaseType(db_type)
                 all_installed, missing_deps = DatabaseInstaller.check_dependencies(db_type_enum)
-                
-                print(f"Database type: {db_type}, all_installed: {all_installed}, missing_deps: {missing_deps}")
-                
+
+                logger.info(
+                    "Dependency check for database creation",
+                    extra={
+                        'db_type': db_type,
+                        'all_installed': all_installed,
+                        'missing_deps': missing_deps,
+                        'user_id': self.request.user.id,
+                    }
+                )
+
                 if not all_installed:
                     # Return form invalid with dependency error
                     messages.error(
@@ -100,84 +120,104 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
                         f'Cannot create database: Missing dependencies: {", ".join(missing_deps)}. '
                         'Please install dependencies first.'
                     )
-                    print(f"Form invalid due to missing dependencies: {missing_deps}")
+                    logger.warning(
+                        "Database creation blocked due to missing dependencies",
+                        extra={
+                            'db_type': db_type,
+                            'missing_deps': missing_deps,
+                            'user_id': self.request.user.id,
+                        }
+                    )
                     return self.form_invalid(form)
                     
             except ValueError as e:
                 messages.error(self.request, f'Invalid database type: {db_type}')
-                print(f"Invalid database type error: {e}")
+                logger.error(
+                    "Invalid database type error",
+                    exc_info=True,
+                    extra={'db_type': db_type, 'user_id': self.request.user.id}
+                )
                 return self.form_invalid(form)
             except Exception as e:
                 messages.error(self.request, f'Error checking dependencies: {str(e)}')
-                print(f"Error checking dependencies: {e}")
+                logger.error(
+                    "Error checking dependencies",
+                    exc_info=True,
+                    extra={'db_type': db_type, 'user_id': self.request.user.id}
+                )
                 return self.form_invalid(form)
         
         try:
-            # Encrypt sensitive fields before saving
-            if form.cleaned_data.get('password'):
+            # Auto-generate password if not provided for databases that need it
+            db_type = form.cleaned_data.get('db_type')
+            if db_type in ['postgresql', 'mysql', 'mongodb']:
+                if not form.cleaned_data.get('password'):
+                    from apps.core.utils import generate_password
+                    generated_password = generate_password(32)
+                    form.cleaned_data['password'] = generated_password
+                    form.instance.password = encrypt_password(generated_password)
+                    logger.info(
+                        "Auto-generated password for database",
+                        extra={
+                            'database_name': form.instance.name,
+                            'db_type': db_type,
+                            'user_id': self.request.user.id,
+                        }
+                    )
+                else:
+                    # Encrypt provided password
+                    form.instance.password = encrypt_password(form.cleaned_data['password'])
+            elif form.cleaned_data.get('password'):
+                # Encrypt password for other database types if provided
                 form.instance.password = encrypt_password(form.cleaned_data['password'])
+
+            # Encrypt API key if provided
             if form.cleaned_data.get('api_key'):
                 form.instance.api_key = encrypt_password(form.cleaned_data['api_key'])
-                
-            print(f"Attempting to save database: {form.instance.name}")
+
+            logger.info(
+                "Attempting to save database",
+                extra={
+                    'database_name': form.instance.name,
+                    'db_type': form.instance.db_type,
+                    'user_id': self.request.user.id,
+                }
+            )
             result = super().form_valid(form)
-            print(f"Database created successfully: {form.instance.name}")
+            logger.info(
+                "Database created successfully",
+                extra={
+                    'database_id': form.instance.id,
+                    'database_name': form.instance.name,
+                    'db_type': form.instance.db_type,
+                    'user_id': self.request.user.id,
+                }
+            )
             messages.success(self.request, f'Database {form.instance.name} created successfully!')
             return result
         except Exception as e:
             messages.error(self.request, f'Error creating database: {str(e)}')
-            print(f"Error creating database: {e}")
+            logger.error(
+                "Error creating database",
+                exc_info=True,
+                extra={
+                    'database_name': form.instance.name,
+                    'user_id': self.request.user.id,
+                }
+            )
             return self.form_invalid(form)
 
     def form_invalid(self, form):
-        print(f"Form invalid. Errors: {form.errors}")
-        print(f"Form non-field errors: {form.non_field_errors()}")
-        print(f"Form cleaned data: {form.cleaned_data}")
+        logger.warning(
+            "Database creation form invalid",
+            extra={
+                'errors': dict(form.errors),
+                'non_field_errors': list(form.non_field_errors()),
+                'user_id': self.request.user.id,
+            }
+        )
         messages.error(self.request, f'Please correct the errors below: {form.errors}')
         return super().form_invalid(form)
-
-
-@login_required
-def database_create_legacy(request):
-    """Legacy database creation for PostgreSQL only."""
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        username = request.POST.get('username')
-
-        if name and username:
-            from apps.core.utils import generate_password, encrypt_password
-
-            # Generate password
-            password = generate_password(32)
-
-            # Create database
-            db_service = DatabaseService()
-            success, message = db_service.create_user(username, password)
-
-            if success:
-                success, message = db_service.create_database(name, owner=username)
-
-                if success:
-                    # Save to our database
-                    encrypted_password = encrypt_password(password)
-                    Database.objects.create(
-                        name=name,
-                        username=username,
-                        password=encrypted_password,
-                        host='localhost',
-                        port=5432
-                    )
-
-                    messages.success(request, f'Database {name} created successfully!')
-                    return redirect('database_list')
-                else:
-                    messages.error(request, f'Failed to create database: {message}')
-            else:
-                messages.error(request, f'Failed to create user: {message}')
-        else:
-            messages.error(request, 'Name and username are required')
-
-    return render(request, 'databases/create.html')
 
 
 @login_required
