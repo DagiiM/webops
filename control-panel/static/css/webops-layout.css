@@ -58,7 +58,6 @@
 
 /* Sidebar Toggle Button */
 .webops-sidebar-toggle {
-  display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
