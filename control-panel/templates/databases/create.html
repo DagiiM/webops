@@ -80,28 +80,6 @@
                 </div>
             </div>
 
-            <!-- Dependency Warning (Legacy - will be removed after testing) -->
-            <div id="dependency-warning" class="webops-alert warning webops-hidden">
-                <div class="webops-flex webops-items-center webops-gap-md">
-                    <span class="material-icons webops-icon webops-icon--small">info</span>
-                    <div>
-                        <strong>Dependencies Required</strong>
-                        <p class="webops-text-sm webops-text-muted webops-mt-sm">
-                            <span id="dependency-list-legacy"></span>
-                        </p>
-                        <div class="webops-code webops-mt-sm">
-                            <code id="install-command-legacy"></code>
-                        </div>
-                        <div class="webops-mt-sm">
-                            <a href="#" id="check-deps-btn-legacy" class="webops-btn webops-btn-sm webops-btn-primary">
-                                <span class="material-icons webops-icon">download</span>
-                                Check & Install Dependencies
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Addon Selection -->
             <div id="addon-selection" class="webops-form-group webops-hidden">
                 <label class="webops-label">Available Addons</label>
@@ -521,9 +499,6 @@ class DependencyStatusManager {
         // Show details
         details.style.display = 'block';
         card.classList.remove('webops-hidden');
-
-        // Also update legacy warning for backward compatibility
-        this.updateLegacyWarning(data);
     }
 
     createDependencyItem(dep) {
@@ -665,28 +640,6 @@ class DependencyStatusManager {
         card.style.display = 'block';
     }
 
-    updateLegacyWarning(data) {
-        // Keep legacy warning updated for backward compatibility
-        const legacyWarning = document.getElementById('dependency-warning');
-        const legacyList = document.getElementById('dependency-list-legacy');
-        const legacyCmd = document.getElementById('install-command-legacy');
-        
-        // Hide legacy warning when using the new dependency status card
-        if (data.dependencies && data.dependencies.length > 0) {
-            if (data.dependencies.some(dep => !dep.installed)) {
-                const missingDeps = data.dependencies.filter(dep => !dep.installed);
-                legacyList.textContent = `Dependencies: ${missingDeps.map(dep => dep.name).join(', ')}`;
-                legacyCmd.textContent = data.install_command || 'pip install ' + missingDeps.map(dep => dep.name).join(' ');
-                legacyWarning.classList.remove('webops-hidden');
-            } else {
-                // All dependencies are installed, hide the legacy warning
-                legacyWarning.classList.add('webops-hidden');
-            }
-        } else {
-            // No dependencies to check (e.g., SQLite), hide the legacy warning
-            legacyWarning.classList.add('webops-hidden');
-        }
-    }
 }
 
 // Initialize dependency manager
@@ -708,9 +661,8 @@ document.getElementById('db_type').addEventListener('change', async function(e) 
         const data = await dependencyManager.checkDependencies(dbType);
         dependencyManager.updateDependencyCard(data);
     } else {
-        // Hide dependency card and legacy warning for databases that don't require dependencies
+        // Hide dependency card for databases that don't require dependencies
         document.getElementById('dependency-status-card').classList.add('webops-hidden');
-        document.getElementById('dependency-warning').classList.add('webops-hidden');
     }
     
     // Hide addon selection initially
@@ -742,14 +694,6 @@ document.getElementById('db_type').addEventListener('change', async function(e) 
         const port = selectedOption.dataset.port;
         if (port) {
             document.getElementById('port_redis').value = port;
-        }
-    }
-    
-    // Set up the check dependencies button for databases that require them (legacy)
-    if (['postgresql', 'mysql', 'mongodb', 'redis'].includes(dbType)) {
-        const checkDepsBtn = document.getElementById('check-deps-btn-legacy');
-        if (checkDepsBtn) {
-            checkDepsBtn.href = `{% dependency_check_url 'placeholder' %}`.replace('placeholder', dbType);
         }
     }
 });

@@ -185,11 +185,11 @@
                 <!-- PostgreSQL Fields -->
                 <div id="postgresql-fields" class="db-type-fields webops-hidden">
                     <div class="webops-form-group">
-                        <label for="postgresql_username" class="webops-label webops-label-required">Database Username</label>
+                        <label for="username_postgresql" class="webops-label webops-label-required">Database Username</label>
                         <input
                             type="text"
-                            id="postgresql_username"
-                            name="postgresql_username"
+                            id="username_postgresql"
+                            name="username"
                             class="webops-input"
                             placeholder="myapp_user"
                             autocomplete="off"
@@ -200,11 +200,11 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="postgresql_host" class="webops-label webops-label-required">Host</label>
+                        <label for="host_postgresql" class="webops-label webops-label-required">Host</label>
                         <input
                             type="text"
-                            id="postgresql_host"
-                            name="postgresql_host"
+                            id="host_postgresql"
+                            name="host"
                             class="webops-input"
                             value="localhost"
                             placeholder="localhost"
@@ -212,26 +212,54 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="postgresql_port" class="webops-label webops-label-required">Port</label>
+                        <label for="port_postgresql" class="webops-label webops-label-required">Port</label>
                         <input
                             type="number"
-                            id="postgresql_port"
-                            name="postgresql_port"
+                            id="port_postgresql"
+                            name="port"
                             class="webops-input"
                             value="5432"
                             placeholder="5432"
                         >
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="database_name_postgresql" class="webops-label">Database Name (Optional)</label>
+                        <input
+                            type="text"
+                            id="database_name_postgresql"
+                            name="database_name"
+                            class="webops-input"
+                            placeholder="Will default to 'name' field value"
+                        >
+                        <small class="webops-input-help">
+                            Leave blank to use the same value as the Name field above
+                        </small>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="password_postgresql" class="webops-label">Password (Optional)</label>
+                        <input
+                            type="password"
+                            id="password_postgresql"
+                            name="password"
+                            class="webops-input"
+                            placeholder="Auto-generated if left blank"
+                        >
+                        <small class="webops-input-help">
+                            A secure password will be auto-generated if left blank
+                        </small>
                     </div>
                 </div>
 
                 <!-- MySQL Fields -->
                 <div id="mysql-fields" class="db-type-fields webops-hidden">
                     <div class="webops-form-group">
-                        <label for="mysql_username" class="webops-label webops-label-required">Database Username</label>
+                        <label for="username_mysql" class="webops-label webops-label-required">Database Username</label>
                         <input
                             type="text"
-                            id="mysql_username"
-                            name="mysql_username"
+                            id="username_mysql"
+                            name="username"
                             class="webops-input"
                             placeholder="myapp_user"
                             autocomplete="off"
@@ -239,11 +267,11 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="mysql_host" class="webops-label webops-label-required">Host</label>
+                        <label for="host_mysql" class="webops-label webops-label-required">Host</label>
                         <input
                             type="text"
-                            id="mysql_host"
-                            name="mysql_host"
+                            id="host_mysql"
+                            name="host"
                             class="webops-input"
                             value="localhost"
                             placeholder="localhost"
@@ -251,26 +279,54 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="mysql_port" class="webops-label webops-label-required">Port</label>
+                        <label for="port_mysql" class="webops-label webops-label-required">Port</label>
                         <input
                             type="number"
-                            id="mysql_port"
-                            name="mysql_port"
+                            id="port_mysql"
+                            name="port"
                             class="webops-input"
                             value="3306"
                             placeholder="3306"
                         >
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="database_name_mysql" class="webops-label">Database Name (Optional)</label>
+                        <input
+                            type="text"
+                            id="database_name_mysql"
+                            name="database_name"
+                            class="webops-input"
+                            placeholder="Will default to 'name' field value"
+                        >
+                        <small class="webops-input-help">
+                            Leave blank to use the same value as the Name field above
+                        </small>
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="password_mysql" class="webops-label">Password (Optional)</label>
+                        <input
+                            type="password"
+                            id="password_mysql"
+                            name="password"
+                            class="webops-input"
+                            placeholder="Auto-generated if left blank"
+                        >
+                        <small class="webops-input-help">
+                            A secure password will be auto-generated if left blank
+                        </small>
                     </div>
                 </div>
 
                 <!-- MongoDB Fields -->
                 <div id="mongodb-fields" class="db-type-fields webops-hidden">
                     <div class="webops-form-group">
-                        <label for="mongodb_username" class="webops-label">Database Username (Optional)</label>
+                        <label for="username_mongodb" class="webops-label">Database Username (Optional)</label>
                         <input
                             type="text"
-                            id="mongodb_username"
-                            name="mongodb_username"
+                            id="username_mongodb"
+                            name="username"
                             class="webops-input"
                             placeholder="myapp_user"
                             autocomplete="off"
@@ -278,11 +334,11 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="mongodb_host" class="webops-label webops-label-required">Host</label>
+                        <label for="host_mongodb" class="webops-label webops-label-required">Host</label>
                         <input
                             type="text"
-                            id="mongodb_host"
-                            name="mongodb_host"
+                            id="host_mongodb"
+                            name="host"
                             class="webops-input"
                             value="localhost"
                             placeholder="localhost"
@@ -290,26 +346,62 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="mongodb_port" class="webops-label webops-label-required">Port</label>
+                        <label for="port_mongodb" class="webops-label webops-label-required">Port</label>
                         <input
                             type="number"
-                            id="mongodb_port"
-                            name="mongodb_port"
+                            id="port_mongodb"
+                            name="port"
                             class="webops-input"
                             value="27017"
                             placeholder="27017"
                         >
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="database_name_mongodb" class="webops-label">Database Name (Optional)</label>
+                        <input
+                            type="text"
+                            id="database_name_mongodb"
+                            name="database_name"
+                            class="webops-input"
+                            placeholder="Will default to 'name' field value"
+                        >
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="password_mongodb" class="webops-label">Password (Optional)</label>
+                        <input
+                            type="password"
+                            id="password_mongodb"
+                            name="password"
+                            class="webops-input"
+                            placeholder="Auto-generated if left blank"
+                        >
+                    </div>
+
+                    <div class="webops-form-group">
+                        <label for="connection_uri_mongodb" class="webops-label">Connection URI (Optional)</label>
+                        <textarea
+                            id="connection_uri_mongodb"
+                            name="connection_uri"
+                            class="webops-input"
+                            rows="2"
+                            placeholder="mongodb://username:password@host:port/database"
+                        ></textarea>
+                        <small class="webops-input-help">
+                            Leave blank to use individual fields above
+                        </small>
                     </div>
                 </div>
 
                 <!-- SQLite Fields -->
                 <div id="sqlite-fields" class="db-type-fields webops-hidden">
                     <div class="webops-form-group">
-                        <label for="sqlite_path" class="webops-label webops-label-required">Database Path</label>
+                        <label for="database_name_sqlite" class="webops-label webops-label-required">Database Path</label>
                         <input
                             type="text"
-                            id="sqlite_path"
-                            name="sqlite_path"
+                            id="database_name_sqlite"
+                            name="database_name"
                             class="webops-input"
                             placeholder="/path/to/database.db"
                         >
@@ -322,11 +414,11 @@
                 <!-- Redis Fields -->
                 <div id="redis-fields" class="db-type-fields webops-hidden">
                     <div class="webops-form-group">
-                        <label for="redis_host" class="webops-label webops-label-required">Host</label>
+                        <label for="host_redis" class="webops-label webops-label-required">Host</label>
                         <input
                             type="text"
-                            id="redis_host"
-                            name="redis_host"
+                            id="host_redis"
+                            name="host"
                             class="webops-input"
                             value="localhost"
                             placeholder="localhost"
@@ -334,11 +426,11 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="redis_port" class="webops-label webops-label-required">Port</label>
+                        <label for="port_redis" class="webops-label webops-label-required">Port</label>
                         <input
                             type="number"
-                            id="redis_port"
-                            name="redis_port"
+                            id="port_redis"
+                            name="port"
                             class="webops-input"
                             value="6379"
                             placeholder="6379"
@@ -346,22 +438,22 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="redis_password" class="webops-label">Password (Optional)</label>
+                        <label for="password_redis" class="webops-label">Password (Optional)</label>
                         <input
                             type="password"
-                            id="redis_password"
-                            name="redis_password"
+                            id="password_redis"
+                            name="password"
                             class="webops-input"
                             placeholder="Redis password (if required)"
                         >
                     </div>
 
                     <div class="webops-form-group">
-                        <label for="redis_db" class="webops-label">Database Number</label>
+                        <label for="database_name_redis" class="webops-label">Database Number</label>
                         <input
                             type="number"
-                            id="redis_db"
-                            name="redis_db"
+                            id="database_name_redis"
+                            name="database_name"
                             class="webops-input"
                             value="0"
                             placeholder="0"
@@ -412,19 +504,6 @@
                             <div id="dependency-list-modal" class="webops-dependency-list">
                                 <!-- Dynamic dependency items will be inserted here -->
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dependency Notice (Legacy) -->
-                <div id="dependency-notice" class="webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-warning); display: none;">
-                    <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
-                        <span class="material-icons webops-text-warning" style="font-size: 20px;">warning</span>
-                        <div>
-                            <strong class="webops-font-semibold">Dependency Required</strong>
-                            <p id="dependency-text" class="webops-text-sm webops-text-secondary" style="margin: 4px 0 0 0;">
-                                You need to install the required dependencies for this database type
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -602,9 +681,6 @@ class ModalDependencyStatusManager {
         // Show details
         details.classList.remove('webops-hidden');
         card.classList.remove('webops-hidden');
-
-        // Also update legacy warning for backward compatibility
-        this.updateLegacyWarning(data);
     }
 
     createDependencyItem(dep) {
@@ -746,26 +822,6 @@ class ModalDependencyStatusManager {
         card.classList.remove('webops-hidden');
     }
 
-    updateLegacyWarning(data) {
-        // Keep legacy warning updated for backward compatibility
-        const legacyWarning = document.getElementById('dependency-notice');
-        const legacyText = document.getElementById('dependency-text');
-        
-        // Hide legacy warning when using the new dependency status card
-        if (data.dependencies && data.dependencies.length > 0) {
-            if (data.dependencies.some(dep => !dep.installed)) {
-                const missingDeps = data.dependencies.filter(dep => !dep.installed);
-                legacyText.textContent = `Dependencies: ${missingDeps.map(dep => dep.name).join(', ')}`;
-                legacyWarning.classList.remove('webops-hidden');
-            } else {
-                // All dependencies are installed, hide the legacy warning
-                legacyWarning.classList.add('webops-hidden');
-            }
-        } else {
-            // No dependencies to check (e.g., SQLite), hide the legacy warning
-            legacyWarning.classList.add('webops-hidden');
-        }
-    }
 }
 
 // Initialize modal dependency manager
@@ -842,9 +898,8 @@ document.getElementById('db_type').addEventListener('change', async function(e) 
             const data = await modalDependencyManager.checkDependencies(dbType);
             modalDependencyManager.updateDependencyCard(data);
         } else {
-            // Hide dependency card and legacy warning for databases that don't require dependencies
+            // Hide dependency card for databases that don't require dependencies
             document.getElementById('dependency-status-card-modal').style.display = 'none';
-            document.getElementById('dependency-notice').style.display = 'none';
         }
     }
 });
@@ -853,13 +908,15 @@ document.getElementById('db_type').addEventListener('change', async function(e) 
 document.getElementById('name').addEventListener('input', function(e) {
     const dbType = document.getElementById('db_type').value;
     let usernameInput = null;
-    
+
     if (dbType === 'postgresql') {
-        usernameInput = document.getElementById('postgresql_username');
+        usernameInput = document.getElementById('username_postgresql');
     } else if (dbType === 'mysql') {
-        usernameInput = document.getElementById('mysql_username');
+        usernameInput = document.getElementById('username_mysql');
+    } else if (dbType === 'mongodb') {
+        usernameInput = document.getElementById('username_mongodb');
     }
-    
+
     if (usernameInput && !usernameInput.value) {
         const suggestion = e.target.value.replace(/_db$/, '_user');
         usernameInput.value = suggestion;
