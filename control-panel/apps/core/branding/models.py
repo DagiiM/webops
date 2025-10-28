@@ -456,7 +456,20 @@ class BrandingSettings(models.Model):
 
     # Deprecated internal methods - kept for backward compatibility but delegate to service
     def _apply_theme_preset(self) -> None:
-        """DEPRECATED: Use BrandingService.apply_theme_preset() directly."""
+        """DEPRECATED: Use BrandingService.apply_theme_preset() directly.
+
+        This method will be removed in version 2.0.
+
+        Deprecated since: 1.0.7
+        Removal planned: 2.0.0
+        """
+        import warnings
+        warnings.warn(
+            "_apply_theme_preset() is deprecated and will be removed in version 2.0. "
+            "Use BrandingService.apply_theme_preset() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         from apps.core.branding.services import BrandingService
         preset = BrandingService.apply_theme_preset(self.theme_preset)
         if preset:
@@ -465,7 +478,20 @@ class BrandingSettings(models.Model):
                     setattr(self, key, value)
 
     def _generate_hex_colors(self) -> None:
-        """DEPRECATED: Use BrandingService.hsl_to_hex() directly."""
+        """DEPRECATED: Use BrandingService.hsl_to_hex() directly.
+
+        This method will be removed in version 2.0.
+
+        Deprecated since: 1.0.7
+        Removal planned: 2.0.0
+        """
+        import warnings
+        warnings.warn(
+            "_generate_hex_colors() is deprecated and will be removed in version 2.0. "
+            "Use BrandingService.hsl_to_hex() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         from apps.core.branding.services import BrandingService
         self.primary_color = BrandingService.hsl_to_hex(
             self.primary_hue,

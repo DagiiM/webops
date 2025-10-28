@@ -201,7 +201,8 @@ class DatabaseService:
         success, message = self.create_database(db_name, owner=username)
         if not success:
             logger.error(f"Failed to create database for {deployment.name}: {message}")
-            # TODO: Clean up user
+            # TODO #16: Clean up database user on deletion
+            # See: docs/TODO_TRACKING.md for details
             return None
 
         # Grant privileges

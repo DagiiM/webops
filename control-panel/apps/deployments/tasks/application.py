@@ -45,7 +45,7 @@ def deploy_application(
 
         return result
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error_msg = f"Deployment {deployment_id} not found"
         logger.error(error_msg)
         return {'success': False, 'error': error_msg}
@@ -57,7 +57,7 @@ def deploy_application(
         # Update deployment status
         try:
             deployment = ApplicationDeployment.objects.get(id=deployment_id)
-            deployment.status = Deployment.Status.FAILED
+            deployment.status = ApplicationDeployment.Status.FAILED
             deployment.save(update_fields=['status'])
 
             DeploymentLog.objects.create(
@@ -86,13 +86,14 @@ def restart_deployment(
     Returns:
         Dictionary with restart result
     """
-    from ..models import Deployment, DeploymentLog
+    from ..models import ApplicationDeployment, DeploymentLog
 
     try:
         deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Restarting deployment {deployment.name}")
 
-        # TODO: Implement service restart logic (Phase 2.5)
+        # TODO #9: Implement service restart logic
+        # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just log it
         DeploymentLog.objects.create(
             deployment=deployment,
@@ -106,7 +107,7 @@ def restart_deployment(
             'message': 'Restart queued (implementation pending)'
         }
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error_msg = f"Deployment {deployment_id} not found"
         logger.error(error_msg)
         return {'success': False, 'error': error_msg}
@@ -131,15 +132,16 @@ def stop_deployment(
     Returns:
         Dictionary with stop result
     """
-    from ..models import Deployment, DeploymentLog
+    from ..models import ApplicationDeployment, DeploymentLog
 
     try:
         deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Stopping deployment {deployment.name}")
 
-        # TODO: Implement service stop logic (Phase 2.5)
+        # TODO #10: Implement service stop logic
+        # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just update status
-        deployment.status = Deployment.Status.STOPPED
+        deployment.status = ApplicationDeployment.Status.STOPPED
         deployment.save(update_fields=['status'])
 
         DeploymentLog.objects.create(
@@ -154,7 +156,7 @@ def stop_deployment(
             'status': deployment.status
         }
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error_msg = f"Deployment {deployment_id} not found"
         logger.error(error_msg)
         return {'success': False, 'error': error_msg}
@@ -179,7 +181,7 @@ def delete_deployment(
     Returns:
         Dictionary with deletion result
     """
-    from ..models import Deployment, DeploymentLog
+    from ..models import ApplicationDeployment, DeploymentLog
     from ..services import DeploymentService
     from ..shared import ServiceManager
     import shutil
@@ -216,7 +218,7 @@ def delete_deployment(
             'message': f'Deployment {deployment_name} deleted'
         }
 
-    except Deployment.DoesNotExist:
+    except ApplicationDeployment.DoesNotExist:
         error_msg = f"Deployment {deployment_id} not found"
         logger.error(error_msg)
         return {'success': False, 'error': error_msg}

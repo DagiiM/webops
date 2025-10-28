@@ -211,7 +211,8 @@ class DeploymentMonitor:
         """
         logger.warning(f"ALERT [{level.upper()}]: {subject} - {message}")
         
-        # TODO: Implement email/Slack notifications
+        # TODO #11: Implement email/Slack notifications
+        # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just log the alert
         try:
             # Create security audit log

@@ -414,7 +414,8 @@ def api_scan_now(request):
             is_automated=False
         )
         
-        # TODO: Implement actual scan execution
+        # TODO #17: Implement security scan execution
+        # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just mark as completed with sample data
         scan.status = 'completed'
         scan.completed_at = timezone.now()

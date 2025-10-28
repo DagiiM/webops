@@ -31,7 +31,8 @@ def deployment_detail(request, pk):
     service_status = service_manager.get_service_status(deployment)
 
     # Check for Celery services (placeholder - no configuration relationship exists)
-    # TODO: Implement proper Celery service detection if needed
+    # TODO #15: Implement proper Celery service detection
+    # See: docs/TODO_TRACKING.md for details
     celery_services = []
 
     return render(request, 'deployments/detail.html', {
@@ -380,6 +381,21 @@ def deployment_start(request, pk):
     """Start a deployment service."""
     deployment = get_object_or_404(BaseDeployment, pk=pk)
 
+    # Check if this is a pending LLM deployment that needs initial setup
+    from ..models import LLMDeployment
+    is_llm_deployment = False
+    try:
+        llm_deployment = LLMDeployment.objects.get(pk=pk)
+        is_llm_deployment = True
+        if llm_deployment.status == 'pending':
+            # Trigger initial LLM deployment
+            from ..tasks.llm import deploy_llm_model
+            deploy_llm_model.delay(llm_deployment.id)
+            messages.success(request, f'LLM deployment started! Check deployment logs for progress.')
+            return redirect('deployments:llm_detail', pk=pk)
+    except LLMDeployment.DoesNotExist:
+        pass  # Not an LLM deployment, continue with regular start
+
     from ..shared import ServiceManager
 
     service_manager = ServiceManager()
@@ -390,7 +406,11 @@ def deployment_start(request, pk):
     else:
         messages.error(request, f'Failed to start deployment: {message}')
 
-    return redirect('deployments:deployment_detail', pk=pk)
+    # Redirect to appropriate detail view based on deployment type
+    if is_llm_deployment:
+        return redirect('deployments:llm_detail', pk=pk)
+    else:
+        return redirect('deployments:deployment_detail', pk=pk)
 
 
 @login_required
@@ -399,6 +419,7 @@ def deployment_stop(request, pk):
     deployment = get_object_or_404(BaseDeployment, pk=pk)
 
     from ..shared import ServiceManager
+    from ..models import LLMDeployment
 
     service_manager = ServiceManager()
     success, message = service_manager.stop_service(deployment)
@@ -408,7 +429,11 @@ def deployment_stop(request, pk):
     else:
         messages.error(request, f'Failed to stop deployment: {message}')
 
-    return redirect('deployments:deployment_detail', pk=pk)
+    # Redirect to appropriate detail view based on deployment type
+    if LLMDeployment.objects.filter(pk=pk).exists():
+        return redirect('deployments:llm_detail', pk=pk)
+    else:
+        return redirect('deployments:deployment_detail', pk=pk)
 
 
 @login_required
@@ -417,6 +442,7 @@ def deployment_restart(request, pk):
     deployment = get_object_or_404(BaseDeployment, pk=pk)
 
     from ..shared import ServiceManager
+    from ..models import LLMDeployment
 
     service_manager = ServiceManager()
     success, message = service_manager.restart_service(deployment)
@@ -426,7 +452,11 @@ def deployment_restart(request, pk):
     else:
         messages.error(request, f'Failed to restart deployment: {message}')
 
-    return redirect('deployments:deployment_detail', pk=pk)
+    # Redirect to appropriate detail view based on deployment type
+    if LLMDeployment.objects.filter(pk=pk).exists():
+        return redirect('deployments:llm_detail', pk=pk)
+    else:
+        return redirect('deployments:deployment_detail', pk=pk)
 
 
 @login_required
@@ -876,7 +906,7 @@ def deployment_health_history(request, pk):
 @login_required
 def deployment_monitoring(request, pk):
     """Monitoring dashboard for deployment."""
-    from .models import HealthCheckRecord
+    from ..models import HealthCheckRecord
     from django.utils import timezone
     from datetime import timedelta
 
