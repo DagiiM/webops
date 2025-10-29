@@ -137,7 +137,7 @@
 }
 
 .webops-card:hover {
-  border-color: var(--webops-color-primary-alpha-25);
+  border-color: var(--webops-color-primary-alpha-35);
   box-shadow: var(--webops-shadow-md);
 }
 
@@ -1106,7 +1106,7 @@
 }
 
 .webops-model-card:hover {
-  border-color: var(--webops-color-primary-alpha-25);
+  border-color: var(--webops-color-primary-alpha-35);
   transform: translateY(-2px);
   box-shadow: var(--webops-shadow-md);
 }

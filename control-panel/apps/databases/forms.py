@@ -4,13 +4,63 @@ Forms for Databases app.
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from .models import Database
 from .adapters.base import DatabaseType
 from apps.addons.models import Addon
 
+# Define a validator for database identifiers (names, usernames)
+identifier_validator = RegexValidator(
+    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
+    message='Identifier must start with a letter, and contain only letters, numbers, and underscores.',
+    code='invalid_identifier'
+)
+
+# Define a validator for database names with length restrictions
+database_name_validator = RegexValidator(
+    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
+    message='Database name must start with a letter, and contain only letters, numbers, and underscores (max 63 characters).',
+    code='invalid_database_name'
+)
+
+# Define a validator for usernames with length restrictions
+username_validator = RegexValidator(
+    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
+    message='Username must start with a letter, and contain only letters, numbers, and underscores (max 63 characters).',
+    code='invalid_username'
+)
+
+# Define a validator for connection URIs to prevent injection
+connection_uri_validator = RegexValidator(
+    regex=r'^(mongodb|mysql|postgresql|sqlite)://[a-zA-Z0-9_\-\.@:/]+[a-zA-Z0-9_\-\.@:/]*$',
+    message='Invalid connection URI format.',
+    code='invalid_connection_uri'
+)
+
 
 class DatabaseForm(forms.ModelForm):
     """Form for creating and editing databases with dynamic validation."""
+
+    # Override the name field to add validation
+    name = forms.CharField(
+        max_length=63,  # PostgreSQL identifier limit
+        validators=[identifier_validator],
+        widget=forms.TextInput(attrs={
+            'class': 'webops-input',
+            'placeholder': 'Enter database name'
+        })
+    )
+    
+    # Override the username field to add validation
+    username = forms.CharField(
+        max_length=63,  # PostgreSQL identifier limit
+        required=False,
+        validators=[identifier_validator],
+        widget=forms.TextInput(attrs={
+            'class': 'webops-input',
+            'placeholder': 'Username'
+        })
+    )
 
     class Meta:
         model = Database
@@ -26,10 +76,6 @@ class DatabaseForm(forms.ModelForm):
                 'class': 'webops-select',
                 'id': 'db_type'
             }),
-            'name': forms.TextInput(attrs={
-                'class': 'webops-input',
-                'placeholder': 'Enter database name'
-            }),
             'host': forms.TextInput(attrs={
                 'class': 'webops-input',
                 'placeholder': 'localhost'
@@ -37,10 +83,6 @@ class DatabaseForm(forms.ModelForm):
             'port': forms.NumberInput(attrs={
                 'class': 'webops-input',
                 'placeholder': '5432'
-            }),
-            'username': forms.TextInput(attrs={
-                'class': 'webops-input',
-                'placeholder': 'Username'
             }),
             'database_name': forms.TextInput(attrs={
                 'class': 'webops-input',
@@ -82,6 +124,77 @@ class DatabaseForm(forms.ModelForm):
             capabilities__contains=['database']
         )
 
+    def clean_database_name(self):
+        """Custom validation for database name."""
+        database_name = self.cleaned_data.get('database_name')
+        if database_name and not database_name_validator(database_name):
+            raise ValidationError("Invalid database name format")
+        
+        # Additional length validation
+        if database_name and len(database_name) > 63:
+            raise ValidationError("Database name too long (max 63 characters)")
+            
+        return database_name
+    
+    def clean_name(self):
+        """Custom validation for database name."""
+        name = self.cleaned_data.get('name')
+        if name and not identifier_validator(name):
+            raise ValidationError("Invalid database name format")
+        
+        # Additional length validation
+        if name and len(name) > 63:
+            raise ValidationError("Database name too long (max 63 characters)")
+            
+        return name
+    
+    def clean_username(self):
+        """Custom validation for username."""
+        username = self.cleaned_data.get('username')
+        if username and not identifier_validator(username):
+            raise ValidationError("Invalid username format")
+        
+        # Additional length validation
+        if username and len(username) > 63:
+            raise ValidationError("Username too long (max 63 characters)")
+            
+        return username
+    
+    def clean_host(self):
+        """Custom validation for host."""
+        host = self.cleaned_data.get('host')
+        if host:
+            # Basic host validation to prevent injection
+            if not re.match(r'^[a-zA-Z0-9\.\-]+$', host):
+                raise ValidationError("Invalid host format")
+            
+            # Length validation
+            if len(host) > 253:  # Max hostname length
+                raise ValidationError("Host too long (max 253 characters)")
+            
+        return host
+    
+    def clean_port(self):
+        """Custom validation for port."""
+        port = self.cleaned_data.get('port')
+        if port:
+            try:
+                port_int = int(port)
+                if not (1 <= port_int <= 65535):
+                    raise ValidationError("Port must be between 1 and 65535")
+            except (ValueError, TypeError):
+                raise ValidationError("Invalid port number")
+        return port
+    
+    def clean_connection_uri(self):
+        """Custom validation for connection URI."""
+        connection_uri = self.cleaned_data.get('connection_uri')
+        if connection_uri:
+            # Basic URI validation to prevent injection
+            if not re.match(r'^[a-zA-Z0-9+://[a-zA-Z0-9\.\-@:/]+[a-zA-Z0-9\.\-@:/]*$', connection_uri):
+                raise ValidationError("Invalid connection URI format")
+        return connection_uri
+    
     def clean(self):
         """Clean and validate form data based on database type."""
         cleaned_data = super().clean()

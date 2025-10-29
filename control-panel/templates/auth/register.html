@@ -1,102 +1,427 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - WebOps</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-</head>
-<body class="login-page">
-    <div class="webops-app-background"></div>
-    <div class="login-container" style="padding: 2rem 1rem;">
-        <div class="webops-card" style="max-width: 480px; margin: 0 auto;">
-            <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">WebOps</h1>
-                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Create Your Account</h2>
+{% extends 'auth/auth_base.html' %}
 
-                {% if form.non_field_errors %}
-                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-radius-md);">
-                    {% for error in form.non_field_errors %}
-                    <span class="webops-text-error">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
+{% block title %}Register - WebOps{% endblock %}
+{% block page_title %}Create Your Account{% endblock %}
+{% block card_max_width %}480px{% endblock %}
 
-                <form method="post" novalidate>
-                    {% csrf_token %}
+{% block content %}
+{% if form.non_field_errors %}
+<div class="auth-alert auth-alert-error" role="alert">
+    <span class="material-icons">error</span>
+    <div>
+        {% for error in form.non_field_errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
-                    <div class="webops-form-group">
-                        <label for="{{ form.username.id_for_label }}" class="webops-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                {{ form.username.errors|first }}
-                            </div>
-                        {% elif form.username.help_text %}
-                            <div class="webops-text-secondary webops-text-sm webops-mt-xs">
-                                {{ form.username.help_text }}
-                            </div>
-                        {% endif %}
-                    </div>
+<form method="post" id="registerForm" novalidate>
+    {% csrf_token %}
 
-                    <div class="webops-form-group">
-                        <label for="{{ form.email.id_for_label }}" class="webops-label">Email Address</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                {{ form.email.errors|first }}
-                            </div>
-                        {% endif %}
-                    </div>
+    <div class="auth-form-group">
+        <label for="{{ form.username.id_for_label }}" class="webops-label">Username</label>
+        <div class="auth-input-wrapper">
+            {{ form.username }}
+            <span class="auth-input-icon material-icons" id="username-icon" aria-hidden="true"></span>
+        </div>
+        <div class="auth-feedback" id="username-feedback" role="alert"></div>
+        {% if form.username.errors %}
+            <div class="auth-feedback show error">
+                <span class="material-icons">error</span>
+                <span>{{ form.username.errors|first }}</span>
+            </div>
+        {% endif %}
+    </div>
 
-                    <div class="webops-form-group">
-                        <label for="{{ form.password1.id_for_label }}" class="webops-label">Password</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                {{ form.password1.errors|first }}
-                            </div>
-                        {% elif form.password1.help_text %}
-                            <div class="webops-text-secondary webops-text-sm webops-mt-xs">
-                                {{ form.password1.help_text }}
-                            </div>
-                        {% endif %}
-                    </div>
+    <div class="auth-form-group">
+        <label for="{{ form.email.id_for_label }}" class="webops-label">Email Address</label>
+        <div class="auth-input-wrapper">
+            {{ form.email }}
+            <span class="auth-input-icon material-icons" id="email-icon" aria-hidden="true"></span>
+        </div>
+        <div class="auth-feedback" id="email-feedback" role="alert"></div>
+        {% if form.email.errors %}
+            <div class="auth-feedback show error">
+                <span class="material-icons">error</span>
+                <span>{{ form.email.errors|first }}</span>
+            </div>
+        {% endif %}
+    </div>
 
-                    <div class="webops-form-group">
-                        <label for="{{ form.password2.id_for_label }}" class="webops-label">Confirm Password</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                {{ form.password2.errors|first }}
-                            </div>
-                        {% endif %}
-                    </div>
+    <div class="auth-form-group">
+        <label for="{{ form.password1.id_for_label }}" class="webops-label">Password</label>
+        <div class="auth-input-wrapper">
+            {{ form.password1 }}
+            <button type="button" class="password-toggle" id="togglePassword1" aria-label="Toggle password visibility">
+                <span class="material-icons">visibility_off</span>
+            </button>
+        </div>
+        <div class="auth-feedback" id="password1-feedback" role="alert"></div>
 
-                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">
-                        Create Account
-                    </button>
-
-                    <div class="webops-text-center webops-text-secondary">
-                        Already have an account?
-                        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none;">
-                            Sign In
-                        </a>
-                    </div>
-                </form>
-
-                <!-- Social Sign Up -->
-                <div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
-                    <span style="font-size: var(--webops-font-size-sm);">or</span>
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
-                </div>
-                <a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
-                    Sign up with Google
-                </a>
+        <!-- Password Strength Meter -->
+        <div class="password-strength" id="passwordStrength" style="display: none;">
+            <div class="password-strength-label">
+                Password strength: <span id="strengthText">Weak</span>
+            </div>
+            <div class="password-strength-bar">
+                <div class="password-strength-fill" id="strengthBar"></div>
             </div>
         </div>
+
+        <!-- Password Requirements -->
+        <div class="password-requirements" id="passwordRequirements" style="display: none;">
+            <div class="password-requirement" id="req-length">
+                <span class="material-icons">radio_button_unchecked</span>
+                <span>At least 8 characters</span>
+            </div>
+            <div class="password-requirement" id="req-uppercase">
+                <span class="material-icons">radio_button_unchecked</span>
+                <span>One uppercase letter</span>
+            </div>
+            <div class="password-requirement" id="req-lowercase">
+                <span class="material-icons">radio_button_unchecked</span>
+                <span>One lowercase letter</span>
+            </div>
+            <div class="password-requirement" id="req-number">
+                <span class="material-icons">radio_button_unchecked</span>
+                <span>One number</span>
+            </div>
+        </div>
+
+        {% if form.password1.errors %}
+            <div class="auth-feedback show error">
+                <span class="material-icons">error</span>
+                <span>{{ form.password1.errors|first }}</span>
+            </div>
+        {% endif %}
     </div>
-</body>
-</html>
+
+    <div class="auth-form-group">
+        <label for="{{ form.password2.id_for_label }}" class="webops-label">Confirm Password</label>
+        <div class="auth-input-wrapper">
+            {{ form.password2 }}
+            <button type="button" class="password-toggle" id="togglePassword2" aria-label="Toggle password visibility">
+                <span class="material-icons">visibility_off</span>
+            </button>
+        </div>
+        <div class="auth-feedback" id="password2-feedback" role="alert"></div>
+        {% if form.password2.errors %}
+            <div class="auth-feedback show error">
+                <span class="material-icons">error</span>
+                <span>{{ form.password2.errors|first }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md" id="submitBtn">
+        Create Account
+    </button>
+
+    <div class="webops-text-center webops-text-secondary">
+        Already have an account?
+        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none;">
+            Sign In
+        </a>
+    </div>
+</form>
+
+<!-- Social Sign Up -->
+<div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
+    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+    <span style="font-size: var(--webops-font-size-sm);">or</span>
+    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+</div>
+<a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
+    <span style="display: inline-flex; align-items: center; gap: var(--webops-space-2);">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+            <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+        </svg>
+        Sign up with Google
+    </span>
+</a>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    const form = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const password1Input = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2Input = document.getElementById('{{ form.password2.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Add placeholders and classes
+    usernameInput.placeholder = 'Choose a username';
+    usernameInput.className = 'auth-input';
+    usernameInput.autocomplete = 'username';
+    usernameInput.setAttribute('aria-describedby', 'username-feedback');
+
+    emailInput.placeholder = 'your.email@example.com';
+    emailInput.className = 'auth-input';
+    emailInput.type = 'email';
+    emailInput.autocomplete = 'email';
+    emailInput.setAttribute('aria-describedby', 'email-feedback');
+
+    password1Input.placeholder = 'Create a strong password';
+    password1Input.className = 'auth-input';
+    password1Input.autocomplete = 'new-password';
+    password1Input.style.paddingRight = 'var(--webops-space-6)';
+    password1Input.setAttribute('aria-describedby', 'password1-feedback');
+
+    password2Input.placeholder = 'Confirm your password';
+    password2Input.className = 'auth-input';
+    password2Input.autocomplete = 'new-password';
+    password2Input.style.paddingRight = 'var(--webops-space-6)';
+    password2Input.setAttribute('aria-describedby', 'password2-feedback');
+
+    // Password visibility toggles
+    document.getElementById('togglePassword1').addEventListener('click', function() {
+        const type = password1Input.type === 'password' ? 'text' : 'password';
+        password1Input.type = type;
+        this.querySelector('.material-icons').textContent = type === 'password' ? 'visibility_off' : 'visibility';
+    });
+
+    document.getElementById('togglePassword2').addEventListener('click', function() {
+        const type = password2Input.type === 'password' ? 'text' : 'password';
+        password2Input.type = type;
+        this.querySelector('.material-icons').textContent = type === 'password' ? 'visibility_off' : 'visibility';
+    });
+
+    // Username validation
+    function validateUsername() {
+        const value = usernameInput.value.trim();
+        const feedback = document.getElementById('username-feedback');
+        const icon = document.getElementById('username-icon');
+
+        if (value === '') {
+            usernameInput.classList.remove('valid', 'invalid');
+            icon.textContent = '';
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        // Check length
+        if (value.length < 3) {
+            setInvalid(usernameInput, icon, feedback, 'Username must be at least 3 characters');
+            return false;
+        }
+
+        // Check alphanumeric
+        if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+            setInvalid(usernameInput, icon, feedback, 'Username can only contain letters, numbers, and underscores');
+            return false;
+        }
+
+        setValid(usernameInput, icon, feedback);
+        return true;
+    }
+
+    // Email validation
+    function validateEmail() {
+        const value = emailInput.value.trim();
+        const feedback = document.getElementById('email-feedback');
+        const icon = document.getElementById('email-icon');
+
+        if (value === '') {
+            emailInput.classList.remove('valid', 'invalid');
+            icon.textContent = '';
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            setInvalid(emailInput, icon, feedback, 'Please enter a valid email address');
+            return false;
+        }
+
+        setValid(emailInput, icon, feedback);
+        return true;
+    }
+
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password)
+        };
+
+        // Update requirement indicators
+        updateRequirement('req-length', requirements.length);
+        updateRequirement('req-uppercase', requirements.uppercase);
+        updateRequirement('req-lowercase', requirements.lowercase);
+        updateRequirement('req-number', requirements.number);
+
+        // Calculate strength
+        if (requirements.length) strength++;
+        if (requirements.uppercase) strength++;
+        if (requirements.lowercase) strength++;
+        if (requirements.number) strength++;
+
+        return { strength, requirements };
+    }
+
+    function updateRequirement(id, met) {
+        const el = document.getElementById(id);
+        const icon = el.querySelector('.material-icons');
+
+        if (met) {
+            el.classList.add('met');
+            icon.textContent = 'check_circle';
+        } else {
+            el.classList.remove('met');
+            icon.textContent = 'radio_button_unchecked';
+        }
+    }
+
+    // Password validation
+    function validatePassword1() {
+        const value = password1Input.value;
+        const feedback = document.getElementById('password1-feedback');
+        const strengthDiv = document.getElementById('passwordStrength');
+        const requirementsDiv = document.getElementById('passwordRequirements');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        if (value === '') {
+            password1Input.classList.remove('valid', 'invalid');
+            feedback.classList.remove('show');
+            strengthDiv.style.display = 'none';
+            requirementsDiv.style.display = 'none';
+            return false;
+        }
+
+        // Show strength meter and requirements
+        strengthDiv.style.display = 'block';
+        requirementsDiv.style.display = 'block';
+
+        const { strength, requirements } = checkPasswordStrength(value);
+
+        // Update strength bar
+        strengthBar.className = 'password-strength-fill';
+        if (strength <= 2) {
+            strengthBar.classList.add('weak');
+            strengthText.textContent = 'Weak';
+        } else if (strength === 3) {
+            strengthBar.classList.add('medium');
+            strengthText.textContent = 'Medium';
+        } else {
+            strengthBar.classList.add('strong');
+            strengthText.textContent = 'Strong';
+        }
+
+        // Validate
+        const allMet = Object.values(requirements).every(met => met);
+        if (!allMet) {
+            password1Input.classList.remove('valid');
+            password1Input.classList.add('invalid');
+            return false;
+        }
+
+        password1Input.classList.remove('invalid');
+        password1Input.classList.add('valid');
+        feedback.classList.remove('show');
+        return true;
+    }
+
+    // Confirm password validation
+    function validatePassword2() {
+        const value = password2Input.value;
+        const password1Value = password1Input.value;
+        const feedback = document.getElementById('password2-feedback');
+
+        if (value === '') {
+            password2Input.classList.remove('valid', 'invalid');
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        if (value !== password1Value) {
+            password2Input.classList.remove('valid');
+            password2Input.classList.add('invalid');
+            feedback.innerHTML = '<span class="material-icons">error</span><span>Passwords do not match</span>';
+            feedback.classList.add('show', 'error');
+            return false;
+        }
+
+        password2Input.classList.remove('invalid');
+        password2Input.classList.add('valid');
+        feedback.innerHTML = '<span class="material-icons">check_circle</span><span>Passwords match</span>';
+        feedback.classList.add('show', 'success');
+        feedback.classList.remove('error');
+        return true;
+    }
+
+    // Helper functions
+    function setValid(input, icon, feedback) {
+        input.classList.remove('invalid');
+        input.classList.add('valid');
+        icon.textContent = 'check_circle';
+        icon.classList.remove('error');
+        icon.classList.add('success');
+        feedback.classList.remove('show');
+    }
+
+    function setInvalid(input, icon, feedback, message) {
+        input.classList.remove('valid');
+        input.classList.add('invalid');
+        icon.textContent = 'error';
+        icon.classList.remove('success');
+        icon.classList.add('error');
+        feedback.innerHTML = '<span class="material-icons">error</span><span>' + message + '</span>';
+        feedback.classList.add('show', 'error');
+        feedback.classList.remove('success');
+    }
+
+    // Attach event listeners
+    usernameInput.addEventListener('input', validateUsername);
+    usernameInput.addEventListener('blur', validateUsername);
+    emailInput.addEventListener('input', validateEmail);
+    emailInput.addEventListener('blur', validateEmail);
+    password1Input.addEventListener('input', function() {
+        validatePassword1();
+        if (password2Input.value) validatePassword2();
+    });
+    password1Input.addEventListener('blur', validatePassword1);
+    password2Input.addEventListener('input', validatePassword2);
+    password2Input.addEventListener('blur', validatePassword2);
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const usernameValid = validateUsername();
+        const emailValid = validateEmail();
+        const password1Valid = validatePassword1();
+        const password2Valid = validatePassword2();
+
+        if (!usernameValid || !emailValid || !password1Valid || !password2Valid) {
+            e.preventDefault();
+
+            if (!usernameValid) {
+                usernameInput.focus();
+            } else if (!emailValid) {
+                emailInput.focus();
+            } else if (!password1Valid) {
+                password1Input.focus();
+            } else if (!password2Valid) {
+                password2Input.focus();
+            }
+            return false;
+        }
+
+        // Add loading state
+        submitBtn.classList.add('auth-btn-loading');
+        submitBtn.textContent = 'Creating account...';
+    });
+})();
+</script>
+{% endblock %}

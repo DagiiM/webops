@@ -87,7 +87,7 @@ System monitoring and health check commands:
 #### 1. Rich Terminal Output
 
 All commands now use Rich library for beautiful, colored terminal output:
-- Color-coded status indicators (🟢 healthy, 🟡 warning, 🔴 error)
+- Color-coded status indicators (green healthy, yellow warning, red error)
 - Formatted tables for structured data
 - Progress bars and spinners for long-running operations
 - Syntax highlighting for code and configuration

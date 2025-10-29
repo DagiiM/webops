@@ -1,0 +1,462 @@
+/**
+ * WebOps Control Panel – Forest Theme (Natural Green & Earth Tones)
+ * 
+ * 🌲 NATURE-INSPIRED DESIGN: Green primary with earth-tone accents
+ *    Based on woodland environments with natural, calming color palette
+ * 
+ * ✨ THEME CUSTOMIZATION: Change ONLY these 3 variables to re-skin the entire UI:
+ *    --webops-hue-primary    (Natural greens: 120-140 | Earth tones: 30-50)
+ *    --webops-sat-primary    (0-100%: Muted=30%, Natural=60%, Vivid=100%)
+ *    --webops-light-primary  (0-100%: Dark=25%, Medium=50%, Light=75%)
+ * 
+ * All success states, glows, tints, and interactive elements update automatically.
+ * Warning, error, info, and grayscale remain independent for accessibility.
+ * 
+ * @version 2.0.0
+ * @author Douglas Mutethia <support@ifinsta.com>
+ * @license MIT
+ */
+
+:root {
+  /* ════════════════════════════════════════════════════════════════════════════════
+     🌲 THEME CONTROL CENTER – FOREST INSPIRATION
+     ════════════════════════════════════════════════════════════════════════════════ */
+  
+  /* Core theme parameters (modify these to change the entire theme) */
+  --webops-hue-primary: 130;       /* Forest green: 130 | Sage: 140 | Moss: 120 */
+  --webops-sat-primary: 60%;       /* Saturation: 30% (muted) to 100% (vivid) */
+  --webops-light-primary: 45%;     /* Lightness: 25% (dark) to 75% (light) */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🎯 PRIMARY COLOR SYSTEM (Auto-generated from theme parameters)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Base primary color - Natural forest green */
+  --webops-color-primary: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    var(--webops-light-primary)
+  );
+
+  /* Primary color variants (calculated dynamically) */
+  --webops-color-primary-dark: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) - 10%)
+  );
+  --webops-color-primary-darker: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) - 20%)
+  );
+  --webops-color-primary-light: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) + 10%)
+  );
+
+  /* Primary alpha variants (for overlays, glows, and transparency effects) */
+  --webops-color-primary-glow: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    var(--webops-light-primary) / 30%
+  );
+  
+  /* Optimized alpha scale for better performance and consistency */
+  --webops-color-primary-alpha-03: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 3%);
+  --webops-color-primary-alpha-05: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 5%);
+  --webops-color-primary-alpha-10: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 10%);
+  --webops-color-primary-alpha-15: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 15%);
+  --webops-color-primary-alpha-20: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 20%);
+  --webops-color-primary-alpha-30: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
+  --webops-color-primary-alpha-35: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 35%);
+  --webops-color-primary-alpha-50: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 50%);
+
+  /* Success colors (inherit from primary for consistency) */
+  --webops-color-success: var(--webops-color-primary);
+  --webops-color-success-alpha-10: var(--webops-color-primary-alpha-10);
+  --webops-color-success-alpha-30: var(--webops-color-primary-alpha-30);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🚨 SEMANTIC STATUS COLORS (Independent for accessibility compliance)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Warning system (earth amber/orange) */
+  --webops-color-warning: hsl(35 70% 55%);         /* #cc8844 - Earth amber */
+  --webops-color-warning-alpha-10: hsl(35 70% 55% / 10%);
+  --webops-color-warning-alpha-30: hsl(35 70% 55% / 30%);
+  
+  /* Error system (forest danger red) */
+  --webops-color-error: hsl(5 65% 58%);            /* #b84747 - Muted forest red */
+  --webops-color-error-alpha-10: hsl(5 65% 58% / 10%);
+  --webops-color-error-alpha-30: hsl(5 65% 58% / 30%);
+  
+  /* Info system (sky blue) */
+  --webops-color-info: hsl(195 70% 55%);           /* #4a9ec7 - Sky blue */
+  --webops-color-info-alpha-10: hsl(195 70% 55% / 10%);
+  --webops-color-info-alpha-30: hsl(195 70% 55% / 30%);
+  
+  /* Accent color (forest bark brown) */
+  --webops-color-accent: hsl(25 45% 45%);          /* #8b6b4a - Tree bark brown */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌲 NEUTRAL GRAYSCALE SYSTEM (Warm undertones for forest theme)
+     ──────────────────────────────────────────────────────────────────────────────── */
+
+  /* Grayscale palette with warm undertones */
+  --webops-gray-950: hsl(85 15% 8%);     /* #1a1812 - Deep forest shadow */
+  --webops-gray-900: hsl(85 15% 12%);    /* #26231d - Primary forest background */
+  --webops-gray-850: hsl(85 15% 16%);    /* #322e26 - Secondary forest */
+  --webops-gray-800: hsl(85 15% 20%);    /* #3f3930 - Tree bark surfaces */
+  --webops-gray-825: hsl(85 15% 18%);    /* #37342c - Hover states */
+  --webops-gray-750: hsl(85 15% 24%);    /* #4a4439 - Active states */
+  --webops-gray-600: hsl(85 15% 35%);    /* #5a5247 - Disabled forest text */
+  --webops-gray-500: hsl(85 15% 50%);    /* #7a7063 - Tertiary forest text */
+  --webops-gray-400: hsl(85 15% 70%);    /* #b3a895 - Secondary forest text */
+  --webops-gray-200: hsl(85 15% 88%);    /* #ded6c8 - Primary forest text */
+
+  /* Neutral alpha variants */
+  --webops-color-neutral-alpha-10: hsl(85 15% 70% / 10%);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🏡 SEMANTIC SURFACE COLORS (Forest-inspired neutral tones)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Background hierarchy */
+  --webops-color-bg-primary: var(--webops-gray-950);      /* Deep forest background */
+  --webops-color-bg-secondary: var(--webops-gray-900);    /* Forest clearing areas */
+  --webops-color-bg-tertiary: var(--webops-gray-850);     /* Woodland shade areas */
+  --webops-color-bg-elevated: var(--webops-gray-900);     /* Natural elevation surfaces */
+  
+  /* Interactive surfaces */
+  --webops-color-surface: var(--webops-gray-850);         /* Natural bark surfaces */
+  --webops-color-surface-hover: var(--webops-gray-825);   /* Hover states (moss effect) */
+  --webops-color-surface-active: var(--webops-gray-750);  /* Active/pressed (aged bark) */
+  
+  /* Special surfaces with forest transparency */
+  --webops-color-bg-card: hsl(85 15% 16% / 80%);            /* Natural wood transparency */
+  --webops-color-bg-card-mobile: hsl(85 15% 16% / 60%);     /* Mobile-optimized wood */
+  --webops-color-modal-backdrop: hsl(85 15% 8% / 85%);     /* Deep forest overlay */
+  --webops-color-modal-shadow: var(--webops-color-primary-alpha-15); /* Forest glow */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📝 TEXT COLOR HIERARCHY (Forest-optimized readability)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-color-text-primary: var(--webops-gray-200);    /* Light forest text */
+  --webops-color-text-secondary: var(--webops-gray-400);  /* Forest understory text */
+  --webops-color-text-tertiary: var(--webops-gray-500);   /* Moss-covered text */
+  --webops-color-text-disabled: var(--webops-gray-600);   /* Faded forest text */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌿 GRAPH & VISUALIZATION COLORS (Themed with forest greens)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-color-graph-node: var(--webops-color-primary);        /* Forest nodes */
+  --webops-color-graph-edge: var(--webops-color-primary-alpha-15); /* Tree connections */
+  --webops-color-graph-grid: var(--webops-color-primary-alpha-05); /* Undergrowth grid */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📝 TYPOGRAPHY SYSTEM (Forest-optimized readability)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font families (system fonts first for performance) */
+  --webops-font-family-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --webops-font-family-mono: "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+  /* Font size scale (rem-based for accessibility, 1.125 ratio) */
+  --webops-font-size-xs: 0.75rem;     /* 12px - Small forest labels */
+  --webops-font-size-sm: 0.875rem;    /* 14px - Secondary forest text */
+  --webops-font-size-base: 1rem;      /* 16px - Body text, default */
+  --webops-font-size-lg: 1.125rem;    /* 18px - Large forest text */
+  --webops-font-size-xl: 1.25rem;     /* 20px - Small headings */
+  --webops-font-size-2xl: 1.5rem;     /* 24px - Medium headings */
+  --webops-font-size-3xl: 1.875rem;   /* 30px - Large headings */
+  --webops-font-size-4xl: 2.25rem;    /* 36px - Hero headings */
+  --webops-font-size-5xl: 3rem;       /* 48px - Display headings */
+
+  /* Font weight scale (optimized for Inter font) */
+  --webops-font-weight-light: 300;     /* Light forest text */
+  --webops-font-weight-normal: 400;    /* Body text, default */
+  --webops-font-weight-medium: 500;    /* Emphasized forest text */
+  --webops-font-weight-semibold: 600;  /* Subheadings */
+  --webops-font-weight-bold: 700;      /* Headings, strong emphasis */
+  --webops-font-weight-extrabold: 800; /* Hero text, display headings */
+
+  /* Line height scale (forest-optimized readability) */
+  --webops-line-height-tight: 1.25;    /* Headings, compact text */
+  --webops-line-height-snug: 1.375;    /* Subheadings */
+  --webops-line-height-normal: 1.5;    /* Body text, default */
+  --webops-line-height-relaxed: 1.625; /* Long-form content */
+  --webops-line-height-loose: 1.75;    /* Very relaxed reading */
+
+  /* Letter spacing (for improved readability) */
+  --webops-letter-spacing-tight: -0.025em;  /* Large headings */
+  --webops-letter-spacing-normal: 0;        /* Body text */
+  --webops-letter-spacing-wide: 0.025em;    /* Small forest text */
+  --webops-letter-spacing-wider: 0.05em;    /* Uppercase text */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📏 SPACING SYSTEM (8px base grid with natural proportions)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Base spacing scale (pre-calculated for performance) */
+  --webops-space-0: 0;           /* 0px - No spacing */
+  --webops-space-px: 1px;        /* 1px - Fine natural borders */
+  --webops-space-0-5: 2px;       /* 2px - Tight natural gaps */
+  --webops-space-1: 4px;         /* 4px - Small natural spacing */
+  --webops-space-1-5: 6px;       /* 6px - Natural element gaps */
+  --webops-space-2: 8px;         /* 8px - Base natural unit */
+  --webops-space-2-5: 10px;      /* 10px - Natural padding */
+  --webops-space-3: 12px;        /* 12px - Compact spacing */
+  --webops-space-3-5: 14px;      /* 14px - Medium-small natural */
+  --webops-space-4: 16px;        /* 16px - Standard natural spacing */
+  --webops-space-5: 20px;        /* 20px - Medium natural spacing */
+  --webops-space-6: 24px;        /* 24px - Large natural spacing */
+  --webops-space-7: 28px;        /* 28px - Extra large natural */
+  --webops-space-8: 32px;        /* 32px - Natural section spacing */
+  --webops-space-9: 36px;        /* 36px - Large natural sections */
+  --webops-space-10: 40px;       /* 40px - Component natural spacing */
+  --webops-space-11: 44px;       /* 44px - Large natural components */
+  --webops-space-12: 48px;       /* 48px - Page natural sections */
+  --webops-space-14: 56px;       /* 56px - Large natural sections */
+  --webops-space-16: 64px;       /* 64px - Major natural sections */
+  --webops-space-20: 80px;       /* 80px - Page natural spacing */
+  --webops-space-24: 96px;       /* 96px - Large page natural spacing */
+  --webops-space-28: 112px;      /* 112px - Natural hero sections */
+  --webops-space-32: 128px;      /* 128px - Major natural page sections */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌲 BORDER RADIUS SYSTEM (Organic, nature-inspired rounding)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-radius-none: 0;         /* 0px - Sharp rock edges */
+  --webops-radius-xs: 1px;         /* 1px - Subtle natural rounding */
+  --webops-radius-sm: 2px;         /* 2px - Small organic elements */
+  --webops-radius-base: 4px;       /* 4px - Default natural rounding */
+  --webops-radius-md: 6px;         /* 6px - Medium organic elements */
+  --webops-radius-lg: 8px;         /* 8px - Large organic elements */
+  --webops-radius-xl: 12px;        /* 12px - Natural cards, panels */
+  --webops-radius-2xl: 16px;       /* 16px - Large organic cards */
+  --webops-radius-3xl: 24px;       /* 24px - Hero organic elements */
+  --webops-radius-4xl: 32px;       /* 32px - Large organic hero elements */
+  --webops-radius-full: 9999px;    /* Fully rounded - Natural pills, spores */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌟 SHADOW SYSTEM (Forest depth with natural shadows)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Natural shadows (forest-inspired depth) */
+  --webops-shadow-xs: 0 1px 2px 0 hsl(85 15% 8% / 8%);                                    /* Subtle forest depth */
+  --webops-shadow-sm: 0 1px 3px 0 hsl(85 15% 8% / 12%), 0 1px 2px -1px hsl(85 15% 8% / 12%); /* Small natural elevation */
+  --webops-shadow-base: 0 4px 6px -1px hsl(85 15% 8% / 12%), 0 2px 4px -2px hsl(85 15% 8% / 12%); /* Default natural cards */
+  --webops-shadow-md: 0 10px 15px -3px hsl(85 15% 8% / 12%), 0 4px 6px -4px hsl(85 15% 8% / 12%); /* Elevated natural cards */
+  --webops-shadow-lg: 0 20px 25px -5px hsl(85 15% 8% / 15%), 0 8px 10px -6px hsl(85 15% 8% / 12%); /* Natural modals, dropdowns */
+  --webops-shadow-xl: 0 25px 50px -12px hsl(85 15% 8% / 30%);                             /* High forest elevation */
+  --webops-shadow-2xl: 0 25px 50px -12px hsl(85 15% 8% / 30%);                           /* Maximum forest elevation */
+  --webops-shadow-inner: inset 0 2px 4px 0 hsl(85 15% 8% / 8%);                          /* Natural inset elements */
+
+  /* Themed shadows (using forest primary color for brand consistency) */
+  --webops-shadow-primary-sm: 0 4px 6px -1px var(--webops-color-primary-alpha-15), 0 2px 4px -2px var(--webops-color-primary-alpha-10);
+  --webops-shadow-primary: 0 10px 15px -3px var(--webops-color-primary-alpha-20), 0 4px 6px -4px var(--webops-color-primary-alpha-15);
+  --webops-shadow-primary-lg: 0 20px 25px -5px var(--webops-color-primary-alpha-30), 0 8px 10px -6px var(--webops-color-primary-alpha-20);
+  --webops-shadow-success: 0 10px 15px -3px var(--webops-color-success-alpha-30), 0 4px 6px -4px var(--webops-color-success-alpha-30);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     ⚡ ANIMATION & TRANSITIONS (Forest-smooth, organic motion)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Duration scale (based on Material Design principles) */
+  --webops-duration-instant: 0ms;      /* Immediate natural changes */
+  --webops-duration-fast: 120ms;       /* Quick forest interactions */
+  --webops-duration-base: 180ms;       /* Default natural transitions */
+  --webops-duration-medium: 240ms;     /* Standard organic animations */
+  --webops-duration-slow: 360ms;       /* Complex organic animations */
+  --webops-duration-slower: 600ms;     /* Natural page transitions */
+  --webops-duration-slowest: 840ms;    /* Hero organic animations */
+
+  /* Easing curves (organic, natural motion) */
+  --webops-ease-linear: linear;                              /* Constant speed */
+  --webops-ease-in: cubic-bezier(0.4, 0, 1, 1);            /* Slow organic start */
+  --webops-ease-out: cubic-bezier(0, 0, 0.2, 1);           /* Slow organic end */
+  --webops-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);      /* Slow organic start and end */
+  --webops-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Natural bounce effect */
+  --webops-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);   /* Organic back easing */
+  --webops-ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Natural elastic effect */
+
+  /* Common transition combinations */
+  --webops-transition-fast: var(--webops-duration-fast) var(--webops-ease-out);
+  --webops-transition-base: var(--webops-duration-base) var(--webops-ease-out);
+  --webops-transition-medium: var(--webops-duration-medium) var(--webops-ease-out);
+  --webops-transition-slow: var(--webops-duration-slow) var(--webops-ease-out);
+  --webops-transition-bounce: var(--webops-duration-medium) var(--webops-ease-bounce);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📚 Z-INDEX LAYERS (Forest canopy stacking context)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Base layers (0-999) */
+  --webops-z-base: 0;              /* Ground level */
+  --webops-z-docked: 10;           /* Forest floor elements */
+  --webops-z-dropdown: 1000;       /* Natural dropdown menus */
+  --webops-z-sticky: 1020;         /* Sticky forest headers */
+  --webops-z-banner: 1030;         /* Natural notification banners */
+  --webops-z-fixed: 1040;          /* Fixed forest elements */
+  --webops-z-modal-backdrop: 1050; /* Deep forest modal backdrops */
+  --webops-z-modal: 1060;          /* Forest modal dialogs */
+  --webops-z-popover: 1070;        /* Natural popovers, context menus */
+  --webops-z-tooltip: 1080;        /* Forest tooltips */
+  --webops-z-toast: 1090;          /* Natural toast notifications */
+  --webops-z-debug: 2147483647;    /* Debug forest overlays (max z-index) */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📐 LAYOUT & COMPONENT DIMENSIONS (Forest-responsive design system)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Layout dimensions */
+  --webops-header-height: 64px;           /* Natural header height */
+  --webops-header-height-mobile: 56px;    /* Mobile forest header height */
+  --webops-sidebar-width: 256px;          /* Natural sidebar width */
+  --webops-sidebar-width-collapsed: 64px; /* Collapsed forest sidebar width */
+  --webops-sidebar-width-mobile: 280px;   /* Mobile forest sidebar width */
+  --webops-content-max-width: 1280px;     /* Maximum natural content width */
+  --webops-container-padding: 24px;       /* Natural container padding */
+  --webops-container-padding-mobile: 16px; /* Mobile natural container padding */
+
+  /* Component heights (organic sizing scale) */
+  --webops-input-height-xs: 24px;         /* Extra small natural inputs */
+  --webops-input-height-sm: 32px;         /* Small natural inputs */
+  --webops-input-height-base: 40px;       /* Default natural inputs */
+  --webops-input-height-lg: 48px;         /* Large natural inputs */
+  --webops-input-height-xl: 56px;         /* Extra large natural inputs */
+
+  --webops-button-height-xs: 24px;        /* Extra small forest buttons */
+  --webops-button-height-sm: 32px;        /* Small forest buttons */
+  --webops-button-height-base: 40px;      /* Default forest buttons */
+  --webops-button-height-lg: 48px;        /* Large forest buttons */
+  --webops-button-height-xl: 56px;        /* Extra large forest buttons */
+
+  /* Avatar sizes (organic sizing) */
+  --webops-avatar-size-xs: 20px;          /* Tiny natural avatars */
+  --webops-avatar-size-sm: 24px;          /* Small natural avatars */
+  --webops-avatar-size-base: 32px;        /* Default natural avatars */
+  --webops-avatar-size-lg: 40px;          /* Large natural avatars */
+  --webops-avatar-size-xl: 48px;          /* Extra large natural avatars */
+  --webops-avatar-size-2xl: 64px;         /* Hero natural avatars */
+
+  /* Icon sizes (organic sizing) */
+  --webops-icon-size-xs: 12px;            /* Tiny natural icons */
+  --webops-icon-size-sm: 16px;            /* Small natural icons */
+  --webops-icon-size-base: 20px;          /* Default natural icons */
+  --webops-icon-size-lg: 24px;            /* Large natural icons */
+  --webops-icon-size-xl: 32px;            /* Extra large natural icons */
+  --webops-icon-size-2xl: 48px;           /* Hero natural icons */
+
+  /* Responsive breakpoints (forest-friendly container queries) */
+  --webops-breakpoint-xs: 475px;          /* Extra small forest devices */
+  --webops-breakpoint-sm: 640px;          /* Small forest devices */
+  --webops-breakpoint-md: 768px;          /* Medium forest devices */
+  --webops-breakpoint-lg: 1024px;         /* Large forest devices */
+  --webops-breakpoint-xl: 1280px;         /* Extra large forest devices */
+  --webops-breakpoint-2xl: 1536px;        /* 2X large forest devices */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌿 INTERACTIVE STATES (Natural hover, focus, and active states)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Opacity scale for natural interactive states */
+  --webops-opacity-disabled: 0.6;         /* Natural disabled elements */
+  --webops-opacity-hover: 0.9;            /* Forest hover state */
+  --webops-opacity-active: 0.95;          /* Natural active/pressed state */
+  --webops-opacity-focus: 1;              /* Natural focus state */
+
+  /* Scale transforms for natural interactive feedback */
+  --webops-scale-hover: 1.015;            /* Subtle forest hover scale */
+  --webops-scale-active: 0.985;           /* Natural active press scale */
+  --webops-scale-focus: 1.03;             /* Natural focus scale */
+
+  /* Border widths */
+  --webops-border-width-thin: 1px;        /* Thin natural borders */
+  --webops-border-width-base: 2px;        /* Default natural borders */
+  --webops-border-width-thick: 3px;       /* Thick natural borders */
+  --webops-border-width-focus: 2px;       /* Natural focus ring width */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+       🎨 LEGACY COMPATIBILITY VARIABLES (Used in main.css but not in new system)
+       ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font weight compatibility */
+  --font-weight-bold: var(--webops-font-weight-bold);
+  --font-weight-semibold: var(--webops-font-weight-semibold);
+  
+  /* Shadow glow effects (forest-themed) */
+  --webops-shadow-glow: 0 0 20px var(--webops-color-primary-glow);
+  
+  /* Background highlight for elements (forest-tinted) */
+  --webops-color-bg-highlight: var(--webops-color-primary-alpha-05);
+  
+  /* Color hover state (natural hover) */
+  --webops-color-primary-hover: var(--webops-color-primary-light);
+  
+  /* Border radius compatibility */
+  --webops-border-radius-lg: var(--webops-radius-lg);
+  --webops-border-radius-md: var(--webops-radius-md);
+  --webops-border-radius-sm: var(--webops-radius-sm);
+  
+  /* Additional color variants used in main.css */
+  --webops-color-error-light: hsl(5 65% 70%);      /* Lighter forest error */
+  --webops-color-error-dark: hsl(5 65% 45%);       /* Darker forest error */
+  --webops-color-success-light: var(--webops-color-primary-light);
+  --webops-color-success-dark: var(--webops-color-primary-dark);
+  --webops-color-warning-light: hsl(35 70% 65%);   /* Lighter earth amber */
+  --webops-color-warning-dark: hsl(35 70% 45%);    /* Darker earth amber */
+  --webops-color-info-light: hsl(195 70% 65%);     /* Lighter sky blue */
+  --webops-color-info-dark: hsl(195 70% 45%);      /* Darker sky blue */
+
+  /* Additional shadows for compatibility */
+  --webops-shadow-xl: 0 25px 50px -12px hsl(85 15% 8% / 30%);                             /* High forest elevation */
+  --webops-shadow-2xl: 0 25px 50px -12px hsl(85 15% 8% / 30%);                           /* Maximum forest elevation */
+  --webops-shadow-inner: inset 0 2px 4px 0 hsl(85 15% 8% / 8%);                          /* Natural inset elements */
+
+  /* Themed shadows (forest-themed consistency) */
+  --webops-shadow-glow: 0 0 24px var(--webops-color-primary-glow);
+  --webops-shadow-primary-sm: 0 4px 6px -1px var(--webops-color-primary-alpha-15), 0 2px 4px -2px var(--webops-color-primary-alpha-10);
+  --webops-shadow-primary: 0 10px 15px -3px var(--webops-color-primary-alpha-20), 0 4px 6px -4px var(--webops-color-primary-alpha-15);
+  --webops-shadow-primary-lg: 0 20px 25px -5px var(--webops-color-primary-alpha-30), 0 8px 10px -6px var(--webops-color-primary-alpha-20);
+
+}
+
+
+/* ========================================
+   Global Reset & Base Styles (Forest Theme)
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  font-family: var(--webops-font-family-primary);
+  font-size: var(--webops-font-size-base);
+  line-height: 1.6;
+  color: var(--webops-color-text-primary);
+  background: var(--webops-color-bg-primary);
+  overflow-x: hidden;
+}
+
+/* Focus & Accessibility (Forest-enhanced visibility) */
+*:focus-visible {
+  outline: 2px solid var(--webops-color-primary);
+  outline-offset: 2px;
+}
+.webops-btn:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+}

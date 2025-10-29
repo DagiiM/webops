@@ -81,10 +81,20 @@ class TrashManager:
             'created_at': deployment.created_at.isoformat() if deployment.created_at else None,
         }
 
+        # Determine the correct deployment URL based on type
+        try:
+            if hasattr(deployment, 'llmdeployment'):
+                original_path = f"/deployments/llm/{deployment.id}/"
+            else:
+                original_path = f"/deployments/{deployment.id}/"
+        except Exception:
+            # Fallback to standard deployment URL
+            original_path = f"/deployments/{deployment.id}/"
+
         return TrashManager.move_to_trash(
             item_name=f"Deployment: {deployment.name}",
             item_type='deployment',
-            original_path=f"/deployments/{deployment.id}/",
+            original_path=original_path,
             deleted_by=deleted_by,
             size=None,  # Could calculate deployment size if needed
             metadata=metadata

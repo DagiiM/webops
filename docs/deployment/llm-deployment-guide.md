@@ -4,7 +4,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 1. [Overview](#overview)
 2. [System Requirements](#system-requirements)
@@ -23,7 +23,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 WebOps provides a complete platform for deploying and serving Large Language Models (LLMs) using vLLM for efficient inference. This comprehensive guide covers everything from initial setup to production deployment and management.
 

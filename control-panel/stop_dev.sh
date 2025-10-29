@@ -24,9 +24,10 @@ echo ""
 print_info "Stopping WebOps development services..."
 echo ""
 
-# Stop Django development server
-print_info "Stopping Django development server..."
+# Stop Django development server and Daphne
+print_info "Stopping development servers..."
 pkill -f "manage.py runserver" 2>/dev/null || true
+pkill -f "daphne.*config.asgi" 2>/dev/null || true
 
 # Stop Celery worker
 if [ -f "$CELERY_PIDFILE" ]; then

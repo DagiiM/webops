@@ -1,15 +1,15 @@
-# WebOps Troubleshooting Guide 🔧
+# WebOps Troubleshooting Guide
 
 **Comprehensive solutions for common issues and advanced troubleshooting**
 
-**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
-**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+**Project Owner:** [Douglas Mutethia](https://github.com/dagiim) | **Company:** Eleso Solutions
+**Repository:** [https://github.com/dagiim/webops](https://github.com/dagiim/webops)
 
 This guide covers troubleshooting for WebOps v2.0 with enterprise features. Most issues can be resolved quickly with the solutions below.
 
 ---
 
-## 🚨 **Quick Diagnostics**
+## **Quick Diagnostics**
 
 ### **Health Check Command**
 ```bash
@@ -38,7 +38,7 @@ sudo chmod +x /opt/webops/scripts/*.sh
 
 ---
 
-## 🚀 **Installation Issues**
+## **Installation Issues**
 
 ### **Issue: Installation Script Fails**
 
@@ -125,7 +125,7 @@ DATABASE_URL=postgresql://webops:password@localhost:5432/webops_db
 
 ---
 
-## 🌐 **Server Access Issues**
+## **Server Access Issues**
 
 ### **Issue: Server Returns 500 Error**
 
@@ -216,7 +216,7 @@ sudo systemctl restart nginx
 
 ---
 
-## 🚀 **Deployment Issues**
+## **Deployment Issues**
 
 ### **Issue: Deployment Stuck in "Building" Status**
 
@@ -557,7 +557,7 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 ---
 
-## 🌐 **SSL Certificate Issues**
+## **SSL Certificate Issues**
 
 ### **Issue: SSL Certificate Renewal Fails**
 

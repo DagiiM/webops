@@ -16,14 +16,24 @@
     z-index: 9999;
 }
 
+/* Theme Switcher Container */
+.theme-switcher-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Theme Switcher Toggle Button */
+.theme-switcher-toggle,
 .webops-theme-toggle {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--webops-space-1-5);
-    padding: var(--webops-space-1-5) var(--webops-space-3);
+    height: 48px;
+    padding: var(--webops-space-1-5);
     background: var(--webops-color-surface);
     border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: var(--webops-radius-md);
+    border-radius: var(--webops-radius-full);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
@@ -32,21 +42,28 @@
     backdrop-filter: blur(10px);
 }
 
+.theme-switcher-toggle:hover,
 .webops-theme-toggle:hover {
     background: var(--webops-color-surface-hover);
     border-color: rgba(0, 255, 136, 0.4);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: var(--webops-shadow-md);
+    transform: scale(1.05);
 }
 
+.theme-switcher-toggle:active,
 .webops-theme-toggle:active {
-    transform: translateY(1px);
+    transform: scale(0.95);
 }
 
+/* Theme Switcher Icon */
+.theme-switcher-icon,
 .webops-theme-icon {
     color: var(--webops-color-primary);
     transition: transform var(--webops-transition-fast);
+    font-size: 24px;
 }
 
+.webops-theme-switcher.open .theme-switcher-icon,
 .webops-theme-switcher.open .webops-theme-icon {
     transform: rotate(180deg);
 }
@@ -56,86 +73,179 @@
     font-weight: var(--webops-font-weight-medium);
 }
 
+/* Theme Switcher Dropdown */
+.theme-switcher-dropdown,
 .webops-theme-dropdown {
     position: absolute;
-    top: calc(100% + var(--webops-space-0-5));
+    top: calc(100% + var(--webops-space-1-5));
     right: 0;
-    min-width: 160px;
+    min-width: 200px;
     background: var(--webops-color-bg-elevated);
     border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: var(--webops-radius-md);
-    box-shadow: var(--webops-shadow-lg);
+    border-radius: var(--webops-radius-lg);
+    box-shadow: var(--webops-shadow-xl);
     backdrop-filter: blur(20px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--webops-transition-fast);
+    transform: translateY(-10px) scale(0.95);
+    transition: all var(--webops-transition-base);
     z-index: 1001;
+    overflow: hidden;
 }
 
+.theme-switcher-dropdown.active,
+.webops-theme-switcher.open .theme-switcher-dropdown,
 .webops-theme-switcher.open .webops-theme-dropdown {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
+/* Theme Switcher Header */
+.theme-switcher-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-3);
+    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-surface);
+}
+
+.theme-switcher-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.theme-switcher-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+    transition: all var(--webops-transition-fast);
+}
+
+.theme-switcher-close:hover {
+    background: var(--webops-color-surface-hover);
+    color: var(--webops-color-text-primary);
+}
+
+.theme-switcher-close .material-icons {
+    font-size: 20px;
+}
+
+/* Theme Switcher Options Container */
+.theme-switcher-options {
+    padding: var(--webops-space-1-5);
+}
+
+/* Theme Option */
+.theme-option,
 .webops-theme-option {
     display: flex;
     align-items: center;
-    gap: var(--webops-space-1-5);
+    gap: var(--webops-space-3);
     width: 100%;
-    padding: var(--webops-space-1-5) var(--webops-space-3);
+    padding: var(--webops-space-2) var(--webops-space-3);
     background: transparent;
     border: none;
+    border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-secondary);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
     text-align: left;
     cursor: pointer;
     transition: all var(--webops-transition-fast);
+    margin-bottom: var(--webops-space-0-5);
 }
 
+.theme-option:last-child {
+    margin-bottom: 0;
+}
+
+.theme-option:hover,
 .webops-theme-option:hover {
     background: var(--webops-color-surface-hover);
     color: var(--webops-color-text-primary);
+    transform: translateX(4px);
 }
 
+.theme-option.active,
 .webops-theme-option.active {
     background: rgba(0, 255, 136, 0.1);
     color: var(--webops-color-primary);
     font-weight: var(--webops-font-weight-semibold);
 }
 
-.webops-theme-option:first-child {
-    border-radius: var(--webops-radius-md) var(--webops-radius-md) 0 0;
-}
-
-.webops-theme-option:last-child {
-    border-radius: 0 0 var(--webops-radius-md) var(--webops-radius-md);
-}
-
+/* Theme Preview Circle */
+.theme-preview,
 .webops-theme-preview {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.2);
     flex-shrink: 0;
+    transition: all var(--webops-transition-fast);
 }
 
+.theme-option:hover .theme-preview,
+.webops-theme-option:hover .webops-theme-preview {
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+}
+
+/* Theme Preview Backgrounds */
+.dark-preview,
 .webops-theme-preview-dark {
     background: linear-gradient(135deg, #0a0e0d 0%, #00ff88 100%);
 }
 
+.light-preview,
 .webops-theme-preview-light {
     background: linear-gradient(135deg, #ffffff 0%, #00ff88 100%);
+}
+
+.forest-preview,
+.webops-theme-preview-forest {
+    background: linear-gradient(135deg, #1a3a1a 0%, #00ff88 100%);
+}
+
+.high-contrast-preview,
+.webops-theme-preview-high-contrast {
+    background: linear-gradient(135deg, #000000 0%, #00ffff 100%);
 }
 
 .webops-theme-preview-custom {
     background: linear-gradient(135deg, #1a0033 0%, #ff00aa 50%, #00ff88 100%);
 }
 
-.webops-theme-preview-high-contrast {
-    background: linear-gradient(135deg, #000000 0%, #00ffff 100%);
+/* Theme Name */
+.theme-name {
+    flex: 1;
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+}
+
+/* Theme Check Icon */
+.theme-check {
+    opacity: 0;
+    color: var(--webops-color-primary);
+    font-size: 20px;
+    transition: all var(--webops-transition-fast);
+}
+
+.theme-option.active .theme-check {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Animation for theme transitions */

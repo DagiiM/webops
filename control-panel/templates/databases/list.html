@@ -86,7 +86,11 @@
                     <td>{{ db.port }}</td>
                     <td>
                         {% if db.deployment %}
-                            <a href="{% url 'deployments:deployment_detail' db.deployment.pk %}" class="webops-text-primary">{{ db.deployment.name }}</a>
+                            {% if db.deployment.llmdeployment %}
+                                <a href="{% url 'deployments:llm_detail' db.deployment.pk %}" class="webops-text-primary">{{ db.deployment.name }}</a>
+                            {% else %}
+                                <a href="{% url 'deployments:deployment_detail' db.deployment.pk %}" class="webops-text-primary">{{ db.deployment.name }}</a>
+                            {% endif %}
                         {% else %}
                             <span class="webops-badge webops-badge-warning">Standalone</span>
                         {% endif %}

@@ -324,17 +324,21 @@ def handle_keyboard_interrupt() -> None:
     sys.exit(130)  # Standard exit code for SIGINT
 
 
-def validate_configuration() -> None:
+def validate_configuration(config_instance: Optional['Config'] = None) -> None:
     """Validate CLI configuration and provide helpful errors.
+    
+    Args:
+        config_instance: Optional Config instance to validate.
+                         If None, creates a new instance.
     
     Raises:
         ConfigurationError: If configuration is invalid or missing.
     """
-    from .config import Config
+    if config_instance is None:
+        from .config import Config
+        config_instance = Config()
     
-    config = Config()
-    
-    if not config.is_configured():
+    if not config_instance.is_configured():
         raise ConfigurationError(
             "WebOps CLI is not configured",
             [
@@ -346,7 +350,7 @@ def validate_configuration() -> None:
         )
     
     # Validate URL format
-    url = config.get_url()
+    url = config_instance.get_url()
     if url and not (url.startswith('http://') or url.startswith('https://')):
         raise ConfigurationError(
             f"Invalid URL format: {url}",
@@ -358,7 +362,7 @@ def validate_configuration() -> None:
         )
     
     # Validate token format (basic check)
-    token = config.get_token()
+    token = config_instance.get_token()
     if token and len(token) < 10:
         raise ConfigurationError(
             "API token appears to be invalid (too short)",

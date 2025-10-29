@@ -46,9 +46,15 @@
                 {% if database.deployment %}
                 <div class="info-row">
                     <span class="info-label">Associated Deployment:</span>
-                    <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="deployment-link">
-                        {{ database.deployment.name }}
-                    </a>
+                    {% if database.deployment.llmdeployment %}
+                        <a href="{% url 'deployments:llm_detail' database.deployment.pk %}" class="deployment-link">
+                            {{ database.deployment.name }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="deployment-link">
+                            {{ database.deployment.name }}
+                        </a>
+                    {% endif %}
                 </div>
                 {% endif %}
                 <div class="info-row">

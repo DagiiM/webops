@@ -1,0 +1,56 @@
+[Unit]
+Description=WebOps Celery Beat Scheduler Service
+Documentation=https://github.com/DagiiM/webops
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User={{WEBOPS_USER}}
+Group={{WEBOPS_USER}}
+WorkingDirectory={{CONTROL_PANEL_DIR}}
+Environment="PATH={{CONTROL_PANEL_DIR}}/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="PYTHONUNBUFFERED=1"
+Environment="C_FORCE_ROOT=false"
+
+# Load environment variables from config
+EnvironmentFile=-{{WEBOPS_ROOT}}/config.env
+EnvironmentFile=-{{CONTROL_PANEL_DIR}}/.env
+
+# Celery beat command
+ExecStart={{CONTROL_PANEL_DIR}}/venv/bin/celery \
+    -A config.celery_app \
+    beat \
+    --loglevel=info \
+    --logfile={{WEBOPS_LOG_DIR}}/celery-beat.log \
+    --pidfile={{WEBOPS_RUN_DIR}}/celery-beat.pid \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+# Graceful shutdown
+ExecStop=/bin/kill -TERM $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=10s
+StartLimitInterval=600s
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=512M
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{WEBOPS_ROOT}} {{WEBOPS_DATA_DIR}} {{WEBOPS_LOG_DIR}} {{WEBOPS_RUN_DIR}}
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

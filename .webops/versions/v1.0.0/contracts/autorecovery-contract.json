@@ -1,0 +1,106 @@
+{
+    "addon_name": "autorecovery",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T15:29:20Z",
+    "expires_at": "2026-10-29T15:29:20Z",
+    "metadata": {
+  "name": "autorecovery",
+  "version": "1.0.0",
+  "description": "Automatic service recovery and health monitoring",
+  "depends": ["systemd"],
+  "provides": ["service-monitoring", "auto-recovery"],
+  "config_schema": {
+    "check_interval": {
+      "type": "integer",
+      "default": 30,
+      "description": "Health check interval in seconds"
+    },
+    "max_retries": {
+      "type": "integer", 
+      "default": 3,
+      "description": "Maximum restart attempts before circuit breaker"
+    },
+    "retry_delay": {
+      "type": "integer",
+      "default": 60,
+      "description": "Delay between restart attempts in seconds"
+    },
+    "circuit_breaker_threshold": {
+      "type": "integer",
+      "default": 5,
+      "description": "Failure count to trigger circuit breaker"
+    },
+    "circuit_breaker_timeout": {
+      "type": "integer",
+      "default": 300,
+      "description": "Circuit breaker timeout in seconds"
+    }
+  }
+},
+    "sla": {
+    "availability_target": 99.95,
+    "performance_targets": {
+        "response_time": 50,
+        "cpu_usage": 10.0,
+        "memory_usage": 50.0,
+        "disk_io": 20.0,
+        "network_throughput": 100.0
+    },
+    "recovery_objectives": {
+        "rto": 60,
+        "rpo": 300,
+        "backup_frequency": 86400,
+        "test_frequency": 604800
+    },
+    "support_level": "critical",
+    "monitoring_requirements": {
+        "health_check_interval": 30,
+        "metrics_retention": 2592000,
+        "alert_thresholds": {
+            "service_failure_count": 3,
+            "circuit_breaker_trips": 1,
+            "recovery_failure_rate": 10
+        }
+    }
+},
+    "security": {
+    "privilege_level": "system",
+    "data_access": ["service_status", "system_logs", "configuration"],
+    "network_access": ["localhost", "127.0.0.1", "::1"],
+    "authentication": {
+        "method": "system",
+        "encryption": "none",
+        "certificate_validation": false
+    },
+    "authorization": {
+        "role_based_access": true,
+        "least_privilege": true,
+        "privilege_separation": true
+    },
+    "encryption": {
+        "data_at_rest": false,
+        "data_in_transit": false,
+        "backup_encryption": false
+    },
+    "audit": {
+        "service_management_logging": true,
+        "health_check_logging": true,
+        "recovery_action_logging": true,
+        "configuration_changes": true,
+        "access_failures": true
+    },
+    "vulnerability_management": {
+        "security_updates": true,
+        "vulnerability_scanning": false,
+        "penetration_testing": false
+    },
+    "compliance": {
+        "data_classification": "internal",
+        "retention_policy": true,
+        "gdpr_compliance": false
+    }
+},
+    "validation_hash": "97ac3da88e8f60ddd4426fbea1aff1f4a1f6f876523f1e049632e87beb901b12",
+    "status": "active"
+}

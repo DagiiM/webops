@@ -248,21 +248,82 @@ class WebOpsAPIClient:
                 self._refresh_token()
     
     def _refresh_token(self) -> None:
-        """Refresh authentication token."""
+        """Refresh authentication token using refresh endpoint."""
         try:
-            # This would be implemented based on the API's token refresh endpoint
-            # For now, we'll just log the attempt
-            if self.enable_security:
-                self.security_logger.log_authentication(
-                    user=self.user,
-                    success=False,
-                    method="token_refresh",
-                    details={"reason": "Token expired"}
-                )
+            # Try to use refresh endpoint if available
+            refresh_url = f"{self.base_url}/api/auth/refresh/"
+            refresh_data = {
+                'refresh_token': getattr(self, 'refresh_token', None)
+            }
             
-            # In a real implementation, this would call the refresh endpoint
-            # and update self.token and self.token_expiry
-            raise TokenExpiredError("Token refresh not implemented")
+            # If we don't have a refresh token, try to get one using the current token
+            if not refresh_data['refresh_token']:
+                # Attempt to exchange current token for refresh token
+                exchange_url = f"{self.base_url}/api/auth/exchange/"
+                exchange_data = {'token': self.token}
+                
+                try:
+                    exchange_response = self.session.post(
+                        exchange_url,
+                        json=exchange_data,
+                        timeout=self.timeout
+                    )
+                    exchange_response.raise_for_status()
+                    
+                    exchange_result = exchange_response.json()
+                    if 'refresh_token' in exchange_result:
+                        self.refresh_token = exchange_result['refresh_token']
+                        refresh_data['refresh_token'] = self.refresh_token
+                    else:
+                        raise TokenExpiredError("No refresh token available from exchange endpoint")
+                        
+                except requests.exceptions.RequestException:
+                    # Fall back to manual token validation
+                    raise TokenExpiredError("Manual re-authentication required")
+            
+            # Attempt to refresh the token
+            refresh_response = self.session.post(
+                refresh_url,
+                json=refresh_data,
+                timeout=self.timeout
+            )
+            refresh_response.raise_for_status()
+            
+            refresh_result = refresh_response.json()
+            
+            # Update token and expiry
+            if 'access_token' in refresh_result:
+                self.token = refresh_result['access_token']
+                self.session.headers.update({'Authorization': f'Bearer {self.token}'})
+                
+                # Update expiry if provided
+                if 'expires_in' in refresh_result:
+                    from datetime import timedelta
+                    self.token_expiry = datetime.now(timezone.utc) + timedelta(seconds=refresh_result['expires_in'])
+                
+                # Update refresh token if rotated
+                if 'refresh_token' in refresh_result:
+                    self.refresh_token = refresh_result['refresh_token']
+                
+                if self.enable_security:
+                    self.security_logger.log_authentication(
+                        user=self.user,
+                        success=True,
+                        method="token_refresh",
+                        details={"token_rotated": True}
+                    )
+            else:
+                raise TokenExpiredError("No access token received from refresh endpoint")
+                
+        except requests.exceptions.RequestException as e:
+            if self.enable_security:
+                self.security_logger.log_error(
+                    user=self.user,
+                    error_type="token_refresh_failed",
+                    error_message=str(e),
+                    details={"url": f"{self.base_url}/api/auth/refresh/"}
+                )
+            raise TokenExpiredError(f"Failed to refresh token: {e}")
             
         except Exception as e:
             if self.enable_security:

@@ -3,7 +3,7 @@
 **Get WebOps up and running quickly - from installation to first deployment**
 
 **Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
-**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+**Repository:** [https://github.com/dagiim/webops](https://github.com/dagiim/webops)
 
 ---
 
@@ -448,4 +448,4 @@ sudo ./scripts/validate-user-setup.sh
 
 ---
 
-**Everything you need to get started with WebOps!** 🚀
+**Everything you need to get started with WebOps!**

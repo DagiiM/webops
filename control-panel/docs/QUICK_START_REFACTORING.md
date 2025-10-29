@@ -4,7 +4,7 @@ This is a condensed action plan for immediately addressing critical legacy code.
 
 ---
 
-## 🔥 Critical Tasks (Do This Week)
+## Critical Tasks (Do This Week)
 
 ### 1. Remove Legacy Database Creation View (2 hours)
 

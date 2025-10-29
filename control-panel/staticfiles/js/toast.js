@@ -322,26 +322,26 @@ class ToastManager {
     }
 
     /**
-     * Convert existing webops-alert elements to toasts
+     * Convert existing webops-alert and auth-alert elements to toasts
      * This integrates with the existing alert system
      */
     convertAlertsToToasts() {
-        const alerts = document.querySelectorAll('.webops-alert');
+        const alerts = document.querySelectorAll('.webops-alert, .auth-alert');
         alerts.forEach(alert => {
             // Skip if already converted
             if (alert.getAttribute('data-converted-to-toast')) return;
-            
+
             // Extract alert information
             const message = alert.textContent.trim();
             const type = this.extractAlertType(alert);
-            
+
             // Create toast
             this.show({
                 message,
                 type,
                 duration: 8000 // Longer duration for converted alerts
             });
-            
+
             // Mark as converted and hide original
             alert.setAttribute('data-converted-to-toast', 'true');
             alert.style.display = 'none';
@@ -376,10 +376,10 @@ class ToastManager {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         // Check if the added node is an alert or contains alerts
-                        if (node.classList && node.classList.contains('webops-alert')) {
+                        if (node.classList && (node.classList.contains('webops-alert') || node.classList.contains('auth-alert'))) {
                             this.convertAlertsToToasts();
                         } else if (node.querySelectorAll) {
-                            const alerts = node.querySelectorAll('.webops-alert');
+                            const alerts = node.querySelectorAll('.webops-alert, .auth-alert');
                             if (alerts.length > 0) {
                                 this.convertAlertsToToasts();
                             }

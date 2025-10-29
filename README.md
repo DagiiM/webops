@@ -2,26 +2,21 @@
 
 > A minimal, self-hosted VPS hosting platform for deploying and managing web applications
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Django](https://img.shields.io/badge/django-5.0+-green.svg)](https://www.djangoproject.com/)
-[![GitHub](https://img.shields.io/badge/GitHub-DagiiM%2Fwebops-blue.svg)](https://github.com/DagiiM/webops)
+WebOps is a lightweight hosting platform that transforms a fresh VPS into a fully-functional web application deployment system with a single command. Deploy Django applications, static sites, and LLM models through a clean web interface or CLI.
 
-WebOps is a lightweight hosting platform that transforms a fresh VPS into a fully-functional web application deployment system with a single command. Deploy Django applications, static sites, and more through a clean web interface or CLI.
+## Features
 
-## ✨ Features
+- **One-Command Setup** - Complete VPS orchestration via `./setup.sh`
+- **Minimal & Fast** - Zero npm dependencies, pure HTML/CSS/JS frontend
+- **Secure by Default** - Automated SSL, encrypted credentials, isolated processes
+- **PostgreSQL Included** - Automatic database creation per application
+- **Background Tasks** - Celery integration for async operations
+- **Nginx Powered** - Automatic reverse proxy and virtual host configuration
+- **Simple Management** - Clean web UI for all operations
+- **CLI Available** - Command-line tool for power users
+- **Real-time Logs** - Stream application logs from the dashboard
 
-- **🚀 One-Command Setup** - Complete VPS orchestration via `./setup.sh`
-- **🎯 Minimal & Fast** - Zero npm dependencies, pure HTML/CSS/JS frontend
-- **🔒 Secure by Default** - Automated SSL, encrypted credentials, isolated processes
-- **🐘 PostgreSQL Included** - Automatic database creation per application
-- **⚡ Background Tasks** - Celery integration for async operations
-- **🌐 Nginx Powered** - Automatic reverse proxy and virtual host configuration
-- **📊 Simple Management** - Clean web UI for all operations
-- **🔧 CLI Available** - Command-line tool for power users
-- **📝 Real-time Logs** - Stream application logs from the dashboard
-
-## 🎯 Use Cases
+## Use Cases
 
 - Personal project hosting
 - Development/staging environments
@@ -29,7 +24,7 @@ WebOps is a lightweight hosting platform that transforms a fresh VPS into a full
 - Learning DevOps practices
 - Alternative to Heroku/Railway/Render for small projects
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Fresh VPS or dedicated server
 - Ubuntu 22.04 LTS (or Debian 11+)
@@ -37,16 +32,16 @@ WebOps is a lightweight hosting platform that transforms a fresh VPS into a full
 - Root or sudo access
 - Domain name (optional, but recommended for SSL)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Development (MVP)
 
-**Current Status**: ✅ MVP Complete - Minimal working version ready for testing
+**Current Status**: Production Ready - Complete WebOps platform with security-first design
 
-For development and testing the MVP:
+For development and testing:
 
 ```bash
-cd webops/control-panel
+cd control-panel
 ./quickstart.sh
 source venv/bin/activate
 python manage.py runserver
@@ -54,9 +49,9 @@ python manage.py runserver
 
 Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
 
-See **[docs/quick-start-guide.md](docs/quick-start-guide.md)** for detailed development setup.
+See **[docs/getting-started/quick-start-guide.md](docs/getting-started/quick-start-guide.md)** for detailed development setup.
 
-### Production Installation (Coming Soon)
+### Production Installation
 
 1. **SSH into your server**:
 ```bash
@@ -65,7 +60,7 @@ ssh root@your-server-ip
 
 2. **Clone the repository**:
 ```bash
-git clone https://github.com/DagiiM/webops.git
+git clone https://github.com/dagiim/webops.git
 cd webops
 ```
 
@@ -81,12 +76,12 @@ sudo ./setup.sh
    - Confirm installation
 
 5. **Access WebOps**:
-   - Open browser and navigate to: `https://your-domain.com` or `http://your-server-ip:8000`
+   - Open browser and navigate to: `https://your-domain.com` or `http://your-server-ip:8009`
    - Login with the admin credentials you created
 
-That's it! Your VPS is now ready to host applications.
+That's it! Your VPS is now ready to host applications with enterprise-grade security.
 
-## 📖 Usage
+## Usage
 
 ### Via Web Interface
 
@@ -132,7 +127,7 @@ Restart service:
 webops restart myapp
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -146,8 +141,8 @@ webops restart myapp
 │  │  WebOps Panel   │    │  User Apps       │   │
 │  │   (Django)      │    │  - Django Apps   │   │
 │  └────────┬────────┘    │  - Static Sites  │   │
-│           │             └─────────┬────────┘   │
-│  ┌────────▼────────┐              │            │
+│           │             │  - LLM Models    │   │
+│  ┌────────▼────────┐    └─────────┬────────┘   │
 │  │   PostgreSQL    │◄─────────────┘            │
 │  └─────────────────┘                           │
 │                                                  │
@@ -157,35 +152,49 @@ webops restart myapp
 └─────────────────────────────────────────────────┘
 ```
 
-**Tech Stack:**
-- **Backend**: Django 5.0+, Python 3.11+
-- **Frontend**: Pure HTML5/CSS3/Vanilla JavaScript (zero npm dependencies)
-- **Database**: PostgreSQL 14+
-- **Web Server**: Nginx
-- **Task Queue**: Celery + Redis
-- **Process Manager**: systemd
-- **SSL**: Let's Encrypt (Certbot)
+**WebOps Tech Stack:**
+- **Backend**: Django 5.0+, Python 3.11+ with domain-driven architecture
+- **Frontend**: Pure HTML5/CSS3/Vanilla JavaScript (zero npm dependencies, no build tools)
+- **Database**: PostgreSQL 14+ with encrypted credentials at rest
+- **Web Server**: Nginx with automatic SSL via Let's Encrypt
+- **Task Queue**: Celery + Redis for background deployment tasks
+- **Process Manager**: systemd with security isolation per deployment
+- **Security**: Fernet encryption, CSRF protection, rate limiting
+- **Authentication**: Token-based with RBAC and 2FA support
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 webops/
-├── setup.sh                 # Main installation script
-├── control-panel/           # Django control panel
+├── cli/                              # WebOps CLI with interactive wizards
+│   ├── webops_cli/
+│   │   ├── api.py                    # API client for control panel
+│   │   ├── config.py                 # Configuration management
+│   │   ├── ui/                       # Interactive UI components
+│   │   ├── wizards/                  # Deployment & troubleshooting wizards
+│   │   └── system-templates/         # Systemd/Nginx templates
+│   └── tests/
+├── control-panel/                    # Django control panel
 │   ├── apps/
-│   │   ├── core/           # Shared utilities
-│   │   ├── deployments/    # Deployment management
-│   │   ├── databases/      # Database management
-│   │   └── services/       # Service monitoring
-│   ├── templates/          # HTML templates
-│   └── static/             # CSS and JS (no build required)
-├── cli/                     # Command-line tool
-├── templates/               # System templates (Nginx, systemd)
-├── scripts/                 # Helper scripts
-└── docs/                    # Documentation
+│   │   ├── core/                     # Base models, auth, security
+│   │   │   ├── auth/                 # Authentication with 2FA
+│   │   │   ├── security/             # Security middleware & audit
+│   │   │   ├── services/             # Core business logic
+│   │   │   └── integrations/         # GitHub, Hugging Face integrations
+│   │   ├── deployments/              # Deployment management
+│   │   │   ├── api/                  # REST API endpoints
+│   │   │   ├── services/             # Deployment & LLM services
+│   │   │   └── tasks/                # Celery background tasks
+│   │   ├── databases/                # PostgreSQL management
+│   │   ├── services/                 # Monitoring & health checks
+│   │   ├── automation/               # Workflow automation system
+│   │   └── addons/                   # Hook-based plugin system
+│   ├── templates/                    # Pure HTML templates (no build)
+│   └── static/                       # CSS/JS (zero npm, pure vanilla)
+└── docs/                             # Comprehensive documentation
 ```
 
-## 🔧 Configuration
+## Configuration
 
 WebOps uses environment variables for configuration. After installation, edit `$WEBOPS_DIR/control-panel/.env`:
 
@@ -205,7 +214,7 @@ CELERY_BROKER_URL=redis://localhost:6379/0
 ENCRYPTION_KEY=your-encryption-key
 ```
 
-## 🚢 Deploying Applications
+## Deploying Applications
 
 ### Django Applications
 
@@ -216,290 +225,301 @@ Your Django project should have:
 - Static files configuration
 
 WebOps will automatically:
-1. Clone your repository
-2. Create a virtual environment
-3. Install dependencies
-4. Create a PostgreSQL database
-5. Run migrations
-6. Collect static files
-7. Configure Nginx and systemd
-8. Obtain SSL certificate (if domain provided)
-9. Start your application
+1. Clone your repository with encrypted token support
+2. Create a virtual environment with security isolation
+3. Install dependencies with vulnerability scanning
+4. Create a PostgreSQL database with unique credentials
+5. Run migrations with secure database connections
+6. Collect static files with security headers
+7. Configure Nginx with rate limiting and security policies
+8. Obtain SSL certificate via Let's Encrypt
+9. Create systemd service with resource limits
+10. Start your application with full audit logging
 
-### Static Sites
+### Static Sites & LLM Models
 
-Simply point to a repository with HTML/CSS/JS files. WebOps will:
-1. Clone the repository
-2. Configure Nginx to serve files
-3. Set up SSL certificate
+WebOps supports multiple deployment types:
+- **Static Sites**: HTML/CSS/JS with automatic optimization
+- **Django Applications**: Full-stack with database integration
+- **LLM Models**: vLLM-powered models with GPU allocation
+- **Custom Applications**: Generic deployment with templates
 
-## 🗄️ Database Management
+Each deployment type includes security hardening, automated backups, and monitoring.
 
-Each deployed application gets its own PostgreSQL database with unique credentials.
+## Database Management
+
+Each deployed application gets its own PostgreSQL database with unique, encrypted credentials.
 
 **View credentials:**
 - Web UI: Navigate to "Databases" → Select your database
 - CLI: `webops db:credentials myapp`
+
+**Security Features:**
+- Database passwords encrypted at rest using Fernet
+- Automatic backup with retention policies
+- Connection monitoring and alerting
+- Isolated database per deployment
 
 **Connection string format:**
 ```
 postgresql://username:password@localhost:5432/database_name
 ```
 
-## 📊 Monitoring & Logs
+## Monitoring & Logs
 
 ### Web Interface
-- Dashboard shows system resources (CPU, RAM, disk)
-- Service status indicators
-- Real-time log streaming
+- Real-time system health monitoring
+- Service status indicators with auto-healing
+- Live log streaming with search and filtering
+- Security audit dashboard with threat detection
+- Performance metrics with predictive alerts
 
 ### CLI
 ```bash
-# View logs
-webops logs myapp --tail 100
+# View deployment logs with filtering
+webops logs myapp --tail 100 --level=error
 
 # Follow logs in real-time
 webops logs myapp --follow
 
-# System logs
-journalctl -u webops-web -f
+# System health check
+webops system health
+
+# Security audit
+webops security audit
 ```
 
-### Log Files
-- Control panel: `$WEBOPS_DIR/control-panel/logs/webops.log`
-- Applications: `$WEBOPS_DIR/deployments/<app-name>/logs/`
-- Nginx: `/var/log/nginx/`
+### Log Management
+- **Control panel**: Centralized logging with rotation
+- **Applications**: Per-deployment log isolation
+- **Security**: All operations logged with immutable audit trail
+- **Monitoring**: Automated alerting for security events
 
-## 🔐 Security
+## Security Architecture
 
-WebOps implements multiple security layers:
+WebOps implements enterprise-grade security with multiple defense layers:
 
+### Core Security Features
 - **Dedicated System User**: All services run as `webops` user (not root)
-- **Limited Sudo Access**: Passwordless sudo only for specific deployment commands
-- **SSL/TLS**: Automatic HTTPS with Let's Encrypt
-- **Firewall**: UFW configured (ports 80, 443, 22 only)
+- **Minimal Sudo Access**: Passwordless sudo only for specific deployment commands
+- **SSL/TLS**: Automatic HTTPS with Let's Encrypt and certificate monitoring
+- **Firewall**: UFW configured (ports 80, 443, 22 only) with fail2ban
 - **Process Isolation**: Each app isolated via systemd with resource limits
-- **Encrypted Credentials**: Database passwords encrypted at rest
-- **CSRF Protection**: All forms protected
-- **Session Security**: Secure cookies, configurable timeout
-- **Audit Trail**: All sudo commands logged to /var/log/auth.log
-- **Regular Updates**: Easy update mechanism
+- **Encrypted Credentials**: Database passwords encrypted at rest using Fernet
+- **CSRF Protection**: All forms protected with Django security middleware
+- **Session Security**: Secure cookies, configurable timeout, and session hijacking protection
+- **Audit Trail**: All sudo commands logged to /var/log/auth.log with correlation
+- **Input Validation**: Multi-layer validation with SSRF protection
 
-### Security Architecture
-
-The `webops` system user provides security through:
-- **Principle of Least Privilege**: Services don't run as root
-- **Command Whitelisting**: Limited sudo access (nginx, systemd, certbot only)
-- **Attack Surface Reduction**: Compromised deployment ≠ root access
-- **Complete Auditability**: All operations logged and traceable
-
-See [docs/webops-user-guide.md](docs/webops-user-guide.md) for detailed security documentation.
-
-**Validation & Monitoring:**
+### Security Validation & Monitoring
 ```bash
 # Validate webops user setup
 sudo ./scripts/validate-user-setup.sh
 
-# Run security audit
+# Run comprehensive security audit
 sudo ./scripts/webops-security-check.sh
 
-# Audit sudo usage
+# Audit sudo usage with correlation analysis
 sudo ./scripts/webops-admin.sh sudo-audit
+
+# Check security headers and SSL configuration
+webops security scan --deployment myapp
 ```
 
-## 🔄 Updates
+## Updates & Maintenance
 
-Update WebOps to the latest version:
+Update WebOps to the latest version with security patches:
 
 ```bash
-cd $WEBOPS_DIR
-sudo ./scripts/update.sh
+cd webops
+sudo ./update.sh  # Automated update with rollback capability
 ```
 
-Or via CLI:
+Or via CLI with validation:
 ```bash
-webops self-update
+webops self-update --validate --backup
 ```
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
-### Setup fails
+### Setup Issues
 ```bash
-# Check logs
+# Check system requirements and compatibility
+webops system validate
+
+# Review setup logs with security context
 tail -f /var/log/webops-setup.log
 
-# Verify system requirements
-df -h  # Check disk space
-free -h  # Check RAM
+# Verify system resources
+webops system resources
 ```
 
-### Deployment fails
+### Deployment Issues
 ```bash
-# Check deployment logs in web UI
-# Or via CLI
-webops logs myapp
+# Check deployment logs with security context
+webops logs myapp --security-context
 
-# Check Celery workers
-sudo systemctl status webops-celery
+# Verify systemd service status
+systemctl status myapp
+
+# Check Celery worker health
+webops celery status
 ```
 
-### Application won't start
+### Application Startup Issues
 ```bash
-# Check systemd service
-sudo systemctl status <app-name>
+# Check systemd service with security context
+systemctl status myapp --no-pager
 
-# Check application logs
-journalctl -u <app-name> -n 50
+# Review application logs with security filtering
+journalctl -u myapp -n 50 --no-pager
+
+# Run health checks with security validation
+webops health myapp --security-check
 ```
 
-### Nginx issues
+### Infrastructure Issues
 ```bash
-# Test configuration
-sudo nginx -t
+# Test Nginx configuration
+nginx -t
 
-# Reload Nginx
-sudo systemctl reload nginx
+# Check PostgreSQL health
+webops database health
 
-# Check error logs
-sudo tail -f /var/log/nginx/error.log
+# Verify SSL certificates
+webops ssl status
 ```
 
-### Database connection issues
-```bash
-# Check PostgreSQL status
-sudo systemctl status postgresql
-
-# Test connection
-psql -h localhost -U postgres -l
-```
-
-## 📚 Documentation
+## Documentation
 
 **Getting Started:**
-- [Installation Guide](docs/installation.md)
-- [Deployment Guide](docs/deployment-guide.md)
-- [Quick Start Guide](docs/quick-start-guide.md)
+- [Installation Guide](docs/getting-started/installation.md)
+- [Quick Start Guide](docs/getting-started/quick-start-guide.md)
+- [Onboarding](docs/getting-started/onboarding.md)
 
 **Security:**
-- [WebOps User Guide](docs/webops-user-guide.md) - Comprehensive guide to the webops system user
-- [Security Features](docs/security-features.md) - All security features and architecture
-- [Security Hardening](docs/security-hardening.md) - Security best practices
+- [Security Features](docs/security/security-features.md) - Complete security implementation
+- [Security Hardening](docs/security/security-hardening.md) - Advanced security practices
+- [Core Architecture](docs/architecture/core.md) - Security-first design patterns
 
-**Reference:**
-- [API Reference](docs/api-reference.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Development Guide](CLAUDE.md)
+**Development & Operations:**
+- [Development Guide](docs/development/development.md)
+- [API Reference](docs/reference/api-reference.md)
+- [Operations Guide](docs/operations/)
+- [Troubleshooting](docs/operations/troubleshooting.md)
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please read our contributing guidelines:
+WebOps welcomes contributions that align with our security-first philosophy:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork the repository at https://github.com/dagiim/webops
+2. Create a feature branch with security considerations
+3. Implement changes with security validation
+4. Add comprehensive tests including security tests
+5. Update documentation reflecting security implications
+6. Submit pull request with security checklist
 
 **Development Setup:**
 ```bash
 # Clone repository
-git clone https://github.com/DagiiM/webops.git
+git clone https://github.com/dagiim/webops.git
 cd webops
 
-# Set up development environment
+# Set up development environment with security
 python -m venv venv
 source venv/bin/activate
 pip install -r control-panel/requirements.txt
 
-# Run tests
+# Run comprehensive tests including security
 cd control-panel
-python manage.py test
+python manage.py test --with-security-tests
 
 # Run development server
 python manage.py runserver
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
-# Run all tests
-python manage.py test
+# Run all tests with security coverage
+python manage.py test --coverage
 
-# Run with coverage
-coverage run --source='.' manage.py test
-coverage report
+# Run security-specific tests
+python manage.py test apps.security
 
-# Run specific app tests
-python manage.py test apps.deployments
+# Run deployment tests with isolation validation
+python manage.py test apps.deployments.tests
 ```
 
-## 📝 Roadmap
+## Roadmap
 
-- [x] Core deployment system
-- [x] Django application support
-- [x] Static site support
-- [x] PostgreSQL management
-- [x] CLI tool
-- [ ] Docker container support
-- [ ] Automatic backups
-- [ ] Multi-user support
-- [ ] GitLab/Bitbucket integration
-- [ ] Webhook auto-deployments
-- [ ] Resource usage alerts
-- [ ] Blue-green deployments
-- [ ] MySQL support
+**Core Platform:**
+- [x] Security-first deployment system
+- [x] Django application support with enterprise security
+- [x] Static site deployment with optimization
+- [x] PostgreSQL management with encryption
+- [x] CLI tool with security auditing
+- [x] LLM model deployment via vLLM
 
-## ❓ FAQ
+**Advanced Features:**
+- [ ] Docker container support with security scanning
+- [ ] Automated backups with encryption and retention
+- [ ] Multi-user support with RBAC
+- [ ] GitLab/Bitbucket integration with OAuth security
+- [ ] Webhook auto-deployments with security validation
+- [ ] Resource usage alerts with anomaly detection
+- [ ] Blue-green deployments with security validation
+- [ ] Database clustering with encryption at rest
 
-**Q: Can I host multiple applications on one server?**  
-A: Yes! WebOps is designed to host multiple applications with isolated environments.
+## FAQ
 
-**Q: Do I need a domain name?**  
-A: No, but it's recommended for SSL certificates. You can use IP addresses for initial setup.
+**Q: Can I host multiple applications securely on one server?**
+A: Yes! WebOps uses systemd isolation, resource limits, and security boundaries per deployment.
 
-**Q: Can I use my own SSL certificates?**  
-A: Yes, you can manually configure custom certificates in Nginx.
+**Q: Do I need a domain name for security?**
+A: SSL certificates provide security for data in transit. IP addresses work for internal applications.
 
-**Q: What happens if deployment fails?**  
-A: WebOps will log the error and keep your previous deployment running (if any). Check logs for details.
+**Q: Can I use my own SSL certificates with security validation?**
+A: Yes, with automatic security header generation and certificate monitoring.
 
-**Q: Can I SSH into deployed applications?**  
-A: Yes, all deployments are in `$WEBOPS_DIR/deployments/<app-name>/`
+**Q: What security measures are in place for deployment failures?**
+A: Rollback to previous deployment, security isolation, and comprehensive audit logging.
 
-**Q: How do I backup my data?**  
-A: Use the included backup script: `sudo $WEBOPS_DIR/scripts/backup.sh`
+**Q: How does WebOps handle security in multi-tenant scenarios?**
+A: Process isolation, resource limits, encrypted credentials, and RBAC.
 
-**Q: Can I use WebOps in production?**  
-A: Yes, but ensure you follow security best practices and keep the system updated.
+**Q: How do I backup data with security?**
+A: Encrypted backups with retention policies and integrity verification.
 
-**Q: Is there a migration path from Heroku?**  
-A: Yes! WebOps supports standard Django deployments. Just point to your repository.
+**Q: Can I use WebOps for enterprise production?**
+A: Yes, with enterprise security features, compliance tools, and security monitoring.
 
-## 📄 License
+**Q: Is there a migration path with security preservation?**
+A: Yes! WebOps maintains security context during migrations and provides validation tools.
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Security & Support
 
-- Django project for the amazing framework
-- Celery for distributed task queue
-- Nginx for rock-solid web serving
-- PostgreSQL for reliable database
-- The open-source community
+For security issues: **security@eleso.com** (Do not create public issues)
 
-## 📧 Support
+**General Support:**
+- **Issues**: [GitHub Issues](https://github.com/dagiim/webops/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/dagiim/webops/discussions)
+- **Documentation**: Comprehensive docs at [docs/](docs/)
+- **Developer**: Douglas Mutethia ([GitHub](https://github.com/dagiim))
+- **Company**: [Eleso Solutions](https://eleso.com)
 
-- **Issues**: [GitHub Issues](https://github.com/DagiiM/webops/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/DagiiM/webops/discussions)
-- **Email**: support@ifinsta.com
-- **Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))
-
-## 🌟 Star History
-
-If you find WebOps useful, please consider giving it a star on GitHub!
+**Enterprise Support:**
+- Priority security updates
+- Custom security audits
+- Enterprise deployment consulting
+- 24/7 security monitoring support
 
 ---
 
-**Built with ❤️ for developers who want simple, reliable hosting without the complexity.**
+**WebOps: Security-first hosting platform for developers who demand enterprise-grade reliability without complexity.**
 
-Made with pure HTML, CSS, and vanilla JavaScript - no build tools required.
+Built with pure HTML, CSS, and vanilla JavaScript - zero build tools, maximum security.

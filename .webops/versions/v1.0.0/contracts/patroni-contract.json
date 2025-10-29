@@ -1,0 +1,106 @@
+{
+    "addon_name": "patroni",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T15:05:14Z",
+    "expires_at": "2026-10-29T15:05:14Z",
+    "metadata": {
+    "name": "patroni",
+    "version": "3.0.2",
+    "description": "Patroni PostgreSQL High Availability Cluster",
+    "category": "database",
+    "depends": ["etcd", "postgresql"],
+    "provides": ["postgresql-ha", "patroni", "pgbouncer"],
+    "conflicts": [],
+    "system_requirements": {
+        "min_memory_mb": 2048,
+        "min_disk_gb": 10,
+        "min_cpu_cores": 2,
+        "required_ports": [5432, 6432, 8008]
+    },
+    "maintainer": "WebOps Team",
+    "license": "MIT",
+    "documentation_url": "https://webops.dev/docs/addons/patroni",
+    "support_url": "https://webops.dev/support",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-10-29T09:35:00Z"
+},
+    "sla": {
+    "availability_target": "99.95%",
+    "performance_targets": {
+        "max_response_time_ms": 100,
+        "max_failover_time_s": 30,
+        "min_throughput_ops_per_sec": 1000
+    },
+    "recovery_objectives": {
+        "rpo": "0",
+        "rto": "30s"
+    },
+    "monitoring_requirements": {
+        "metrics": ["patroni_status", "postgresql_connections", "replication_lag"],
+        "alerting": ["cluster_failure", "replication_lag", "node_down"],
+        "health_checks": ["patroni_api", "postgresql_connection"]
+    },
+    "maintenance_windows": {
+        "planned_maintenance": "4_hours_monthly",
+        "emergency_maintenance": "24x7",
+        "notification_requirements": ["24_hours_advance", "stakeholder_approval"]
+    }
+},
+    "security": {
+    "privilege_level": "high",
+    "required_capabilities": [
+        "SYS_ADMIN",
+        "DAC_OVERRIDE",
+        "SETUID",
+        "SETGID"
+    ],
+    "system_user": "patroni",
+    "data_access": {
+        "type": "database",
+        "locations": [
+            "/var/lib/postgresql/data",
+            "/etc/patroni",
+            "/var/log/patroni"
+        ],
+        "encryption": true,
+        "backup_retention_days": 30
+    },
+    "network_access": {
+        "required_ports": [5432, 6432, 8008],
+        "protocols": ["postgresql", "https"],
+        "encryption_required": true
+    },
+    "authentication": {
+        "method": "certificate",
+        "certificate_locations": [
+            "/etc/patroni/certs/server.crt",
+            "/etc/patroni/certs/server.key"
+        ],
+        "ca_certificate": "/etc/patroni/certs/ca.crt"
+    },
+    "audit_logging": {
+        "enabled": true,
+        "log_level": "info",
+        "log_retention_days": 90,
+        "audit_events": [
+            "login",
+            "privilege_escalation",
+            "data_access",
+            "configuration_change"
+        ]
+    },
+    "vulnerability_scanning": {
+        "enabled": true,
+        "scan_frequency": "weekly",
+        "auto_patch_security": true
+    },
+    "compliance": {
+        "standards": ["SOC2", "GDPR", "HIPAA"],
+        "data_classification": "confidential",
+        "pii_handling": true
+    }
+},
+    "validation_hash": "796a73901a9956c7f5266e8313805b678bd7b22e140cd7f757cc852a9b18ddfe",
+    "status": "active"
+}

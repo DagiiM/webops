@@ -1,8 +1,8 @@
 # Security Policy
 
-**Project Owner**: Douglas Mutethia ([GitHub](https://github.com/DagiiM))  
-**Company**: Eleso Solutions  
-**Repository**: [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+**Project Owner**: Douglas Mutethia ([GitHub](https://github.com/dagiim))
+**Company**: Eleso Solutions
+**Repository**: [https://github.com/dagiim/webops](https://github.com/dagiim/webops)
 
 ## Supported Versions
 

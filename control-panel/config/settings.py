@@ -55,6 +55,7 @@ ADDONS_PATH = config('ADDONS_PATH', default=str(BASE_DIR / 'addons'))
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'apps.api.rate_limiting.RateLimitMiddleware',  # Global rate limiting
+    'apps.databases.middleware.DatabaseRateLimitMiddleware',  # Database-specific rate limiting
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -302,7 +303,29 @@ if 'test' in sys.argv:
     }
 
 # Session Configuration
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Database Rate Limiting Configuration
+DATABASE_RATE_LIMITS = {
+    'read': {
+        'max_requests': config('DB_READ_RATE_LIMIT', default=200, cast=int),
+        'window_seconds': config('DB_READ_WINDOW', default=3600, cast=int),
+        'burst_requests': config('DB_READ_BURST', default=50, cast=int),
+        'burst_window': config('DB_READ_BURST_WINDOW', default=60, cast=int),
+    },
+    'write': {
+        'max_requests': config('DB_WRITE_RATE_LIMIT', default=50, cast=int),
+        'window_seconds': config('DB_WRITE_WINDOW', default=3600, cast=int),
+        'burst_requests': config('DB_WRITE_BURST', default=10, cast=int),
+        'burst_window': config('DB_WRITE_BURST_WINDOW', default=60, cast=int),
+    },
+    'admin': {
+        'max_requests': config('DB_ADMIN_RATE_LIMIT', default=20, cast=int),
+        'window_seconds': config('DB_ADMIN_WINDOW', default=3600, cast=int),
+        'burst_requests': config('DB_ADMIN_BURST', default=5, cast=int),
+        'burst_window': config('DB_ADMIN_BURST_WINDOW', default=300, cast=int),
+    },
+}

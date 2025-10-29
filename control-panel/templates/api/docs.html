@@ -5,8 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>API Documentation - WebOps</title>
+    <title>API Documentation - {{ branding.site_name }}</title>
+
+    {% if branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    {% endif %}
+
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+    <!-- Dynamic branding variables -->
+    <style>
+        {{ branding.generate_css_variables|safe }}
+    </style>
+
     <style>
         .webops-docs-container {
             max-width: 1400px;

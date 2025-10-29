@@ -6,12 +6,18 @@ for each deployment, allowing for non-standard project layouts.
 """
 
 from django.db import models
+from apps.core.common.models import BaseModel
 from .base import BaseDeployment
 
 
-class DeploymentConfiguration(models.Model):
+class DeploymentConfiguration(BaseModel):
     """
     Stores project structure configuration for a deployment.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
 
     This model handles non-standard project structures by storing
     detected or user-provided paths and settings.
@@ -134,10 +140,6 @@ class DeploymentConfiguration(models.Model):
         ],
         help_text="Target deployment environment"
     )
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'deployment_configurations'

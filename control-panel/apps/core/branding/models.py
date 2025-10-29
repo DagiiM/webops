@@ -8,12 +8,18 @@ Architecture: Branding settings, theme management, design system
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from apps.core.common.models import BaseModel
 
 
-class BrandingSettings(models.Model):
+class BrandingSettings(BaseModel):
     """
     Branding and theming settings for the WebOps control panel.
-    
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+
     Supports HSL-based color generation with accessibility compliance,
     theme presets, and comprehensive design system management including
     typography, spacing, shadows, animations, and layout controls.
@@ -403,8 +409,6 @@ class BrandingSettings(models.Model):
         default=0.98,
         help_text='Scale transform for active/pressed states (0.5-2.0)'
     )
-    
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'core_branding_settings'

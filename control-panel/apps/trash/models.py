@@ -2,12 +2,18 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from apps.core.common.models import BaseModel
 import json
 
-class TrashItem(models.Model):
+class TrashItem(BaseModel):
     """
     Model to store soft-deleted items in the recycle bin.
     Tracks all necessary metadata for restoration and audit purposes.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
     """
 
     # Item identification
@@ -172,9 +178,14 @@ class TrashItem(models.Model):
         return json.dumps(display_metadata, indent=2) if display_metadata else "No displayable metadata"
 
 
-class TrashSettings(models.Model):
+class TrashSettings(BaseModel):
     """
     Global settings for trash functionality
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
     """
 
     # Retention settings
@@ -223,9 +234,14 @@ class TrashSettings(models.Model):
         super().save(*args, **kwargs)
 
 
-class TrashOperation(models.Model):
+class TrashOperation(BaseModel):
     """
     Audit trail for all trash operations
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
     """
 
     OPERATION_CHOICES = [

@@ -1,23 +1,36 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from apps.core.common.models import BaseModel
 import uuid
 import json
 
-class ComplianceFramework(models.Model):
-    """Compliance framework model (SOC2, ISO27001, etc.)"""
+class ComplianceFramework(BaseModel):
+    """
+    Compliance framework model (SOC2, ISO27001, etc.)
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     version = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.name} {self.version}"
 
-class ComplianceControl(models.Model):
-    """Individual compliance controls/requirements"""
+class ComplianceControl(BaseModel):
+    """
+    Individual compliance controls/requirements
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     framework = models.ForeignKey(ComplianceFramework, on_delete=models.CASCADE, related_name='controls')
     control_id = models.CharField(max_length=50)
     title = models.CharField(max_length=200)
@@ -47,19 +60,23 @@ class ComplianceControl(models.Model):
     is_automated = models.BooleanField(default=False)
     automation_script = models.CharField(max_length=255, blank=True)
     last_automated_check = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         unique_together = ['framework', 'control_id']
         ordering = ['framework', 'control_id']
-    
+
     def __str__(self):
         return f"{self.framework.name} - {self.control_id}: {self.title}"
 
-class ComplianceEvidence(models.Model):
-    """Evidence for compliance controls"""
+class ComplianceEvidence(BaseModel):
+    """
+    Evidence for compliance controls
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     control = models.ForeignKey(ComplianceControl, on_delete=models.CASCADE, related_name='evidence')
     evidence_type = models.CharField(max_length=50, choices=[
         ('document', 'Document'),
@@ -87,8 +104,15 @@ class ComplianceEvidence(models.Model):
     def __str__(self):
         return f"{self.control.control_id} - {self.title}"
 
-class SecurityScan(models.Model):
-    """Security scan results"""
+class SecurityScan(BaseModel):
+    """
+    Security scan results
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     scan_id = models.CharField(max_length=100, unique=True)
     scan_type = models.CharField(max_length=50, choices=[
         ('malware', 'Malware Scan'),
@@ -150,8 +174,15 @@ class SecurityScan(models.Model):
             self.duration_seconds = int((self.completed_at - self.started_at).total_seconds())
         super().save(*args, **kwargs)
 
-class ComplianceReport(models.Model):
-    """Compliance reports and assessments"""
+class ComplianceReport(BaseModel):
+    """
+    Compliance reports and assessments
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     report_id = models.CharField(max_length=100, unique=True)
     title = models.CharField(max_length=200)
     framework = models.ForeignKey(ComplianceFramework, on_delete=models.CASCADE, related_name='reports')
@@ -209,8 +240,15 @@ class ComplianceReport(models.Model):
     def __str__(self):
         return f"{self.framework.name} - {self.title} ({self.period_start} to {self.period_end})"
 
-class DataRetentionPolicy(models.Model):
-    """Data retention policies for compliance"""
+class DataRetentionPolicy(BaseModel):
+    """
+    Data retention policies for compliance
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     
@@ -227,15 +265,19 @@ class DataRetentionPolicy(models.Model):
     # Policy status
     is_active = models.BooleanField(default=True)
     last_enforced = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.name} ({self.retention_days} days)"
 
-class ComplianceAlert(models.Model):
-    """Compliance alerts and notifications"""
+class ComplianceAlert(BaseModel):
+    """
+    Compliance alerts and notifications
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
     alert_id = models.CharField(max_length=100, unique=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -269,9 +311,7 @@ class ComplianceAlert(models.Model):
     is_resolved = models.BooleanField(default=False)
     resolved_at = models.DateTimeField(null=True, blank=True)
     resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_alerts')
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.get_severity_display()}: {self.title}"
     

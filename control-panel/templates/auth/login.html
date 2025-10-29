@@ -1,166 +1,221 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - WebOps</title>
-    {% if branding.favicon %}
-    <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
-    {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
-    {% endif %}
-    
-    <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
-    
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-transitions.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
-    
-    <style>
-        /* Login page specific styles */
-        .login-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--webops-color-bg-primary);
-            position: relative;
-        }
-        
-        .login-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 2rem;
-            position: relative;
-            z-index: 10;
-        }
-        
-        .webops-theme-switcher {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            z-index: 100;
-        }
-    </style>
-</head>
-<body class="login-page">
-    <!-- Theme Switcher -->
-    <div class="webops-theme-switcher">
-        <div class="theme-switcher-container">
-            <button class="theme-switcher-toggle" id="theme-switcher-toggle" aria-label="Switch theme">
-                <span class="theme-switcher-icon material-icons">brightness_6</span>
+{% extends 'auth/auth_base.html' %}
+
+{% block title %}Login - WebOps{% endblock %}
+{% block page_title %}Control Panel Login{% endblock %}
+
+{% block content %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="auth-alert auth-alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}" role="alert">
+        <span class="material-icons">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if form.errors %}
+<div class="auth-alert auth-alert-error" role="alert">
+    <span class="material-icons">error</span>
+    <span>Invalid username or password. Please try again.</span>
+</div>
+{% endif %}
+
+<form method="post" id="loginForm" novalidate>
+    {% csrf_token %}
+
+    <div class="auth-form-group">
+        <label for="id_username" class="webops-label">Username</label>
+        <div class="auth-input-wrapper">
+            <input
+                type="text"
+                name="username"
+                id="id_username"
+                class="auth-input"
+                placeholder="Enter your username"
+                required
+                autofocus
+                autocomplete="username"
+                aria-describedby="username-feedback"
+            >
+            <span class="auth-input-icon material-icons" id="username-icon" aria-hidden="true"></span>
+        </div>
+        <div class="auth-feedback" id="username-feedback" role="alert"></div>
+    </div>
+
+    <div class="auth-form-group">
+        <label for="id_password" class="webops-label">Password</label>
+        <div class="auth-input-wrapper">
+            <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="auth-input"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+                aria-describedby="password-feedback"
+            >
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password visibility">
+                <span class="material-icons">visibility_off</span>
             </button>
-            <div class="theme-switcher-dropdown" id="theme-switcher-dropdown">
-                <div class="theme-switcher-header">
-                    <span class="theme-switcher-title">Theme</span>
-                    <button class="theme-switcher-close" id="theme-switcher-close">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
-                <div class="theme-switcher-options">
-                    <div class="theme-option" data-theme="dark">
-                        <div class="theme-preview dark-preview"></div>
-                        <span class="theme-name">Dark</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                    <div class="theme-option" data-theme="light">
-                        <div class="theme-preview light-preview"></div>
-                        <span class="theme-name">Light</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                    <div class="theme-option" data-theme="forest">
-                        <div class="theme-preview forest-preview"></div>
-                        <span class="theme-name">Forest</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                    <div class="theme-option" data-theme="high-contrast">
-                        <div class="theme-preview high-contrast-preview"></div>
-                        <span class="theme-name">High Contrast</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                </div>
-            </div>
         </div>
+        <div class="auth-feedback" id="password-feedback" role="alert"></div>
     </div>
 
-    <div class="webops-app-background"></div>
-    <div class="login-container">
-        <div class="webops-card" style="max-width: 420px; margin: 0 auto;">
-            <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">WebOps</h1>
-                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Control Panel Login</h2>
-
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="webops-mb-md webops-p-md" style="background: rgba({% if message.tags == 'error' %}255, 68, 68{% else %}0, 255, 136{% endif %}, 0.1); border-left: 4px solid var(--webops-color-{% if message.tags == 'error' %}error{% else %}success{% endif %}); border-radius: var(--webops-radius-md);">
-                        <span class="webops-text-{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-
-                {% if form.errors %}
-                <div class="webops-mb-md webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error); border-radius: var(--webops-radius-md);">
-                    <span class="webops-text-error">Invalid username or password.</span>
-                </div>
-                {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="webops-form-group">
-                        <label for="id_username" class="webops-label">Username</label>
-                        <input type="text" name="username" id="id_username" class="webops-input" required autofocus>
-                    </div>
-
-                    <div class="webops-form-group">
-                        <label for="id_password" class="webops-label">Password</label>
-                        <input type="password" name="password" id="id_password" class="webops-input" required>
-                    </div>
-
-                    <div class="webops-form-group webops-flex webops-items-center webops-justify-between">
-                        <label class="webops-flex webops-items-center webops-gap-xs" style="cursor: pointer;">
-                            <input type="checkbox" name="remember_me" id="id_remember_me" class="webops-checkbox" checked>
-                            <span class="webops-text-sm webops-text-secondary">Remember me</span>
-                        </label>
-                        <a href="{% url 'password_reset' %}" class="webops-text-sm webops-text-primary" style="text-decoration: none;">
-                            Forgot password?
-                        </a>
-                    </div>
-
-                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">Login</button>
-
-                    <div class="webops-text-center webops-text-secondary">
-                        Don't have an account?
-                        <a href="{% url 'register' %}" class="webops-text-primary" style="text-decoration: none;">
-                            Sign Up
-                        </a>
-                    </div>
-
-                    <input type="hidden" name="next" value="{{ next }}">
-                </form>
-
-                <!-- Social Login -->
-                <div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
-                    <span style="font-size: var(--webops-font-size-sm);">or</span>
-                    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
-                </div>
-                <a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
-                    Sign in with Google
-                </a>
-            </div>
-        </div>
+    <div class="webops-form-group webops-flex webops-items-center webops-justify-between">
+        <label class="webops-flex webops-items-center webops-gap-xs" style="cursor: pointer;">
+            <input type="checkbox" name="remember_me" id="id_remember_me" class="webops-checkbox" checked>
+            <span class="webops-text-sm webops-text-secondary">Remember me for 30 days</span>
+        </label>
+        <a href="{% url 'password_reset' %}" class="webops-text-sm webops-text-primary" style="text-decoration: none;">
+            Forgot password?
+        </a>
     </div>
 
-    <!-- Theme JavaScript -->
-    <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>
-    <script src="{% static 'js/theme-switcher.js' %}"></script>
-    <script src="{% static 'js/theme-integration.js' %}"></script>
-</body>
-</html>
+    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md" id="submitBtn">
+        Login
+    </button>
+
+    <div class="webops-text-center webops-text-secondary">
+        Don't have an account?
+        <a href="{% url 'register' %}" class="webops-text-primary" style="text-decoration: none;">
+            Sign Up
+        </a>
+    </div>
+
+    <input type="hidden" name="next" value="{{ next }}">
+</form>
+
+<!-- Social Login -->
+<div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
+    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+    <span style="font-size: var(--webops-font-size-sm);">or</span>
+    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+</div>
+<a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
+    <span style="display: inline-flex; align-items: center; gap: var(--webops-space-2);">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+            <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+    </span>
+</a>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    const form = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('id_username');
+    const passwordInput = document.getElementById('id_password');
+    const submitBtn = document.getElementById('submitBtn');
+    const togglePassword = document.getElementById('togglePassword');
+
+    // Password visibility toggle
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        const icon = this.querySelector('.material-icons');
+        icon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+    });
+
+    // Real-time validation
+    function validateUsername() {
+        const value = usernameInput.value.trim();
+        const feedback = document.getElementById('username-feedback');
+        const icon = document.getElementById('username-icon');
+
+        if (value === '') {
+            usernameInput.classList.remove('valid', 'invalid');
+            icon.textContent = '';
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        if (value.length < 3) {
+            usernameInput.classList.remove('valid');
+            usernameInput.classList.add('invalid');
+            icon.textContent = 'error';
+            icon.classList.remove('success');
+            icon.classList.add('error');
+            feedback.innerHTML = '<span class="material-icons">error</span><span>Username must be at least 3 characters</span>';
+            feedback.classList.add('show', 'error');
+            feedback.classList.remove('success');
+            return false;
+        }
+
+        usernameInput.classList.remove('invalid');
+        usernameInput.classList.add('valid');
+        icon.textContent = 'check_circle';
+        icon.classList.remove('error');
+        icon.classList.add('success');
+        feedback.classList.remove('show');
+        return true;
+    }
+
+    function validatePassword() {
+        const value = passwordInput.value;
+        const feedback = document.getElementById('password-feedback');
+
+        if (value === '') {
+            passwordInput.classList.remove('valid', 'invalid');
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        if (value.length < 6) {
+            passwordInput.classList.remove('valid');
+            passwordInput.classList.add('invalid');
+            feedback.innerHTML = '<span class="material-icons">error</span><span>Password must be at least 6 characters</span>';
+            feedback.classList.add('show', 'error');
+            feedback.classList.remove('success');
+            return false;
+        }
+
+        passwordInput.classList.remove('invalid');
+        passwordInput.classList.add('valid');
+        feedback.classList.remove('show');
+        return true;
+    }
+
+    // Attach event listeners
+    usernameInput.addEventListener('input', validateUsername);
+    usernameInput.addEventListener('blur', validateUsername);
+    passwordInput.addEventListener('input', validatePassword);
+    passwordInput.addEventListener('blur', validatePassword);
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const usernameValid = validateUsername();
+        const passwordValid = validatePassword();
+
+        if (!usernameValid || !passwordValid) {
+            e.preventDefault();
+
+            if (!usernameValid) {
+                usernameInput.focus();
+            } else if (!passwordValid) {
+                passwordInput.focus();
+            }
+            return false;
+        }
+
+        // Add loading state
+        submitBtn.classList.add('auth-btn-loading');
+        submitBtn.textContent = 'Logging in...';
+    });
+
+    // Clear validation on page load if there are errors
+    window.addEventListener('load', function() {
+        if (usernameInput.value) {
+            validateUsername();
+        }
+    });
+})();
+</script>
+{% endblock %}

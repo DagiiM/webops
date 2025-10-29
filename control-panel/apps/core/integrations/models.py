@@ -7,10 +7,18 @@ Architecture: OAuth connections for GitHub, Hugging Face, and Google.
 
 from django.db import models
 from django.contrib.auth.models import User
+from apps.core.common.models import BaseModel
 
 
-class GitHubConnection(models.Model):
-    """GitHub OAuth connection for deploying private repositories."""
+class GitHubConnection(BaseModel):
+    """
+    GitHub OAuth connection for deploying private repositories.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
 
     user = models.OneToOneField(
         User,
@@ -23,7 +31,6 @@ class GitHubConnection(models.Model):
     refresh_token = models.CharField(max_length=255, blank=True)  # Encrypted
     token_expires_at = models.DateTimeField(null=True, blank=True)
     scopes = models.JSONField(default=list)
-    created_at = models.DateTimeField(auto_now_add=True)
     last_synced = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -35,8 +42,15 @@ class GitHubConnection(models.Model):
         return f"{self.user.username} → GitHub @{self.username}"
 
 
-class HuggingFaceConnection(models.Model):
-    """Hugging Face API token connection for deploying models and accessing private repos."""
+class HuggingFaceConnection(BaseModel):
+    """
+    Hugging Face API token connection for deploying models and accessing private repos.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
 
     user = models.OneToOneField(
         User,
@@ -54,7 +68,6 @@ class HuggingFaceConnection(models.Model):
         ],
         default='read'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
     last_synced = models.DateTimeField(null=True, blank=True)
     is_valid = models.BooleanField(default=True)
     last_validation_error = models.TextField(blank=True)
@@ -68,8 +81,15 @@ class HuggingFaceConnection(models.Model):
         return f"{self.user.username} → Hugging Face @{self.username}"
 
 
-class GoogleConnection(models.Model):
-    """Google OAuth connection for SSO and integrations."""
+class GoogleConnection(BaseModel):
+    """
+    Google OAuth connection for SSO and integrations.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+    """
 
     user = models.OneToOneField(
         User,
@@ -84,7 +104,6 @@ class GoogleConnection(models.Model):
     id_token = models.CharField(max_length=1024, blank=True)  # Encrypted
     token_expires_at = models.DateTimeField(null=True, blank=True)
     scopes = models.JSONField(default=list)
-    created_at = models.DateTimeField(auto_now_add=True)
     last_synced = models.DateTimeField(null=True, blank=True)
     is_valid = models.BooleanField(default=True)
     last_validation_error = models.TextField(blank=True)

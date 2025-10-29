@@ -30,24 +30,195 @@
   top: 0;
   bottom: 0;
   overflow-y: auto;
-  transition: transform var(--webops-transition-base);
+  transition: width var(--webops-transition-base), transform var(--webops-transition-base);
   z-index: var(--webops-z-fixed);
 }
 
-.webops-sidebar-header {
-  position: relative;
+/* Minimized sidebar state */
+.webops-sidebar.minimized {
+  width: 60px;
+  padding: var(--webops-space-4) var(--webops-space-2);
+}
+
+/* Navigation sections */
+.webops-nav-section {
   margin-bottom: var(--webops-space-6);
 }
 
-.webops-sidebar-brand {
+.webops-nav-section-title {
+  font-size: var(--webops-font-size-xs);
+  font-weight: var(--webops-font-weight-semibold);
+  color: var(--webops-color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--webops-space-3);
+  padding-left: var(--webops-space-4);
+  transition: all var(--webops-transition-base);
+}
+
+/* Sidebar Toggle Button */
+.webops-sidebar-toggle {
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--webops-color-primary-alpha-10);
+  border: 1px solid var(--webops-color-primary-alpha-20);
+  border-radius: var(--webops-radius-md);
+  color: var(--webops-color-primary);
+  cursor: pointer;
+  transition: all var(--webops-transition-fast);
+  margin: 0;
+  padding: 0;
+}
+
+.webops-sidebar-toggle:hover {
+  background: var(--webops-color-primary-alpha-20);
+  border-color: var(--webops-color-primary-alpha-30);
+  box-shadow: var(--webops-shadow-sm);
+  transform: scale(1.05);
+}
+
+.webops-sidebar-toggle:active {
+  transform: scale(0.95);
+}
+
+.webops-sidebar-toggle .material-icons {
+  font-size: 20px;
+  transition: transform var(--webops-transition-base);
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.webops-sidebar-toggle:hover .material-icons {
+  transform: scale(1.1);
+}
+
+/* Navigation items */
+.webops-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: var(--webops-space-3);
-  font-size: var(--webops-font-size-xl);
-  font-weight: var(--webops-font-weight-bold);
-  color: var(--webops-color-primary);
+  padding: var(--webops-space-3) var(--webops-space-4);
+  color: var(--webops-color-text-secondary);
   text-decoration: none;
-  margin-bottom: var(--webops-space-4);
+  border-radius: var(--webops-radius-md);
+  font-size: var(--webops-font-size-sm);
+  transition: all var(--webops-transition-fast);
+  white-space: nowrap;
+  min-height: 44px;
+  position: relative;
+}
+
+.webops-nav-item:hover {
+  background: var(--webops-color-primary-alpha-10);
+  color: var(--webops-color-primary);
+}
+
+.webops-nav-item.active {
+  background: var(--webops-color-primary-alpha-15);
+  color: var(--webops-color-primary);
+  font-weight: var(--webops-font-weight-medium);
+}
+
+.webops-nav-item__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.webops-nav-item__text {
+  transition: opacity var(--webops-transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-weight: inherit;
+  margin: 0;
+  padding: 0;
+  height: 20px;
+}
+
+/* Minimized state navigation adjustments */
+.webops-sidebar.minimized .webops-nav-item {
+  padding: var(--webops-space-3);
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  gap: 0;
+  text-align: center;
+}
+
+.webops-sidebar.minimized .webops-nav-item__text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.webops-sidebar.minimized .webops-sidebar-brand {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.webops-sidebar.minimized .webops-sidebar-brand__text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.webops-sidebar.minimized .webops-nav-section-title {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.webops-sidebar-header {
+   position: relative;
+   margin-bottom: var(--webops-space-6);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   min-height: 44px;
+   padding: 0;
+}
+
+.webops-sidebar-brand {
+   display: flex;
+   align-items: center;
+   justify-content: flex-start;
+   gap: var(--webops-space-3);
+   font-size: var(--webops-font-size-xl);
+   font-weight: var(--webops-font-weight-bold);
+   color: var(--webops-color-primary);
+   text-decoration: none;
+   min-height: 44px;
+   flex: 1;
+   margin: 0;
+   padding: 0;
+}
+
+.webops-sidebar-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: var(--webops-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
 }
 
 .webops-main-content {
@@ -56,6 +227,12 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left var(--webops-transition-base);
+}
+
+/* Expanded main content when sidebar is minimized */
+.webops-main-content.expanded {
+  margin-left: 60px;
 }
 
 .webops-header {
@@ -125,7 +302,7 @@
 }
 
 .webops-page-section:hover {
-  border-color: var(--webops-color-primary-alpha-25);
+  border-color: var(--webops-color-primary-alpha-35);
   box-shadow: var(--webops-shadow-sm);
 }
 
@@ -426,7 +603,7 @@
    SIDEBAR LAYOUT
    ════════════════════════════════════════════════════════════════════════════════ */
 
-.webops-sidebar-overlay {
+.webops-sidebar-header .webops-sidebar-overlay {
   display: none;
   position: fixed;
   top: 0;
@@ -439,39 +616,53 @@
   transition: opacity var(--webops-transition-base);
 }
 
-.webops-sidebar-overlay.active {
+.webops-sidebar-header .webops-sidebar-overlay.active {
   display: block;
   opacity: 1;
 }
 
-.webops-sidebar-toggle {
-  display: none;
-  position: absolute;
-  top: var(--webops-space-4);
-  right: var(--webops-space-4);
-  z-index: calc(var(--webops-z-fixed) + 10);
-  width: 48px;
-  height: 48px;
-  border-radius: var(--webops-radius-lg);
-  background: var(--webops-color-bg-elevated);
-  border: 1px solid var(--webops-color-primary-alpha-20);
-  color: var(--webops-color-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--webops-font-size-xl);
-  transition: all var(--webops-transition-fast);
-  box-shadow: var(--webops-shadow-md);
+.webops-sidebar-header .webops-sidebar-toggle {
+   background: var(--webops-color-bg-elevated);
+   border: 1px solid var(--webops-color-primary-alpha-15);
+   border-radius: var(--webops-radius-lg);
+   padding: var(--webops-space-2);
+   cursor: pointer;
+   transition: all var(--webops-transition-base);
+   z-index: 1;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 32px;
+   height: 32px;
+   position: static;
+   transform: none;
 }
 
-.webops-sidebar-toggle:hover {
-  background: var(--webops-color-primary-alpha-10);
-  transform: scale(1.05);
+.webops-sidebar-header .webops-sidebar-toggle:hover {
+   background: var(--webops-color-primary-alpha-5);
+   border-color: var(--webops-color-primary-alpha-35);
+   transform: scale(1.05);
+   box-shadow: var(--webops-shadow-sm);
+}
+
+.webops-sidebar-header .webops-sidebar-toggle:active {
+   transform: scale(0.95);
+}
+
+/* Toggle button icon transitions */
+.webops-sidebar-header .webops-sidebar-toggle .material-icons {
+  font-size: 20px;
+  color: var(--webops-color-text-secondary);
+  transition: transform var(--webops-transition-base);
+}
+
+.webops-sidebar-header .webops-sidebar-toggle:hover .material-icons {
+  color: var(--webops-color-primary);
+  transform: scale(1.1);
 }
 
 @media (max-width: 767px) {
-  .webops-sidebar-toggle {
+  .webops-sidebar-header .webops-sidebar-toggle {
     display: flex;
   }
 }
@@ -598,11 +789,17 @@
   justify-content: center;
 }
 
+.webops-settings-content .webops-card .webops-card__header{
+  background-color: transparent;
+}
 .webops-settings-content {
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-15);
   border-radius: var(--webops-radius-xl);
-  padding: var(--webops-space-8);
+  padding: var(--webops-space-1);
+}
+.webops-settings-content .webops-card{
+  margin: 0;
 }
 
 @media (max-width: 1023px) {

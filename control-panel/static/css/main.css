@@ -292,7 +292,7 @@ select:focus {
 .webops-loader-ring:nth-child(2) {
     width: 80px;
     height: 80px;
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
     animation-duration: 1.2s;
     animation-direction: reverse;
 }
@@ -540,7 +540,7 @@ select:focus {
 }
 
 .webops-oauth-config__info-box:hover {
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
     box-shadow: var(--webops-shadow-lg), 0 0 30px var(--webops-color-primary-glow);
     transform: translateY(-2px);
 }
@@ -668,7 +668,7 @@ select:focus {
 }
 
 .webops-oauth-config__input:hover:not(:focus) {
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
     background: var(--webops-color-surface-hover);
 }
 
@@ -4132,7 +4132,7 @@ input:-internal-autofill-selected{
 
 .webops-card:hover {
     box-shadow: var(--webops-shadow-lg);
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
 }
 
 .webops-card-header {
@@ -4949,7 +4949,7 @@ input:-internal-autofill-selected{
 }
 
 .webops-settings-form .webops-form-control:hover:not(:focus) {
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
     background: var(--webops-color-surface-hover);
 }
 
@@ -5046,7 +5046,7 @@ input:-internal-autofill-selected{
 }
 
 .webops-toggle--radio:hover {
-    border-color: var(--webops-color-primary-alpha-25);
+    border-color: var(--webops-color-primary-alpha-35);
     background: var(--webops-color-surface-hover);
 }
 

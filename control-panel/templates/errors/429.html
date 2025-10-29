@@ -1,13 +1,25 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rate Limit Exceeded - WebOps</title>
+    <title>Rate Limit Exceeded - {{ branding.site_name }}</title>
+
+    {% if branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    {% endif %}
+
     <link rel="stylesheet" href="{% static 'css/variables.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-   
+
+    <!-- Dynamic branding variables -->
+    <style>
+        {{ branding.generate_css_variables|safe }}
+    </style>
+
     <style>
         /* Ultra-Sleek Rate Limit Page Styles */
         .rate-limit-container {
