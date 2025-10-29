@@ -2,19 +2,20 @@
 
 > A minimal, self-hosted VPS hosting platform for deploying and managing web applications
 
-WebOps is a lightweight hosting platform that transforms a fresh VPS into a fully-functional web application deployment system with a single command. Deploy Django applications, static sites, and LLM models through a clean web interface or CLI.
+WebOps is a lightweight, security-first hosting platform that transforms a fresh VPS into a fully-functional web application deployment system. Deploy Django applications, static sites, and LLM models through a modern Django web interface or feature-rich CLI with interactive wizards.
 
 ## Features
 
-- **One-Command Setup** - Complete VPS orchestration via `./setup.sh`
-- **Minimal & Fast** - Zero npm dependencies, pure HTML/CSS/JS frontend
-- **Secure by Default** - Automated SSL, encrypted credentials, isolated processes
+- **Security-First Design** - Minimal dependencies, encrypted credentials, isolated processes
+- **Pure Frontend** - Zero npm dependencies, pure HTML/CSS/JS frontend
 - **PostgreSQL Included** - Automatic database creation per application
 - **Background Tasks** - Celery integration for async operations
 - **Nginx Powered** - Automatic reverse proxy and virtual host configuration
-- **Simple Management** - Clean web UI for all operations
-- **CLI Available** - Command-line tool for power users
-- **Real-time Logs** - Stream application logs from the dashboard
+- **Modern Web UI** - Clean Django interface for all operations
+- **Feature-Rich CLI** - Interactive wizards, WebSocket monitoring, real-time logs
+- **LLM Support** - Deploy vLLM models with GPU allocation
+- **Automation System** - Workflow automation with node-based execution
+- **Plugin Architecture** - Extensible hook-based addons system
 
 ## Use Cases
 
@@ -22,6 +23,7 @@ WebOps is a lightweight hosting platform that transforms a fresh VPS into a full
 - Development/staging environments
 - Small team deployments
 - Learning DevOps practices
+- LLM model deployment and hosting
 - Alternative to Heroku/Railway/Render for small projects
 
 ## Prerequisites
@@ -34,7 +36,7 @@ WebOps is a lightweight hosting platform that transforms a fresh VPS into a full
 
 ## Quick Start
 
-### Development (MVP)
+### Development Setup
 
 **Current Status**: Production Ready - Complete WebOps platform with security-first design
 
@@ -42,69 +44,84 @@ For development and testing:
 
 ```bash
 cd control-panel
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ./quickstart.sh
-source venv/bin/activate
 python manage.py runserver
 ```
 
 Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
 
-See **[docs/getting-started/quick-start-guide.md](docs/getting-started/quick-start-guide.md)** for detailed development setup.
-
 ### Production Installation
 
-1. **SSH into your server**:
-```bash
-ssh root@your-server-ip
-```
-
-2. **Clone the repository**:
+1. **Clone the repository**:
 ```bash
 git clone https://github.com/dagiim/webops.git
 cd webops
 ```
 
-3. **Run the setup script**:
+2. **Set up the control panel**:
 ```bash
-chmod +x setup.sh
-sudo ./setup.sh
+cd control-panel
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-4. **Follow the prompts**:
-   - Enter domain name for control panel (or use IP)
-   - Create admin username and password
-   - Confirm installation
+3. **Configure environment**:
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
 
-5. **Access WebOps**:
-   - Open browser and navigate to: `https://your-domain.com` or `http://your-server-ip:8009`
-   - Login with the admin credentials you created
+4. **Run database migrations**:
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
 
-That's it! Your VPS is now ready to host applications with enterprise-grade security.
+5. **Start the control panel**:
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+
+6. **Start Celery workers** (in separate terminal):
+```bash
+./start_celery.sh
+```
+
+Access at http://your-server-ip:8000
 
 ## Usage
 
 ### Via Web Interface
 
 1. **Login** to the WebOps control panel
-2. **Navigate** to "New Deployment"
+2. **Navigate** to "Deployments" → "New Deployment"
 3. **Fill in** the deployment form:
    - Service name: `my-django-app`
    - Repository URL: `https://github.com/username/django-project`
    - Branch: `main`
    - Domain: `myapp.example.com` (optional)
-4. **Click** "Deploy" and watch the progress
+4. **Click** "Deploy" and monitor progress in real-time
 5. **Access** your application at the configured domain
 
 ### Via CLI
 
-Install the CLI tool:
+Install the CLI:
 ```bash
-pip install webops-cli
+cd cli
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+webops --help
 ```
 
 Configure:
 ```bash
-webops config --url https://panel.yourdomain.com --token YOUR_API_TOKEN
+webops config --url https://panel.yourdomain.com --token YOUR_API_TOKEN --role admin
 ```
 
 Deploy an application:
@@ -112,20 +129,68 @@ Deploy an application:
 webops deploy --repo https://github.com/user/repo --name myapp --domain myapp.com
 ```
 
-List deployments:
+Enhanced CLI features:
 ```bash
-webops list
+# Interactive deployment wizard
+webops deploy-wizard
+
+# Real-time deployment monitoring
+webops watch
+
+# Environment management
+webops env:generate myapp
+webops env:validate myapp
+webops env:set myapp DEBUG True
+
+# Project setup and validation
+webops project:setup --repo https://github.com/user/repo
+webops project:validate myapp
+
+# Interactive management
+webops manage
+webops interactive-logs myapp
 ```
 
-View logs:
+## Infrastructure Platform
+
+WebOps includes a comprehensive enterprise infrastructure platform that transforms a fresh VPS into a production-ready hosting environment with enterprise-grade security and high availability features.
+
+### Infrastructure Installation
+
 ```bash
-webops logs myapp --tail 100 --follow
+# Quick installation (with sudo)
+sudo ./.webops/versions/v1.0.0/lifecycle/install.sh
+
+# Or customize installation
+cd .webops
+cp versions/v1.0.0/config.env.template config.env
+# Edit config.env to customize settings
+sudo versions/v1.0.0/lifecycle/install.sh
+
+# Add specific infrastructure components
+sudo ./.webops/versions/v1.0.0/bin/webops apply postgresql
+sudo ./.webops/versions/v1.0.0/bin/webops apply monitoring
+sudo ./.webops/versions/v1.0.0/bin/webops apply kubernetes
 ```
 
-Restart service:
-```bash
-webops restart myapp
-```
+### Infrastructure Addons
+
+- **postgresql**: PostgreSQL 15 database (standalone or HA)
+- **etcd**: Distributed key-value store for high availability
+- **patroni**: PostgreSQL HA with Patroni + PgBouncer
+- **kubernetes**: K3s lightweight Kubernetes distribution
+- **kvm**: Hardware virtualization support
+- **monitoring**: Prometheus + Grafana + Node Exporter
+- **autorecovery**: Automatic service recovery system
+
+### Infrastructure Features
+
+- **System Hardening**: SSH hardening, firewall, kernel tuning, security updates
+- **High Availability**: etcd, Patroni, Kubernetes addons for enterprise deployments
+- **Monitoring Stack**: Prometheus, Grafana, node exporter for comprehensive monitoring
+- **Virtualization**: KVM support for nested deployments
+- **Security Contracts**: Cryptographically signed addon contracts for security validation
+- **Lifecycle Management**: Install, update, rollback, and repair automation
 
 ## Architecture
 
@@ -139,7 +204,7 @@ webops restart myapp
 │         │                                        │
 │  ┌──────▼──────────┐    ┌──────────────────┐   │
 │  │  WebOps Panel   │    │  User Apps       │   │
-│  │   (Django)      │    │  - Django Apps   │   │
+│  │   (Django 5.0)  │    │  - Django Apps   │   │
 │  └────────┬────────┘    │  - Static Sites  │   │
 │           │             │  - LLM Models    │   │
 │  ┌────────▼────────┐    └─────────┬────────┘   │
@@ -160,20 +225,38 @@ webops restart myapp
 - **Task Queue**: Celery + Redis for background deployment tasks
 - **Process Manager**: systemd with security isolation per deployment
 - **Security**: Fernet encryption, CSRF protection, rate limiting
-- **Authentication**: Token-based with RBAC and 2FA support
+- **CLI**: Rich-powered interface with interactive wizards and WebSocket monitoring
+- **Authentication**: Token-based with role-based access control
+- **WebSocket**: Django Channels for real-time log streaming
+- **LLM Support**: vLLM integration for AI model deployment
 
 ## Project Structure
 
 ```
 webops/
-├── cli/                              # WebOps CLI with interactive wizards
+├── .webops/                          # Enterprise infrastructure platform
+│   ├── versions/                     # Version management
+│   │   └── v1.0.0/                  # Current platform version
+│   │       ├── bin/webops            # Platform CLI (infrastructure management)
+│   │       ├── lifecycle/            # Installation lifecycle scripts
+│   │       ├── setup/               # Base system setup
+│   │       ├── addons/              # Infrastructure addons
+│   │       ├── os/                  # OS-specific handlers
+│   │       ├── systemd/             # Service templates
+│   │       └── contracts/           # Security contracts
+│   └── config.env                    # Platform configuration
+├── cli/                              # WebOps CLI with enhanced features
 │   ├── webops_cli/
 │   │   ├── api.py                    # API client for control panel
 │   │   ├── config.py                 # Configuration management
+│   │   ├── encryption.py             # Credential encryption
+│   │   ├── security_logging.py       # Security audit logging
 │   │   ├── ui/                       # Interactive UI components
 │   │   ├── wizards/                  # Deployment & troubleshooting wizards
+│   │   ├── validators.py             # Input validation
 │   │   └── system-templates/         # Systemd/Nginx templates
-│   └── tests/
+│   ├── tests/                        # CLI test suite with security tests
+│   └── setup.py                      # Package setup
 ├── control-panel/                    # Django control panel
 │   ├── apps/
 │   │   ├── core/                     # Base models, auth, security
@@ -187,8 +270,11 @@ webops/
 │   │   │   └── tasks/                # Celery background tasks
 │   │   ├── databases/                # PostgreSQL management
 │   │   ├── services/                 # Monitoring & health checks
+│   │   ├── api/                      # API framework with docs
 │   │   ├── automation/               # Workflow automation system
-│   │   └── addons/                   # Hook-based plugin system
+│   │   ├── addons/                   # Hook-based plugin system
+│   │   ├── compliance/               # Compliance monitoring
+│   │   └── trash/                    # Soft delete management
 │   ├── templates/                    # Pure HTML templates (no build)
 │   └── static/                       # CSS/JS (zero npm, pure vanilla)
 └── docs/                             # Comprehensive documentation
@@ -196,7 +282,7 @@ webops/
 
 ## Configuration
 
-WebOps uses environment variables for configuration. After installation, edit `$WEBOPS_DIR/control-panel/.env`:
+WebOps uses environment variables for configuration. After installation, edit `control-panel/.env`:
 
 ```bash
 # Django
@@ -209,6 +295,10 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/webops_db
 
 # Celery
 CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# WebSocket
+CHANNEL_LAYERS=redis://localhost:6379/1
 
 # Security
 ENCRYPTION_KEY=your-encryption-key
@@ -236,7 +326,7 @@ WebOps will automatically:
 9. Create systemd service with resource limits
 10. Start your application with full audit logging
 
-### Static Sites & LLM Models
+### LLM Models & Static Sites
 
 WebOps supports multiple deployment types:
 - **Static Sites**: HTML/CSS/JS with automatic optimization
@@ -245,6 +335,63 @@ WebOps supports multiple deployment types:
 - **Custom Applications**: Generic deployment with templates
 
 Each deployment type includes security hardening, automated backups, and monitoring.
+
+## CLI Features
+
+### Enhanced Environment Management
+```bash
+# Generate environment files from templates
+webops env:generate myapp --debug --domain example.com
+webops env:generate myapp --set API_KEY=secret123 --set SMTP_HOST=smtp.gmail.com
+
+# Validate environment configuration
+webops env:validate myapp
+
+# Show environment variables (with masking)
+webops env:show myapp
+webops env:show myapp --show-secrets
+
+# Set/unset environment variables
+webops env:set myapp DEBUG True --restart
+webops env:unset myapp TEMP_KEY --restart
+```
+
+### Interactive Wizards
+```bash
+# Interactive deployment wizard
+webops deploy-wizard
+
+# Setup wizard for new installations
+webops setup
+
+# Troubleshooting wizard
+webops troubleshoot
+
+# Interactive management dashboard
+webops manage
+```
+
+### Real-time Monitoring
+```bash
+# Watch all deployments
+webops watch --all
+
+# Watch specific deployment
+webops watch myapp
+
+# Interactive logs with real-time updates
+webops interactive-logs myapp
+```
+
+### Project Management
+```bash
+# Complete project setup workflow
+webops project:setup --repo https://github.com/user/repo.git
+webops project:setup --repo github.com/user/project --name myproject
+
+# Validate project structure
+webops project:validate myapp
+```
 
 ## Database Management
 
@@ -274,7 +421,7 @@ postgresql://username:password@localhost:5432/database_name
 - Security audit dashboard with threat detection
 - Performance metrics with predictive alerts
 
-### CLI
+### Enhanced CLI Monitoring
 ```bash
 # View deployment logs with filtering
 webops logs myapp --tail 100 --level=error
@@ -282,11 +429,11 @@ webops logs myapp --tail 100 --level=error
 # Follow logs in real-time
 webops logs myapp --follow
 
+# Interactive status dashboard
+webops interactive-status --refresh-rate 2
+
 # System health check
 webops system health
-
-# Security audit
-webops security audit
 ```
 
 ### Log Management
@@ -294,6 +441,7 @@ webops security audit
 - **Applications**: Per-deployment log isolation
 - **Security**: All operations logged with immutable audit trail
 - **Monitoring**: Automated alerting for security events
+- **WebSocket**: Real-time log streaming to CLI
 
 ## Security Architecture
 
@@ -310,103 +458,164 @@ WebOps implements enterprise-grade security with multiple defense layers:
 - **Session Security**: Secure cookies, configurable timeout, and session hijacking protection
 - **Audit Trail**: All sudo commands logged to /var/log/auth.log with correlation
 - **Input Validation**: Multi-layer validation with SSRF protection
+- **RBAC**: Role-based access control for users and API tokens
+- **2FA Support**: TOTP-based two-factor authentication
 
 ### Security Validation & Monitoring
 ```bash
 # Validate webops user setup
-sudo ./scripts/validate-user-setup.sh
+sudo ./cli/webops_cli/scripts/validate-user-setup.sh
 
 # Run comprehensive security audit
-sudo ./scripts/webops-security-check.sh
+sudo ./cli/webops_cli/scripts/webops-security-check.sh
 
 # Audit sudo usage with correlation analysis
-sudo ./scripts/webops-admin.sh sudo-audit
+sudo ./cli/webops_cli/scripts/webops-admin.sh sudo-audit
 
-# Check security headers and SSL configuration
-webops security scan --deployment myapp
+# CLI security audit
+webops security audit
 ```
 
-## Updates & Maintenance
+## Development
 
-Update WebOps to the latest version with security patches:
-
+### Control Panel Development
 ```bash
-cd webops
-sudo ./update.sh  # Automated update with rollback capability
+cd control-panel
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Run tests
+python manage.py test
+python run_tests.py
+
+# Start Celery workers
+./start_celery.sh
+
+# Start development server
+python manage.py runserver
 ```
 
-Or via CLI with validation:
+### CLI Development
 ```bash
-webops self-update --validate --backup
+cd cli
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+
+# Run tests
+python -m pytest tests/
+
+# Test CLI
+webops --help
+```
+
+## Testing
+
+### Control Panel Tests
+```bash
+# Run all tests with coverage
+cd control-panel
+python manage.py test --coverage
+
+# Run security-specific tests
+python manage.py test apps.core.security.tests
+
+# Run deployment tests with isolation validation
+python manage.py test apps.deployments.tests
+```
+
+### CLI Tests
+```bash
+# Run CLI tests
+cd cli
+python -m pytest tests/ --cov=webops_cli
+
+# Run security features tests
+python -m pytest tests/test_security_features.py
+
+# Run enhanced CLI tests
+python -m pytest tests/test_enhanced_cli.py
 ```
 
 ## Troubleshooting
 
-### Setup Issues
+### Control Panel Issues
 ```bash
-# Check system requirements and compatibility
-webops system validate
+# Check Django server status
+python manage.py check
 
-# Review setup logs with security context
-tail -f /var/log/webops-setup.log
+# Test Celery connectivity
+python manage.py test_celery
 
-# Verify system resources
-webops system resources
+# View Django logs
+tail -f control-panel/logs/webops.log
 ```
 
 ### Deployment Issues
 ```bash
 # Check deployment logs with security context
-webops logs myapp --security-context
+webops logs myapp --level=error
 
 # Verify systemd service status
 systemctl status myapp
 
 # Check Celery worker health
-webops celery status
+webops system status
 ```
 
-### Application Startup Issues
+### CLI Issues
 ```bash
-# Check systemd service with security context
-systemctl status myapp --no-pager
+# Verify API connectivity
+webops status
 
-# Review application logs with security filtering
-journalctl -u myapp -n 50 --no-pager
+# Check configuration
+webops config
 
-# Run health checks with security validation
-webops health myapp --security-check
+# Run troubleshooting wizard
+webops troubleshoot
+
+# Validate system setup
+webops system validate
 ```
 
-### Infrastructure Issues
-```bash
-# Test Nginx configuration
-nginx -t
+## Key Features
 
-# Check PostgreSQL health
-webops database health
+### Automation System
+- **Workflow Automation**: Node-based execution engine for complex deployment scenarios
+- **Template System**: Reusable automation patterns
+- **Event-Driven**: Trigger workflows based on deployment events
+- **Validation**: Built-in validators for workflow integrity
 
-# Verify SSL certificates
-webops ssl status
-```
+### Addons System
+- **Plugin Architecture**: Extensible hook-based plugin system
+- **Auto-Discovery**: Automatic addon discovery from configured directories
+- **Hook Support**: `pre_deployment`, `post_deployment`, `service_health_check`, etc.
+- **Priority-Based**: Priority-based execution with retry logic and timeouts
+
+### LLM Deployment
+- **vLLM Integration**: Deploy LLM models from Hugging Face
+- **GPU Allocation**: Intelligent GPU resource management
+- **Model Quantization**: Support for quantized models
+- **OpenAI API**: Compatible API endpoints for existing applications
 
 ## Documentation
 
 **Getting Started:**
-- [Installation Guide](docs/getting-started/installation.md)
-- [Quick Start Guide](docs/getting-started/quick-start-guide.md)
-- [Onboarding](docs/getting-started/onboarding.md)
+- [Quick Start Guide](control-panel/CHANGELOG.md) - Latest updates and features
+- [CLI Documentation](cli/webops_cli/ui/README.md) - Interactive CLI features
+- [Development Guide](docs/development/development.md) - Developer setup
 
-**Security:**
-- [Security Features](docs/security/security-features.md) - Complete security implementation
-- [Security Hardening](docs/security/security-hardening.md) - Advanced security practices
+**API & Architecture:**
+- [API Reference](control-panel/apps/api/docs/) - Complete API documentation
 - [Core Architecture](docs/architecture/core.md) - Security-first design patterns
+- [Automation Guide](docs/automation/) - Workflow automation system
 
-**Development & Operations:**
-- [Development Guide](docs/development/development.md)
-- [API Reference](docs/reference/api-reference.md)
-- [Operations Guide](docs/operations/)
-- [Troubleshooting](docs/operations/troubleshooting.md)
+**Operations:**
+- [Operations Guide](docs/operations/) - Production deployment
+- [Security Features](docs/security/security-features.md) - Complete security implementation
+- [Troubleshooting](docs/operations/troubleshooting.md) - Common issues and solutions
 
 ## Contributing
 
@@ -438,19 +647,6 @@ python manage.py test --with-security-tests
 python manage.py runserver
 ```
 
-## Testing
-
-```bash
-# Run all tests with security coverage
-python manage.py test --coverage
-
-# Run security-specific tests
-python manage.py test apps.security
-
-# Run deployment tests with isolation validation
-python manage.py test apps.deployments.tests
-```
-
 ## Roadmap
 
 **Core Platform:**
@@ -458,18 +654,20 @@ python manage.py test apps.deployments.tests
 - [x] Django application support with enterprise security
 - [x] Static site deployment with optimization
 - [x] PostgreSQL management with encryption
-- [x] CLI tool with security auditing
+- [x] Feature-rich CLI tool with interactive wizards
 - [x] LLM model deployment via vLLM
+- [x] Real-time monitoring with WebSocket support
+- [x] Automation system with workflow management
+- [x] Addon system with plugin architecture
 
 **Advanced Features:**
 - [ ] Docker container support with security scanning
-- [ ] Automated backups with encryption and retention
-- [ ] Multi-user support with RBAC
+- [ ] Multi-user support with enhanced RBAC
 - [ ] GitLab/Bitbucket integration with OAuth security
 - [ ] Webhook auto-deployments with security validation
-- [ ] Resource usage alerts with anomaly detection
-- [ ] Blue-green deployments with security validation
+- [ ] Advanced monitoring with anomaly detection
 - [ ] Database clustering with encryption at rest
+- [ ] Advanced backup and disaster recovery
 
 ## FAQ
 
@@ -497,6 +695,9 @@ A: Yes, with enterprise security features, compliance tools, and security monito
 **Q: Is there a migration path with security preservation?**
 A: Yes! WebOps maintains security context during migrations and provides validation tools.
 
+**Q: What makes WebOps different from other hosting platforms?**
+A: Security-first design, zero build tools, pure frontend, comprehensive CLI, and enterprise-grade features.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -508,7 +709,7 @@ For security issues: **security@eleso.com** (Do not create public issues)
 **General Support:**
 - **Issues**: [GitHub Issues](https://github.com/dagiim/webops/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/dagiim/webops/discussions)
-- **Documentation**: Comprehensive docs at [docs/](docs/)
+- **Documentation**: Comprehensive docs in `/docs` directory
 - **Developer**: Douglas Mutethia ([GitHub](https://github.com/dagiim))
 - **Company**: [Eleso Solutions](https://eleso.com)
 
@@ -523,3 +724,5 @@ For security issues: **security@eleso.com** (Do not create public issues)
 **WebOps: Security-first hosting platform for developers who demand enterprise-grade reliability without complexity.**
 
 Built with pure HTML, CSS, and vanilla JavaScript - zero build tools, maximum security.
+
+Modern Django 5.0+ backend with comprehensive CLI tooling and real-time monitoring capabilities.
