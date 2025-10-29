@@ -21,11 +21,19 @@ from .adapters.base import DatabaseType
 from .installer import DatabaseInstaller, DatabaseServiceInstaller
 from apps.core.utils import decrypt_password, encrypt_password
 from apps.addons.models import Addon
+from .decorators import (
+    database_read_rate_limit,
+    database_write_rate_limit,
+    database_admin_rate_limit,
+    database_rate_limit_by_user,
+    database_rate_limit_by_database
+)
 
 logger = logging.getLogger(__name__)
 
 
 @login_required
+@database_read_rate_limit
 def database_list(request):
     """List all databases."""
     databases = Database.objects.all()
@@ -44,6 +52,8 @@ def database_list(request):
 
 
 @login_required
+@database_read_rate_limit
+@database_rate_limit_by_database('read')
 def database_detail(request, pk):
     """Show database details and credentials."""
     database = get_object_or_404(Database, pk=pk)
@@ -52,6 +62,19 @@ def database_detail(request, pk):
     db_service = DatabaseService()
     connection_string = db_service.get_connection_string(database, decrypted=True)
     decrypted_password = decrypt_password(database.password)
+
+    # Log access to database credentials for security auditing (without exposing password)
+    from django.utils import timezone
+    logger.info(
+        "Database credentials accessed",
+        extra={
+            'user_id': request.user.id,
+            'username': request.user.username,
+            'database_id': database.id,
+            'database_name': database.name,
+            'timestamp': str(timezone.now())
+        }
+    )
 
     return render(request, 'databases/detail.html', {
         'database': database,
@@ -67,6 +90,7 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
     template_name = 'databases/create.html'
     success_url = '/databases/'
 
+    @database_write_rate_limit
     def dispatch(self, request, *args, **kwargs):
         logger.debug(
             "Database create view dispatch",
@@ -221,6 +245,8 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
 
 
 @login_required
+@database_write_rate_limit
+@database_rate_limit_by_database('write')
 def database_delete(request, pk):
     """Delete database."""
     database = get_object_or_404(Database, pk=pk)
@@ -237,6 +263,19 @@ def database_delete(request, pk):
         # Delete from our database
         database.delete()
 
+        # Log database deletion for security auditing
+        from django.utils import timezone
+        logger.info(
+            "Database deleted",
+            extra={
+                'user_id': request.user.id,
+                'username': request.user.username,
+                'database_name': database_name,
+                'username_field': username,
+                'timestamp': str(timezone.now())
+            }
+        )
+
         messages.success(request, f'Database {database_name} deleted successfully')
         return redirect('database_list')
 
@@ -246,6 +285,8 @@ def database_delete(request, pk):
 
 
 @login_required
+@database_admin_rate_limit
+@database_rate_limit_by_database('admin')
 def database_credentials_json(request, pk):
     """Get database credentials as JSON (for copy functionality)."""
     database = get_object_or_404(Database, pk=pk)
@@ -253,6 +294,19 @@ def database_credentials_json(request, pk):
     db_service = DatabaseService()
     connection_string = db_service.get_connection_string(database, decrypted=True)
     decrypted_password = decrypt_password(database.password)
+
+    # Log access to database credentials for security auditing (without exposing password)
+    from django.utils import timezone
+    logger.info(
+        "Database credentials accessed via JSON API",
+        extra={
+            'user_id': request.user.id,
+            'username': request.user.username,
+            'database_id': database.id,
+            'database_name': database.name,
+            'timestamp': str(timezone.now())
+        }
+    )
 
     return JsonResponse({
         'name': database.name,
@@ -265,6 +319,7 @@ def database_credentials_json(request, pk):
 
 
 @login_required
+@database_admin_rate_limit
 @require_http_methods(["GET", "POST"])
 def check_dependencies(request, db_id=None):
     """Check if dependencies are installed for a database type."""
@@ -395,6 +450,7 @@ def check_dependencies(request, db_id=None):
 
 
 @login_required
+@database_admin_rate_limit
 @require_http_methods(["POST"])
 def install_dependencies_ajax(request):
     """Install dependencies via AJAX."""

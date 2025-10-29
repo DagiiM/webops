@@ -11,10 +11,17 @@
     </div>
     <div class="webops-flex webops-gap-sm">
         {% if database.deployment %}
-            <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
-                <span class="material-icons">launch</span>
-                View Deployment
-            </a>
+            {% if database.deployment.llmdeployment %}
+                <a href="{% url 'deployments:llm_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
+                    <span class="material-icons">launch</span>
+                    View Deployment
+                </a>
+            {% else %}
+                <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-btn webops-btn-secondary">
+                    <span class="material-icons">launch</span>
+                    View Deployment
+                </a>
+            {% endif %}
         {% endif %}
         <a href="{% url 'database_delete' database.pk %}" class="webops-btn webops-btn-danger">
             <span class="material-icons">delete</span>
@@ -125,7 +132,11 @@
             <dt class="webops-label">Associated Deployment:</dt>
             <dd class="webops-text-muted">
                 {% if database.deployment %}
-                    <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-link">{{ database.deployment.name }}</a>
+                    {% if database.deployment.llmdeployment %}
+                        <a href="{% url 'deployments:llm_detail' database.deployment.pk %}" class="webops-link">{{ database.deployment.name }}</a>
+                    {% else %}
+                        <a href="{% url 'deployments:deployment_detail' database.deployment.pk %}" class="webops-link">{{ database.deployment.name }}</a>
+                    {% endif %}
                 {% else %}
                     <span class="webops-badge webops-badge-warning">Standalone Database</span>
                 {% endif %}

@@ -700,4 +700,4 @@ MIDDLEWARE = [
 
 ---
 
-**WebOps Performance Optimization Guide** - *Building fast, scalable, and efficient applications* ⚡
+**WebOps Performance Optimization Guide** - *Building fast, scalable, and efficient applications*

@@ -12,9 +12,14 @@ from django.contrib.auth.models import User
 from apps.core.common.models import BaseModel
 
 
-class TwoFactorAuth(models.Model):
+class TwoFactorAuth(BaseModel):
     """
     Two-Factor Authentication settings for users.
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
 
     Uses TOTP (Time-based One-Time Password) - compatible with
     Google Authenticator, Authy, Microsoft Authenticator, etc.
@@ -28,7 +33,6 @@ class TwoFactorAuth(models.Model):
     secret = models.CharField(max_length=32, unique=True)
     is_enabled = models.BooleanField(default=False)
     backup_codes = models.JSONField(default=list)
-    created_at = models.DateTimeField(auto_now_add=True)
     last_used = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -41,10 +45,15 @@ class TwoFactorAuth(models.Model):
         return f"{self.user.username} - 2FA {status}"
 
 
-class UserPreferences(models.Model):
+class UserPreferences(BaseModel):
     """
     User preferences and settings for the WebOps control panel.
-    
+
+    Inherits from BaseModel to get:
+    - created_at, updated_at: Timestamp tracking
+    - Soft-delete functionality (is_deleted, deleted_at, deleted_by)
+    - Notification dispatch (send_notification, notify_*)
+
     Stores all user-specific preferences including appearance, language,
     notifications, privacy settings, and other customization options.
     """
@@ -288,9 +297,6 @@ class UserPreferences(models.Model):
         default=False,
         help_text='Enable beta features and experimental functionality'
     )
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'core_user_preferences'

@@ -1,0 +1,93 @@
+{
+    "addon_name": "monitoring",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T14:55:24Z",
+    "expires_at": "2026-10-29T14:55:24Z",
+    "metadata": {
+    "name": "monitoring",
+    "version": "1.0.0",
+    "description": "WebOps Monitoring Stack (Prometheus + Grafana)",
+    "category": "monitoring",
+    "depends": ["base", "firewall"],
+    "provides": ["monitoring", "metrics", "visualization", "alerting"],
+    "conflicts": [],
+    "system_requirements": {
+        "min_memory_mb": 2048,
+        "min_disk_gb": 20,
+        "min_cpu_cores": 2,
+        "required_ports": [9090, 3000, 9100, 9093]
+    },
+    "maintainer": "WebOps Team",
+    "license": "Apache-2.0",
+    "documentation_url": "https://webops.dev/docs/addons/monitoring",
+    "support_url": "https://webops.dev/support",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-10-29T09:45:00Z"
+},
+    "sla": {
+    "availability_target": 99.9,
+    "performance_targets": {
+        "response_time": 200,
+        "cpu_usage": 40.0,
+        "memory_usage": 70.0,
+        "disk_io": 60.0,
+        "network_throughput": 1000.0
+    },
+    "recovery_objectives": {
+        "rto": 300,
+        "rpo": 900,
+        "backup_frequency": 86400,
+        "test_frequency": 604800
+    },
+    "support_level": "critical",
+    "monitoring_requirements": {
+        "health_check_interval": 60,
+        "metrics_retention": 2592000,
+        "alert_thresholds": {
+            "prometheus_targets_down": 2,
+            "disk_usage": 85,
+            "memory_usage": 90,
+            "cpu_usage": 95
+        }
+    }
+},
+    "security": {
+    "privilege_level": "service",
+    "data_access": ["system_metrics", "service_metrics", "configuration"],
+    "network_access": ["localhost", "127.0.0.1", "::1"],
+    "authentication": {
+        "method": "basic",
+        "encryption": "none",
+        "certificate_validation": false
+    },
+    "authorization": {
+        "role_based_access": true,
+        "least_privilege": true,
+        "privilege_separation": true
+    },
+    "encryption": {
+        "data_at_rest": false,
+        "data_in_transit": false,
+        "backup_encryption": false
+    },
+    "audit": {
+        "metrics_collection_logging": true,
+        "configuration_changes": true,
+        "alert_notifications": true,
+        "access_failures": false
+    },
+    "vulnerability_management": {
+        "security_updates": true,
+        "vulnerability_scanning": false,
+        "penetration_testing": false
+    },
+    "compliance": {
+        "data_classification": "internal",
+        "retention_policy": true,
+        "gdpr_compliance": false
+    }
+},
+    "validation_hash": "adee2b1fd6d0f7e61a9e77e0ec5c9a4c560a1fb0aa17c160e8d4ecc7e542227e",
+    "status": "active"
+}

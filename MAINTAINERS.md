@@ -1,12 +1,9 @@
 # Maintainers
 
-Add and keep this list up to date.
-
-- Name: Your Name
-  GitHub: @your-github-username
-  Role: Lead maintainer
-  Contact: issues only (see SUPPORT.md)
-
-- Name: Contributor Name
-  GitHub: @another-username
-  Role: Reviewer
+- Name: Douglas Mutethia
+  GitHub: @dagiim
+  Role: Lead Maintainer & Creator
+  Company: Eleso Solutions
+  Contact: via GitHub Issues only (see SUPPORT.md)
+  Email: douglas@elesosolutions.com
+  Repository: https://github.com/dagiim/webops

@@ -95,20 +95,33 @@ jobs:
       run: |
         pip install radon xenon pyright
 
-    - name: Check code complexity
+    - name: Check control-panel code complexity
       run: |
         cd control-panel
-        echo "## Cyclomatic Complexity Report" > complexity-report.md
+        echo "## Control Panel Cyclomatic Complexity Report" > complexity-report.md
         radon cc apps/ -a -nb >> complexity-report.md || true
         echo "" >> complexity-report.md
-        echo "## Maintainability Index" >> complexity-report.md
+        echo "## Control Panel Maintainability Index" >> complexity-report.md
         radon mi apps/ -nb >> complexity-report.md || true
+        cat complexity-report.md
+
+    - name: Check CLI code complexity
+      run: |
+        cd cli
+        echo "## CLI Cyclomatic Complexity Report" >> ../complexity-report.md
+        radon cc webops_cli/ -a -nb >> ../complexity-report.md || true
+        echo "" >> ../complexity-report.md
+        echo "## CLI Maintainability Index" >> ../complexity-report.md
+        radon mi webops_cli/ -nb >> ../complexity-report.md || true
+        cd ..
         cat complexity-report.md
 
     - name: Check for high complexity functions
       run: |
         cd control-panel
-        xenon --max-absolute B --max-modules A --max-average A apps/ || echo "⚠ Warning: High complexity detected"
+        xenon --max-absolute B --max-modules A --max-average A apps/ || echo "⚠ Warning: High complexity detected in control-panel"
+        cd ../cli
+        xenon --max-absolute B --max-modules A --max-average A webops_cli/ || echo "⚠ Warning: High complexity detected in CLI"
 
   dependency-review:
     name: Dependency Review
@@ -123,6 +136,60 @@ jobs:
       uses: actions/dependency-review-action@v4
       with:
         fail-on-severity: moderate
+
+  cli-coverage:
+    name: CLI Coverage Check
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install CLI dependencies
+      run: |
+        cd cli
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-cov diff-cover
+
+    - name: Run CLI tests with coverage
+      run: |
+        cd cli
+        coverage run --source='webops_cli' pytest tests/
+        coverage report
+        coverage xml
+        coverage html
+
+    - name: Check CLI coverage threshold
+      run: |
+        cd cli
+        coverage report --fail-under=80 || echo "⚠ Warning: CLI coverage below 80%"
+
+    - name: Generate CLI diff coverage report
+      run: |
+        cd cli
+        git fetch origin ${{ github.base_ref }}
+        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=80 || true
+
+    - name: Comment CLI coverage on PR
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 60
 
   test-coverage:
     name: Test Coverage Check

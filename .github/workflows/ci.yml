@@ -105,6 +105,56 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
+  cli-test:
+    name: CLI Test Suite
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install CLI dependencies
+      run: |
+        cd cli
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pyright coverage radon xenon
+
+    - name: Run CLI tests with coverage
+      run: |
+        cd cli
+        python -m pytest tests/ -v --cov=webops_cli --cov-report=xml --cov-report=html
+
+    - name: Upload CLI coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./cli/coverage.xml
+        flags: cli-unittests
+        name: cli-codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: CLI Type checking
+      run: |
+        cd cli
+        pyright webops_cli/
+
   lint:
     name: Code Quality & Linting
     runs-on: ubuntu-latest
@@ -125,42 +175,60 @@ jobs:
         pip install flake8 black isort pylint pyright bandit safety
         cd control-panel
         pip install -r requirements.txt
+        cd ../cli
+        pip install -r requirements.txt
 
     - name: Run Pyright type checking
       run: |
         cd control-panel
         pyright
+        cd ../cli
+        pyright webops_cli/
 
     - name: Run Black (code formatter check)
       run: |
         cd control-panel
         black --check --diff apps/
+        cd ../cli
+        black --check --diff webops_cli/
 
     - name: Run isort (import sorting check)
       run: |
         cd control-panel
         isort --check-only --diff apps/
+        cd ../cli
+        isort --check-only --diff webops_cli/
 
     - name: Run Flake8 (style guide)
       run: |
         cd control-panel
         flake8 apps/ --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 apps/ --count --max-complexity=10 --max-line-length=100 --statistics
+        cd ../cli
+        flake8 webops_cli/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 webops_cli/ --count --max-complexity=10 --max-line-length=100 --statistics
 
     - name: Run Pylint (code analysis)
       run: |
         cd control-panel
         pylint apps/ --fail-under=8.0 --disable=C0111,R0903 || true
+        cd ../cli
+        pylint webops_cli/ --fail-under=8.0 --disable=C0111,R0903 || true
 
     - name: Run Bandit (security linter)
       run: |
         cd control-panel
         bandit -r apps/ -f json -o bandit-report.json || true
         bandit -r apps/ -ll
+        cd ../cli
+        bandit -r webops_cli/ -f json -o bandit-cli-report.json || true
+        bandit -r webops_cli/ -ll
 
     - name: Check for security vulnerabilities in dependencies
       run: |
         cd control-panel
+        safety check --json || true
+        cd ../cli
         safety check --json || true
 
   security:
@@ -213,7 +281,7 @@ jobs:
   build:
     name: Build Check
     runs-on: ubuntu-latest
-    needs: [test, lint, security]
+    needs: [test, cli-test, lint, security]
 
     steps:
     - name: Checkout code
@@ -224,13 +292,19 @@ jobs:
       with:
         python-version: '3.13'
 
-    - name: Install dependencies
+    - name: Install control-panel dependencies
       run: |
         cd control-panel
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Check for missing migrations
+    - name: Install CLI dependencies
+      run: |
+        cd cli
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Check control-panel for missing migrations
       run: |
         cd control-panel
         cat > .env << EOF
@@ -241,15 +315,21 @@ jobs:
         EOF
         python manage.py makemigrations --check --dry-run --no-input
 
-    - name: Collect static files
+    - name: Collect control-panel static files
       run: |
         cd control-panel
         python manage.py collectstatic --noinput
 
-    - name: Check deployment readiness
+    - name: Check control-panel deployment readiness
       run: |
         cd control-panel
         python manage.py check --deploy --fail-level WARNING
+
+    - name: Check CLI package integrity
+      run: |
+        cd cli
+        python setup.py check --strict
+        python -c "import webops_cli; print('CLI imports successfully')"
 
   docs:
     name: Documentation Check

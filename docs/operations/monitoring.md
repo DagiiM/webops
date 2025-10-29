@@ -1,44 +1,44 @@
-# WebOps Monitoring & Analytics Guide 📊
+# WebOps Monitoring & Analytics Guide
 
-**Comprehensive monitoring, health checks, and performance analytics for WebOps v2.0**
+**Comprehensive monitoring, health checks, and performance analytics for WebOps**
 
-**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
-**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+**Developer:** Douglas Mutethia | **Company:** Eleso Solutions  
+**Repository:** [https://github.com/dagiim/webops](https://github.com/dagiim/webops)
 
-WebOps includes enterprise-grade monitoring capabilities with real-time dashboards, automated health checks, and intelligent alerting.
+WebOps includes enterprise-grade monitoring capabilities with real-time dashboards, automated health checks, and intelligent alerting, following a security-first approach with minimal dependencies.
 
 ---
 
-## 📋 **Monitoring Overview**
+## Monitoring Overview
 
-### **Built-in Monitoring Features**
-- ✅ **Real-time System Health** - CPU, memory, disk, network monitoring
-- ✅ **Deployment Tracking** - Success rates, failure analysis, performance metrics
-- ✅ **Application Health Checks** - Automated service monitoring and recovery
-- ✅ **Performance Analytics** - Core Web Vitals, response times, throughput
-- ✅ **Security Monitoring** - Rate limiting, failed logins, security events
-- ✅ **Intelligent Alerting** - Proactive issue detection and notifications
+### Built-in Monitoring Features
+- **Real-time System Health** - CPU, memory, disk, network monitoring
+- **Deployment Tracking** - Success rates, failure analysis, performance metrics
+- **Application Health Checks** - Automated service monitoring and recovery
+- **Performance Analytics** - Core Web Vitals, response times, throughput
+- **Security Monitoring** - Rate limiting, failed logins, security events
+- **Intelligent Alerting** - Proactive issue detection and notifications
 
-### **Monitoring Dashboard Access**
+### Monitoring Dashboard Access
 ```bash
 # Main monitoring dashboard
-https://webops.yourdomain.com/monitoring/
+https://webops.yourdomain.com:8009/monitoring/
 
 # System health overview
-https://webops.yourdomain.com/health/
+https://webops.yourdomain.com:8009/health/
 
 # Deployment analytics
-https://webops.yourdomain.com/deployments/analytics/
+https://webops.yourdomain.com:8009/deployments/analytics/
 
 # Security audit logs
-https://webops.yourdomain.com/admin/security/
+https://webops.yourdomain.com:8009/admin/security/
 ```
 
 ---
 
-## 💻 **System Health Monitoring**
+## System Health Monitoring
 
-### **Real-time System Metrics**
+### Real-time System Metrics
 
 **CPU Monitoring:**
 - Current CPU usage percentage
@@ -81,30 +81,30 @@ python manage.py health_check --fix-issues --restart-failed
 
 **Sample Health Check Output:**
 ```
-🏥 WebOps Health Check Report
+WebOps Health Check Report
 =====================================
 
-✅ SYSTEM HEALTH: GOOD
+SYSTEM HEALTH: GOOD
    CPU: 15.2% (Normal)
    Memory: 45.8% (Normal) 
    Disk: 32.1% (Normal)
    Load: 0.45, 0.52, 0.48 (Normal)
 
-✅ SERVICES STATUS: ALL RUNNING
-   ✅ Django Web Server (PID: 1234)
-   ✅ Celery Worker (PID: 1235)
-   ✅ PostgreSQL Database
-   ✅ Redis Cache Server
-   ✅ Nginx Reverse Proxy
+SERVICES STATUS: ALL RUNNING
+   - Django Web Server (PID: 1234)
+   - Celery Worker (PID: 1235)
+   - PostgreSQL Database
+   - Redis Cache Server
+   - Nginx Reverse Proxy
 
-✅ DEPLOYMENTS: 4/5 RUNNING
-   ✅ django-blog (Healthy, 2.3s response)
-   ✅ react-app (Healthy, 1.1s response) 
-   ✅ api-server (Healthy, 0.8s response)
-   ✅ portfolio (Healthy, 1.5s response)
-   ⚠️ old-app (Stopped, needs restart)
+DEPLOYMENTS: 4/5 RUNNING
+   - django-blog (Healthy, 2.3s response)
+   - react-app (Healthy, 1.1s response) 
+   - api-server (Healthy, 0.8s response)
+   - portfolio (Healthy, 1.5s response)
+   - old-app (Stopped, needs restart)
 
-🔧 RECOMMENDED ACTIONS:
+RECOMMENDED ACTIONS:
    - Restart deployment: old-app
    - Consider increasing swap space
    - Update SSL certificate in 15 days
@@ -147,9 +147,9 @@ fi
 
 ---
 
-## 🚀 **Deployment Monitoring**
+## Deployment Monitoring
 
-### **Deployment Analytics Dashboard**
+### Deployment Analytics Dashboard
 
 **Key Metrics Tracked:**
 - **Success Rate**: Percentage of successful deployments over time
@@ -169,25 +169,25 @@ python manage.py deployment_report --deployment django-blog --verbose
 
 **Sample Analytics Output:**
 ```
-📊 Deployment Analytics (Last 7 days)
+Deployment Analytics (Last 7 days)
 =========================================
 
-📈 OVERALL PERFORMANCE:
+OVERALL PERFORMANCE:
    Total Deployments: 23
    Success Rate: 91.3% (21/23)
    Average Build Time: 4.2 minutes
    Median Build Time: 3.8 minutes
 
-🎯 SUCCESS PATTERNS:
+SUCCESS PATTERNS:
    Django Apps: 95% success rate
    Static Sites: 100% success rate
    Node.js Apps: 85% success rate
 
-⚠️ FAILURE ANALYSIS:
+FAILURE ANALYSIS:
    Dependency Issues: 1 failure
    Git Clone Timeout: 1 failure
    
-🔧 PERFORMANCE TRENDS:
+PERFORMANCE TRENDS:
    Build Times: Improving (-15% vs last week)
    Success Rate: Stable (±2%)
    Recovery Time: 2.3 minutes average
@@ -215,9 +215,9 @@ python manage.py celery_status --deployments
 
 ---
 
-## 📊 **Performance Analytics**
+## Performance Analytics
 
-### **Application Performance Monitoring**
+### Application Performance Monitoring
 
 **Core Web Vitals Tracking:**
 ```javascript
@@ -269,9 +269,9 @@ ORDER BY mean_exec_time DESC;
 
 ---
 
-## 🚨 **Alerting & Notifications**
+## Alerting & Notifications
 
-### **Alert Configuration**
+### Alert Configuration
 
 **System Alert Thresholds:**
 ```bash
@@ -362,9 +362,9 @@ python manage.py configure_alerts --file alert_rules.json
 
 ---
 
-## 📈 **Metrics Collection & Storage**
+## Metrics Collection & Storage
 
-### **Built-in Metrics Storage**
+### Built-in Metrics Storage
 
 **Metrics Database Schema:**
 ```sql
@@ -442,9 +442,9 @@ webops_system_memory_percent
 
 ---
 
-## 🔍 **Log Management**
+## Log Management
 
-### **Centralized Logging**
+### Centralized Logging
 
 **Log Categories:**
 - **Application Logs**: Django application events and errors
@@ -493,9 +493,9 @@ python manage.py cleanup_logs --older-than 30d --execute
 
 ---
 
-## 📱 **Mobile Monitoring**
+## Mobile Monitoring
 
-### **Progressive Web App Monitoring**
+### Progressive Web App Monitoring
 
 **PWA Performance Tracking:**
 - Installation rates and user engagement
@@ -524,9 +524,9 @@ python manage.py cleanup_logs --older-than 30d --execute
 
 ---
 
-## 🛠️ **Troubleshooting with Monitoring**
+## Troubleshooting with Monitoring
 
-### **Performance Troubleshooting**
+### Performance Troubleshooting
 
 **Identify Performance Issues:**
 ```bash
@@ -562,9 +562,9 @@ python manage.py resource_forecast --based-on deployment_count
 
 ---
 
-## 📊 **Monitoring Best Practices**
+## Monitoring Best Practices
 
-### **Monitoring Strategy**
+### Monitoring Strategy
 
 1. **Define Key Metrics**: Focus on business-critical indicators
 2. **Set Appropriate Thresholds**: Balance between noise and missed issues
@@ -588,9 +588,9 @@ python manage.py capacity_planning --update-projections
 
 ---
 
-## 📞 **Monitoring Support**
+## Monitoring Support
 
-### **Built-in Monitoring Tools**
+### Built-in Monitoring Tools
 - Real-time dashboard with live updates
 - Historical trend analysis
 - Automated health checks with fixes
@@ -605,4 +605,4 @@ python manage.py capacity_planning --update-projections
 
 ---
 
-**WebOps Monitoring provides enterprise-grade observability for your hosting platform, ensuring optimal performance and proactive issue resolution.** 📊
+**WebOps Monitoring provides enterprise-grade observability for your hosting platform, ensuring optimal performance and proactive issue resolution.**

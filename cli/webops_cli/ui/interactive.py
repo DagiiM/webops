@@ -256,35 +256,47 @@ class InteractiveCommands:
     
     def _interactive_stop_deployment(self: Self, deployments: List[Dict[str, Any]]) -> None:
         """Interactive deployment stop."""
-        running_deployments = [d for d in deployments if d.get('status') == 'running']
-        if not running_deployments:
-            console.print("[yellow]No running deployments found[/yellow]")
-            return
-        
-        deployment_name = self._select_deployment(running_deployments, "Select deployment to stop")
-        if deployment_name:
-            if self.cli.confirm_destructive_action("stop", deployment_name):
-                self._stop_deployment_with_progress(deployment_name)
+        try:
+            running_deployments = [d for d in deployments if d.get('status') == 'running']
+            if not running_deployments:
+                console.print("[yellow]No running deployments found[/yellow]")
+                return
+            
+            deployment_name = self._select_deployment(running_deployments, "Select deployment to stop")
+            if deployment_name:
+                if Confirm.ask(f"Are you sure you want to stop '{deployment_name}'?"):
+                    self._stop_deployment_with_progress(deployment_name)
+        except Exception as e:
+            console.print(f"[red]Error stopping deployment: {e}[/red]")
     
     def _interactive_restart_deployment(self: Self, deployments: List[Dict[str, Any]]) -> None:
         """Interactive deployment restart."""
-        deployment_name = self._select_deployment(deployments, "Select deployment to restart")
-        if deployment_name:
-            if self.cli.confirm_destructive_action("restart", deployment_name):
-                self._restart_deployment_with_progress(deployment_name)
+        try:
+            deployment_name = self._select_deployment(deployments, "Select deployment to restart")
+            if deployment_name:
+                if Confirm.ask(f"Are you sure you want to restart '{deployment_name}'?"):
+                    self._restart_deployment_with_progress(deployment_name)
+        except Exception as e:
+            console.print(f"[red]Error restarting deployment: {e}[/red]")
     
     def _interactive_view_logs(self: Self, deployments: List[Dict[str, Any]]) -> None:
         """Interactive logs viewing."""
-        deployment_name = self._select_deployment(deployments, "Select deployment to view logs")
-        if deployment_name:
-            self.interactive_logs_viewer(deployment_name)
+        try:
+            deployment_name = self._select_deployment(deployments, "Select deployment to view logs")
+            if deployment_name:
+                self.interactive_logs_viewer(deployment_name)
+        except Exception as e:
+            console.print(f"[red]Error viewing logs: {e}[/red]")
     
     def _interactive_delete_deployment(self: Self, deployments: List[Dict[str, Any]]) -> None:
         """Interactive deployment deletion."""
-        deployment_name = self._select_deployment(deployments, "Select deployment to delete")
-        if deployment_name:
-            if self.cli.confirm_destructive_action("delete", deployment_name):
-                self._delete_deployment_with_progress(deployment_name)
+        try:
+            deployment_name = self._select_deployment(deployments, "Select deployment to delete")
+            if deployment_name:
+                if Confirm.ask(f"Are you sure you want to delete '{deployment_name}'? This cannot be undone."):
+                    self._delete_deployment_with_progress(deployment_name)
+        except Exception as e:
+            console.print(f"[red]Error deleting deployment: {e}[/red]")
     def _start_deployment_with_progress(self: Self, deployment_name: str) -> None:
         """Start deployment with progress indication.
         

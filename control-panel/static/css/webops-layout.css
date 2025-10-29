@@ -302,7 +302,7 @@
 }
 
 .webops-page-section:hover {
-  border-color: var(--webops-color-primary-alpha-25);
+  border-color: var(--webops-color-primary-alpha-35);
   box-shadow: var(--webops-shadow-sm);
 }
 
@@ -640,7 +640,7 @@
 
 .webops-sidebar-header .webops-sidebar-toggle:hover {
    background: var(--webops-color-primary-alpha-5);
-   border-color: var(--webops-color-primary-alpha-25);
+   border-color: var(--webops-color-primary-alpha-35);
    transform: scale(1.05);
    box-shadow: var(--webops-shadow-sm);
 }

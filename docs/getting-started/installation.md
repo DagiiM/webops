@@ -1,60 +1,60 @@
-# WebOps Production Installation Guide 🚀
+# WebOps Production Installation Guide
 
-**Deploy WebOps on your VPS for production workloads**
+**Deploy WebOps on your VPS for production workloads with enterprise-grade security**
 
-This guide covers installing WebOps on Ubuntu/Debian servers for production use with all enterprise features enabled.
+This guide covers installing WebOps on Ubuntu/Debian servers for production use with all security features enabled, following the WebOps philosophy of minimal dependencies and security-first design.
 
 ---
 
-## 📋 **Prerequisites**
+## Prerequisites
 
-### **Server Requirements**
+### Server Requirements
 - **OS**: Ubuntu 22.04 LTS / Debian 11+ (recommended)
 - **RAM**: 4GB minimum, 8GB recommended
-- **CPU**: 2 cores minimum, 4 cores recommended  
+- **CPU**: 2 cores minimum, 4 cores recommended
 - **Storage**: 20GB minimum, 50GB+ recommended
 - **Network**: Public IP with ports 80, 443, 22 accessible
 
-### **Domain Requirements**
+### Domain Requirements
 - **Primary domain** for WebOps control panel (e.g., `webops.yourdomain.com`)
 - **Wildcard DNS** for deployed applications (e.g., `*.apps.yourdomain.com`)
 - **SSL certificates** (automatic with Let's Encrypt)
 
-### **Access Requirements**
+### Access Requirements
 - **Root access** or sudo privileges
 - **SSH access** to the server
 - **Domain registrar** access for DNS configuration
 
 ---
 
-## 🔧 **Installation Methods**
+## Installation Methods
 
-### **Method 1: One-Command Installation (Recommended)**
+### Method 1: One-Command Installation (Recommended)
 
 ```bash
 # Download and run the installation script
-curl -sSL https://raw.githubusercontent.com/DagiiM/webops/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/dagiim/webops/main/install.sh | bash
 
 # Or for more control:
-wget https://raw.githubusercontent.com/DagiiM/webops/main/install.sh
+wget https://raw.githubusercontent.com/dagiim/webops/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
 
 **The installer will:**
-- ✅ Install all system dependencies (Python, PostgreSQL, Redis, Nginx)
-- ✅ Create dedicated `webops` user and directories
-- ✅ Configure systemd services for auto-start
-- ✅ Set up SSL certificates with Let's Encrypt
-- ✅ Configure firewall and security settings
-- ✅ Initialize database and create admin user
-- ✅ Enable all enterprise features
+- Install all system dependencies (Python, PostgreSQL, Redis, Nginx)
+- Create dedicated `webops` user with security hardening
+- Configure systemd services for auto-start with security restrictions
+- Set up SSL certificates with Let's Encrypt
+- Configure firewall and security settings
+- Initialize database and create admin user
+- Enable all enterprise security features
 
-### **Method 2: Manual Installation**
+### Method 2: Manual Installation
 
 For custom installations or when you need more control:
 
-#### **1. System Preparation**
+#### 1. System Preparation
 
 ```bash
 # Update system packages
@@ -65,33 +65,30 @@ sudo apt install -y python3.11 python3.11-venv python3-pip \
     postgresql postgresql-contrib redis-server nginx \
     git curl wget gnupg2 software-properties-common \
     ufw fail2ban certbot python3-certbot-nginx
-
-# Install Node.js for CLI tools (optional)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
 ```
 
-#### **2. User and Directory Setup**
+#### 2. User and Directory Setup
 
 ```bash
-# Create dedicated webops user
+# Create dedicated webops user with security hardening
 sudo useradd -m -s /bin/bash webops
-sudo usermod -aG sudo webops
+sudo usermod -aG webops webops
 
-# Create directory structure
+# Create secure directory structure
 sudo mkdir -p /opt/webops/{control-panel,deployments,backups,logs}
 sudo chown -R webops:webops /opt/webops
+sudo chmod 750 /opt/webops
 
 # Switch to webops user
 sudo su - webops
 cd /opt/webops
 ```
 
-#### **3. WebOps Installation**
+#### 3. WebOps Installation
 
 ```bash
 # Clone WebOps repository
-git clone https://github.com/DagiiM/webops.git .
+git clone https://github.com/dagiim/webops.git .
 cd control-panel
 
 # Create Python virtual environment
@@ -101,9 +98,6 @@ source venv/bin/activate
 # Install Python dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
-
-# Install CLI tool globally
-sudo npm install -g /opt/webops/cli
 ```
 
 #### **4. Database Configuration**
@@ -228,7 +222,7 @@ sudo systemctl restart fail2ban
 
 ---
 
-## ✅ **Verification & Testing**
+## Verification & Testing
 
 ### **1. Service Health Check**
 
@@ -261,12 +255,12 @@ curl -X GET https://webops.yourdomain.com/api/status/
 Access your WebOps instance: `https://webops.yourdomain.com`
 
 **Login and verify:**
-- ✅ Dashboard loads with system metrics
-- ✅ Create a test deployment
-- ✅ Monitor deployment logs in real-time
-- ✅ Check health monitoring page
-- ✅ Test accessibility features (keyboard navigation)
-- ✅ Verify PWA installation prompt
+- Dashboard loads with system metrics
+- Create a test deployment
+- Monitor deployment logs in real-time
+- Check health monitoring page
+- Test accessibility features (keyboard navigation)
+- Verify PWA installation prompt
 
 ### **4. Performance Test**
 
@@ -343,11 +337,11 @@ sudo nano /etc/logrotate.d/webops
 ### **2. Application Monitoring**
 
 **Built-in monitoring features:**
-- ✅ Real-time system health dashboard
-- ✅ Deployment success/failure tracking
-- ✅ Performance metrics (Core Web Vitals)
-- ✅ Error logging and alerting
-- ✅ Resource usage monitoring
+- Real-time system health dashboard
+- Deployment success/failure tracking
+- Performance metrics (Core Web Vitals)
+- Error logging and alerting
+- Resource usage monitoring
 
 **Access monitoring:**
 - Dashboard: `https://webops.yourdomain.com/dashboard/`
@@ -416,23 +410,23 @@ python manage.py create_user --username newuser --email user@domain.com
 - [API Documentation](api-reference.md) - REST API reference
 
 ### **Support Channels**
-- 📖 **Documentation**: Complete guides and references
-- 🐛 **Issue Tracker**: Bug reports and feature requests
-- 💬 **Community**: Discord/Slack community support
-- 🏢 **Enterprise**: Professional support available
+- **Documentation**: Complete guides and references
+- **Issue Tracker**: Bug reports and feature requests
+- **Community**: Community support
+- **Enterprise**: Professional support available
 
 ---
 
-## 🎯 **What's Next?**
+## What's Next?
 
 After successful installation:
 1. **Deploy your first application** - [Deployment Guide](deployment-guide.md)
-2. **Set up monitoring** - [Monitoring Guide](monitoring.md) 
+2. **Set up monitoring** - [Monitoring Guide](monitoring.md)
 3. **Configure team access** - [User Management](./user-management.md)
 4. **Explore enterprise features** - [Enterprise Guide](enterprise.md)
 
 ---
 
-**WebOps Production Installation Complete! 🎉**
+**WebOps Production Installation Complete**
 
 Your enterprise-grade hosting platform is ready for production workloads.

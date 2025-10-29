@@ -7,17 +7,7 @@ Architecture: Webhook configuration, delivery tracking, automated deployments
 
 from django.db import models
 from django.contrib.auth.models import User
-
-
-class BaseModel(models.Model):
-    """Abstract base model with common fields for all models."""
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract = True
-        ordering = ['-created_at']
+from apps.core.common.models import BaseModel
 
 
 class Webhook(BaseModel):

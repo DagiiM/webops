@@ -1,64 +1,329 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify 2FA - WebOps</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-</head>
-<body class="login-page">
-    <div class="webops-app-background"></div>
-    <div class="login-container">
-        <div class="webops-card" style="max-width: 450px; margin: 0 auto;">
-            <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">WebOps</h1>
-                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">Two-Factor Authentication</h2>
+{% extends 'auth/auth_base.html' %}
 
-                <p class="webops-text-secondary webops-mb-lg webops-text-center">
-                    Enter the 6-digit code from your authenticator app, or use a backup code
-                </p>
+{% block title %}Verify 2FA - WebOps{% endblock %}
+{% block page_title %}Two-Factor Authentication{% endblock %}
+{% block card_max_width %}450px{% endblock %}
 
-                <form method="post">
-                    {% csrf_token %}
+{% block extra_styles %}
+.code-input {
+    font-family: var(--webops-font-family-mono);
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-weight: var(--webops-font-weight-semibold);
+}
 
-                    <div class="webops-form-group">
-                        <label for="{{ form.code.id_for_label }}" class="webops-label">Verification Code (or use backup code below)</label>
-                        {{ form.code }}
-                        {% if form.code.errors %}
-                            <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                {{ form.code.errors|first }}
-                            </div>
-                        {% endif %}
-                    </div>
+.backup-code-input {
+    font-family: var(--webops-font-family-mono);
+    text-transform: uppercase;
+}
 
-                    <details class="webops-mb-md">
-                        <summary class="webops-text-secondary webops-text-sm" style="cursor: pointer; user-select: none;">
-                            Use backup code instead
-                        </summary>
-                        <div class="webops-mt-sm">
-                            <label for="{{ form.backup_code.id_for_label }}" class="webops-label">Backup Code</label>
-                            {{ form.backup_code }}
-                            {% if form.backup_code.errors %}
-                                <div class="webops-text-error webops-text-sm webops-mt-xs">
-                                    {{ form.backup_code.errors|first }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </details>
+.auth-details {
+    margin-top: var(--webops-space-1);
+}
 
-                    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md">
-                        Verify
-                    </button>
+.auth-details summary {
+    cursor: pointer;
+    user-select: none;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    transition: all var(--webops-transition-fast);
+}
 
-                    <div class="webops-text-center webops-text-secondary">
-                        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none;">
-                            ← Back to Login
-                        </a>
-                    </div>
-                </form>
-            </div>
+.auth-details summary:hover {
+    color: var(--webops-color-primary);
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.auth-details[open] summary {
+    margin-bottom: var(--webops-space-2);
+    color: var(--webops-color-primary);
+}
+{% endblock %}
+
+{% block content %}
+<div class="auth-alert auth-alert-info" role="alert">
+    <span class="material-icons">info</span>
+    <span>Enter the 6-digit code from your authenticator app</span>
+</div>
+
+<form method="post" id="verifyForm" novalidate>
+    {% csrf_token %}
+
+    <div class="auth-form-group">
+        <label for="{{ form.code.id_for_label }}" class="webops-label">Verification Code</label>
+        <div class="auth-input-wrapper">
+            {{ form.code }}
+            <span class="auth-input-icon material-icons" id="code-icon" aria-hidden="true"></span>
         </div>
+        <div class="auth-feedback" id="code-feedback" role="alert"></div>
+        {% if form.code.errors %}
+            <div class="auth-feedback show error">
+                <span class="material-icons">error</span>
+                <span>{{ form.code.errors|first }}</span>
+            </div>
+        {% endif %}
     </div>
-</body>
-</html>
+
+    <details class="auth-details" id="backupCodeDetails">
+        <summary>Use backup code instead</summary>
+        <div class="auth-form-group" style="margin-bottom: 0;">
+            <label for="{{ form.backup_code.id_for_label }}" class="webops-label">Backup Code</label>
+            <div class="auth-input-wrapper">
+                {{ form.backup_code }}
+                <span class="auth-input-icon material-icons" id="backup-icon" aria-hidden="true"></span>
+            </div>
+            <div class="auth-feedback" id="backup-feedback" role="alert"></div>
+            {% if form.backup_code.errors %}
+                <div class="auth-feedback show error">
+                    <span class="material-icons">error</span>
+                    <span>{{ form.backup_code.errors|first }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </details>
+
+    <button type="submit" class="webops-btn webops-btn-primary webops-w-full webops-mb-md" id="submitBtn">
+        Verify
+    </button>
+
+    <div class="webops-text-center webops-text-secondary">
+        <a href="{% url 'login' %}" class="webops-text-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--webops-space-1);">
+            <span class="material-icons" style="font-size: 18px;">arrow_back</span>
+            Back to Login
+        </a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    'use strict';
+
+    const form = document.getElementById('verifyForm');
+    const codeInput = document.getElementById('{{ form.code.id_for_label }}');
+    const backupCodeInput = document.getElementById('{{ form.backup_code.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+    const backupDetails = document.getElementById('backupCodeDetails');
+
+    // Add placeholders and classes
+    codeInput.placeholder = '000000';
+    codeInput.className = 'auth-input code-input';
+    codeInput.autocomplete = 'one-time-code';
+    codeInput.setAttribute('inputmode', 'numeric');
+    codeInput.setAttribute('pattern', '[0-9]*');
+    codeInput.setAttribute('maxlength', '6');
+    codeInput.setAttribute('aria-describedby', 'code-feedback');
+    codeInput.autofocus = true;
+
+    backupCodeInput.placeholder = 'XXXX-XXXX-XXXX';
+    backupCodeInput.className = 'auth-input backup-code-input';
+    backupCodeInput.autocomplete = 'off';
+    backupCodeInput.setAttribute('maxlength', '14');
+    backupCodeInput.setAttribute('aria-describedby', 'backup-feedback');
+
+    // Code validation
+    function validateCode() {
+        const value = codeInput.value.trim();
+        const feedback = document.getElementById('code-feedback');
+        const icon = document.getElementById('code-icon');
+
+        if (value === '') {
+            codeInput.classList.remove('valid', 'invalid');
+            icon.textContent = '';
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        // Check if it's 6 digits
+        if (!/^\d{6}$/.test(value)) {
+            codeInput.classList.remove('valid');
+            codeInput.classList.add('invalid');
+            icon.textContent = 'error';
+            icon.classList.remove('success');
+            icon.classList.add('error');
+            feedback.innerHTML = '<span class="material-icons">error</span><span>Code must be 6 digits</span>';
+            feedback.classList.add('show', 'error');
+            feedback.classList.remove('success');
+            return false;
+        }
+
+        codeInput.classList.remove('invalid');
+        codeInput.classList.add('valid');
+        icon.textContent = 'check_circle';
+        icon.classList.remove('error');
+        icon.classList.add('success');
+        feedback.classList.remove('show');
+        return true;
+    }
+
+    // Backup code validation
+    function validateBackupCode() {
+        const value = backupCodeInput.value.trim();
+        const feedback = document.getElementById('backup-feedback');
+        const icon = document.getElementById('backup-icon');
+
+        if (value === '') {
+            backupCodeInput.classList.remove('valid', 'invalid');
+            icon.textContent = '';
+            feedback.classList.remove('show');
+            return false;
+        }
+
+        // Remove hyphens for validation
+        const cleanValue = value.replace(/-/g, '');
+
+        // Check if it's 12 alphanumeric characters
+        if (!/^[A-Z0-9]{12}$/i.test(cleanValue)) {
+            backupCodeInput.classList.remove('valid');
+            backupCodeInput.classList.add('invalid');
+            icon.textContent = 'error';
+            icon.classList.remove('success');
+            icon.classList.add('error');
+            feedback.innerHTML = '<span class="material-icons">error</span><span>Invalid backup code format</span>';
+            feedback.classList.add('show', 'error');
+            feedback.classList.remove('success');
+            return false;
+        }
+
+        backupCodeInput.classList.remove('invalid');
+        backupCodeInput.classList.add('valid');
+        icon.textContent = 'check_circle';
+        icon.classList.remove('error');
+        icon.classList.add('success');
+        feedback.classList.remove('show');
+        return true;
+    }
+
+    // Auto-format code input (numbers only)
+    codeInput.addEventListener('input', function(e) {
+        // Remove non-digits
+        this.value = this.value.replace(/\D/g, '');
+
+        // Validate
+        validateCode();
+
+        // Auto-submit when 6 digits are entered
+        if (this.value.length === 6) {
+            validateCode();
+            // Give user a moment to see the validation
+            setTimeout(() => {
+                if (validateCode()) {
+                    submitBtn.classList.add('auth-btn-loading');
+                    submitBtn.textContent = 'Verifying...';
+                    form.submit();
+                }
+            }, 300);
+        }
+    });
+
+    // Auto-format backup code (add hyphens)
+    backupCodeInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/-/g, '').toUpperCase();
+
+        // Add hyphens every 4 characters
+        if (value.length > 4) {
+            value = value.match(/.{1,4}/g).join('-');
+        }
+
+        this.value = value;
+        validateBackupCode();
+    });
+
+    // Handle paste for code input
+    codeInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const cleaned = pastedText.replace(/\D/g, '').substring(0, 6);
+        this.value = cleaned;
+        validateCode();
+
+        if (cleaned.length === 6 && validateCode()) {
+            setTimeout(() => {
+                submitBtn.classList.add('auth-btn-loading');
+                submitBtn.textContent = 'Verifying...';
+                form.submit();
+            }, 300);
+        }
+    });
+
+    // Handle paste for backup code input
+    backupCodeInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        const cleaned = pastedText.replace(/[^A-Z0-9]/gi, '').toUpperCase().substring(0, 12);
+
+        // Format with hyphens
+        const formatted = cleaned.match(/.{1,4}/g)?.join('-') || cleaned;
+        this.value = formatted;
+        validateBackupCode();
+    });
+
+    // Toggle between code and backup code
+    backupDetails.addEventListener('toggle', function() {
+        if (this.open) {
+            // Clear and focus backup code input
+            codeInput.value = '';
+            codeInput.classList.remove('valid', 'invalid');
+            document.getElementById('code-icon').textContent = '';
+            document.getElementById('code-feedback').classList.remove('show');
+
+            // Focus backup code input
+            setTimeout(() => backupCodeInput.focus(), 100);
+        } else {
+            // Clear and focus regular code input
+            backupCodeInput.value = '';
+            backupCodeInput.classList.remove('valid', 'invalid');
+            document.getElementById('backup-icon').textContent = '';
+            document.getElementById('backup-feedback').classList.remove('show');
+
+            // Focus code input
+            setTimeout(() => codeInput.focus(), 100);
+        }
+    });
+
+    // Attach event listeners
+    codeInput.addEventListener('blur', validateCode);
+    backupCodeInput.addEventListener('blur', validateBackupCode);
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const usingBackupCode = backupDetails.open;
+
+        if (usingBackupCode) {
+            const backupValid = validateBackupCode();
+            if (!backupValid) {
+                e.preventDefault();
+                backupCodeInput.focus();
+                return false;
+            }
+
+            // Clear the regular code field
+            codeInput.value = '';
+        } else {
+            const codeValid = validateCode();
+            if (!codeValid) {
+                e.preventDefault();
+                codeInput.focus();
+                return false;
+            }
+
+            // Clear the backup code field
+            backupCodeInput.value = '';
+        }
+
+        // Add loading state
+        if (!submitBtn.classList.contains('auth-btn-loading')) {
+            submitBtn.classList.add('auth-btn-loading');
+            submitBtn.textContent = 'Verifying...';
+        }
+    });
+
+    // Focus on code input initially
+    codeInput.focus();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{
+    "addon_name": "postgresql",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T15:06:09Z",
+    "expires_at": "2026-10-29T15:06:09Z",
+    "metadata": {
+    "name": "postgresql",
+    "version": "14.0.0",
+    "description": "PostgreSQL Database Server",
+    "depends": ["base", "firewall"],
+    "provides": ["database", "postgresql"],
+    "ports": [5432],
+    "services": ["postgresql"],
+    "config_files": ["/etc/postgresql/14/main/postgresql.conf", "/etc/postgresql/14/main/pg_hba.conf"],
+    "data_directories": ["/var/lib/postgresql/14/main", "/var/lib/postgresql/wal_archive"],
+    "log_directories": ["/var/log/postgresql"]
+},
+    "sla": {
+    "availability_target": 99.9,
+    "performance_targets": {
+        "response_time": 100,
+        "cpu_usage": 80.0,
+        "memory_usage": 85.0,
+        "disk_io": 90.0,
+        "network_throughput": 1000.0
+    },
+    "recovery_objectives": {
+        "rto": 300,
+        "rpo": 900,
+        "backup_frequency": 86400,
+        "test_frequency": 604800
+    },
+    "support_level": "critical",
+    "monitoring_requirements": {
+        "health_check_interval": 60,
+        "metrics_retention": 2592000,
+        "alert_thresholds": {
+            "connection_count": 180,
+            "disk_usage": 85,
+            "replication_lag": 60
+        }
+    }
+},
+    "security": {
+    "privilege_level": "service",
+    "data_access": ["database_data", "configuration"],
+    "network_access": ["localhost", "127.0.0.1", "::1"],
+    "authentication": {
+        "method": "password",
+        "encryption": "scram-sha-256",
+        "certificate_validation": false
+    },
+    "authorization": {
+        "role_based_access": true,
+        "least_privilege": true,
+        "privilege_separation": true
+    },
+    "encryption": {
+        "data_at_rest": false,
+        "data_in_transit": false,
+        "backup_encryption": false
+    },
+    "audit": {
+        "connection_logging": true,
+        "query_logging": false,
+        "configuration_changes": true,
+        "access_failures": true
+    },
+    "vulnerability_management": {
+        "security_updates": true,
+        "vulnerability_scanning": false,
+        "penetration_testing": false
+    },
+    "compliance": {
+        "data_classification": "confidential",
+        "retention_policy": true,
+        "gdpr_compliance": false
+    }
+},
+    "validation_hash": "774dbaa8ca2464addc7468380da7295850d379c44c06db4e348859553c7b8c07",
+    "status": "active"
+}

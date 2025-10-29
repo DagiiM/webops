@@ -1,58 +1,468 @@
 /**
- * WebOps Custom Theme
- * A customizable theme for WebOps Control Panel
+ * WebOps Control Panel – Custom Theme Template (Configurable Design System)
+ * 
+ * 🎨 CUSTOM THEME TEMPLATE: Easily customizable with CSS custom properties
+ *    Modify the variables below to create your own custom theme
+ * 
+ * ✨ CUSTOMIZATION GUIDE:
+ *    1. Choose your primary color hue (0-360: Red=0, Green=120, Blue=240, Purple=280)
+ *    2. Set saturation level (0-100%: Grayscale=0%, Vivid=100%)
+ *    3. Set lightness level (0-100%: Dark=25%, Medium=50%, Light=75%)
+ *    4. Optionally modify individual color values for fine-tuning
+ * 
+ * 🚀 QUICK START:
+ *    1. Change --webops-hue-primary, --webops-sat-primary, --webops-light-primary
+ *    2. Optionally adjust semantic colors (warning, error, info)
+ *    3. Optionally adjust grayscale values for custom backgrounds
+ * 
+ * @version 2.0.0
+ * @author Douglas Mutethia <support@ifinsta.com>
+ * @license MIT
  */
 
 :root {
-  /* Background Colors */
-  --webops-color-bg-primary: #1a1f1e;
-  --webops-color-bg-secondary: #222a28;
-  --webops-color-bg-tertiary: #2a3432;
-  --webops-color-bg-accent: #0f1413;
+  /* ════════════════════════════════════════════════════════════════════════════════
+     🎨 THEME CONTROL CENTER – CUSTOMIZATION ZONE
+     ════════════════════════════════════════════════════════════════════════════════ */
   
-  /* Text Colors */
-  --webops-color-text-primary: #e8f5f0;
-  --webops-color-text-secondary: #b8d1c8;
-  --webops-color-text-muted: #88a89a;
-  --webops-color-text-inverse: #1a1f1e;
+  /* ┌─────────────────────────────────────────────────────────────────────────────┐
+     │ PRIMARY COLOR SETTINGS - CHANGE THESE TO CUSTOMIZE YOUR THEME              │
+     └─────────────────────────────────────────────────────────────────────────────┘ */
   
-  /* Primary Brand Color */
-  --webops-color-primary: #00ff88;
-  --webops-color-primary-hover: #00e67a;
-  --webops-color-primary-light: rgba(0, 255, 136, 0.1);
-  --webops-color-primary-dark: #00cc6a;
+  /* Core theme parameters (modify these 3 values to re-skin the entire UI) */
+  --webops-hue-primary: 220;        /* Primary color hue (0-360) */
+  --webops-sat-primary: 80%;        /* Saturation level (0-100%) */
+  --webops-light-primary: 55%;      /* Lightness level (0-100%) */
+
+  /* ┌─────────────────────────────────────────────────────────────────────────────┐
+     │ SEMANTIC COLORS - Adjust if needed for your brand                          │
+     └─────────────────────────────────────────────────────────────────────────────┘ */
   
-  /* Secondary Colors */
-  --webops-color-secondary: #00aaff;
-  --webops-color-secondary-hover: #0099ee;
-  --webops-color-secondary-light: rgba(0, 170, 255, 0.1);
+  /* Warning color (default: amber/orange) */
+  --webops-color-warning: hsl(45 90% 55%);
   
-  /* Status Colors */
-  --webops-color-success: #00ff88;
-  --webops-color-warning: #ffaa00;
-  --webops-color-error: #ff5555;
-  --webops-color-info: #00aaff;
+  /* Error color (default: red) */
+  --webops-color-error: hsl(0 85% 60%);
   
-  /* Border Colors */
-  --webops-color-border: #33403d;
-  --webops-color-border-light: #2a3432;
-  --webops-color-border-focus: var(--webops-color-primary);
+  /* Info color (default: blue) */
+  --webops-color-info: hsl(200 90% 55%);
   
-  /* Shadow Colors */
-  --webops-color-shadow: rgba(0, 0, 0, 0.3);
-  --webops-color-shadow-light: rgba(0, 0, 0, 0.1);
+  /* Accent color (default: complementary to primary) */
+  --webops-color-accent: hsl(25 85% 55%);
+
+  /* ┌─────────────────────────────────────────────────────────────────────────────┐
+     │ GRAYSCALE SETTINGS - Customize background and text colors                  │
+     └─────────────────────────────────────────────────────────────────────────────┘ */
   
-  /* Component Specific */
-  --webops-color-card-bg: var(--webops-color-bg-secondary);
-  --webops-color-modal-bg: var(--webops-color-bg-primary);
-  --webops-color-dropdown-bg: var(--webops-color-bg-secondary);
-  --webops-color-input-bg: var(--webops-color-bg-tertiary);
-  --webops-color-button-bg: var(--webops-color-primary);
-  --webops-color-button-text: var(--webops-color-text-inverse);
+  /* Background grayscale (modify if needed) */
+  --webops-gray-950: hsl(0 0% 4%);     /* Deepest background */
+  --webops-gray-900: hsl(0 0% 8%);     /* Primary background */
+  --webops-gray-850: hsl(0 0% 12%);    /* Secondary background */
+  --webops-gray-800: hsl(0 0% 16%);    /* Elevated surfaces */
+  --webops-gray-825: hsl(0 0% 14%);    /* Hover states */
+  --webops-gray-750: hsl(0 0% 20%);    /* Active states */
+  --webops-gray-600: hsl(0 0% 30%);    /* Disabled text */
+  --webops-gray-500: hsl(0 0% 45%);    /* Tertiary text */
+  --webops-gray-400: hsl(0 0% 70%);    /* Secondary text */
+  --webops-gray-200: hsl(0 0% 95%);    /* Primary text */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🎯 PRIMARY COLOR SYSTEM (Auto-generated - Don't modify manually)
+     ──────────────────────────────────────────────────────────────────────────────── */
   
-  /* Custom Theme Specific */
-  --webops-color-accent-1: #7c4dff;
-  --webops-color-accent-2: #ff6e40;
-  --webops-color-gradient-start: #1a1f1e;
-  --webops-color-gradient-end: #2a3432;
+  /* Base primary color - Generated from primary settings */
+  --webops-color-primary: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    var(--webops-light-primary)
+  );
+
+  /* Primary color variants (calculated dynamically) */
+  --webops-color-primary-dark: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) - 10%)
+  );
+  --webops-color-primary-darker: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) - 20%)
+  );
+  --webops-color-primary-light: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    calc(var(--webops-light-primary) + 10%)
+  );
+
+  /* Primary alpha variants (for overlays, glows, and transparency effects) */
+  --webops-color-primary-glow: hsl(
+    var(--webops-hue-primary)
+    var(--webops-sat-primary)
+    var(--webops-light-primary) / 30%
+  );
+  
+  /* Optimized alpha scale for better performance and consistency */
+  --webops-color-primary-alpha-03: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 3%);
+  --webops-color-primary-alpha-05: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 5%);
+  --webops-color-primary-alpha-10: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 10%);
+  --webops-color-primary-alpha-15: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 15%);
+  --webops-color-primary-alpha-20: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 20%);
+  --webops-color-primary-alpha-30: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
+  --webops-color-primary-alpha-35: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 35%);
+  --webops-color-primary-alpha-50: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 50%);
+
+  /* Success colors (inherit from primary for consistency) */
+  --webops-color-success: var(--webops-color-primary);
+  --webops-color-success-alpha-10: var(--webops-color-primary-alpha-10);
+  --webops-color-success-alpha-30: var(--webops-color-primary-alpha-30);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🚨 SEMANTIC STATUS COLORS (Generated from semantic settings)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Warning system (using semantic warning color) */
+  --webops-color-warning-alpha-10: hsl(var(--webops-color-warning) / 10%);
+  --webops-color-warning-alpha-30: hsl(var(--webops-color-warning) / 30%);
+  
+  /* Error system (using semantic error color) */
+  --webops-color-error-alpha-10: hsl(var(--webops-color-error) / 10%);
+  --webops-color-error-alpha-30: hsl(var(--webops-color-error) / 30%);
+  
+  /* Info system (using semantic info color) */
+  --webops-color-info-alpha-10: hsl(var(--webops-color-info) / 10%);
+  --webops-color-info-alpha-30: hsl(var(--webops-color-info) / 30%);
+
+  /* Neutral alpha variants */
+  --webops-color-neutral-alpha-10: hsl(0 0% 70% / 10%);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🏗️ SEMANTIC SURFACE COLORS (Using customizable grayscale)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Background hierarchy */
+  --webops-color-bg-primary: var(--webops-gray-950);      /* Main app background */
+  --webops-color-bg-secondary: var(--webops-gray-900);    /* Content areas */
+  --webops-color-bg-tertiary: var(--webops-gray-850);     /* Sidebar, panels */
+  --webops-color-bg-elevated: var(--webops-gray-900);     /* Cards, modals */
+  
+  /* Interactive surfaces */
+  --webops-color-surface: var(--webops-gray-850);         /* Default surface */
+  --webops-color-surface-hover: var(--webops-gray-825);   /* Hover state */
+  --webops-color-surface-active: var(--webops-gray-750);  /* Active/pressed state */
+  
+  /* Special surfaces with transparency */
+  --webops-color-bg-card: hsl(0 0% 8% / 80%);            /* Glass-morphism cards */
+  --webops-color-bg-card-mobile: hsl(0 0% 8% / 60%);     /* Mobile-optimized cards */
+  --webops-color-modal-backdrop: hsl(0 0% 4% / 85%);     /* Modal overlay */
+  --webops-color-modal-shadow: var(--webops-color-primary-alpha-15); /* Modal glow */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📝 TEXT COLOR HIERARCHY (Using customizable grayscale)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-color-text-primary: var(--webops-gray-200);    /* Headings, important text */
+  --webops-color-text-secondary: var(--webops-gray-400);  /* Body text, descriptions */
+  --webops-color-text-tertiary: var(--webops-gray-500);   /* Captions, metadata */
+  --webops-color-text-disabled: var(--webops-gray-600);   /* Disabled elements */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📊 GRAPH & VISUALIZATION COLORS (Using themed primary colors)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-color-graph-node: var(--webops-color-primary);        /* Graph nodes */
+  --webops-color-graph-edge: var(--webops-color-primary-alpha-15); /* Graph connections */
+  --webops-color-graph-grid: var(--webops-color-primary-alpha-05); /* Background grid */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📝 TYPOGRAPHY SYSTEM (Optimized for readability)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font families (system fonts first for performance) */
+  --webops-font-family-primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --webops-font-family-mono: "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+  /* Font size scale (rem-based for accessibility, 1.125 ratio) */
+  --webops-font-size-xs: 0.75rem;     /* 12px - Small labels, captions */
+  --webops-font-size-sm: 0.875rem;    /* 14px - Secondary text, form inputs */
+  --webops-font-size-base: 1rem;      /* 16px - Body text, default */
+  --webops-font-size-lg: 1.125rem;    /* 18px - Large body text */
+  --webops-font-size-xl: 1.25rem;     /* 20px - Small headings */
+  --webops-font-size-2xl: 1.5rem;     /* 24px - Medium headings */
+  --webops-font-size-3xl: 1.875rem;   /* 30px - Large headings */
+  --webops-font-size-4xl: 2.25rem;    /* 36px - Hero headings */
+  --webops-font-size-5xl: 3rem;       /* 48px - Display headings */
+
+  /* Font weight scale (optimized for Inter font) */
+  --webops-font-weight-light: 300;     /* Light text, large headings */
+  --webops-font-weight-normal: 400;    /* Body text, default */
+  --webops-font-weight-medium: 500;    /* Emphasized text, labels */
+  --webops-font-weight-semibold: 600;  /* Subheadings, important text */
+  --webops-font-weight-bold: 700;      /* Headings, strong emphasis */
+  --webops-font-weight-extrabold: 800; /* Hero text, display headings */
+
+  /* Line height scale (optimized for readability) */
+  --webops-line-height-tight: 1.25;    /* Headings, compact text */
+  --webops-line-height-snug: 1.375;    /* Subheadings */
+  --webops-line-height-normal: 1.5;    /* Body text, default */
+  --webops-line-height-relaxed: 1.625; /* Long-form content */
+  --webops-line-height-loose: 1.75;    /* Very relaxed reading */
+
+  /* Letter spacing (for improved readability) */
+  --webops-letter-spacing-tight: -0.025em;  /* Large headings */
+  --webops-letter-spacing-normal: 0;        /* Body text */
+  --webops-letter-spacing-wide: 0.025em;    /* Small text, labels */
+  --webops-letter-spacing-wider: 0.05em;    /* Uppercase text */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📏 SPACING SYSTEM (8px base grid with Fibonacci-inspired scale)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Base spacing scale (pre-calculated for performance) */
+  --webops-space-0: 0;           /* 0px - No spacing */
+  --webops-space-px: 1px;        /* 1px - Borders, dividers */
+  --webops-space-0-5: 2px;       /* 2px - Fine adjustments */
+  --webops-space-1: 4px;         /* 4px - Tight spacing */
+  --webops-space-1-5: 6px;       /* 6px - Small gaps */
+  --webops-space-2: 8px;         /* 8px - Base unit */
+  --webops-space-2-5: 10px;      /* 10px - Small padding */
+  --webops-space-3: 12px;        /* 12px - Compact spacing */
+  --webops-space-3-5: 14px;      /* 14px - Medium-small */
+  --webops-space-4: 16px;        /* 16px - Standard spacing */
+  --webops-space-5: 20px;        /* 20px - Medium spacing */
+  --webops-space-6: 24px;        /* 24px - Large spacing */
+  --webops-space-7: 28px;        /* 28px - Extra large */
+  --webops-space-8: 32px;        /* 32px - Section spacing */
+  --webops-space-9: 36px;        /* 36px - Large sections */
+  --webops-space-10: 40px;       /* 40px - Component spacing */
+  --webops-space-11: 44px;       /* 44px - Large components */
+  --webops-space-12: 48px;       /* 48px - Page sections */
+  --webops-space-14: 56px;       /* 56px - Large sections */
+  --webops-space-16: 64px;       /* 64px - Major sections */
+  --webops-space-20: 80px;       /* 80px - Page spacing */
+  --webops-space-24: 96px;       /* 96px - Large page spacing */
+  --webops-space-28: 112px;      /* 112px - Hero sections */
+  --webops-space-32: 128px;      /* 128px - Major page sections */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🔲 BORDER RADIUS SYSTEM (Consistent rounding scale)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  --webops-radius-none: 0;         /* 0px - Sharp corners */
+  --webops-radius-xs: 1px;         /* 1px - Subtle rounding */
+  --webops-radius-sm: 2px;         /* 2px - Small elements */
+  --webops-radius-base: 4px;       /* 4px - Default rounding */
+  --webops-radius-md: 6px;         /* 6px - Medium elements */
+  --webops-radius-lg: 8px;         /* 8px - Large elements */
+  --webops-radius-xl: 12px;        /* 12px - Cards, panels */
+  --webops-radius-2xl: 16px;       /* 16px - Large cards */
+  --webops-radius-3xl: 24px;       /* 24px - Hero elements */
+  --webops-radius-4xl: 32px;       /* 32px - Large hero elements */
+  --webops-radius-full: 9999px;    /* Fully rounded - Pills, avatars */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🌟 SHADOW SYSTEM (Layered depth with consistent elevation)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Neutral shadows (for general use) */
+  --webops-shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 5%);                                    /* Subtle depth */
+  --webops-shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 10%), 0 1px 2px -1px hsl(0 0% 0% / 10%); /* Small elevation */
+  --webops-shadow-base: 0 4px 6px -1px hsl(0 0% 0% / 10%), 0 2px 4px -2px hsl(0 0% 0% / 10%); /* Default cards */
+  --webops-shadow-md: 0 10px 15px -3px hsl(0 0% 0% / 10%), 0 4px 6px -4px hsl(0 0% 0% / 10%); /* Elevated cards */
+  --webops-shadow-lg: 0 20px 25px -5px hsl(0 0% 0% / 10%), 0 8px 10px -6px hsl(0 0% 0% / 10%); /* Modals, dropdowns */
+  --webops-shadow-xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                             /* High elevation */
+  --webops-shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                           /* Maximum elevation */
+  --webops-shadow-inner: inset 0 2px 4px 0 hsl(0 0% 0% / 5%);                          /* Inset elements */
+
+  /* Themed shadows (using primary color for brand consistency) */
+  --webops-shadow-primary-sm: 0 4px 6px -1px var(--webops-color-primary-alpha-15), 0 2px 4px -2px var(--webops-color-primary-alpha-10);
+  --webops-shadow-primary: 0 10px 15px -3px var(--webops-color-primary-alpha-20), 0 4px 6px -4px var(--webops-color-primary-alpha-15);
+  --webops-shadow-primary-lg: 0 20px 25px -5px var(--webops-color-primary-alpha-30), 0 8px 10px -6px var(--webops-color-primary-alpha-20);
+  --webops-shadow-success: 0 10px 15px -3px var(--webops-color-success-alpha-30), 0 4px 6px -4px var(--webops-color-success-alpha-30);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     ⚡ ANIMATION & TRANSITIONS (Optimized for 60fps performance)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Duration scale (based on Material Design principles) */
+  --webops-duration-instant: 0ms;      /* Immediate changes */
+  --webops-duration-fast: 100ms;       /* Quick interactions */
+  --webops-duration-base: 150ms;       /* Default transitions */
+  --webops-duration-medium: 200ms;     /* Standard animations */
+  --webops-duration-slow: 300ms;       /* Complex animations */
+  --webops-duration-slower: 500ms;     /* Page transitions */
+  --webops-duration-slowest: 700ms;    /* Hero animations */
+
+  /* Easing curves (optimized for natural motion) */
+  --webops-ease-linear: linear;                              /* Constant speed */
+  --webops-ease-in: cubic-bezier(0.4, 0, 1, 1);            /* Slow start */
+  --webops-ease-out: cubic-bezier(0, 0, 0.2, 1);           /* Slow end */
+  --webops-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);      /* Slow start and end */
+  --webops-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Bounce effect */
+  --webops-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);   /* Back easing */
+  --webops-ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Elastic effect */
+
+  /* Common transition combinations */
+  --webops-transition-fast: var(--webops-duration-fast) var(--webops-ease-out);
+  --webops-transition-base: var(--webops-duration-base) var(--webops-ease-out);
+  --webops-transition-medium: var(--webops-duration-medium) var(--webops-ease-out);
+  --webops-transition-slow: var(--webops-duration-slow) var(--webops-ease-out);
+  --webops-transition-bounce: var(--webops-duration-medium) var(--webops-ease-bounce);
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📚 Z-INDEX LAYERS (Organized stacking context)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Base layers (0-999) */
+  --webops-z-base: 0;              /* Default layer */
+  --webops-z-docked: 10;           /* Docked elements */
+  --webops-z-dropdown: 1000;       /* Dropdown menus */
+  --webops-z-sticky: 1020;         /* Sticky headers */
+  --webops-z-banner: 1030;         /* Notification banners */
+  --webops-z-fixed: 1040;          /* Fixed positioned elements */
+  --webops-z-modal-backdrop: 1050; /* Modal backdrops */
+  --webops-z-modal: 1060;          /* Modal dialogs */
+  --webops-z-popover: 1070;        /* Popovers, context menus */
+  --webops-z-tooltip: 1080;        /* Tooltips */
+  --webops-z-toast: 1090;          /* Toast notifications */
+  --webops-z-debug: 2147483647;    /* Debug overlays (max z-index) */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     📐 LAYOUT & COMPONENT DIMENSIONS (Responsive design system)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Layout dimensions */
+  --webops-header-height: 64px;           /* Main header height */
+  --webops-header-height-mobile: 56px;    /* Mobile header height */
+  --webops-sidebar-width: 256px;          /* Desktop sidebar width */
+  --webops-sidebar-width-collapsed: 64px; /* Collapsed sidebar width */
+  --webops-sidebar-width-mobile: 280px;   /* Mobile sidebar width */
+  --webops-content-max-width: 1280px;     /* Maximum content width */
+  --webops-container-padding: 24px;       /* Container padding */
+  --webops-container-padding-mobile: 16px; /* Mobile container padding */
+
+  /* Component heights (consistent sizing scale) */
+  --webops-input-height-xs: 24px;         /* Extra small inputs */
+  --webops-input-height-sm: 32px;         /* Small inputs */
+  --webops-input-height-base: 40px;       /* Default inputs */
+  --webops-input-height-lg: 48px;         /* Large inputs */
+  --webops-input-height-xl: 56px;         /* Extra large inputs */
+
+  --webops-button-height-xs: 24px;        /* Extra small buttons */
+  --webops-button-height-sm: 32px;        /* Small buttons */
+  --webops-button-height-base: 40px;      /* Default buttons */
+  --webops-button-height-lg: 48px;        /* Large buttons */
+  --webops-button-height-xl: 56px;        /* Extra large buttons */
+
+  /* Avatar sizes */
+  --webops-avatar-size-xs: 20px;          /* Tiny avatars */
+  --webops-avatar-size-sm: 24px;          /* Small avatars */
+  --webops-avatar-size-base: 32px;        /* Default avatars */
+  --webops-avatar-size-lg: 40px;          /* Large avatars */
+  --webops-avatar-size-xl: 48px;          /* Extra large avatars */
+  --webops-avatar-size-2xl: 64px;         /* Hero avatars */
+
+  /* Icon sizes */
+  --webops-icon-size-xs: 12px;            /* Tiny icons */
+  --webops-icon-size-sm: 16px;            /* Small icons */
+  --webops-icon-size-base: 20px;          /* Default icons */
+  --webops-icon-size-lg: 24px;            /* Large icons */
+  --webops-icon-size-xl: 32px;            /* Extra large icons */
+  --webops-icon-size-2xl: 48px;           /* Hero icons */
+
+  /* Responsive breakpoints (for CSS container queries and media queries) */
+  --webops-breakpoint-xs: 475px;          /* Extra small devices */
+  --webops-breakpoint-sm: 640px;          /* Small devices */
+  --webops-breakpoint-md: 768px;          /* Medium devices */
+  --webops-breakpoint-lg: 1024px;         /* Large devices */
+  --webops-breakpoint-xl: 1280px;         /* Extra large devices */
+  --webops-breakpoint-2xl: 1536px;        /* 2X large devices */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+     🎛️ INTERACTIVE STATES (Consistent hover, focus, and active states)
+     ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Opacity scale for interactive states */
+  --webops-opacity-disabled: 0.5;         /* Disabled elements */
+  --webops-opacity-hover: 0.8;            /* Hover state */
+  --webops-opacity-active: 0.9;           /* Active/pressed state */
+  --webops-opacity-focus: 1;              /* Focus state */
+
+  /* Scale transforms for interactive feedback */
+  --webops-scale-hover: 1.02;             /* Subtle hover scale */
+  --webops-scale-active: 0.98;            /* Active press scale */
+  --webops-scale-focus: 1.05;             /* Focus scale */
+
+  /* Border widths */
+  --webops-border-width-thin: 1px;        /* Thin borders */
+  --webops-border-width-base: 2px;        /* Default borders */
+  --webops-border-width-thick: 3px;       /* Thick borders */
+  --webops-border-width-focus: 2px;       /* Focus ring width */
+
+  /* ────────────────────────────────────────────────────────────────────────────────
+       🎨 LEGACY COMPATIBILITY VARIABLES (Used in main.css but not in new system)
+       ──────────────────────────────────────────────────────────────────────────────── */
+  
+  /* Font weight compatibility */
+  --font-weight-bold: var(--webops-font-weight-bold);
+  --font-weight-semibold: var(--webops-font-weight-semibold);
+  
+  /* Shadow glow effects */
+  --webops-shadow-glow: 0 0 20px var(--webops-color-primary-glow);
+  
+  /* Background highlight for elements */
+  --webops-color-bg-highlight: var(--webops-color-primary-alpha-05);
+  
+  /* Color hover state */
+  --webops-color-primary-hover: var(--webops-color-primary-light);
+  
+  /* Border radius compatibility */
+  --webops-border-radius-lg: var(--webops-radius-lg);
+  --webops-border-radius-md: var(--webops-radius-md);
+  --webops-border-radius-sm: var(--webops-radius-sm);
+  
+  /* Additional color variants used in main.css */
+  --webops-color-error-light: hsl(0 85% 70%);      /* Lighter error color */
+  --webops-color-error-dark: hsl(0 85% 50%);       /* Darker error color */
+  --webops-color-success-light: var(--webops-color-primary-light);
+  --webops-color-success-dark: var(--webops-color-primary-dark);
+  --webops-color-warning-light: hsl(45 90% 65%);   /* Lighter warning color */
+  --webops-color-warning-dark: hsl(45 90% 45%);    /* Darker warning color */
+  --webops-color-info-light: hsl(200 90% 65%);     /* Lighter info color */
+  --webops-color-info-dark: hsl(200 90% 45%);      /* Darker info color */
+
+}
+
+
+/* ========================================
+   Global Reset & Base Styles (Custom Theme)
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  font-family: var(--webops-font-family-primary);
+  font-size: var(--webops-font-size-base);
+  line-height: 1.6;
+  color: var(--webops-color-text-primary);
+  background: var(--webops-color-bg-primary);
+  overflow-x: hidden;
+}
+
+/* Focus & Accessibility */
+*:focus-visible {
+  outline: 2px solid var(--webops-color-primary);
+  outline-offset: 2px;
+}
+.webops-btn:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
 }

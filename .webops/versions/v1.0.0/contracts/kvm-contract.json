@@ -1,0 +1,127 @@
+{
+    "addon_name": "kvm",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T14:47:04Z",
+    "expires_at": "2026-10-29T14:47:04Z",
+    "metadata": {
+    "name": "kvm",
+    "version": "1.0.0",
+    "description": "KVM Virtualization Platform",
+    "category": "virtualization",
+    "depends": [],
+    "provides": ["kvm", "libvirt", "qemu", "virt-manager"],
+    "conflicts": ["docker", "lxc", "openvz"],
+    "system_requirements": {
+        "min_memory_mb": 4096,
+        "min_disk_gb": 50,
+        "min_cpu_cores": 2,
+        "required_ports": [16509],
+        "hardware_requirements": ["kvm_support"]
+    },
+    "maintainer": "WebOps Team",
+    "license": "GPL-2.0",
+    "documentation_url": "https://webops.dev/docs/addons/kvm",
+    "support_url": "https://webops.dev/support",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-10-29T09:45:00Z"
+},
+    "sla": {
+    "availability_target": "99.8",
+    "performance_targets": {
+        "vm_startup_time_seconds": "30",
+        "vm_migration_time_minutes": "5",
+        "disk_io_iops": "1000",
+        "network_throughput_mbps": "1000"
+    },
+    "recovery_objectives": {
+        "rto": "10",
+        "rpo": "15",
+        "backup_frequency": "daily",
+        "backup_retention_days": "30"
+    },
+    "monitoring_requirements": {
+        "metrics_collection_interval": "60",
+        "health_check_interval": "30",
+        "alert_response_time": "300"
+    },
+    "capacity_targets": {
+        "max_concurrent_vms": "20",
+        "max_vcpus_per_host": "32",
+        "max_memory_per_host_gb": "128",
+        "max_storage_per_host_tb": "10"
+    },
+    "maintenance_requirements": {
+        "scheduled_maintenance_window": "monthly",
+        "maintenance_notification_hours": "48",
+        "emergency_maintenance": "true"
+    },
+    "security_requirements": {
+        "encryption_at_rest": "true",
+        "encryption_in_transit": "true",
+        "authentication_method": "certificate",
+        "access_control": "rbac"
+    }
+},
+    "security": {
+    "privilege_level": "high",
+    "required_capabilities": [
+        "SYS_ADMIN",
+        "NET_ADMIN",
+        "DAC_OVERRIDE",
+        "SETUID",
+        "SETGID"
+    ],
+    "system_user": "root",
+    "data_access": {
+        "type": "virtualization",
+        "locations": [
+            "/var/lib/libvirt",
+            "/etc/libvirt",
+            "/var/lib/libvirt/images",
+            "/var/log/libvirt"
+        ],
+        "encryption": true,
+        "backup_retention_days": 30
+    },
+    "network_access": {
+        "required_ports": [16509],
+        "protocols": ["tcp", "tls"],
+        "encryption_required": true
+    },
+    "authentication": {
+        "method": "certificate",
+        "certificate_locations": [
+            "/etc/pki/libvirt/servercert.pem",
+            "/etc/pki/libvirt/private/serverkey.pem",
+            "/etc/pki/libvirt/cacert.pem"
+        ],
+        "ca_certificate": "/etc/pki/libvirt/cacert.pem"
+    },
+    "audit_logging": {
+        "enabled": true,
+        "log_level": "info",
+        "log_retention_days": 90,
+        "audit_events": [
+            "vm_creation",
+            "vm_deletion",
+            "vm_migration",
+            "network_changes",
+            "storage_operations",
+            "libvirt_access"
+        ]
+    },
+    "vulnerability_scanning": {
+        "enabled": true,
+        "scan_frequency": "weekly",
+        "auto_patch_security": true
+    },
+    "compliance": {
+        "standards": ["SOC2", "GDPR", "PCI-DSS"],
+        "data_classification": "confidential",
+        "pii_handling": false
+    }
+},
+    "validation_hash": "475dd962df9caa6afd55ba6738517c331cf53152ae64a562a1458d175ab97307",
+    "status": "active"
+}

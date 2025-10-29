@@ -1,9 +1,9 @@
-# WebOps REST API Reference 🔌
+# WebOps REST API Reference
 
 **Complete API documentation for WebOps v2.0**
 
-**Project Owner:** [Douglas Mutethia](https://github.com/DagiiM) | **Company:** Eleso Solutions  
-**Repository:** [https://github.com/DagiiM/webops](https://github.com/DagiiM/webops)
+**Project Owner:** [Douglas Mutethia](https://github.com/dagiim) | **Company:** Eleso Solutions
+**Repository:** [https://github.com/dagiim/webops](https://github.com/dagiim/webops)
 
 The WebOps REST API provides programmatic access to all platform features with enterprise-grade security and reliability.
 

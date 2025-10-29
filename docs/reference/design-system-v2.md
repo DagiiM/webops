@@ -342,4 +342,4 @@ function renderItems(items) {
 
 ---
 
-**WebOps Design System v2.0** - *Building accessible, performant, and beautiful interfaces* 🎨
+**WebOps Design System v2.0** - *Building accessible, performant, and beautiful interfaces*

@@ -1,0 +1,148 @@
+/**
+ * WebOps Theme Transition Styles
+ * Provides smooth transitions between themes
+ */
+
+/* Base transition for theme changes */
+:root {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Smooth transitions for common CSS variables */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+    transition: 
+        background-color 0.3s ease-in-out,
+        color 0.3s ease-in-out,
+        border-color 0.3s ease-in-out,
+        box-shadow 0.3s ease-in-out,
+        fill 0.3s ease-in-out,
+        stroke 0.3s ease-in-out !important;
+}
+
+/* Specific transitions for WebOps components */
+.theme-transitioning .webops-header,
+.theme-transitioning .webops-sidebar,
+.theme-transitioning .webops-main-content,
+.theme-transitioning .webops-card,
+.theme-transitioning .webops-button,
+.theme-transitioning .webops-input,
+.theme-transitioning .webops-table {
+    transition: 
+        background-color 0.3s ease-in-out,
+        color 0.3s ease-in-out,
+        border-color 0.3s ease-in-out,
+        box-shadow 0.3s ease-in-out !important;
+}
+
+/* Prevent transitions during initial load */
+html:not(.theme-transitioning) {
+    transition: none;
+}
+
+/* Accessibility improvements for theme transitions */
+@media (prefers-reduced-motion: reduce) {
+    html.theme-transitioning,
+    html.theme-transitioning *,
+    html.theme-transitioning *::before,
+    html.theme-transitioning *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+    html.theme-transitioning {
+        transition-duration: 0.1s;
+    }
+}
+
+/* Focus management during transitions */
+.theme-transitioning *:focus {
+    outline: 2px solid var(--webops-color-focus, #00ff88);
+    outline-offset: 2px;
+    transition: outline-color 0.2s ease-in-out !important;
+}
+
+/* Loading state for theme changes */
+.webops-theme-loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.webops-theme-loading::after {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--webops-color-primary, #00ff88);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: webops-theme-loader-spin 1s linear infinite;
+    z-index: 9999;
+}
+
+@keyframes webops-theme-loader-spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Theme-specific transition effects */
+[data-theme="dark"] .theme-transitioning {
+    filter: brightness(0.95) contrast(1.05);
+}
+
+[data-theme="light"] .theme-transitioning {
+    filter: brightness(1.05) contrast(0.95);
+}
+
+[data-theme="forest"] .theme-transitioning {
+    filter: hue-rotate(5deg) saturate(1.1);
+}
+
+[data-theme="high-contrast"] .theme-transitioning {
+    filter: contrast(1.2) saturate(0.8);
+}
+
+/* Smooth transitions for specific elements */
+.theme-transitioning .webops-theme-switcher,
+.theme-transitioning .webops-theme-toggle,
+.theme-transitioning .webops-theme-dropdown {
+    transition: 
+        background-color 0.3s ease-in-out,
+        color 0.3s ease-in-out,
+        border-color 0.3s ease-in-out,
+        transform 0.2s ease-in-out !important;
+}
+
+/* Ensure smooth color transitions for SVG icons */
+.theme-transitioning svg,
+.theme-transitioning svg path,
+.theme-transitioning svg circle,
+.theme-transitioning svg rect {
+    transition: 
+        fill 0.3s ease-in-out,
+        stroke 0.3s ease-in-out !important;
+}
+
+/* Transition for theme switcher icons */
+.theme-transitioning .webops-theme-toggle__icon,
+.theme-transitioning .webops-theme-option__icon {
+    transition: 
+        opacity 0.3s ease-in-out,
+        transform 0.2s ease-in-out !important;
+}
+
+/* Enhanced focus visibility during transitions */
+.theme-transitioning .webops-theme-option:focus,
+.theme-transitioning .webops-theme-toggle:focus {
+    outline: 2px solid var(--webops-color-focus, #00ff88) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.2) !important;
+}

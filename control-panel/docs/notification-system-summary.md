@@ -1,6 +1,6 @@
 # WebOps Notification System Summary
 
-This document provides a comprehensive overview of the WebOps notification system, which includes both toast notifications and a notifications center.
+This document provides a comprehensive overview of the WebOps notification system, which includes both toast notifications and a notifications center. The system follows WebOps' security-first design philosophy with minimal dependencies and pure vanilla JavaScript implementation.
 
 ## System Components
 

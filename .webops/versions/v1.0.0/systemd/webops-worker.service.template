@@ -1,0 +1,60 @@
+[Unit]
+Description=WebOps Celery Worker Service
+Documentation=https://github.com/DagiiM/webops
+After=network.target redis.service postgresql.service
+Wants=redis.service postgresql.service
+
+[Service]
+Type=forking
+User={{WEBOPS_USER}}
+Group={{WEBOPS_USER}}
+WorkingDirectory={{CONTROL_PANEL_DIR}}
+Environment="PATH={{CONTROL_PANEL_DIR}}/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="PYTHONUNBUFFERED=1"
+Environment="C_FORCE_ROOT=false"
+
+# Load environment variables from config
+EnvironmentFile=-{{WEBOPS_ROOT}}/config.env
+EnvironmentFile=-{{CONTROL_PANEL_DIR}}/.env
+
+# Celery worker command
+ExecStart={{CONTROL_PANEL_DIR}}/venv/bin/celery \
+    -A config.celery_app \
+    worker \
+    --loglevel=info \
+    --concurrency={{CELERY_WORKERS}} \
+    --max-tasks-per-child=1000 \
+    --logfile={{WEBOPS_LOG_DIR}}/celery-worker.log \
+    --pidfile={{WEBOPS_RUN_DIR}}/celery-worker.pid \
+    --hostname=worker@%h
+
+# Graceful shutdown
+ExecStop={{CONTROL_PANEL_DIR}}/venv/bin/celery \
+    -A config.celery_app \
+    control shutdown
+
+# Restart policy
+Restart=always
+RestartSec=10s
+StartLimitInterval=600s
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=4G
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{WEBOPS_ROOT}} {{WEBOPS_DATA_DIR}} {{WEBOPS_LOG_DIR}} {{WEBOPS_RUN_DIR}}
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=300
+
+[Install]
+WantedBy=multi-user.target

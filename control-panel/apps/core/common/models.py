@@ -7,10 +7,23 @@ used across all core app domains.
 
 from django.db import models
 from django.utils import timezone
+from .mixins import Trashable, Notifiable
 
 
-class BaseModel(models.Model):
-    """Abstract base model with common fields for all models."""
+class BaseModel(Trashable, Notifiable, models.Model):
+    """
+    Abstract base model with common fields for all models.
+
+    Inherits from:
+    - Trashable: Provides soft-delete functionality
+    - Notifiable: Provides notification dispatch functionality
+    - models.Model: Django base model
+
+    All models inheriting from BaseModel automatically get:
+    - created_at, updated_at: Timestamp tracking
+    - is_deleted, deleted_at, deleted_by: Soft-delete support
+    - send_notification(), notify_*(): Notification methods
+    """
 
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)

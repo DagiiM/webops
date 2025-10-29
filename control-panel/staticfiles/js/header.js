@@ -83,7 +83,10 @@ function initializeThemeSwitcher() {
             // Update toggle label
             const label = themeToggle.querySelector('.webops-theme-toggle__label');
             if (label) {
-                label.textContent = selectedOption.querySelector('.webops-theme-option__label').textContent;
+                const optionLabel = selectedOption.querySelector('.webops-theme-option__label');
+                if (optionLabel) {
+                    label.textContent = optionLabel.textContent;
+                }
             }
             
             // Update icon visibility
@@ -109,12 +112,20 @@ function initializeThemeSwitcher() {
     }
     
     function applyTheme(theme) {
-        // This should integrate with your existing theme system
+        // Apply theme to document
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('webops-theme', theme);
-        
+
+        // Use consistent localStorage key (matches base.html)
+        localStorage.setItem('theme', theme);
+
         // Dispatch custom event for other components
         window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
+
+        // Trigger visual feedback
+        document.body.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+            document.body.style.transition = '';
+        }, 300);
     }
 }
 

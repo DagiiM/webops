@@ -1,0 +1,456 @@
+#!/bin/bash
+#
+# WebOps Platform CLI
+# The main entry point for the WebOps platform management
+#
+# This script provides a unified interface for:
+# - Platform installation and updates
+# - Addon management (postgresql, etcd, kubernetes, etc.)
+# - System validation and diagnostics
+# - Lifecycle management (install, update, rollback)
+#
+
+set -euo pipefail
+
+# Platform paths
+WEBOPS_ROOT="${WEBOPS_ROOT:-/webops}"
+WEBOPS_PLATFORM="${WEBOPS_ROOT}/.webops"
+WEBOPS_CONFIG="${WEBOPS_ROOT}/config.env"
+WEBOPS_SECRETS="${WEBOPS_ROOT}/secrets"
+
+# Version and script info
+readonly WEBOPS_VERSION="1.0.0"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly LIB_DIR="${SCRIPT_DIR}/../lib"
+
+# Source libraries
+source "${LIB_DIR}/common.sh"
+source "${LIB_DIR}/os.sh"
+source "${LIB_DIR}/state.sh"
+
+#=============================================================================
+# CLI Help and Usage
+#=============================================================================
+
+show_help() {
+    cat <<EOF
+WebOps Platform CLI v${WEBOPS_VERSION}
+A highly reliable, mission-critical platform foundation
+
+USAGE:
+    webops <command> [options]
+
+COMMANDS:
+    install           Install base system and enabled addons
+    apply <addon>     Install/update a specific addon
+    uninstall <addon> Remove an addon (keeps data by default)
+    validate          Run pre-flight validation checks
+    update            Update platform to latest version
+    rollback <ver>    Rollback to specified version
+    version           Show current platform version
+    state             Show installation state
+    help              Show this help message
+
+ADDONS:
+    postgresql        PostgreSQL database (standalone or HA)
+    patroni           PostgreSQL HA with Patroni
+    etcd              Distributed key-value store
+    kubernetes        K3s Kubernetes distribution
+    kvm               Hardware virtualization support
+    monitoring        Node exporter and monitoring stack
+
+OPTIONS:
+    --dry-run         Show what would be done without executing
+    --force           Skip confirmation prompts
+    --purge           Remove data when uninstalling (use with caution)
+    --verbose         Enable verbose output
+
+EXAMPLES:
+    webops install                    # Install base + enabled addons
+    webops apply postgresql           # Install PostgreSQL only
+    webops uninstall postgresql       # Remove PostgreSQL (keep data)
+    webops uninstall postgresql --purge  # Remove PostgreSQL and data
+    webops validate                   # Run system validation
+    webops rollback v1.0.0           # Rollback to version 1.0.0
+
+For more information, see: https://github.com/DagiiM/webops
+EOF
+}
+
+#=============================================================================
+# Command Validation
+#=============================================================================
+
+validate_command() {
+    local command="$1"
+    
+    case "$command" in
+        install|apply|uninstall|validate|update|rollback|version|state|help)
+            return 0
+            ;;
+        *)
+            log_error "Unknown command: $command"
+            log_error "Run 'webops help' for available commands"
+            return 1
+            ;;
+    esac
+}
+
+validate_addon() {
+    local addon="$1"
+    
+    case "$addon" in
+        postgresql|patroni|etcd|kubernetes|kvm|monitoring)
+            return 0
+            ;;
+        *)
+            log_error "Unknown addon: $addon"
+            log_error "Available addons: postgresql, patroni, etcd, kubernetes, kvm, monitoring"
+            return 1
+            ;;
+    esac
+}
+
+#=============================================================================
+# Platform Commands
+#=============================================================================
+
+cmd_install() {
+    log_info "Installing WebOps platform v${WEBOPS_VERSION}..."
+    
+    # Load configuration
+    load_config
+    
+    # Run pre-flight validation
+    if ! "${SCRIPT_DIR}/../setup/validate.sh"; then
+        log_error "Pre-flight validation failed"
+        return 1
+    fi
+    
+    # Install base system
+    if ! "${SCRIPT_DIR}/../setup/base.sh"; then
+        log_error "Base system installation failed"
+        return 1
+    fi
+    
+    # Install enabled addons
+    local enabled_addons=""
+    
+    # Check configuration for enabled addons
+    if [[ "$(get_config POSTGRES_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons postgresql"
+    fi
+    
+    if [[ "$(get_config PATRONI_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons patroni"
+    fi
+    
+    if [[ "$(get_config ETCD_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons etcd"
+    fi
+    
+    if [[ "$(get_config KUBERNETES_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons kubernetes"
+    fi
+    
+    if [[ "$(get_config KVM_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons kvm"
+    fi
+    
+    if [[ "$(get_config MONITORING_ENABLED false)" == "true" ]]; then
+        enabled_addons="$enabled_addons monitoring"
+    fi
+    
+    # Install each enabled addon
+    for addon in $enabled_addons; do
+        log_info "Installing addon: $addon"
+        if ! cmd_apply "$addon"; then
+            log_error "Failed to install addon: $addon"
+            return 1
+        fi
+    done
+    
+    # Mark platform as installed
+    mark_component_installed "webops-platform" "$WEBOPS_VERSION"
+    
+    log_success "WebOps platform installation completed ✓"
+}
+
+cmd_apply() {
+    local addon="$1"
+    
+    if ! validate_addon "$addon"; then
+        return 1
+    fi
+    
+    log_info "Applying addon: $addon"
+    
+    # Check dependencies
+    if ! check_dependencies "$addon"; then
+        log_error "Missing dependencies for $addon"
+        return 1
+    fi
+    
+    # Run addon script
+    local addon_script="${SCRIPT_DIR}/../addons/${addon}.sh"
+    
+    if [[ ! -f "$addon_script" ]]; then
+        log_error "Addon script not found: $addon_script"
+        return 1
+    fi
+    
+    # Execute addon with configuration
+    if ! bash "$addon_script" install; then
+        log_error "Addon installation failed: $addon"
+        mark_component_failed "$addon"
+        return 1
+    fi
+    
+    # Get version from addon script
+    local addon_version="unknown"
+    if bash "$addon_script" version 2>/dev/null; then
+        addon_version=$(bash "$addon_script" version)
+    fi
+    
+    mark_component_installed "$addon" "$addon_version"
+    log_success "Addon installed: $addon (version: $addon_version) ✓"
+}
+
+cmd_uninstall() {
+    local addon="$1"
+    local purge="${2:-false}"
+    
+    if ! validate_addon "$addon"; then
+        return 1
+    fi
+    
+    # Check if addon is installed
+    if ! is_component_installed "$addon"; then
+        log_warn "Addon $addon is not installed"
+        return 0
+    fi
+    
+    # Check for dependents
+    if ! check_dependents "$addon"; then
+        log_error "Cannot uninstall $addon - other components depend on it"
+        return 1
+    fi
+    
+    log_info "Uninstalling addon: $addon"
+    
+    # Run addon uninstall script
+    local addon_script="${SCRIPT_DIR}/../addons/${addon}.sh"
+    
+    if [[ -f "$addon_script" ]]; then
+        local uninstall_args="uninstall"
+        if [[ "$purge" == "true" ]]; then
+            uninstall_args="$uninstall_args --purge"
+        fi
+        
+        if ! bash "$addon_script" $uninstall_args; then
+            log_error "Addon uninstall failed: $addon"
+            return 1
+        fi
+    fi
+    
+    mark_component_removed "$addon"
+    log_success "Addon uninstalled: $addon ✓"
+}
+
+cmd_validate() {
+    log_info "Running system validation..."
+    
+    if "${SCRIPT_DIR}/../setup/validate.sh"; then
+        log_success "System validation passed ✓"
+        return 0
+    else
+        log_error "System validation failed"
+        return 1
+    fi
+}
+
+cmd_update() {
+    local target_version="${1:-latest}"
+    
+    log_info "Updating WebOps platform to: $target_version"
+    
+    # This is a placeholder for future update functionality
+    log_error "Update functionality not yet implemented"
+    return 1
+}
+
+cmd_rollback() {
+    local target_version="$1"
+    
+    if [[ -z "$target_version" ]]; then
+        log_error "Rollback requires a target version"
+        log_error "Usage: webops rollback <version>"
+        return 1
+    fi
+    
+    log_info "Rolling back to version: $target_version"
+    
+    # Check if target version exists
+    local target_path="${WEBOPS_PLATFORM}/versions/${target_version}"
+    if [[ ! -d "$target_path" ]]; then
+        log_error "Version not found: $target_version"
+        return 1
+    fi
+    
+    # Atomic symlink switch
+    if set_platform_version "$target_version"; then
+        log_success "Rollback to $target_version completed ✓"
+        
+        # Re-apply base and addons to ensure consistency
+        log_info "Re-applying configuration..."
+        cmd_install
+    else
+        log_error "Rollback failed"
+        return 1
+    fi
+}
+
+cmd_version() {
+    local current_version=$(get_platform_version)
+    echo "WebOps Platform v${WEBOPS_VERSION}"
+    echo "Active version: $current_version"
+    
+    if [[ "$current_version" != "$WEBOPS_VERSION" ]]; then
+        log_warn "CLI version ($WEBOPS_VERSION) differs from active version ($current_version)"
+    fi
+}
+
+cmd_state() {
+    echo "WebOps Platform State"
+    echo "===================="
+    echo ""
+    print_state
+}
+
+#=============================================================================
+# Main CLI Entry Point
+#=============================================================================
+
+main() {
+    # Parse global options
+    local dry_run=false
+    local force=false
+    local purge=false
+    local verbose=false
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --dry-run)
+                dry_run=true
+                shift
+                ;;
+            --force)
+                force=true
+                shift
+                ;;
+            --purge)
+                purge=true
+                shift
+                ;;
+            --verbose)
+                verbose=true
+                set -x
+                shift
+                ;;
+            -*)
+                log_error "Unknown option: $1"
+                exit 1
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+    
+    # Check if command provided
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+    
+    local command="$1"
+    shift
+    
+    # Validate command
+    if ! validate_command "$command"; then
+        exit 1
+    fi
+    
+    # Handle help and version commands early (no root required)
+    if [[ "$command" == "help" ]]; then
+        show_help
+        exit 0
+    fi
+    
+    if [[ "$command" == "version" ]]; then
+        cmd_version
+        exit 0
+    fi
+    
+    # Check root privileges for most commands
+    case "$command" in
+        install|apply|uninstall|update|rollback)
+            if ! check_root; then
+                exit 1
+            fi
+            ;;
+    esac
+    
+    # Initialize platform directory structure
+    ensure_directory "${WEBOPS_PLATFORM}/versions" "root:root" "755"
+    ensure_directory "${WEBOPS_PLATFORM}/state" "root:root" "755"
+    
+    # Execute command
+    case "$command" in
+        install)
+            cmd_install
+            ;;
+        apply)
+            if [[ $# -eq 0 ]]; then
+                log_error "apply command requires an addon name"
+                exit 1
+            fi
+            cmd_apply "$1"
+            ;;
+        uninstall)
+            if [[ $# -eq 0 ]]; then
+                log_error "uninstall command requires an addon name"
+                exit 1
+            fi
+            cmd_uninstall "$1" "$purge"
+            ;;
+        validate)
+            cmd_validate
+            ;;
+        update)
+            cmd_update "$@"
+            ;;
+        rollback)
+            if [[ $# -eq 0 ]]; then
+                log_error "rollback command requires a version"
+                exit 1
+            fi
+            cmd_rollback "$1"
+            ;;
+        version)
+            cmd_version
+            ;;
+        state)
+            cmd_state
+            ;;
+        *)
+            log_error "Command not implemented: $command"
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

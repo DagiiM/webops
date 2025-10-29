@@ -4,12 +4,11 @@ URL configuration for core app (authentication and integrations).
 "URL Routing" section
 """
 
-from django.urls import path
+from django.urls import path, include
 from . import views
 from .auth import views as auth_views
 from .integrations import views as integration_views
 from .webhooks import views as webhook_views
-from .notifications import views as notification_views
 
 urlpatterns = [
     # Authentication
@@ -29,7 +28,7 @@ urlpatterns = [
     # Branding Settings
     path('settings/branding/', views.branding_settings, name='branding_settings'),
     path('settings/branding/reset/', views.reset_branding, name='reset_branding'),
-    
+
     # General User Settings
     path('settings/', views.user_settings, name='user_settings'),
 
@@ -52,8 +51,8 @@ urlpatterns = [
     # Webhooks
     path('integrations/webhooks/', webhook_views.webhook_list, name='webhook_list'),
 
-    # Notifications
-    path('integrations/notifications/', notification_views.notification_list, name='notification_list'),
+    # Notifications (includes API endpoints)
+    path('integrations/notifications/', include('apps.core.notifications.urls')),
     path('login/google/', auth_views.google_login_start, name='google_login'),
     path('login/google/callback/', auth_views.google_login_callback, name='google_login_callback'),
     path('integrations/google/connect/', integration_views.google_connect, name='google_connect'),

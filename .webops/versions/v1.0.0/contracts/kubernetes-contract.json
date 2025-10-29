@@ -1,0 +1,123 @@
+{
+    "addon_name": "kubernetes",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T14:44:20Z",
+    "expires_at": "2026-10-29T14:44:20Z",
+    "metadata": {
+    "name": "kubernetes",
+    "version": "1.28.0",
+    "description": "Kubernetes Container Orchestration",
+    "category": "orchestration",
+    "depends": ["containerd"],
+    "provides": ["kubernetes", "kubectl", "kubeadm", "kubelet"],
+    "conflicts": ["docker"],
+    "system_requirements": {
+        "min_memory_mb": 4096,
+        "min_disk_gb": 20,
+        "min_cpu_cores": 2,
+        "required_ports": [6443, 10250, 10251, 10252, "30000-32767"]
+    },
+    "maintainer": "WebOps Team",
+    "license": "Apache-2.0",
+    "documentation_url": "https://webops.dev/docs/addons/kubernetes",
+    "support_url": "https://webops.dev/support",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-10-29T09:42:00Z"
+},
+    "sla": {
+    "availability_target": "99.9",
+    "performance_targets": {
+        "api_response_time_ms": "200",
+        "pod_startup_time_seconds": "30",
+        "node_ready_time_seconds": "60"
+    },
+    "recovery_objectives": {
+        "rto": "30",
+        "rpo": "15",
+        "backup_frequency": "daily",
+        "backup_retention_days": "30"
+    },
+    "monitoring_requirements": {
+        "metrics_collection_interval": "30",
+        "health_check_interval": "10",
+        "alert_response_time": "300"
+    },
+    "scalability_targets": {
+        "max_nodes_per_cluster": "100",
+        "max_pods_per_node": "110",
+        "max_services_per_cluster": "1000"
+    },
+    "maintenance_requirements": {
+        "scheduled_maintenance_window": "monthly",
+        "maintenance_notification_hours": "48",
+        "emergency_maintenance": "true"
+    },
+    "security_requirements": {
+        "encryption_at_rest": "true",
+        "encryption_in_transit": "true",
+        "authentication_method": "certificate",
+        "access_control": "rbac"
+    }
+},
+    "security": {
+    "privilege_level": "high",
+    "required_capabilities": [
+        "SYS_ADMIN",
+        "NET_ADMIN",
+        "DAC_OVERRIDE",
+        "SETUID",
+        "SETGID"
+    ],
+    "system_user": "root",
+    "data_access": {
+        "type": "cluster",
+        "locations": [
+            "/etc/kubernetes",
+            "/var/lib/kubelet",
+            "/var/lib/etcd",
+            "/var/lib/containerd"
+        ],
+        "encryption": true,
+        "backup_retention_days": 30
+    },
+    "network_access": {
+        "required_ports": [6443, 10250, 10251, 10252, "30000-32767"],
+        "protocols": ["https", "http"],
+        "encryption_required": true
+    },
+    "authentication": {
+        "method": "certificate",
+        "certificate_locations": [
+            "/etc/kubernetes/pki/ca.crt",
+            "/etc/kubernetes/pki/apiserver.crt",
+            "/etc/kubernetes/pki/apiserver.key"
+        ],
+        "ca_certificate": "/etc/kubernetes/pki/ca.crt"
+    },
+    "audit_logging": {
+        "enabled": true,
+        "log_level": "info",
+        "log_retention_days": 90,
+        "audit_events": [
+            "pod_creation",
+            "service_creation",
+            "rbac_changes",
+            "node_operations",
+            "api_access"
+        ]
+    },
+    "vulnerability_scanning": {
+        "enabled": true,
+        "scan_frequency": "weekly",
+        "auto_patch_security": true
+    },
+    "compliance": {
+        "standards": ["SOC2", "GDPR", "PCI-DSS"],
+        "data_classification": "confidential",
+        "pii_handling": false
+    }
+},
+    "validation_hash": "5e0cb21f3e3dd0be8715dc840cecb442620b488c962ae3cb6a40b305f0aaada5",
+    "status": "active"
+}

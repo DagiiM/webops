@@ -135,6 +135,7 @@ class WebOpsThemeSwitcher {
         const labels = {
             'dark': 'Dark',
             'light': 'Light',
+            'forest': 'Forest',
             'custom': 'Custom',
             'high-contrast': 'High Contrast'
         };
@@ -145,23 +146,23 @@ class WebOpsThemeSwitcher {
      * Update switcher UI to reflect current theme
      */
     updateSwitcherUI() {
-        const switcher = document.querySelector('.webops-theme-switcher');
+        const switcher = document.querySelector('.webops-theme-switcher, .theme-switcher-container');
         if (!switcher) return;
 
         // Update the toggle button label
-        const label = switcher.querySelector('.webops-theme-toggle__label');
+        const label = switcher.querySelector('.webops-theme-toggle__label, .theme-switcher-label');
         if (label) {
             label.textContent = this.getThemeLabel(this.currentTheme);
         }
 
-        // Update the active state of theme options
-        const options = switcher.querySelectorAll('.webops-theme-option');
+        // Update the active state of theme options - support both class names
+        const options = switcher.querySelectorAll('.webops-theme-option, .theme-option');
         options.forEach(option => {
             option.classList.toggle('active', option.dataset.theme === this.currentTheme);
         });
 
         // Update icon visibility based on current theme
-        const icons = switcher.querySelectorAll('.webops-theme-toggle__icon');
+        const icons = switcher.querySelectorAll('.webops-theme-toggle__icon, .theme-switcher-icon');
         icons.forEach(icon => {
             const themeClass = Array.from(icon.classList).find(cls => cls.includes('--'));
             if (themeClass) {
@@ -177,55 +178,98 @@ class WebOpsThemeSwitcher {
     bindEvents() {
         document.addEventListener('click', (e) => {
             const switcher = document.querySelector('.webops-theme-switcher');
-            if (!switcher) return;
+            const themeContainer = document.querySelector('.theme-switcher-container');
+            const dropdown = document.getElementById('theme-switcher-dropdown');
 
-            // Toggle dropdown
-            if (e.target.closest('#themeToggle')) {
+            if (!switcher && !themeContainer) return;
+
+            const container = switcher || themeContainer;
+
+            // Toggle dropdown - support both old and new IDs
+            const toggleBtn = e.target.closest('#themeToggle, #theme-switcher-toggle, .theme-switcher-toggle');
+            if (toggleBtn) {
                 e.preventDefault();
-                const isOpen = switcher.classList.contains('open');
-                
-                if (isOpen) {
-                    switcher.classList.remove('open');
-                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
-                } else {
-                    switcher.classList.add('open');
-                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'true');
+                e.stopPropagation();
+
+                if (dropdown) {
+                    dropdown.classList.toggle('active');
+                }
+                if (container) {
+                    container.classList.toggle('open');
                 }
                 return;
             }
 
-            // Select theme
-            if (e.target.closest('.webops-theme-option')) {
+            // Close button
+            const closeBtn = e.target.closest('#theme-switcher-close, .theme-switcher-close');
+            if (closeBtn) {
                 e.preventDefault();
-                const theme = e.target.closest('.webops-theme-option').dataset.theme;
-                
+                e.stopPropagation();
+
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
+                if (container) {
+                    container.classList.remove('open');
+                }
+                return;
+            }
+
+            // Select theme - support both old and new classes
+            const themeOption = e.target.closest('.webops-theme-option, .theme-option');
+            if (themeOption) {
+                e.preventDefault();
+                const theme = themeOption.dataset.theme;
+
                 // Use dynamic loader if available
                 if (this.dynamicLoader) {
                     this.dynamicLoader.switchTheme(theme);
                 } else {
                     this.applyTheme(theme);
                 }
-                
+
+                // Update active state
+                document.querySelectorAll('.webops-theme-option, .theme-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                themeOption.classList.add('active');
+
                 // Close dropdown
-                switcher.classList.remove('open');
-                document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
+                if (container) {
+                    container.classList.remove('open');
+                }
                 return;
             }
 
             // Close dropdown when clicking outside
-            if (!e.target.closest('.webops-theme-switcher')) {
-                switcher.classList.remove('open');
-                document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
+            if (!e.target.closest('.webops-theme-switcher, .theme-switcher-container')) {
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
+                if (container) {
+                    container.classList.remove('open');
+                }
             }
         });
 
         // Keyboard support
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                const dropdown = document.getElementById('theme-switcher-dropdown');
                 const switcher = document.querySelector('.webops-theme-switcher');
+                const container = document.querySelector('.theme-switcher-container');
+
+                if (dropdown) {
+                    dropdown.classList.remove('active');
+                }
                 if (switcher) {
                     switcher.classList.remove('open');
-                    document.getElementById('themeToggle').setAttribute('aria-expanded', 'false');
+                }
+                if (container) {
+                    container.classList.remove('open');
                 }
             }
         });

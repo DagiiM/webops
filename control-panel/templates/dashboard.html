@@ -248,7 +248,11 @@
                     </td>
                     <td data-label="Created">{{ deployment.created_at|date:"M j, g:i A" }}</td>
                     <td data-label="Actions">
-                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                        {% if deployment.llmdeployment %}
+                            <a href="{% url 'deployments:llm_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                        {% else %}
+                            <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

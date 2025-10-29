@@ -943,4 +943,4 @@ def migrate_to_enterprise():
 
 ---
 
-**WebOps Enterprise Edition** - *Advanced features for large organizations* 🏢
+**WebOps Enterprise Edition** - *Advanced features for large organizations*

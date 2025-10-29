@@ -1,0 +1,84 @@
+{
+    "addon_name": "etcd",
+    "platform_version": "1.0.0",
+    "contract_version": "1.0",
+    "signed_at": "2025-10-29T15:05:46Z",
+    "expires_at": "2026-10-29T15:05:46Z",
+    "metadata": {
+    "name": "etcd",
+    "version": "3.5.9",
+    "description": "etcd Distributed Key-Value Store",
+    "depends": ["base", "firewall"],
+    "provides": ["key-value-store", "distributed-coordination"],
+    "ports": [2379, 2380],
+    "services": ["etcd"],
+    "config_files": ["/etc/etcd/etcd.conf", "/etc/etcd/etcd.env"],
+    "data_directories": ["/var/lib/etcd"],
+    "log_directories": ["/var/log/etcd"],
+    "cert_directories": ["/etc/etcd/certs"]
+},
+    "sla": {
+    "availability_target": 99.95,
+    "performance_targets": {
+        "response_time": 50,
+        "cpu_usage": 30.0,
+        "memory_usage": 60.0,
+        "disk_io": 70.0,
+        "network_throughput": 500.0
+    },
+    "recovery_objectives": {
+        "rto": 120,
+        "rpo": 300,
+        "backup_frequency": 21600,
+        "test_frequency": 604800
+    },
+    "support_level": "critical",
+    "monitoring_requirements": {
+        "health_check_interval": 30,
+        "metrics_retention": 2592000,
+        "alert_thresholds": {
+            "cluster_health": 1,
+            "disk_usage": 85,
+            "leader_elections": 5
+        }
+    }
+},
+    "security": {
+    "privilege_level": "service",
+    "data_access": ["configuration_data", "cluster_data", "certificates"],
+    "network_access": ["localhost", "127.0.0.1", "::1", "cluster_nodes"],
+    "authentication": {
+        "method": "certificate",
+        "encryption": "tls",
+        "certificate_validation": true
+    },
+    "authorization": {
+        "role_based_access": true,
+        "least_privilege": true,
+        "privilege_separation": true
+    },
+    "encryption": {
+        "data_at_rest": false,
+        "data_in_transit": true,
+        "backup_encryption": false
+    },
+    "audit": {
+        "connection_logging": true,
+        "configuration_changes": true,
+        "cluster_operations": true,
+        "access_failures": true
+    },
+    "vulnerability_management": {
+        "security_updates": true,
+        "vulnerability_scanning": false,
+        "penetration_testing": false
+    },
+    "compliance": {
+        "data_classification": "confidential",
+        "retention_policy": true,
+        "gdpr_compliance": false
+    }
+},
+    "validation_hash": "27949da0e2f397f6e810083e8b5f5d6144624707be164f4d25aeeea907dc7c69",
+    "status": "active"
+}

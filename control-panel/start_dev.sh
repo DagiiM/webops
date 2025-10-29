@@ -12,7 +12,6 @@ VENV_DIR="$PROJECT_DIR/venv"
 CELERY_PIDFILE="/tmp/celery_webops.pid"
 CELERY_LOGFILE="/tmp/celery_webops.log"
 BEAT_PIDFILE="/tmp/celery_beat.pid"
-DAPHNE_PIDFILE="/tmp/daphne_webops.pid"
 DAPHNE_LOGFILE="/tmp/daphne_webops.log"
 
 # Colors for output
@@ -79,21 +78,6 @@ cleanup() {
     pkill -f "celery.*worker" 2>/dev/null || true
     pkill -f "celery.*beat" 2>/dev/null || true
 
-    # Stop Daphne
-    if [ -f "$DAPHNE_PIDFILE" ]; then
-        local daphne_pid=$(cat "$DAPHNE_PIDFILE")
-        if kill -0 "$daphne_pid" 2>/dev/null; then
-            print_info "Stopping Daphne server (PID: $daphne_pid)..."
-            kill -TERM "$daphne_pid" 2>/dev/null || true
-            sleep 2
-            kill -KILL "$daphne_pid" 2>/dev/null || true
-        fi
-        rm -f "$DAPHNE_PIDFILE"
-    fi
-
-    # Kill any remaining Daphne processes
-    pkill -f "daphne.*config.asgi" 2>/dev/null || true
-
     print_status "All services stopped"
     exit 0
 }
@@ -141,13 +125,6 @@ if pgrep -f "celery.*worker" > /dev/null; then
     sleep 1
 fi
 
-# Check for existing Daphne server and clean it up
-if pgrep -f "daphne.*config.asgi" > /dev/null; then
-    print_warning "Found existing Daphne server, cleaning up..."
-    pkill -9 -f "daphne.*config.asgi" 2>/dev/null || true
-    rm -f "$DAPHNE_PIDFILE"
-    sleep 1
-fi
 
 # Start Celery Worker in background
 print_info "Starting Celery worker..."
@@ -185,37 +162,21 @@ else
     print_warning "Failed to start Celery Beat (optional service)"
 fi
 
-# Start Daphne ASGI server for WebSocket support
-print_info "Starting Daphne ASGI server on port 8009..."
-python -m daphne \
-    -b 0.0.0.0 \
-    -p 8009 \
-    config.asgi:application \
-    --access-log "$DAPHNE_LOGFILE" \
-    --verbosity 1 &
-
-DAPHNE_PID=$!
-sleep 2
-
-if kill -0 "$DAPHNE_PID" 2>/dev/null; then
-    echo "$DAPHNE_PID" > "$DAPHNE_PIDFILE"
-    print_status "Daphne server started (PID: $DAPHNE_PID)"
-    print_info "WebSocket endpoint: ws://localhost:8009"
-    print_info "Daphne logs: $DAPHNE_LOGFILE"
-else
-    print_error "Failed to start Daphne server"
-    exit 1
-fi
-
 echo ""
 print_status "Background services started successfully!"
 echo ""
-print_info "Starting Django development server on port 8008..."
-print_info "WebSocket server running on port 8009"
+print_info "Starting Daphne ASGI server on port 8008..."
+print_info "Daphne handles both HTTP and WebSocket connections"
 print_info "Press Ctrl+C to stop all services"
 echo ""
 
-# Start Django development server (this will run in foreground)
-python manage.py runserver "${1:-8008}"
+# Start Daphne ASGI server (this will run in foreground)
+# Daphne handles both HTTP and WebSocket traffic on the same port
+python -m daphne \
+    -b 0.0.0.0 \
+    -p "${1:-8008}" \
+    config.asgi:application \
+    --access-log "$DAPHNE_LOGFILE" \
+    --verbosity 1
 
 # Cleanup will be called automatically via trap when the script exits

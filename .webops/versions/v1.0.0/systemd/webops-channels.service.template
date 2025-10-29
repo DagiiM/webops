@@ -1,0 +1,51 @@
+[Unit]
+Description=WebOps Django Channels (Daphne) Service
+Documentation=https://github.com/DagiiM/webops
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User={{WEBOPS_USER}}
+Group={{WEBOPS_USER}}
+WorkingDirectory={{CONTROL_PANEL_DIR}}
+Environment="PATH={{CONTROL_PANEL_DIR}}/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="PYTHONUNBUFFERED=1"
+
+# Load environment variables from config
+EnvironmentFile=-{{WEBOPS_ROOT}}/config.env
+EnvironmentFile=-{{CONTROL_PANEL_DIR}}/.env
+
+# Daphne command for WebSocket support
+ExecStart={{CONTROL_PANEL_DIR}}/venv/bin/daphne \
+    -b {{CONTROL_PANEL_HOST}} \
+    -p {{CHANNELS_PORT}} \
+    --access-log {{WEBOPS_LOG_DIR}}/daphne-access.log \
+    --verbosity 2 \
+    config.asgi:application
+
+# Restart policy
+Restart=always
+RestartSec=10s
+StartLimitInterval=600s
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+MemoryLimit=1G
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{WEBOPS_ROOT}} {{WEBOPS_DATA_DIR}} {{WEBOPS_LOG_DIR}}
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
