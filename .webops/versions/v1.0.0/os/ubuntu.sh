@@ -5,10 +5,13 @@
 #
 
 # Source common OS functions
-if [[ -z "${SCRIPT_DIR:-}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-source "${SCRIPT_DIR}/../lib/common.sh"
+LOCAL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source the main common library first (for logging functions)
+source "${LOCAL_SCRIPT_DIR}/../lib/common.sh"
+
+# Source OS-specific common functions
+source "${LOCAL_SCRIPT_DIR}/common.sh"
 
 #=============================================================================
 # Package Management
@@ -119,29 +122,9 @@ rtcsync
 logdir /var/log/chrony
 EOF
 
-    systemctl restart chrony
+    # Enable and start chrony service
     systemctl enable chrony
-}
-
-os_configure_sysctl() {
-    # Kernel tuning for database workloads
-    cat > /etc/sysctl.d/99-webops.conf <<EOF
-# Network tuning
-net.ipv4.tcp_keepalive_time = 60
-net.ipv4.tcp_keepalive_intvl = 10
-net.ipv4.tcp_keepalive_probes = 6
-
-# VM tuning for database workloads
-vm.dirty_ratio = 15
-vm.dirty_background_ratio = 5
-vm.swappiness = 10
-
-# Shared memory (for PostgreSQL)
-kernel.shmmax = 17179869184
-kernel.shmall = 4194304
-EOF
-
-    sysctl -p /etc/sysctl.d/99-webops.conf
+    systemctl start chrony
 }
 
 #=============================================================================
@@ -149,7 +132,12 @@ EOF
 #=============================================================================
 
 os_setup_repositories() {
-    # Ensure universe repository is enabled
-    add-apt-repository -y universe
-    pkg_update
+    # Ensure universe and multiverse are enabled
+    if ! grep -q "universe multiverse" /etc/apt/sources.list; then
+        sed -i 's/main$/main universe multiverse restricted/g' /etc/apt/sources.list
+        pkg_update
+    fi
+    
+    # Add additional repositories if needed
+    # For example, you could add PPAs here
 }

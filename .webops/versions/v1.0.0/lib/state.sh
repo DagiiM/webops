@@ -120,6 +120,8 @@ mark_component_installed() {
     local component="$1"
     local version="${2:-unknown}"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
+    local STATE_FILE="${STATE_DIR}/installed.state"
 
     init_state
 
@@ -137,6 +139,8 @@ mark_component_failed() {
     local component="$1"
     local version="${2:-unknown}"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
+    local STATE_FILE="${STATE_DIR}/installed.state"
 
     init_state
 
@@ -153,6 +157,8 @@ mark_component_removed() {
     # Mark component as removed
     local component="$1"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
+    local STATE_FILE="${STATE_DIR}/installed.state"
 
     init_state
 

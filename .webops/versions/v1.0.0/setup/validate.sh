@@ -24,7 +24,7 @@ validate_root() {
 validate_os() {
     # Validate operating system
     log_step "Validating operating system..."
-    validate_os
+    detect_os
 }
 
 validate_resources() {

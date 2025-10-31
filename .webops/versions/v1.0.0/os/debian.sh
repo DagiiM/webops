@@ -5,8 +5,13 @@
 #
 
 # Source common OS functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/common.sh"
+LOCAL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source the main common library first (for logging functions)
+source "${LOCAL_SCRIPT_DIR}/../lib/common.sh"
+
+# Source OS-specific common functions
+source "${LOCAL_SCRIPT_DIR}/common.sh"
 
 #=============================================================================
 # Package Management

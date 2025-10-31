@@ -5,13 +5,11 @@
 #
 
 # Source common library
-if [[ -z "${SCRIPT_DIR:-}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-source "${SCRIPT_DIR}/../lib/common.sh"
+LOCAL_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${LOCAL_LIB_DIR}/common.sh"
 
 # OS-specific handlers directory
-OS_HANDLERS_DIR="${SCRIPT_DIR}/../os"
+OS_HANDLERS_DIR="${LOCAL_LIB_DIR}/../os"
 
 #=============================================================================
 # OS Detection
