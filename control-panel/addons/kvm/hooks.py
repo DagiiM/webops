@@ -281,13 +281,13 @@ def post_deletion(context: Dict[str, Any]) -> Dict[str, Any]:
 def register_hooks():
     """Register KVM hooks with the addon system."""
     try:
-        from apps.addons.registry import hook_registry
+        from apps.addons.registry import event_registry
 
-        hook_registry.register('pre_deployment', priority=50)(pre_deployment)
-        hook_registry.register('post_deployment', priority=50)(post_deployment)
-        hook_registry.register('service_health_check', priority=50)(service_health_check)
-        hook_registry.register('pre_deletion', priority=50)(pre_deletion)
-        hook_registry.register('post_deletion', priority=50)(post_deletion)
+        event_registry.register('pre_deployment', priority=50)(pre_deployment)
+        event_registry.register('post_deployment', priority=50)(post_deployment)
+        event_registry.register('service_health_check', priority=50)(service_health_check)
+        event_registry.register('pre_deletion', priority=50)(pre_deletion)
+        event_registry.register('post_deletion', priority=50)(post_deletion)
 
         logger.info("KVM addon hooks registered successfully")
 

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebOps Chat Interface - Integration Test</title>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        /* Test styles to verify theme integration */
+        .test-container {
+            padding: var(--webops-space-4);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: var(--webops-space-8);
+            background: var(--webops-color-bg-secondary);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-6);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+        }
+        
+        .test-title {
+            font-size: var(--webops-font-size-2xl);
+            font-weight: var(--webops-font-weight-bold);
+            color: var(--webops-color-text-primary);
+            margin-bottom: var(--webops-space-4);
+        }
+        
+        .test-description {
+            color: var(--webops-color-text-secondary);
+            margin-bottom: var(--webops-space-4);
+        }
+        
+        .test-button {
+            background: var(--webops-color-primary);
+            color: var(--webops-color-bg-primary);
+            border: none;
+            padding: var(--webops-space-3) var(--webops-space-6);
+            border-radius: var(--webops-radius-md);
+            font-weight: var(--webops-font-weight-medium);
+            cursor: pointer;
+            transition: all var(--webops-transition-fast);
+            margin-right: var(--webops-space-2);
+        }
+        
+        .test-button:hover {
+            background: var(--webops-color-primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--webops-shadow-primary);
+        }
+        
+        .theme-demo {
+            display: flex;
+            gap: var(--webops-space-4);
+            flex-wrap: wrap;
+        }
+        
+        .color-demo {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--webops-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--webops-font-size-xs);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-primary);
+            text-align: center;
+        }
+        
+        .primary { background: var(--webops-color-primary); }
+        .secondary { background: var(--webops-color-bg-secondary); border: 1px solid var(--webops-color-primary-alpha-20); }
+        .success { background: var(--webops-color-success); }
+        .warning { background: var(--webops-color-warning); }
+        .error { background: var(--webops-color-error); }
+        .info { background: var(--webops-color-info); }
+    </style>
+</head>
+<body>
+    <div class="webops-app-background"></div>
+    
+    <div class="test-container">
+        <div class="test-section">
+            <h1 class="test-title">WebOps Chat Interface - Theme Integration Test</h1>
+            <p class="test-description">
+                This page tests the integration between the WebOps chat interface and the existing 
+                WebOps design system. It verifies that CSS variables, design tokens, and theming 
+                work correctly together.
+            </p>
+            <button class="test-button" onclick="openChatInterface()">
+                Open Chat Interface
+            </button>
+            <button class="test-button" onclick="testThemeConsistency()">
+                Test Theme Consistency
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">WebOps Design System Verification</h2>
+            <p class="test-description">
+                These color swatches verify that the WebOps design system variables are properly 
+                loaded and accessible to the chat interface.
+            </p>
+            <div class="theme-demo">
+                <div class="color-demo primary">Primary</div>
+                <div class="color-demo secondary">Secondary</div>
+                <div class="color-demo success">Success</div>
+                <div class="color-demo warning">Warning</div>
+                <div class="color-demo error">Error</div>
+                <div class="color-demo info">Info</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">Chat Interface Preview</h2>
+            <p class="test-description">
+                Click the button below to open a preview of the chat interface in an iframe:
+            </p>
+            <button class="test-button" onclick="previewChatInterface()">
+                Preview Chat Interface
+            </button>
+            <div id="chat-preview" style="display: none; margin-top: var(--webops-space-4);">
+                <iframe 
+                    src="chat-interface.html" 
+                    width="100%" 
+                    height="600px" 
+                    style="border: 1px solid var(--webops-color-primary-alpha-20); border-radius: var(--webops-radius-lg);"
+                    title="Chat Interface Preview">
+                </iframe>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">Test Results</h2>
+            <div id="test-results">
+                <p class="test-description">
+                    Run the tests above to see results here.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openChatInterface() {
+            window.open('chat-interface.html', '_blank', 'width=1200,height=800');
+        }
+
+        function testThemeConsistency() {
+            const resultsDiv = document.getElementById('test-results');
+            let results = '<h3>Theme Integration Test Results:</h3><ul>';
+            
+            // Test CSS variables
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--webops-color-primary');
+            const bgPrimary = getComputedStyle(document.documentElement).getPropertyValue('--webops-color-bg-primary');
+            const textPrimary = getComputedStyle(document.documentElement).getPropertyValue('--webops-color-text-primary');
+            
+            if (primaryColor && primaryColor.trim()) {
+                results += '<li style="color: var(--webops-color-success);">✓ CSS variables are properly loaded</li>';
+            } else {
+                results += '<li style="color: var(--webops-color-error);">✗ CSS variables not loaded</li>';
+            }
+            
+            // Test WebOps-specific classes
+            const appBackground = document.querySelector('.webops-app-background');
+            if (appBackground) {
+                results += '<li style="color: var(--webops-color-success);">✓ WebOps background component found</li>';
+            } else {
+                results += '<li style="color: var(--webops-color-error);">✗ WebOps background component missing</li>';
+            }
+            
+            // Test responsive design
+            const testElement = document.createElement('div');
+            testElement.style.fontSize = 'var(--webops-font-size-base)';
+            document.body.appendChild(testElement);
+            const computedFontSize = window.getComputedStyle(testElement).fontSize;
+            document.body.removeChild(testElement);
+            
+            if (computedFontSize && computedFontSize !== '') {
+                results += '<li style="color: var(--webops-color-success);">✓ WebOps typography system working</li>';
+            } else {
+                results += '<li style="color: var(--webops-color-error);">✗ WebOps typography system not working</li>';
+            }
+            
+            // Test animations
+            const testAnimation = getComputedStyle(document.documentElement).getPropertyValue('--webops-transition-fast');
+            if (testAnimation && testAnimation.trim()) {
+                results += '<li style="color: var(--webops-color-success);">✓ WebOps animation system loaded</li>';
+            } else {
+                results += '<li style="color: var(--webops-color-error);">✗ WebOps animation system not loaded</li>';
+            }
+            
+            results += '</ul>';
+            results += '<p style="margin-top: var(--webops-space-4); color: var(--webops-color-text-secondary);">';
+            results += 'All theme integration tests completed. The chat interface should work seamlessly with the existing WebOps design system.';
+            results += '</p>';
+            
+            resultsDiv.innerHTML = results;
+        }
+
+        function previewChatInterface() {
+            const preview = document.getElementById('chat-preview');
+            if (preview.style.display === 'none') {
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Auto-run theme tests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testThemeConsistency, 1000);
+        });
+    </script>
+</body>
+</html>

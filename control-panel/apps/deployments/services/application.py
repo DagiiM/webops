@@ -1233,7 +1233,7 @@ LOG_DIR={logs_dir}
         """
         Render systemd service file from template.
 
-        Uses detected ASGI/WSGI modules from configuration.
+        Now supports auto-detected start commands for all frameworks!
 
         Args:
             deployment: Deployment instance
@@ -1244,6 +1244,37 @@ LOG_DIR={logs_dir}
         from ..models import DeploymentConfiguration
 
         project_root = self.get_project_root(deployment)
+        repo_path = self.get_repo_path(deployment)
+
+        # Check if we have an auto-detected start command
+        if deployment.auto_detected and deployment.start_command:
+            # Use auto-detected start command (Railway-style)
+            self.log(deployment, f"Using auto-detected start command: {deployment.start_command}")
+
+            # Substitute $PORT environment variable
+            start_cmd = deployment.start_command.replace('$PORT', str(deployment.port))
+
+            context = {
+                'app_name': deployment.name,
+                'webops_user': settings.WEBOPS_USER,
+                'repo_path': str(repo_path),
+                'start_command': start_cmd,
+                'port': deployment.port,
+                'log_path': str(self.get_deployment_path(deployment) / 'logs'),
+                'env_vars': {**deployment.env_vars, 'PORT': str(deployment.port)},
+                'working_directory': str(repo_path),
+                'restart_policy': 'always',
+                'restart_sec': '5',
+                'security_enabled': True,
+                'use_custom_command': True,
+            }
+
+            # Use simple command-based template
+            template_path = 'unified/systemd/unified.service.j2'
+            template = self.jinja_env.get_template(template_path)
+            return template.render(**context)
+
+        # Django-specific logic (legacy)
         venv_path = self.get_venv_path(deployment)
 
         # Determine template based on deployment characteristics
@@ -1273,7 +1304,6 @@ LOG_DIR={logs_dir}
 
         # Fallback to old detection if no configuration
         if not asgi_module and not wsgi_module:
-            repo_path = self.get_repo_path(deployment)
             excluded_dirs = {'migrations', 'tests', 'test', 'venv', 'env', '__pycache__', '.git'}
 
             def _find_module(filename: str):
@@ -1315,6 +1345,7 @@ LOG_DIR={logs_dir}
             'restart_policy': 'always',
             'restart_sec': '5',
             'security_enabled': True,
+            'use_custom_command': False,
         }
 
         return template.render(**context)
@@ -1397,9 +1428,217 @@ LOG_DIR={logs_dir}
             self.log(deployment, error_msg, DeploymentLog.Level.ERROR)
             return False, error_msg
 
+    def _run_install_command(self, deployment: ApplicationDeployment) -> bool:
+        """
+        Run the auto-detected install command.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not deployment.install_command:
+            return True
+
+        repo_path = self.get_repo_path(deployment)
+        self.log(deployment, f"Installing dependencies: {deployment.install_command}")
+
+        try:
+            result = subprocess.run(
+                deployment.install_command,
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True,
+                cwd=str(repo_path),
+                timeout=600  # 10 minute timeout
+            )
+            self.log(
+                deployment,
+                "Dependencies installed successfully",
+                DeploymentLog.Level.SUCCESS
+            )
+            return True
+        except subprocess.TimeoutExpired:
+            self.log(
+                deployment,
+                "Dependency installation timed out after 10 minutes",
+                DeploymentLog.Level.ERROR
+            )
+            return False
+        except subprocess.CalledProcessError as e:
+            self.log(
+                deployment,
+                f"Failed to install dependencies: {e.stderr}",
+                DeploymentLog.Level.ERROR
+            )
+            return False
+
+    def _run_build_command(self, deployment: ApplicationDeployment) -> bool:
+        """
+        Run the auto-detected build command.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not deployment.build_command:
+            return True
+
+        repo_path = self.get_repo_path(deployment)
+        self.log(deployment, f"Building project: {deployment.build_command}")
+
+        try:
+            result = subprocess.run(
+                deployment.build_command,
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True,
+                cwd=str(repo_path),
+                timeout=900  # 15 minute timeout for builds
+            )
+            self.log(
+                deployment,
+                "Project built successfully",
+                DeploymentLog.Level.SUCCESS
+            )
+            return True
+        except subprocess.TimeoutExpired:
+            self.log(
+                deployment,
+                "Build timed out after 15 minutes",
+                DeploymentLog.Level.ERROR
+            )
+            return False
+        except subprocess.CalledProcessError as e:
+            self.log(
+                deployment,
+                f"Build failed: {e.stderr}",
+                DeploymentLog.Level.ERROR
+            )
+            return False
+
+    def detect_with_buildpacks(self, deployment: ApplicationDeployment) -> bool:
+        """
+        Use buildpack system to detect project type and configure deployment.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            True if detection successful, False otherwise
+        """
+        from ..shared.buildpacks import detect_project
+
+        repo_path = self.get_repo_path(deployment)
+
+        self.log(deployment, "🔍 Auto-detecting project type using buildpacks...")
+
+        # Run buildpack detection
+        result = detect_project(str(repo_path))
+
+        if not result.detected:
+            self.log(
+                deployment,
+                "Could not auto-detect project type",
+                DeploymentLog.Level.WARNING
+            )
+            return False
+
+        # Log detection results
+        self.log(
+            deployment,
+            f"✅ Detected: {result.framework or result.project_type} "
+            f"(confidence: {result.confidence:.0%})",
+            DeploymentLog.Level.SUCCESS
+        )
+
+        # Map buildpack project_type to Django model choices
+        project_type_mapping = {
+            'django': ApplicationDeployment.ProjectType.DJANGO,
+            'nodejs': ApplicationDeployment.ProjectType.NODEJS,
+            'nextjs': ApplicationDeployment.ProjectType.NEXTJS,
+            'react': ApplicationDeployment.ProjectType.REACT,
+            'vue': ApplicationDeployment.ProjectType.VUE,
+            'python': ApplicationDeployment.ProjectType.PYTHON,
+            'go': ApplicationDeployment.ProjectType.GO,
+            'rust': ApplicationDeployment.ProjectType.RUST,
+            'ruby': ApplicationDeployment.ProjectType.RUBY,
+            'php': ApplicationDeployment.ProjectType.PHP,
+            'laravel': ApplicationDeployment.ProjectType.LARAVEL,
+            'wordpress': ApplicationDeployment.ProjectType.WORDPRESS,
+            'java': ApplicationDeployment.ProjectType.JAVA,
+            'spring-boot': ApplicationDeployment.ProjectType.SPRING_BOOT,
+            'dotnet': ApplicationDeployment.ProjectType.DOTNET,
+            'aspnet-core': ApplicationDeployment.ProjectType.ASPNET,
+            'elixir': ApplicationDeployment.ProjectType.ELIXIR,
+            'phoenix': ApplicationDeployment.ProjectType.PHOENIX,
+            'static': ApplicationDeployment.ProjectType.STATIC,
+            'docker': ApplicationDeployment.ProjectType.DOCKER,
+        }
+
+        # Update deployment with detection results
+        deployment.auto_detected = True
+        deployment.detected_framework = result.framework or result.project_type
+        deployment.detected_version = result.version or ''
+        deployment.build_command = result.build_command
+        deployment.start_command = result.start_command
+        deployment.install_command = result.install_command
+        deployment.package_manager = result.package_manager or ''
+        deployment.detection_confidence = result.confidence
+        deployment.project_type = project_type_mapping.get(
+            result.project_type,
+            ApplicationDeployment.ProjectType.STATIC
+        )
+
+        # Apply environment variable template for the framework
+        from ..shared.env_templates import EnvTemplates
+
+        # Get template for this framework
+        template_env = EnvTemplates.apply_template(
+            result.framework or result.project_type,
+            existing_env=deployment.env_vars
+        )
+
+        # Merge: template < detected < user-provided (user has highest precedence)
+        final_env = {**template_env, **result.env_vars, **deployment.env_vars}
+        deployment.env_vars = final_env
+
+        self.log(
+            deployment,
+            f"Applied environment template with {len(template_env)} variables",
+            DeploymentLog.Level.INFO
+        )
+
+        # Update Docker settings if detected
+        if result.dockerfile_path:
+            deployment.use_docker = True
+            deployment.dockerfile_path = result.dockerfile_path
+            if result.docker_compose_path:
+                deployment.docker_compose_path = result.docker_compose_path
+
+        deployment.save()
+
+        # Log configuration
+        self.log(deployment, f"📦 Package Manager: {result.package_manager or 'none'}")
+        if result.install_command:
+            self.log(deployment, f"📥 Install: {result.install_command}")
+        if result.build_command:
+            self.log(deployment, f"🔨 Build: {result.build_command}")
+        self.log(deployment, f"🚀 Start: {result.start_command}")
+        self.log(deployment, f"🔌 Port: {result.port}")
+
+        return True
+
     def prepare_deployment(self, deployment: ApplicationDeployment) -> Tuple[bool, str]:
         """
         Prepare deployment (clone repo, install deps, etc.).
+
+        Now with Railway-style auto-detection!
 
         Args:
             deployment: Deployment instance
@@ -1429,28 +1668,38 @@ LOG_DIR={logs_dir}
             # Clone repository
             repo_path = self.clone_repository(deployment)
 
-            # Detect and store project structure
-            is_django = self.detect_and_store_structure(deployment)
+            # 🆕 NEW: Use buildpack auto-detection
+            buildpack_detected = self.detect_with_buildpacks(deployment)
 
-            # Set project type based on detection
-            if is_django:
-                project_type = ApplicationDeployment.ProjectType.DJANGO
-                if deployment.project_type != project_type:
-                    deployment.project_type = project_type
-                    deployment.save(update_fields=['project_type'])
-            else:
-                # Fall back to old detection method
-                project_type = self.detect_project_type(deployment)
-                if deployment.project_type != project_type:
-                    deployment.project_type = project_type
-                    deployment.save(update_fields=['project_type'])
+            # Fall back to old detection if buildpacks fail
+            if not buildpack_detected:
+                self.log(
+                    deployment,
+                    "Falling back to legacy detection method",
+                    DeploymentLog.Level.WARNING
+                )
+                # Detect and store project structure (legacy)
+                is_django = self.detect_and_store_structure(deployment)
+
+                # Set project type based on detection
+                if is_django:
+                    project_type = ApplicationDeployment.ProjectType.DJANGO
+                    if deployment.project_type != project_type:
+                        deployment.project_type = project_type
+                        deployment.save(update_fields=['project_type'])
+                else:
+                    # Fall back to old detection method
+                    project_type = self.detect_project_type(deployment)
+                    if deployment.project_type != project_type:
+                        deployment.project_type = project_type
+                        deployment.save(update_fields=['project_type'])
 
             # Allocate port
             self.allocate_port(deployment)
 
-            # For Django projects
+            # Handle different project types
             if deployment.project_type == ApplicationDeployment.ProjectType.DJANGO:
-                # Create virtual environment
+                # Django-specific setup
                 self.create_virtualenv(deployment)
 
                 # Install dependencies
@@ -1463,6 +1712,50 @@ LOG_DIR={logs_dir}
 
                 # Collect static files
                 self.collect_static_files(deployment)
+
+            elif deployment.project_type == ApplicationDeployment.ProjectType.PYTHON:
+                # Generic Python (FastAPI, Flask, etc.)
+                self.create_virtualenv(deployment)
+                if deployment.install_command:
+                    if not self._run_install_command(deployment):
+                        return False, "Failed to install dependencies"
+
+            elif deployment.project_type in [
+                ApplicationDeployment.ProjectType.NODEJS,
+                ApplicationDeployment.ProjectType.NEXTJS,
+                ApplicationDeployment.ProjectType.REACT,
+                ApplicationDeployment.ProjectType.VUE
+            ]:
+                # Node.js projects
+                if deployment.install_command:
+                    if not self._run_install_command(deployment):
+                        return False, "Failed to install dependencies"
+
+                if deployment.build_command:
+                    if not self._run_build_command(deployment):
+                        return False, "Failed to build project"
+
+            elif deployment.project_type in [
+                ApplicationDeployment.ProjectType.GO,
+                ApplicationDeployment.ProjectType.RUST,
+                ApplicationDeployment.ProjectType.RUBY,
+                ApplicationDeployment.ProjectType.PHP,
+                ApplicationDeployment.ProjectType.LARAVEL,
+                ApplicationDeployment.ProjectType.JAVA,
+                ApplicationDeployment.ProjectType.SPRING_BOOT,
+                ApplicationDeployment.ProjectType.DOTNET,
+                ApplicationDeployment.ProjectType.ASPNET,
+                ApplicationDeployment.ProjectType.ELIXIR,
+                ApplicationDeployment.ProjectType.PHOENIX
+            ]:
+                # Compiled languages and other frameworks
+                if deployment.install_command:
+                    if not self._run_install_command(deployment):
+                        return False, "Failed to install dependencies"
+
+                if deployment.build_command:
+                    if not self._run_build_command(deployment):
+                        return False, "Failed to build project"
 
             self.log(
                 deployment,

@@ -28,7 +28,7 @@ class HookRegistration:
         self.enforcement = enforcement
         self.conditions = conditions or {}
 
-class AddonHookRegistry:
+class EventRegistry:
     def __init__(self) -> None:
         self.hooks: Dict[str, List[HookRegistration]] = {
             'pre_deployment': [],
@@ -68,4 +68,8 @@ class AddonHookRegistry:
             except Exception as e:
                 logger.warning(f"Addon hook '{event}' failed in {reg.callback}: {e}")
 
-hook_registry = AddonHookRegistry()
+event_registry = EventRegistry()
+
+# Backward compatibility
+hook_registry = event_registry
+AddonHookRegistry = EventRegistry

@@ -55,6 +55,80 @@ class LLMDeployment(BaseDeployment):
     download_completed = models.BooleanField(default=False)
     enable_trust_remote_code = models.BooleanField(default=False)
 
+    # Auto-detection fields (Railway-style auto-detection)
+    auto_detected = models.BooleanField(
+        default=False,
+        help_text='Whether model was auto-detected from HuggingFace Hub'
+    )
+    detected_model_type = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Auto-detected model type (e.g., llama, gpt, mistral)'
+    )
+    detected_architecture = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text='Auto-detected model architecture (e.g., LlamaForCausalLM)'
+    )
+    detected_task_type = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Auto-detected task type (e.g., text-generation)'
+    )
+    detected_parameter_count = models.BigIntegerField(
+        null=True,
+        blank=True,
+        help_text='Auto-detected parameter count'
+    )
+    detected_context_length = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text='Auto-detected maximum context length'
+    )
+    detection_confidence = models.FloatField(
+        default=0.0,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text='Confidence score for auto-detection (0.0 to 1.0)'
+    )
+    backend_recommendation = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Recommended backend based on model analysis'
+    )
+    backend_confidence = models.FloatField(
+        default=0.0,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text='Confidence in backend recommendation'
+    )
+    estimated_memory_required_gb = models.FloatField(
+        null=True,
+        blank=True,
+        help_text='Estimated memory requirement in GB'
+    )
+    model_author = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text='Model author from HuggingFace'
+    )
+    model_license = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Model license'
+    )
+    model_downloads = models.IntegerField(
+        default=0,
+        help_text='Download count from HuggingFace'
+    )
+    model_likes = models.IntegerField(
+        default=0,
+        help_text='Likes count from HuggingFace'
+    )
+    model_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Tags from HuggingFace Hub'
+    )
+
     class Meta:
         db_table = 'llm_deployments'
         verbose_name = 'LLM Deployment'

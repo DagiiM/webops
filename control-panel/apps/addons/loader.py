@@ -134,7 +134,7 @@ def sync_addon_record(meta: Dict[str, Any], manifest_path: str) -> None:
 
 def register_discovered_addons(registry, addons_path: str = DEFAULT_ADDONS_PATH) -> List[Dict[str, Any]]:
     """
-    Given a registry (AddonHookRegistry), parse manifests and register hooks
+    Given a registry (EventRegistry), parse manifests and register hooks
     with extracted options and resolved handlers.
     Also sync Addon model records for discovered manifests.
     Only registers hooks for enabled addons.

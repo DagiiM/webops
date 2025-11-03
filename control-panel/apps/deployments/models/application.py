@@ -6,18 +6,47 @@ from .base import BaseDeployment
 
 
 class ApplicationDeployment(BaseDeployment):
-    """Regular web application deployment (Django, Laravel, WordPress, Static)."""
+    """Regular web application deployment with auto-detection support."""
 
     class ProjectType(models.TextChoices):
+        # Python
         DJANGO = 'django', 'Django'
+        PYTHON = 'python', 'Python (FastAPI/Flask)'
+
+        # JavaScript/TypeScript
+        NODEJS = 'nodejs', 'Node.js'
+        NEXTJS = 'nextjs', 'Next.js'
+        REACT = 'react', 'React'
+        VUE = 'vue', 'Vue.js'
+
+        # PHP
         LARAVEL = 'laravel', 'Laravel'
         WORDPRESS = 'wordpress', 'WordPress'
+        PHP = 'php', 'PHP'
+
+        # JVM Languages
+        JAVA = 'java', 'Java'
+        SPRING_BOOT = 'spring-boot', 'Spring Boot'
+
+        # .NET
+        DOTNET = 'dotnet', '.NET/C#'
+        ASPNET = 'aspnet-core', 'ASP.NET Core'
+
+        # Functional/Modern
+        ELIXIR = 'elixir', 'Elixir'
+        PHOENIX = 'phoenix', 'Phoenix'
+
+        # System Languages
+        GO = 'go', 'Go'
+        RUST = 'rust', 'Rust'
+        RUBY = 'ruby', 'Ruby/Rails'
+
+        # Static & Docker
         STATIC = 'static', 'Static Site'
-        NODEJS = 'nodejs', 'Node.js'
-        PYTHON = 'python', 'Python'
+        DOCKER = 'docker', 'Docker'
 
     project_type = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=ProjectType.choices,
         default=ProjectType.DJANGO
     )
@@ -26,9 +55,19 @@ class ApplicationDeployment(BaseDeployment):
         max_length=500,
         validators=[URLValidator()]
     )
-    
+
     branch = models.CharField(max_length=100, default='main')
     env_vars = models.JSONField(default=dict, blank=True)
+
+    # Auto-detection fields (Railway-style)
+    auto_detected = models.BooleanField(default=False, help_text='Project type auto-detected')
+    detected_framework = models.CharField(max_length=100, blank=True, help_text='Detected framework (e.g., nextjs, fastapi)')
+    detected_version = models.CharField(max_length=50, blank=True, help_text='Detected language/framework version')
+    build_command = models.TextField(blank=True, help_text='Auto-generated build command')
+    start_command = models.TextField(blank=True, help_text='Auto-generated start command')
+    install_command = models.TextField(blank=True, help_text='Auto-generated install command')
+    package_manager = models.CharField(max_length=50, blank=True, help_text='Detected package manager (npm, pip, etc.)')
+    detection_confidence = models.FloatField(default=0.0, help_text='Detection confidence score (0-1)')
 
     # Docker configuration
     use_docker = models.BooleanField(default=False)

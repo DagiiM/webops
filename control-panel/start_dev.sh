@@ -165,16 +165,23 @@ fi
 echo ""
 print_status "Background services started successfully!"
 echo ""
-print_info "Starting Daphne ASGI server on port 8008..."
+
+# Use port from environment or argument, default to 8000
+DEFAULT_PORT="${WEBOPS_DEV_PORT:-8000}"
+RUN_PORT="${1:-$DEFAULT_PORT}"
+
+print_info "Starting Daphne ASGI server on port ${RUN_PORT}..."
 print_info "Daphne handles both HTTP and WebSocket connections"
 print_info "Press Ctrl+C to stop all services"
+echo ""
+print_info "Access the application at: http://127.0.0.1:${RUN_PORT}"
 echo ""
 
 # Start Daphne ASGI server (this will run in foreground)
 # Daphne handles both HTTP and WebSocket traffic on the same port
 python -m daphne \
     -b 0.0.0.0 \
-    -p "${1:-8008}" \
+    -p "${RUN_PORT}" \
     config.asgi:application \
     --access-log "$DAPHNE_LOGFILE" \
     --verbosity 1

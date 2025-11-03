@@ -9,7 +9,7 @@ Design goals:
 - Basic metrics updates on the Addon model
 
 Notes:
-- The manager uses the singleton hook registry (hook_registry) populated at app startup
+- The manager uses the singleton event registry (event_registry) populated at app startup
   via AddonsConfig.ready(). This avoids duplicate registries and ensures consistent state.
 """
 
@@ -25,7 +25,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Addon
-from .registry import HookRegistration, hook_registry
+from .registry import HookRegistration, event_registry
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class AddonHookEnforcementError(Exception):
 class AddonManager:
     def __init__(self) -> None:
         # Use the shared registry populated by app startup discovery
-        self.registry = hook_registry
+        self.registry = event_registry
 
     def trigger(self, event: str, context: HookContext, fail_fast: bool = False) -> List[HookResult]:
         """

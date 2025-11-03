@@ -6,6 +6,7 @@ Each executor handles the execution logic for a specific node type.
 
 from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
+from datetime import datetime
 import requests
 import logging
 from django.conf import settings
@@ -954,6 +955,319 @@ class DatabaseWriteExecutor(BaseNodeExecutor):
 
 
 # =============================================================================
+# AGENT INTEGRATION EXECUTORS
+# =============================================================================
+
+class AgentTaskExecutor(BaseNodeExecutor):
+    """Execute a task using an AI agent."""
+
+    def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
+        from apps.services.background.factory import get_background_processor
+
+        config = node.config
+        agent_id = config.get('agent_id')
+        task_description = config.get('task_description', '')
+        task_params = config.get('task_params', {})
+        wait_for_completion = config.get('wait_for_completion', True)
+        timeout_seconds = config.get('timeout_seconds', 300)
+
+        if not agent_id:
+            raise ValueError("Agent ID not configured")
+
+        # Format task description with input data
+        task_description = task_description.format(**input_data) if '{' in task_description else task_description
+
+        # Merge task params with input data
+        merged_params = {**task_params, **input_data}
+
+        try:
+            # Submit task to agent via background processor
+            bg_processor = get_background_processor()
+            task_handle = bg_processor.submit(
+                'agent_execute_task',
+                agent_id=agent_id,
+                task_description=task_description,
+                task_params=merged_params,
+                workflow_execution_id=execution.id
+            )
+
+            if wait_for_completion:
+                # Wait for agent to complete task
+                result = bg_processor.result(task_handle, timeout=timeout_seconds)
+
+                return {
+                    'agent_id': agent_id,
+                    'task_id': task_handle,
+                    'status': 'completed',
+                    'result': result,
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                # Return task ID immediately
+                return {
+                    'agent_id': agent_id,
+                    'task_id': task_handle,
+                    'status': 'queued',
+                    'timestamp': datetime.now().isoformat()
+                }
+
+        except Exception as e:
+            logger.error(f"Agent task execution failed: {e}")
+            raise ValueError(f"Agent task execution failed: {str(e)}")
+
+
+class AgentQueryExecutor(BaseNodeExecutor):
+    """Query an AI agent for information or decisions."""
+
+    def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
+        from apps.services.background.factory import get_background_processor
+
+        config = node.config
+        agent_id = config.get('agent_id')
+        query_text = config.get('query_text', '')
+        query_context = config.get('query_context', {})
+        expected_format = config.get('expected_format', 'text')  # text, json, structured
+        timeout_seconds = config.get('timeout_seconds', 60)
+
+        if not agent_id:
+            raise ValueError("Agent ID not configured")
+
+        # Format query with input data
+        query_text = query_text.format(**input_data) if '{' in query_text else query_text
+
+        # Merge context with input data
+        merged_context = {**query_context, **input_data}
+
+        try:
+            # Submit query to agent
+            bg_processor = get_background_processor()
+            task_handle = bg_processor.submit(
+                'agent_process_query',
+                agent_id=agent_id,
+                query=query_text,
+                context=merged_context,
+                expected_format=expected_format,
+                workflow_execution_id=execution.id
+            )
+
+            # Wait for agent response
+            response = bg_processor.result(task_handle, timeout=timeout_seconds)
+
+            return {
+                'agent_id': agent_id,
+                'query': query_text,
+                'response': response.get('answer'),
+                'confidence': response.get('confidence', 1.0),
+                'reasoning': response.get('reasoning'),
+                'timestamp': datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Agent query failed: {e}")
+            raise ValueError(f"Agent query failed: {str(e)}")
+
+
+class AgentMemoryExecutor(BaseNodeExecutor):
+    """Store or retrieve information from agent's memory."""
+
+    def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
+        config = node.config
+        agent_id = config.get('agent_id')
+        operation = config.get('operation', 'store')  # store, retrieve, search
+        memory_type = config.get('memory_type', 'episodic')  # episodic, semantic, procedural, working
+        content = config.get('content', {})
+
+        if not agent_id:
+            raise ValueError("Agent ID not configured")
+
+        # Merge content with input data
+        merged_content = {**content, **input_data}
+
+        try:
+            if operation == 'store':
+                # Store information in agent memory
+                return self._store_memory(agent_id, memory_type, merged_content, execution)
+            elif operation == 'retrieve':
+                # Retrieve specific memory
+                return self._retrieve_memory(agent_id, memory_type, merged_content, execution)
+            elif operation == 'search':
+                # Search agent memory
+                return self._search_memory(agent_id, memory_type, merged_content, execution)
+            else:
+                raise ValueError(f"Unknown memory operation: {operation}")
+
+        except Exception as e:
+            logger.error(f"Agent memory operation failed: {e}")
+            raise ValueError(f"Agent memory operation failed: {str(e)}")
+
+    def _store_memory(self, agent_id: str, memory_type: str, content: Dict[str, Any], execution) -> Dict[str, Any]:
+        """Store information in agent memory."""
+        from apps.services.background.factory import get_background_processor
+
+        bg_processor = get_background_processor()
+        task_handle = bg_processor.submit(
+            'agent_store_memory',
+            agent_id=agent_id,
+            memory_type=memory_type,
+            content=content,
+            workflow_execution_id=execution.id
+        )
+
+        result = bg_processor.result(task_handle, timeout=30)
+
+        return {
+            'operation': 'store',
+            'agent_id': agent_id,
+            'memory_type': memory_type,
+            'memory_id': result.get('memory_id'),
+            'stored': True,
+            'timestamp': datetime.now().isoformat()
+        }
+
+    def _retrieve_memory(self, agent_id: str, memory_type: str, criteria: Dict[str, Any], execution) -> Dict[str, Any]:
+        """Retrieve information from agent memory."""
+        from apps.services.background.factory import get_background_processor
+
+        bg_processor = get_background_processor()
+        task_handle = bg_processor.submit(
+            'agent_retrieve_memory',
+            agent_id=agent_id,
+            memory_type=memory_type,
+            criteria=criteria,
+            workflow_execution_id=execution.id
+        )
+
+        result = bg_processor.result(task_handle, timeout=30)
+
+        return {
+            'operation': 'retrieve',
+            'agent_id': agent_id,
+            'memory_type': memory_type,
+            'data': result.get('data'),
+            'count': result.get('count', 0),
+            'timestamp': datetime.now().isoformat()
+        }
+
+    def _search_memory(self, agent_id: str, memory_type: str, criteria: Dict[str, Any], execution) -> Dict[str, Any]:
+        """Search agent memory."""
+        from apps.services.background.factory import get_background_processor
+
+        bg_processor = get_background_processor()
+        task_handle = bg_processor.submit(
+            'agent_search_memory',
+            agent_id=agent_id,
+            memory_type=memory_type,
+            query=criteria.get('query', ''),
+            filters=criteria.get('filters', {}),
+            limit=criteria.get('limit', 10),
+            workflow_execution_id=execution.id
+        )
+
+        result = bg_processor.result(task_handle, timeout=30)
+
+        return {
+            'operation': 'search',
+            'agent_id': agent_id,
+            'memory_type': memory_type,
+            'results': result.get('results', []),
+            'count': result.get('count', 0),
+            'timestamp': datetime.now().isoformat()
+        }
+
+
+class AgentDecisionExecutor(BaseNodeExecutor):
+    """Request a decision from an AI agent."""
+
+    def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
+        from apps.services.background.factory import get_background_processor
+
+        config = node.config
+        agent_id = config.get('agent_id')
+        decision_context = config.get('decision_context', {})
+        options = config.get('options', [])
+        criteria = config.get('criteria', [])
+        timeout_seconds = config.get('timeout_seconds', 120)
+
+        if not agent_id:
+            raise ValueError("Agent ID not configured")
+
+        if not options:
+            raise ValueError("Decision options not configured")
+
+        # Merge context with input data
+        merged_context = {**decision_context, **input_data}
+
+        try:
+            bg_processor = get_background_processor()
+            task_handle = bg_processor.submit(
+                'agent_make_decision',
+                agent_id=agent_id,
+                context=merged_context,
+                options=options,
+                criteria=criteria,
+                workflow_execution_id=execution.id
+            )
+
+            result = bg_processor.result(task_handle, timeout=timeout_seconds)
+
+            return {
+                'agent_id': agent_id,
+                'decision': result.get('selected_option'),
+                'confidence': result.get('confidence'),
+                'reasoning': result.get('reasoning'),
+                'analysis': result.get('analysis'),
+                'timestamp': datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Agent decision failed: {e}")
+            raise ValueError(f"Agent decision failed: {str(e)}")
+
+
+class AgentLearningExecutor(BaseNodeExecutor):
+    """Provide learning feedback to an AI agent."""
+
+    def execute(self, node, input_data: Dict[str, Any], execution) -> Dict[str, Any]:
+        from apps.services.background.factory import get_background_processor
+
+        config = node.config
+        agent_id = config.get('agent_id')
+        feedback_type = config.get('feedback_type', 'outcome')  # outcome, correction, reinforcement
+        feedback_data = config.get('feedback_data', {})
+
+        if not agent_id:
+            raise ValueError("Agent ID not configured")
+
+        # Merge feedback data with input data
+        merged_feedback = {**feedback_data, **input_data}
+
+        try:
+            bg_processor = get_background_processor()
+            task_handle = bg_processor.submit(
+                'agent_process_learning',
+                agent_id=agent_id,
+                feedback_type=feedback_type,
+                feedback_data=merged_feedback,
+                workflow_execution_id=execution.id
+            )
+
+            result = bg_processor.result(task_handle, timeout=30)
+
+            return {
+                'agent_id': agent_id,
+                'feedback_type': feedback_type,
+                'processed': True,
+                'learning_impact': result.get('learning_impact'),
+                'adjustments_made': result.get('adjustments_made'),
+                'timestamp': datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Agent learning failed: {e}")
+            raise ValueError(f"Agent learning failed: {str(e)}")
+
+
+# =============================================================================
 # NODE EXECUTOR REGISTRY
 # =============================================================================
 
@@ -997,6 +1311,18 @@ class NodeExecutorRegistry:
             'OUTPUT_WEBHOOK': WebhookOutputExecutor(),
             'database_output': DatabaseWriteExecutor(),
             'OUTPUT_DATABASE': DatabaseWriteExecutor(),
+
+            # Agent Integration
+            'agent_task': AgentTaskExecutor(),
+            'AGENT_TASK': AgentTaskExecutor(),
+            'agent_query': AgentQueryExecutor(),
+            'AGENT_QUERY': AgentQueryExecutor(),
+            'agent_memory': AgentMemoryExecutor(),
+            'AGENT_MEMORY': AgentMemoryExecutor(),
+            'agent_decision': AgentDecisionExecutor(),
+            'AGENT_DECISION': AgentDecisionExecutor(),
+            'agent_learning': AgentLearningExecutor(),
+            'AGENT_LEARNING': AgentLearningExecutor(),
         }
 
     def get_executor(self, node_type: str) -> BaseNodeExecutor:
