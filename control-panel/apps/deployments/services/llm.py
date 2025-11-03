@@ -25,6 +25,7 @@ from apps.core.integrations.services import HuggingFaceIntegrationService
 from ..models import BaseDeployment, ApplicationDeployment, LLMDeployment, DeploymentLog
 from .prerequisites import SystemPrerequisitesInstaller
 from .autohealing import autohealer, RetryConfig, RetryStrategy
+from ..shared.llm_detection import detect_model
 
 logger = logging.getLogger(__name__)
 
@@ -1050,6 +1051,145 @@ except Exception as e:
         self.log(deployment, f"Allocated port: {port}")
         return port
 
+    def detect_and_configure_model(self, deployment: LLMDeployment) -> Tuple[bool, str]:
+        """
+        Auto-detect model characteristics and configure optimal deployment settings.
+
+        This implements Railway-style auto-detection for LLM models, analyzing the
+        model from HuggingFace Hub and automatically selecting optimal configuration.
+
+        Args:
+            deployment: Deployment instance
+
+        Returns:
+            Tuple of (success, error_message)
+        """
+        self.log(deployment, "🔍 Auto-detecting model from HuggingFace Hub...")
+
+        try:
+            # Get HuggingFace token for private models
+            hf_token = self.hf_service.get_access_token(deployment.deployed_by)
+
+            # TODO: Detect GPU availability (for now assume CPU)
+            available_gpu = False
+            available_vram_gb = 0.0
+
+            # Detect model
+            result = detect_model(
+                model_name=deployment.model_name,
+                hf_token=hf_token,
+                target_backend=deployment.backend if deployment.backend != 'transformers' else None,
+                available_gpu=available_gpu,
+                available_vram_gb=available_vram_gb
+            )
+
+            if not result.detected:
+                error_msg = f"Model detection failed: {result.error_message}"
+                self.log(deployment, error_msg, DeploymentLog.Level.WARNING)
+                # Continue anyway with user-provided settings
+                return True, ""
+
+            # Log detection results
+            self.log(
+                deployment,
+                f"✅ Model detected: {result.model_type} ({result.parameter_count:,} params)" if result.parameter_count else f"✅ Model detected: {result.model_type}",
+                DeploymentLog.Level.SUCCESS
+            )
+
+            self.log(
+                deployment,
+                f"📊 Model size: {result.model_size_gb}GB, Context: {result.context_length} tokens" if result.context_length else f"📊 Model size: {result.model_size_gb}GB",
+                DeploymentLog.Level.INFO
+            )
+
+            self.log(
+                deployment,
+                f"🎯 Recommended backend: {result.recommended_backend} (confidence: {result.backend_confidence:.0%})",
+                DeploymentLog.Level.INFO
+            )
+
+            self.log(
+                deployment,
+                f"💡 {result.backend_reasoning}",
+                DeploymentLog.Level.INFO
+            )
+
+            # Update deployment with detection results
+            deployment.auto_detected = True
+            deployment.detected_model_type = result.model_type
+            deployment.detected_architecture = result.architecture
+            deployment.detected_task_type = result.task_type
+            deployment.detected_parameter_count = result.parameter_count
+            deployment.detected_context_length = result.context_length
+            deployment.detection_confidence = result.confidence
+            deployment.backend_recommendation = result.recommended_backend
+            deployment.backend_confidence = result.backend_confidence
+            deployment.estimated_memory_required_gb = result.estimated_memory_gb
+            deployment.model_author = result.author
+            deployment.model_license = result.license
+            deployment.model_downloads = result.downloads
+            deployment.model_likes = result.likes
+            deployment.model_tags = result.tags
+
+            # Auto-configure if user hasn't set these explicitly
+            if not deployment.model_size_gb and result.model_size_gb:
+                deployment.model_size_gb = result.model_size_gb
+                self.log(deployment, f"📦 Auto-configured model size: {result.model_size_gb}GB")
+
+            if deployment.dtype == 'auto' and result.suggested_dtype != 'auto':
+                deployment.dtype = result.suggested_dtype
+                self.log(deployment, f"⚙️  Auto-configured dtype: {result.suggested_dtype}")
+
+            if not deployment.quantization and result.suggested_quantization:
+                deployment.quantization = result.suggested_quantization
+                self.log(deployment, f"⚙️  Recommended quantization: {result.suggested_quantization}")
+
+            if not deployment.max_model_len and result.suggested_max_model_len:
+                deployment.max_model_len = result.suggested_max_model_len
+                self.log(deployment, f"⚙️  Auto-configured max model length: {result.suggested_max_model_len}")
+
+            # If user selected default backend (transformers) and we recommend something else
+            if deployment.backend == 'transformers' and result.recommended_backend != 'transformers':
+                if result.backend_confidence >= 0.8:
+                    self.log(
+                        deployment,
+                        f"💡 Tip: {result.recommended_backend} backend is recommended for this model (confidence: {result.backend_confidence:.0%})",
+                        DeploymentLog.Level.INFO
+                    )
+
+            # Log warnings
+            for warning in result.warnings:
+                self.log(deployment, f"⚠️  {warning}", DeploymentLog.Level.WARNING)
+
+            # Log info messages
+            for info in result.info_messages:
+                self.log(deployment, f"ℹ️  {info}", DeploymentLog.Level.INFO)
+
+            # Log estimated memory
+            self.log(
+                deployment,
+                f"💾 Estimated memory usage: ~{result.estimated_memory_gb}GB",
+                DeploymentLog.Level.INFO
+            )
+
+            # Save all changes
+            deployment.save()
+
+            self.log(
+                deployment,
+                f"✅ Auto-detection complete (confidence: {result.confidence:.0%})",
+                DeploymentLog.Level.SUCCESS
+            )
+
+            return True, ""
+
+        except Exception as e:
+            error_msg = f"Auto-detection failed: {str(e)}"
+            logger.exception(f"Error during model detection for {deployment.name}")
+            self.log(deployment, error_msg, DeploymentLog.Level.WARNING)
+            # Don't fail deployment, just continue with user settings
+            return True, ""
+
     def prepare_llm_deployment(self, deployment: LLMDeployment) -> Tuple[bool, str]:
         """
         Prepare LLM deployment (setup environment, download model).
@@ -1072,6 +1212,16 @@ except Exception as e:
                 deployment.status = ApplicationDeployment.Status.FAILED
                 deployment.save(update_fields=['status'])
                 return False, error_msg
+
+            # Auto-detect model characteristics and configure optimal settings
+            detect_success, detect_error = self.detect_and_configure_model(deployment)
+            if not detect_success:
+                # Detection failed but we can continue with user settings
+                self.log(
+                    deployment,
+                    f"Continuing with manual configuration: {detect_error}",
+                    DeploymentLog.Level.INFO
+                )
 
             # Check and install build dependencies
             self.log(deployment, "Checking system build dependencies...")

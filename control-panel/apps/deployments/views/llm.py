@@ -226,6 +226,89 @@ def llm_test_endpoint(request, pk):
 
 
 @login_required
+@require_http_methods(["POST"])
+def llm_detect_model(request):
+    """
+    Auto-detect LLM model configuration (AJAX endpoint).
+    Provides Railway-style detection preview.
+    """
+    model_name = request.POST.get('model_name', '').strip()
+
+    if not model_name:
+        return JsonResponse({
+            'success': False,
+            'error': 'Model name is required'
+        }, status=400)
+
+    try:
+        from ..shared.llm_detection import detect_model
+
+        # Get Hugging Face token if available
+        hf_service = HuggingFaceIntegrationService()
+        hf_token = hf_service.get_access_token(request.user)
+
+        # Run detection
+        result = detect_model(
+            model_name=model_name,
+            hf_token=hf_token,
+            available_gpu=False,  # Could be made dynamic
+            available_vram_gb=0.0
+        )
+
+        if not result.detected:
+            return JsonResponse({
+                'success': False,
+                'error': result.error_message or 'Failed to detect model'
+            }, status=400)
+
+        # Build response
+        response_data = {
+            'success': True,
+            'model_info': {
+                'name': model_name,
+                'type': result.model_type,
+                'architecture': result.architecture,
+                'task_type': result.task_type,
+                'parameter_count': result.parameter_count,
+                'parameter_count_display': f"{result.parameter_count:,}" if result.parameter_count else "Unknown",
+                'parameters_billions': f"{result.parameter_count / 1e9:.2f}B" if result.parameter_count else "Unknown",
+                'model_size_gb': result.model_size_gb,
+                'context_length': result.context_length,
+                'author': result.author,
+                'license': result.license,
+                'downloads': result.downloads,
+                'likes': result.likes,
+                'tags': result.tags,
+            },
+            'recommended_config': {
+                'backend': result.recommended_backend,
+                'backend_confidence': int(result.backend_confidence * 100),
+                'backend_reasoning': result.backend_reasoning,
+                'dtype': result.suggested_dtype,
+                'quantization': result.suggested_quantization or 'None',
+                'max_model_len': result.suggested_max_model_len,
+                'estimated_memory_gb': result.estimated_memory_gb,
+                'requires_gpu': result.requires_gpu,
+                'min_vram_gb': result.min_vram_gb,
+                'min_ram_gb': result.min_ram_gb,
+            },
+            'confidence': int(result.confidence * 100),
+            'warnings': result.warnings,
+            'info_messages': result.info_messages,
+        }
+
+        return JsonResponse(response_data)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': f'Detection failed: {str(e)}'
+        }, status=500)
+
+
+@login_required
 @require_http_methods(["GET"])
 def llm_search_models(request):
     """

@@ -205,6 +205,35 @@
                     </div>
                 </div>
             </div>
+
+            <div class="webops-palette-section">
+                <div class="webops-palette-section-header">
+                    <span class="material-icons">smart_toy</span>
+                    AI Agents
+                </div>
+                <div class="webops-palette-nodes" id="agent-nodes">
+                    <div class="webops-palette-node" data-node-type="AGENT_TASK" draggable="true" role="button" tabindex="0" aria-label="Agent Task node">
+                        <span class="material-icons" aria-hidden="true">assignment</span>
+                        <span class="node-label">Agent Task</span>
+                    </div>
+                    <div class="webops-palette-node" data-node-type="AGENT_QUERY" draggable="true" role="button" tabindex="0" aria-label="Agent Query node">
+                        <span class="material-icons" aria-hidden="true">help_outline</span>
+                        <span class="node-label">Agent Query</span>
+                    </div>
+                    <div class="webops-palette-node" data-node-type="AGENT_MEMORY" draggable="true" role="button" tabindex="0" aria-label="Agent Memory node">
+                        <span class="material-icons" aria-hidden="true">memory</span>
+                        <span class="node-label">Agent Memory</span>
+                    </div>
+                    <div class="webops-palette-node" data-node-type="AGENT_DECISION" draggable="true" role="button" tabindex="0" aria-label="Agent Decision node">
+                        <span class="material-icons" aria-hidden="true">device_hub</span>
+                        <span class="node-label">Agent Decision</span>
+                    </div>
+                    <div class="webops-palette-node" data-node-type="AGENT_LEARNING" draggable="true" role="button" tabindex="0" aria-label="Agent Learning node">
+                        <span class="material-icons" aria-hidden="true">school</span>
+                        <span class="node-label">Agent Learning</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Canvas Area -->
@@ -1374,5 +1403,6 @@
 }
 </style>
 
+<script src="{% static 'js/agent-node-config.js' %}"></script>
 <script src="{% static 'js/workflow-canvas.js' %}"></script>
 {% endblock %}

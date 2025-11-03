@@ -113,6 +113,13 @@ class WorkflowNode(BaseModel):
         CONTROL_DELAY = 'delay', 'Delay'
         CONTROL_ERROR_HANDLER = 'error_handler', 'Error Handler'
 
+        # Agent Integration
+        AGENT_TASK = 'agent_task', 'Agent Task'
+        AGENT_QUERY = 'agent_query', 'Agent Query'
+        AGENT_MEMORY = 'agent_memory', 'Agent Memory'
+        AGENT_DECISION = 'agent_decision', 'Agent Decision'
+        AGENT_LEARNING = 'agent_learning', 'Agent Learning'
+
     workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='nodes')
 
     # Node identification

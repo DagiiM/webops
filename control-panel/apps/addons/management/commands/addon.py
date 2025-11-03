@@ -11,7 +11,7 @@ Usage:
 from django.core.management.base import BaseCommand, CommandError
 from apps.addons.models import Addon
 from apps.addons.loader import register_discovered_addons
-from apps.addons.registry import hook_registry
+from apps.addons.registry import event_registry
 import logging
 
 logger = logging.getLogger(__name__)
@@ -135,11 +135,11 @@ class Command(BaseCommand):
 
         try:
             # Clear existing hooks
-            for event in hook_registry.hooks.keys():
-                hook_registry.hooks[event] = []
+            for event in event_registry.hooks.keys():
+                event_registry.hooks[event] = []
 
             # Re-register addons
-            register_discovered_addons(hook_registry)
+            register_discovered_addons(event_registry)
 
             self.stdout.write(self.style.SUCCESS('✓ Addons reloaded successfully.'))
 
@@ -216,8 +216,8 @@ class Command(BaseCommand):
         if addon.enabled:
             self.stdout.write(f'\nRegistered Hooks:')
             hook_count = 0
-            for event in hook_registry.hooks.keys():
-                hooks = [h for h in hook_registry.get_hooks(event) if h.addon_name == addon_name]
+            for event in event_registry.hooks.keys():
+                hooks = [h for h in event_registry.get_hooks(event) if h.addon_name == addon_name]
                 if hooks:
                     self.stdout.write(f'  {event}:')
                     for hook in hooks:
