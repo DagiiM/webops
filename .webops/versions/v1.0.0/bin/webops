@@ -45,6 +45,7 @@ COMMANDS:
     apply <addon>     Install/update a specific addon
     uninstall <addon> Remove an addon (keeps data by default)
     validate          Run pre-flight validation checks
+    restore-ssh       Restore SSH configuration from backup
     update            Update platform to latest version
     rollback <ver>    Rollback to specified version
     version           Show current platform version
@@ -83,9 +84,9 @@ EOF
 
 validate_command() {
     local command="$1"
-    
+
     case "$command" in
-        install|apply|uninstall|validate|update|rollback|version|state|help)
+        install|apply|uninstall|validate|restore-ssh|update|rollback|version|state|help)
             return 0
             ;;
         *)
@@ -327,6 +328,62 @@ cmd_state() {
     print_state
 }
 
+cmd_restore_ssh() {
+    log_info "Restoring SSH configuration from backup..."
+
+    # Find the most recent backup
+    local latest_backup=$(ls -t /etc/ssh/sshd_config.webops-backup* 2>/dev/null | head -1)
+
+    if [[ -z "$latest_backup" ]]; then
+        log_error "No SSH backup found"
+        log_error "Expected location: /etc/ssh/sshd_config.webops-backup*"
+        log_error ""
+        log_error "Manual recovery:"
+        log_error "  1. Access server via console/VNC"
+        log_error "  2. Edit /etc/ssh/sshd_config manually"
+        log_error "  3. Restart SSH: systemctl restart sshd"
+        return 1
+    fi
+
+    log_info "Found backup: $latest_backup"
+
+    # Create backup of current config before restoring
+    local current_backup="/etc/ssh/sshd_config.before-restore-$(date +%Y%m%d-%H%M%S)"
+    if [[ -f "/etc/ssh/sshd_config" ]]; then
+        cp /etc/ssh/sshd_config "$current_backup"
+        log_info "Current config backed up to: $current_backup"
+    fi
+
+    # Test the backup configuration
+    log_info "Testing backup configuration..."
+    if ! sshd -t -f "$latest_backup" 2>&1; then
+        log_error "Backup configuration is invalid"
+        log_error "Backup file: $latest_backup"
+        log_error "Not restoring invalid configuration"
+        return 1
+    fi
+
+    log_info "Backup configuration is valid"
+
+    # Restore backup
+    cp "$latest_backup" /etc/ssh/sshd_config
+    log_success "SSH configuration restored from: $latest_backup"
+
+    # Restart SSH service
+    log_info "Restarting SSH service..."
+    if systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null; then
+        log_success "SSH service restarted successfully ✓"
+    else
+        log_error "Failed to restart SSH service"
+        log_error "Configuration was restored but service needs manual restart"
+        return 1
+    fi
+
+    log_success "SSH configuration restore completed ✓"
+    log_warn "⚠️  IMPORTANT: Test SSH connectivity before closing this session!"
+    log_warn "   Open a new terminal and verify you can connect"
+}
+
 #=============================================================================
 # Main CLI Entry Point
 #=============================================================================
@@ -394,7 +451,7 @@ main() {
     
     # Check root privileges for most commands
     case "$command" in
-        install|apply|uninstall|update|rollback)
+        install|apply|uninstall|restore-ssh|update|rollback)
             if ! check_root; then
                 exit 1
             fi
@@ -426,6 +483,9 @@ main() {
             ;;
         validate)
             cmd_validate
+            ;;
+        restore-ssh)
+            cmd_restore_ssh
             ;;
         update)
             cmd_update "$@"

@@ -89,6 +89,74 @@ chown -R root:root /home/douglas/webops/.webops/
 chmod -R 755 /home/douglas/webops/.webops/
 ```
 
+### Locked Out After Installation (SSH Root Login Disabled)
+
+**Symptoms:**
+- Cannot SSH as root after WebOps installation
+- "Permission denied" when trying to login as root
+- Need to regain root SSH access
+
+**Solution Option 1: Use Console Access (Recommended)**
+```bash
+# 1. Access server via console/VNC (from hosting provider dashboard)
+
+# 2. Login with root password via console
+
+# 3. Restore original SSH configuration using WebOps CLI
+/home/douglas/webops/.webops/versions/v1.0.0/bin/webops restore-ssh
+
+# 4. Or manually restore from backup
+cp /etc/ssh/sshd_config.webops-backup* /etc/ssh/sshd_config
+systemctl restart sshd
+
+# 5. Test SSH connection
+# Keep console session open until verified!
+```
+
+**Solution Option 2: Use webops User**
+```bash
+# SSH as webops user instead
+ssh -i ~/.ssh/id_rsa webops@your-server
+
+# Switch to root if needed
+sudo su -
+
+# Or use sudo for commands
+sudo systemctl status webops-web
+```
+
+**Solution Option 3: Enable Root Login with Keys Only (Secure)**
+```bash
+# 1. Access via console or webops user
+
+# 2. Edit SSH config
+sudo nano /etc/ssh/sshd_config
+
+# 3. Change this line:
+PermitRootLogin prohibit-password  # Instead of "no"
+
+# 4. Restart SSH
+sudo systemctl restart sshd
+
+# 5. Set up root SSH keys if not already configured
+sudo mkdir -p /root/.ssh
+sudo chmod 700 /root/.ssh
+# Copy your public key to /root/.ssh/authorized_keys
+```
+
+**Prevention:**
+Before installing WebOps, configure SSH settings in config.env:
+```bash
+# Allow root login with SSH keys (recommended)
+PERMIT_ROOT_LOGIN=prohibit-password
+
+# Or disable SSH hardening entirely
+ENABLE_SSH_HARDENING=false
+
+# Or allow password authentication as fallback
+SSH_PASSWORD_AUTH=yes
+```
+
 ### Package Installation Fails
 
 **Symptoms:**
