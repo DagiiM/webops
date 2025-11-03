@@ -101,7 +101,7 @@ show_welcome() {
 VPS Hosting Platform Installer
 EOF
     echo -e "${NC}"
-    
+
     echo -e "${GREEN}Welcome to WebOps Platform Installation!${NC}"
     echo -e "${BLUE}Version:${NC} ${WEBOPS_VERSION}"
     echo ""
@@ -111,6 +111,31 @@ EOF
     echo "  • Configure PostgreSQL database"
     echo "  • Set up monitoring and logging"
     echo "  • Install the Django control panel"
+    echo ""
+
+    echo -e "${RED}⚠️  IMPORTANT SECURITY CHANGES:${NC}"
+    echo -e "${YELLOW}By default, this installer will:${NC}"
+    echo "  • Configure SSH to allow root login with keys only (prohibit-password)"
+    echo "  • Disable SSH password authentication (SSH keys required)"
+    echo "  • Configure firewall rules (SSH, HTTP, HTTPS)"
+    echo ""
+    echo -e "${YELLOW}Before continuing, ensure you have:${NC}"
+    echo "  ✓ SSH key-based authentication set up for this server"
+    echo "  ✓ Console/VNC access to your server (backup access method)"
+    echo "  ✓ Reviewed the configuration that will be created"
+    echo ""
+    echo -e "${BLUE}To customize SSH security settings:${NC}"
+    echo "  • To disable SSH hardening: set ENABLE_SSH_HARDENING=false"
+    echo "  • To disable root login entirely: set PERMIT_ROOT_LOGIN=no"
+    echo "  • To allow password auth: set SSH_PASSWORD_AUTH=yes"
+    echo "  • Edit ${WEBOPS_PLATFORM_DIR}/config.env after this step"
+    echo ""
+
+    read -p "Do you want to continue? (yes/no): " -r
+    if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+        echo "Installation cancelled"
+        exit 0
+    fi
     echo ""
 }
 
@@ -166,6 +191,16 @@ GRAFANA_PORT=3000
 ENABLE_FIREWALL=true
 ENABLE_FAIL2BAN=true
 ENABLE_AUTO_UPDATES=false
+
+# SSH Security Configuration
+# Set ENABLE_SSH_HARDENING=false to skip SSH hardening entirely
+ENABLE_SSH_HARDENING=true
+# Root login options: no, yes, prohibit-password, forced-commands-only
+PERMIT_ROOT_LOGIN=prohibit-password
+# Password authentication (set to yes to allow password login as fallback)
+SSH_PASSWORD_AUTH=no
+# Maximum authentication attempts before disconnect
+SSH_MAX_AUTH_TRIES=3
 
 # Feature Flags
 ENABLE_KUBERNETES=false

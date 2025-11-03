@@ -28,70 +28,121 @@ WebOps is a lightweight, security-first hosting platform that transforms a fresh
 
 ## Prerequisites
 
+### Production Prerequisites
 - Fresh VPS or dedicated server
 - Ubuntu 22.04 LTS (or Debian 11+)
 - Minimum 2GB RAM, 2 CPU cores
 - Root or sudo access
 - Domain name (optional, but recommended for SSL)
 
+### Development Prerequisites
+Before setting up the development environment, ensure you have:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install -y python3.11 python3.11-venv python3-pip \
+    build-essential libpq-dev python3-dev git redis-server
+```
+
+**Rocky/AlmaLinux:**
+```bash
+sudo dnf install -y python3 python3-devel gcc make \
+    postgresql-devel git redis
+```
+
+**Minimum Requirements:**
+- Python 3.11+ (checked during setup)
+- 1GB+ free disk space
+- Git for version control
+
+**Optional but Recommended:**
+- Redis (for Celery background tasks - without it, in-memory processor is used)
+- PostgreSQL 14+ (for production-like dev environment - SQLite used by default)
+
 ## Quick Start
 
-### Development Setup
+**IMPORTANT: Two Setup Paths**
 
-**Current Status**: Production Ready - Complete WebOps platform with security-first design
+WebOps has **TWO distinct setup paths** - choose the one appropriate for your use case:
 
-For development and testing:
+### 1️⃣ Development Setup (Django Control Panel)
+
+**Use this if:** You're developing/testing WebOps itself or contributing to the project.
+
+**This will:**
+- Set up the Django control panel for local development
+- Use SQLite database by default
+- Run on http://127.0.0.1:8000
+- Create admin user: `admin` / `admin123`
+
+#### Option 1: Using Makefile (Recommended)
 
 ```bash
-cd control-panel
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-./quickstart.sh
-python manage.py runserver
+# One command to setup everything
+make install
+
+# Start development server
+make dev
 ```
 
 Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
 
-### Production Installation
-
-1. **Clone the repository**:
+See all available commands:
 ```bash
-git clone https://github.com/dagiim/webops.git
-cd webops
+make help
 ```
 
-2. **Set up the control panel**:
+#### Option 2: Using Quickstart Script
+
 ```bash
 cd control-panel
-python -m venv venv
-source venv/bin/activate
+./quickstart.sh  # Handles venv creation, dependencies, migrations, etc.
+./start_dev.sh   # Starts Django + Celery + Beat
+```
+
+Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
+
+#### Option 3: Manual Setup
+
+```bash
+cd control-panel
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-3. **Configure environment**:
-```bash
-cp .env.example .env
-# Edit .env with your settings
-```
-
-4. **Run database migrations**:
-```bash
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py runserver
 ```
 
-5. **Start the control panel**:
+Then visit http://127.0.0.1:8000
+
+### 2️⃣ Production Infrastructure Setup
+
+**Use this if:** You're deploying WebOps as a hosting platform on a VPS.
+
+**This will:**
+- Install system-wide infrastructure components
+- Set up Nginx, PostgreSQL, Redis, systemd services
+- Harden SSH and configure firewall
+- Require root/sudo access
+
+**⚠️  WARNING: Do NOT run production installer in development!**
+
+The production installer modifies system SSH configuration, installs system packages, and requires root access. Only use this when deploying to a production VPS.
+
 ```bash
-python manage.py runserver 0.0.0.0:8000
+# Production installation (requires sudo)
+sudo ./.webops/versions/v1.0.0/lifecycle/install.sh
+
+# Or customize installation
+cd .webops
+cp versions/v1.0.0/config.env.template config.env
+# Edit config.env to customize settings
+sudo versions/v1.0.0/lifecycle/install.sh
 ```
 
-6. **Start Celery workers** (in separate terminal):
-```bash
-./start_celery.sh
-```
-
-Access at http://your-server-ip:8000
+See the [Infrastructure Platform](#infrastructure-platform) section below for advanced production setup options.
 
 ## Usage
 
@@ -303,6 +354,68 @@ CHANNEL_LAYERS=redis://localhost:6379/1
 # Security
 ENCRYPTION_KEY=your-encryption-key
 ```
+
+## Development Workflow
+
+### Common Development Tasks
+
+WebOps includes a Makefile for streamlined development. See all available commands:
+
+```bash
+make help
+```
+
+#### Essential Commands
+
+```bash
+# Setup and Installation
+make install              # Complete development setup
+make install-deps         # Install Python dependencies only
+
+# Development Server
+make dev                  # Start Django + Celery + Beat
+make dev-web              # Start Django only
+make dev-worker           # Start Celery worker only
+
+# Testing
+make test                 # Run all tests
+make test-fast            # Run tests in parallel
+make test-app APP=deployments  # Test specific app
+make test-coverage        # Generate coverage report
+
+# Code Quality
+make lint                 # Run all linters (bash + python)
+make lint-bash            # Lint bash scripts only
+make format               # Format Python code with black
+make type-check           # Run type checking
+
+# Database
+make migrate              # Run migrations
+make makemigrations       # Create new migrations
+make db-reset             # Reset database (with confirmation)
+make superuser            # Create Django superuser
+
+# Utilities
+make shell                # Django shell
+make logs                 # View recent logs
+make clean                # Clean caches and artifacts
+make info                 # Show environment info
+```
+
+#### CI/CD Integration
+
+```bash
+make ci                   # Run complete CI pipeline
+make pre-commit           # Quick pre-commit checks
+```
+
+**For production operations**, use the webops CLI:
+```bash
+.webops/versions/v1.0.0/bin/webops install
+.webops/versions/v1.0.0/bin/webops restore-ssh
+```
+
+See `MAKEFILE_STRATEGY.md` for detailed information about the Makefile approach.
 
 ## Deploying Applications
 

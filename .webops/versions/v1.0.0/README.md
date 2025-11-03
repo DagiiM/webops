@@ -424,11 +424,32 @@ sudo /home/douglas/webops/.webops/versions/v1.0.0/lifecycle/uninstall.sh --purge
 
 The installation automatically applies:
 
-1. **SSH Hardening**
-   - Disable root login
-   - Disable password authentication
+1. **SSH Hardening** (Configurable)
+   - Control root login via PERMIT_ROOT_LOGIN setting
+   - Configure password authentication (optional)
    - Limit max auth tries
-   - Enable public key authentication only
+   - Enable public key authentication
+
+   **Configuration Options:**
+   ```bash
+   # Disable SSH hardening entirely
+   ENABLE_SSH_HARDENING=false
+
+   # Allow root login with SSH keys (recommended, default)
+   PERMIT_ROOT_LOGIN=prohibit-password
+
+   # Disable root login entirely (can lock you out)
+   PERMIT_ROOT_LOGIN=no
+
+   # Allow password authentication (less secure)
+   SSH_PASSWORD_AUTH=yes
+   ```
+
+   **Emergency Recovery:**
+   ```bash
+   # Restore original SSH configuration
+   sudo /home/douglas/webops/.webops/versions/v1.0.0/bin/webops restore-ssh
+   ```
 
 2. **Firewall Configuration**
    - Default deny incoming
