@@ -60,7 +60,7 @@ configure_ssh_hardening() {
     log_step "Configuring SSH hardening..."
 
     # Check if user is currently connected via SSH as root
-    if [[ "$USER" == "root" ]] && [[ -n "$SSH_CONNECTION" ]] && [[ "$PERMIT_ROOT_LOGIN" == "no" ]]; then
+    if [[ "$USER" == "root" ]] && [[ -n "${SSH_CONNECTION:-}" ]] && [[ "$PERMIT_ROOT_LOGIN" == "no" ]]; then
         log_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         log_warn "⚠️  WARNING: You are currently logged in as root via SSH"
         log_warn "⚠️  This process will disable root login entirely"
