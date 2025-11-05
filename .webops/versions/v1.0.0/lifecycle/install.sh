@@ -85,28 +85,86 @@ log_step() {
 # Installation Functions
 #=============================================================================
 
+copy_to_install_location() {
+    local target_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
+    local current_root="$(dirname "$(dirname "$WEBOPS_PLATFORM_DIR")")"
+
+    # Normalize paths for comparison
+    target_root="$(readlink -f "$target_root" 2>/dev/null || echo "$target_root")"
+    current_root="$(readlink -f "$current_root" 2>/dev/null || echo "$current_root")"
+
+    # Check if we're already at the target location
+    if [[ "$current_root" == "$target_root" ]]; then
+        log_info "Already running from installation directory: $target_root"
+        return 0
+    fi
+
+    log_step "Copying WebOps to installation directory..."
+    log_info "Source: $current_root"
+    log_info "Target: $target_root"
+
+    # Create parent directory if needed
+    mkdir -p "$(dirname "$target_root")"
+
+    # Check if target already exists
+    if [[ -d "$target_root" ]]; then
+        log_warn "Target directory already exists: $target_root"
+        read -p "Remove existing installation and continue? (yes/no): " -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+            log_info "Installation cancelled by user"
+            exit 0
+        fi
+        log_info "Removing existing directory..."
+        rm -rf "$target_root"
+    fi
+
+    # Copy repository to target location
+    log_info "Copying repository to $target_root..."
+    cp -a "$current_root" "$target_root"
+
+    # Verify copy succeeded
+    if [[ ! -d "$target_root/.webops/versions/${WEBOPS_VERSION}" ]]; then
+        log_error "Failed to copy repository to $target_root"
+        exit 1
+    fi
+
+    log_success "Repository copied successfully ✓"
+
+    # Re-execute from new location
+    local new_script="$target_root/.webops/versions/${WEBOPS_VERSION}/lifecycle/install.sh"
+
+    log_info "Re-executing installer from $target_root..."
+    echo ""
+
+    # Export flag to prevent infinite loop
+    export WEBOPS_ALREADY_RELOCATED=true
+
+    exec "$new_script" "$@"
+}
+
 validate_environment() {
     log_step "Validating installation environment..."
-    
+
     # Check if running as root
     if [[ $EUID -ne 0 ]]; then
         log_error "This script must be run as root (use sudo)"
         exit 1
     fi
-    
+
     # Check if WebOps platform exists
     if [[ ! -d "${WEBOPS_VERSION_DIR}" ]]; then
         log_error "WebOps platform version ${WEBOPS_VERSION} not found"
         log_error "Please ensure you're running this script from the WebOps repository root"
         exit 1
     fi
-    
+
     # Check if webops binary exists
     if [[ ! -x "${WEBOPS_BIN}" ]]; then
         log_error "WebOps binary not found: ${WEBOPS_BIN}"
         exit 1
     fi
-    
+
     log_info "Environment validation passed ✓"
 }
 
@@ -298,6 +356,11 @@ print_completion_message() {
 main() {
     # Initialize logging
     init_logging
+
+    # Copy to install location if not already there (unless already relocated)
+    if [[ "${WEBOPS_ALREADY_RELOCATED:-false}" != "true" ]]; then
+        copy_to_install_location "$@"
+    fi
 
     # Show welcome message
     show_welcome
