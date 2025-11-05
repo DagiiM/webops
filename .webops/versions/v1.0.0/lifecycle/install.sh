@@ -148,7 +148,7 @@ create_default_config() {
     local detected_root="$(cd "$(dirname "${WEBOPS_PLATFORM_DIR}")" && pwd)"
 
     # Use detected path for development, /opt/webops for production
-    local install_root="${WEBOPS_INSTALL_ROOT:-${detected_root}}"
+    local install_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
 
     log_info "Installation root: $install_root"
 
@@ -175,7 +175,7 @@ WEBOPS_RUN_DIR=/var/run/webops
 # Database Configuration
 POSTGRES_ENABLED=true
 POSTGRES_VERSION=14
-POSTGRES_DATA_DIR=/opt/webops/postgresql/data
+POSTGRES_DATA_DIR=${install_root}/postgresql/data
 
 # Control Panel Configuration
 CONTROL_PANEL_ENABLED=true
@@ -236,6 +236,12 @@ log_success() {
 print_completion_message() {
     local server_ip=$(hostname -I | awk '{print $1}')
 
+    # Load install root from config
+    local install_root="/opt/webops"
+    if [[ -f "${WEBOPS_PLATFORM_DIR}/config.env" ]]; then
+        install_root=$(grep "^WEBOPS_ROOT=" "${WEBOPS_PLATFORM_DIR}/config.env" | cut -d'=' -f2)
+    fi
+
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║                                                               ║${NC}"
@@ -247,8 +253,8 @@ print_completion_message() {
     echo -e "${BLUE}Control Panel URL:${NC} http://${server_ip}:8000/"
     echo ""
     echo -e "${YELLOW}Admin Credentials:${NC}"
-    echo "  Location: /opt/webops/.secrets/admin_credentials.txt"
-    echo "  View with: sudo cat /opt/webops/.secrets/admin_credentials.txt"
+    echo "  Location: ${install_root}/.secrets/admin_credentials.txt"
+    echo "  View with: sudo cat ${install_root}/.secrets/admin_credentials.txt"
     echo ""
     echo -e "${YELLOW}Next Steps:${NC}"
     echo "  1. Access the control panel in your browser"
