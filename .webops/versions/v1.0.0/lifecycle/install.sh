@@ -20,8 +20,9 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly WEBOPS_PLATFORM_DIR="$(pwd)/.webops"
-readonly WEBOPS_VERSION_DIR="${WEBOPS_PLATFORM_DIR}/versions/${WEBOPS_VERSION}"
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+readonly WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
 
 # Logging setup
@@ -41,6 +42,23 @@ init_logging() {
     echo "Installation log: $INSTALL_LOG"
     echo "Started at: $(date)"
     echo ""
+}
+
+#=============================================================================
+# Configuration Functions
+#=============================================================================
+
+load_config() {
+    local config_file="${WEBOPS_PLATFORM_DIR}/config.env"
+
+    if [[ -f "$config_file" ]]; then
+        # Source the config file
+        set +u  # Temporarily allow unset variables
+        source "$config_file"
+        set -u
+        return 0
+    fi
+    return 1
 }
 
 #=============================================================================
