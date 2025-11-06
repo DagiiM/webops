@@ -20,9 +20,10 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-readonly WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-readonly WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
 
 # Default install root (will be overridden by config.env if exists)
@@ -238,9 +239,9 @@ check_webops_user() {
             log_dry "Would create webops user"
             if [[ "$DRY_RUN" != "true" ]]; then
                 log_info "Creating webops user..."
-                useradd -r -s /bin/bash -d ${WEBOPS_ROOT} webops
-                mkdir -p ${WEBOPS_ROOT}
-                chown webops:webops ${WEBOPS_ROOT}
+                useradd -r -s /bin/bash -d "${WEBOPS_ROOT}" webops
+                mkdir -p "${WEBOPS_ROOT}"
+                chown webops:webops "${WEBOPS_ROOT}"
                 log_info "WebOps user created ✓"
             fi
         else
