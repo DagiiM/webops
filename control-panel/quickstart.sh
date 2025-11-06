@@ -237,11 +237,26 @@ print_success "Database migrations complete"
 
 # Step 7: Create superuser
 print_step "Setting up admin user..."
-python manage.py shell << 'PYEOF' 2>&1 | tee /tmp/webops-superuser.log
+
+# SECURITY FIX: Generate random password instead of default 'admin123'
+# Check if password file already exists
+PASSWORD_FILE=".dev_admin_password"
+if [ -f "$PASSWORD_FILE" ]; then
+    ADMIN_PASSWORD=$(cat "$PASSWORD_FILE")
+    echo "Using existing admin password from $PASSWORD_FILE"
+else
+    # Generate secure random password (20 characters, alphanumeric + special chars)
+    ADMIN_PASSWORD=$(openssl rand -base64 20 | tr -d "=+/" | cut -c1-20)
+    echo "$ADMIN_PASSWORD" > "$PASSWORD_FILE"
+    chmod 600 "$PASSWORD_FILE"
+    echo "Generated new admin password and saved to $PASSWORD_FILE"
+fi
+
+python manage.py shell << PYEOF 2>&1 | tee /tmp/webops-superuser.log
 from django.contrib.auth.models import User
 if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@webops.local', 'admin123')
-    print("✓ Created superuser: admin/admin123")
+    User.objects.create_superuser('admin', 'admin@webops.local', '$ADMIN_PASSWORD')
+    print("✓ Created superuser: admin")
 else:
     print("✓ Superuser already exists")
 PYEOF
@@ -284,7 +299,12 @@ echo -e "  ./stop_dev.sh"
 echo -e "\n${BLUE}Access the application:${NC}"
 echo -e "  Web UI:      http://127.0.0.1:8000"
 echo -e "  Admin panel: http://127.0.0.1:8000/admin/"
-echo -e "  Login:       admin / admin123"
+echo -e "  ${GREEN}Login:${NC}"
+echo -e "    Username: ${GREEN}admin${NC}"
+echo -e "    Password: ${GREEN}$(cat $PASSWORD_FILE)${NC}"
+echo -e ""
+echo -e "  ${YELLOW}⚠  Password saved to: $PASSWORD_FILE${NC}"
+echo -e "  ${YELLOW}⚠  Keep this file secure and do not commit it to version control${NC}"
 
 echo -e "\n${YELLOW}Note:${NC} start_dev.sh runs on port 8000 by default"
 echo -e "      Customize with: ./start_dev.sh 8080"

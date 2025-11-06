@@ -74,7 +74,7 @@ WebOps has **TWO distinct setup paths** - choose the one appropriate for your us
 - Set up the Django control panel for local development
 - Use SQLite database by default
 - Run on http://127.0.0.1:8000
-- Create admin user: `admin` / `admin123`
+- Create admin user with randomly generated password (shown during setup)
 
 #### Option 1: Using Makefile (Recommended)
 
@@ -86,7 +86,7 @@ make install
 make dev
 ```
 
-Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
+Then visit http://127.0.0.1:8000 (admin credentials shown during setup)
 
 See all available commands:
 ```bash
@@ -101,7 +101,7 @@ cd control-panel
 ./start_dev.sh   # Starts Django + Celery + Beat
 ```
 
-Then visit http://127.0.0.1:8000 (login: `admin` / `admin123`)
+Then visit http://127.0.0.1:8000 (admin credentials shown during setup)
 
 #### Option 3: Manual Setup
 
