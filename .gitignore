@@ -180,6 +180,7 @@ database_*.db
 
 # Redis cache files
 *.redis
+dump.rdb
 session_*
 celerybeat-schedule.*
 
