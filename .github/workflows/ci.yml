@@ -27,23 +27,8 @@ env:
 
 jobs:
   test:
-    name: Test Suite (Python ${{ matrix.python-version }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, ubuntu-22.04]
-        python-version: ['3.11', '3.12', '3.13']
-        exclude:
-          # Reduce matrix size for faster CI
-          - os: ubuntu-22.04
-            python-version: '3.11'
-        include:
-          # Add specific combinations for full matrix
-          - os: ubuntu-latest
-            python-version: '3.11'
-            coverage: true
+    name: Test Suite (Python 3.11)
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -77,10 +62,10 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.11'
         cache: 'pip'
         cache-dependency-path: 'control-panel/requirements.txt'
 
@@ -122,31 +107,25 @@ jobs:
       run: |
         cd control-panel
         if [ "${{ matrix.coverage }}" = "true" ]; then
-          coverage run --source='apps' --parallel-mode manage.py test -n auto
+          coverage run --source='apps' manage.py test --parallel auto
           coverage combine
           coverage report --show-missing
           coverage xml
         else
-          python manage.py test -n auto
+          python manage.py test --parallel auto
         fi
 
     - name: Upload coverage to Codecov
-      if: matrix.coverage == true
       uses: codecov/codecov-action@v4
       with:
         file: ./control-panel/coverage.xml
         flags: unittests
-        name: codecov-umbrella-${{ matrix.python-version }}-${{ matrix.os }}
+        name: codecov-umbrella
         fail_ci_if_error: false
 
   cli-test:
     name: CLI Test Suite
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.11', '3.12', '3.13']
 
     services:
       redis:
@@ -163,10 +142,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.11'
         cache: 'pip'
         cache-dependency-path: 'cli/requirements.txt'
 
@@ -187,7 +166,7 @@ jobs:
       with:
         file: ./cli/coverage.xml
         flags: cli-unittests
-        name: cli-codecov-umbrella-${{ matrix.python-version }}
+        name: cli-codecov-umbrella
         fail_ci_if_error: false
 
   lint:
@@ -201,7 +180,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.11'
         cache: 'pip'
 
     - name: Install dependencies
