@@ -20,14 +20,38 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly WEBOPS_PLATFORM_DIR="$(pwd)/.webops"
-readonly WEBOPS_VERSION_DIR="${WEBOPS_PLATFORM_DIR}/versions/${WEBOPS_VERSION}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
+
+# Default install root (will be overridden by config.env if exists)
+WEBOPS_ROOT="/opt/webops"
 
 # Repair options
 AUTO_FIX=false
 VERBOSE=false
 DRY_RUN=false
+
+#=============================================================================
+# Configuration Functions
+#=============================================================================
+
+load_config() {
+    local config_file="${WEBOPS_PLATFORM_DIR}/config.env"
+
+    if [[ -f "$config_file" ]]; then
+        # Load WEBOPS_ROOT from config
+        WEBOPS_ROOT=$(grep "^WEBOPS_ROOT=" "$config_file" | cut -d'=' -f2) || WEBOPS_ROOT="/opt/webops"
+        log_verbose "Loaded configuration from $config_file"
+        log_verbose "Installation root: $WEBOPS_ROOT"
+        return 0
+    else
+        log_verbose "Configuration file not found, using default paths"
+        return 1
+    fi
+}
 
 #=============================================================================
 # Logging Functions
@@ -215,9 +239,9 @@ check_webops_user() {
             log_dry "Would create webops user"
             if [[ "$DRY_RUN" != "true" ]]; then
                 log_info "Creating webops user..."
-                useradd -r -s /bin/bash -d /opt/webops webops
-                mkdir -p /opt/webops
-                chown webops:webops /opt/webops
+                useradd -r -s /bin/bash -d "${WEBOPS_ROOT}" webops
+                mkdir -p "${WEBOPS_ROOT}"
+                chown webops:webops "${WEBOPS_ROOT}"
                 log_info "WebOps user created ✓"
             fi
         else
@@ -312,16 +336,16 @@ check_database_connectivity() {
 
 check_file_permissions() {
     log_step "Checking file permissions..."
-    
+
     local permission_issues=()
-    
+
     # Check WebOps directories
     local directories=(
-        "/opt/webops"
-        "/opt/webops/logs"
-        "/opt/webops/deployments"
-        "/opt/webops/backups"
-        "/opt/webops/shared"
+        "${WEBOPS_ROOT}"
+        "${WEBOPS_ROOT}/logs"
+        "${WEBOPS_ROOT}/deployments"
+        "${WEBOPS_ROOT}/backups"
+        "${WEBOPS_ROOT}/shared"
     )
     
     for dir in "${directories[@]}"; do
@@ -483,7 +507,10 @@ check_platform_state() {
 main() {
     # Parse arguments
     parse_args "$@"
-    
+
+    # Load configuration
+    load_config
+
     # Show welcome message
     echo -e "${BLUE}"
     cat <<'EOF'
