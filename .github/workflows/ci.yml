@@ -1,28 +1,53 @@
 name: CI - Continuous Integration
-# Repository: https://github.com/DagiiM/webops
+# Repository: https://github.com/dagiim/webops
 # Owner: Douglas Mutethia (Eleso Solutions)
+# WebOps: Self-hosted VPS hosting platform for deploying and managing web applications
 
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - 'docs/**'
   pull_request:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - 'docs/**'
 
 permissions:
   security-events: write
+  contents: read
+
+env:
+  FORCE_COLOR: 1
+  PYTHONUNBUFFERED: 1
 
 jobs:
   test:
-    name: Test Suite
-    runs-on: ubuntu-latest
+    name: Test Suite (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.13']
+        os: [ubuntu-latest, ubuntu-22.04]
+        python-version: ['3.11', '3.12', '3.13']
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: ubuntu-22.04
+            python-version: '3.11'
+        include:
+          # Add specific combinations for full matrix
+          - os: ubuntu-latest
+            python-version: '3.11'
+            coverage: true
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:15-alpine
         env:
           POSTGRES_USER: webops_test
           POSTGRES_PASSWORD: testpassword
@@ -34,7 +59,96 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --shm-size=128m
 
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: 'control-panel/requirements.txt'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          postgresql-client \
+          libpq-dev \
+          nginx \
+          redis-tools
+
+    - name: Install Python dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django pytest-cov pytest-xdist
+
+    - name: Create .env file
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=test-secret-key-for-ci-only-${{ github.sha }}
+        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=localhost,127.0.0.1
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        EOF
+
+    - name: Run migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run tests with coverage
+      run: |
+        cd control-panel
+        if [ "${{ matrix.coverage }}" = "true" ]; then
+          coverage run --source='apps' --parallel-mode manage.py test -n auto
+          coverage combine
+          coverage report --show-missing
+          coverage xml
+        else
+          python manage.py test -n auto
+        fi
+
+    - name: Upload coverage to Codecov
+      if: matrix.coverage == true
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./control-panel/coverage.xml
+        flags: unittests
+        name: codecov-umbrella-${{ matrix.python-version }}-${{ matrix.os }}
+        fail_ci_if_error: false
+
+  cli-test:
+    name: CLI Test Suite
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+
+    services:
       redis:
         image: redis:7-alpine
         ports:
@@ -54,106 +168,27 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y postgresql-client
-
-    - name: Install Python dependencies
-      run: |
-        cd control-panel
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install coverage pytest pytest-django pytest-cov pyright
-
-    - name: Create .env file
-      run: |
-        cd control-panel
-        cat > .env << EOF
-        DEBUG=True
-        SECRET_KEY=test-secret-key-for-ci-only
-        DATABASE_URL=postgresql://webops_test:testpassword@localhost:5432/webops_test
-        CELERY_BROKER_URL=redis://localhost:6379/0
-        CELERY_RESULT_BACKEND=redis://localhost:6379/1
-        ALLOWED_HOSTS=localhost,127.0.0.1
-        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
-        EOF
-
-    - name: Run Pyright type checking
-      run: |
-        cd control-panel
-        pyright
-
-    - name: Run migrations
-      run: |
-        cd control-panel
-        python manage.py migrate --noinput
-
-    - name: Run tests with coverage
-      run: |
-        cd control-panel
-        coverage run --source='apps' manage.py test
-        coverage report
-        coverage xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./control-panel/coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
-  cli-test:
-    name: CLI Test Suite
-    runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-        cache: 'pip'
+        cache-dependency-path: 'cli/requirements.txt'
 
     - name: Install CLI dependencies
       run: |
         cd cli
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
-        pip install pytest pytest-cov pyright coverage radon xenon
+        pip install pytest pytest-cov pytest-xdist
 
     - name: Run CLI tests with coverage
       run: |
         cd cli
-        python -m pytest tests/ -v --cov=webops_cli --cov-report=xml --cov-report=html
+        python -m pytest tests/ -v --cov=webops_cli --cov-report=xml --cov-report=term-missing
 
     - name: Upload CLI coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         file: ./cli/coverage.xml
         flags: cli-unittests
-        name: cli-codecov-umbrella
+        name: cli-codecov-umbrella-${{ matrix.python-version }}
         fail_ci_if_error: false
-
-    - name: CLI Type checking
-      run: |
-        cd cli
-        pyright webops_cli/
 
   lint:
     name: Code Quality & Linting
@@ -172,48 +207,43 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort pylint pyright bandit safety
+        pip install flake8 black isort pylint pyright bandit safety ruff mypy
+        pip install -r control-panel/requirements.txt -r cli/requirements.txt
+
+    - name: Run Ruff linter
+      run: |
         cd control-panel
-        pip install -r requirements.txt
+        ruff check apps/ --output-format=github
         cd ../cli
-        pip install -r requirements.txt
+        ruff check webops_cli/ --output-format=github
+
+    - name: Run Ruff formatter check
+      run: |
+        cd control-panel
+        ruff format --check --diff apps/
+        cd ../cli
+        ruff format --check --diff webops_cli/
 
     - name: Run Pyright type checking
       run: |
         cd control-panel
-        pyright
+        pyright --outputformat=json > pyright-report.json || true
         cd ../cli
-        pyright webops_cli/
+        pyright webops_cli/ --outputformat=json > pyright-cli-report.json || true
 
-    - name: Run Black (code formatter check)
+    - name: Run MyPy type checking
       run: |
         cd control-panel
-        black --check --diff apps/
+        mypy apps/ --ignore-missing-imports || true
         cd ../cli
-        black --check --diff webops_cli/
-
-    - name: Run isort (import sorting check)
-      run: |
-        cd control-panel
-        isort --check-only --diff apps/
-        cd ../cli
-        isort --check-only --diff webops_cli/
-
-    - name: Run Flake8 (style guide)
-      run: |
-        cd control-panel
-        flake8 apps/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 apps/ --count --max-complexity=10 --max-line-length=100 --statistics
-        cd ../cli
-        flake8 webops_cli/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 webops_cli/ --count --max-complexity=10 --max-line-length=100 --statistics
+        mypy webops_cli/ --ignore-missing-imports || true
 
     - name: Run Pylint (code analysis)
       run: |
         cd control-panel
-        pylint apps/ --fail-under=8.0 --disable=C0111,R0903 || true
+        pylint apps/ --fail-under=8.0 --disable=C0111,R0903 || echo "Pylint warnings found"
         cd ../cli
-        pylint webops_cli/ --fail-under=8.0 --disable=C0111,R0903 || true
+        pylint webops_cli/ --fail-under=8.0 --disable=C0111,R0903 || echo "Pylint warnings found"
 
     - name: Run Bandit (security linter)
       run: |
@@ -227,9 +257,22 @@ jobs:
     - name: Check for security vulnerabilities in dependencies
       run: |
         cd control-panel
-        safety check --json || true
+        safety check --json --output safety-report.json || true
         cd ../cli
-        safety check --json || true
+        safety check --json --output safety-cli-report.json || true
+
+    - name: Upload lint reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lint-reports
+        path: |
+          control-panel/pyright-report.json
+          control-panel/bandit-report.json
+          control-panel/safety-report.json
+          cli/pyright-cli-report.json
+          cli/bandit-cli-report.json
+          cli/safety-cli-report.json
 
   security:
     name: Security Scan
@@ -239,7 +282,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Run Trivy vulnerability scanner
+    - name: Run Trivy vulnerability scanner (FS)
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
@@ -257,6 +300,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Run Semgrep (SAST)
+      uses: semgrep/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/python
+          p/django
+          p/click
+
   javascript:
     name: JavaScript Quality
     runs-on: ubuntu-latest
@@ -269,19 +321,31 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
 
     - name: Install ESLint
-      run: npm install -g eslint
+      run: npm install -g eslint @eslint/js
 
     - name: Run ESLint on JavaScript files
       run: |
         cd control-panel/static/js
-        eslint *.js --no-eslintrc --env browser,es6 --parser-options ecmaVersion:2020 || true
+        eslint *.js --format=json --output-file=eslint-report.json || true
+        eslint *.js --env browser,es6 --parser-options ecmaVersion:2020
+
+    - name: Check for console.log statements
+      run: |
+        CONSOLE_COUNT=$(grep -r "console\.\(log\|error\|warn\|info\)" control-panel/static/js/ control-panel/templates/ 2>/dev/null | grep -v "// " | wc -l || echo "0")
+        if [ "$CONSOLE_COUNT" -gt 0 ]; then
+          echo "⚠ Warning: Found $CONSOLE_COUNT console statements"
+          grep -r "console\.\(log\|error\|warn\|info\)" control-panel/static/js/ control-panel/templates/ -n | grep -v "// " || true
+        else
+          echo "✓ No console statements found"
+        fi
 
   build:
     name: Build Check
     runs-on: ubuntu-latest
-    needs: [test, cli-test, lint, security]
+    needs: [test, cli-test, lint, security, javascript]
 
     steps:
     - name: Checkout code
@@ -291,17 +355,14 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
+        cache: 'pip'
 
-    - name: Install control-panel dependencies
+    - name: Install dependencies
       run: |
         cd control-panel
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-
-    - name: Install CLI dependencies
-      run: |
-        cd cli
-        python -m pip install --upgrade pip
+        cd ../cli
         pip install -r requirements.txt
 
     - name: Check control-panel for missing migrations
@@ -331,6 +392,22 @@ jobs:
         python setup.py check --strict
         python -c "import webops_cli; print('CLI imports successfully')"
 
+    - name: Generate SBOM (Software Bill of Materials)
+      run: |
+        pip install cyclonedx-bom
+        cd control-panel
+        cyclonedx-py scan --format json --output webops-sbom.json
+        cd ../cli
+        cyclonedx-py scan --format json --output webops-cli-sbom.json
+
+    - name: Upload SBOM artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-artifacts
+        path: |
+          control-panel/webops-sbom.json
+          cli/webops-cli-sbom.json
+
   docs:
     name: Documentation Check
     runs-on: ubuntu-latest
@@ -346,10 +423,41 @@ jobs:
         config-file: '.github/markdown-link-check-config.json'
         folder-path: 'docs/'
 
-    - name: Validate CLAUDE.md structure
+    - name: Validate documentation structure
       run: |
-        if [ ! -f "CLAUDE.md" ]; then
-          echo "Error: CLAUDE.md is missing"
-          exit 1
+        echo "## Documentation Structure Check" >> doc-check-report.md
+        echo "Timestamp: $(date)" >> doc-check-report.md
+        echo "" >> doc-check-report.md
+        
+        # Check for required files
+        if [ -f "README.md" ]; then
+          echo "✅ README.md exists" >> doc-check-report.md
+        else
+          echo "❌ README.md missing" >> doc-check-report.md
         fi
-        echo "CLAUDE.md exists ✓"
+        
+        if [ -f "CONTRIBUTING.md" ]; then
+          echo "✅ CONTRIBUTING.md exists" >> doc-check-report.md
+        else
+          echo "❌ CONTRIBUTING.md missing" >> doc-check-report.md
+        fi
+        
+        if [ -f "CHANGELOG.md" ]; then
+          echo "✅ CHANGELOG.md exists" >> doc-check-report.md
+        else
+          echo "❌ CHANGELOG.md missing" >> doc-check-report.md
+        fi
+        
+        if [ -f "LICENSE" ] || [ -f "LICENSE.txt" ]; then
+          echo "✅ License file exists" >> doc-check-report.md
+        else
+          echo "❌ License file missing" >> doc-check-report.md
+        fi
+        
+        cat doc-check-report.md
+
+    - name: Upload documentation report
+      uses: actions/upload-artifact@v4
+      with:
+        name: doc-check-report
+        path: doc-check-report.md

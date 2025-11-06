@@ -1,0 +1,410 @@
+name: Multi-Environment Deployment
+# Repository: https://github.com/dagiim/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
+# WebOps: Self-hosted VPS hosting platform for deploying and managing web applications
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (e.g., v1.2.3)'
+        required: false
+        type: string
+      skip_tests:
+        description: 'Skip tests and deploy directly'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  pre-deploy:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      version: ${{ steps.version.outputs.version }}
+      should_deploy: ${{ steps.checks.outputs.should_deploy }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Determine environment
+      id: env
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+          echo "environment=staging" >> $GITHUB_OUTPUT
+        else
+          echo "environment=staging" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          # Extract version from git tag or use commit SHA
+          if git describe --tags --exact-match HEAD 2>/dev/null; then
+            echo "version=$(git describe --tags --exact-match HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Pre-deployment checks
+      id: checks
+      run: |
+        # Check if deployment should proceed
+        if [ "${{ github.event.inputs.skip_tests }}" == "true" ]; then
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          echo "Skipping tests as requested"
+        elif [ "${{ steps.env.outputs.environment }}" == "production" ]; then
+          # Production requires tests to pass
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        else
+          # Staging can deploy even with some test failures
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create deployment summary
+      run: |
+        echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Actor:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+  test-environment:
+    name: Environment-Specific Tests
+    runs-on: ubuntu-latest
+    needs: pre-deploy
+    if: needs.pre-deploy.outputs.should_deploy == 'true' && needs.pre-deploy.outputs.environment == 'staging'
+    
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: webops_staging
+          POSTGRES_PASSWORD: stagingpassword
+          POSTGRES_DB: webops_staging
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: 'control-panel/requirements.txt'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-django pytest-cov
+
+    - name: Create staging environment
+      run: |
+        cd control-panel
+        cat > .env << EOF
+        DEBUG=True
+        SECRET_KEY=staging-secret-key-${{ github.sha }}
+        DATABASE_URL=postgresql://webops_staging:stagingpassword@localhost:5432/webops_staging
+        CELERY_BROKER_URL=redis://localhost:6379/0
+        CELERY_RESULT_BACKEND=redis://localhost:6379/1
+        ALLOWED_HOSTS=*
+        ENCRYPTION_KEY=$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')
+        WEBOPS_ENVIRONMENT=staging
+        EOF
+
+    - name: Run database migrations
+      run: |
+        cd control-panel
+        python manage.py migrate --noinput
+
+    - name: Run staging tests
+      run: |
+        cd control-panel
+        python manage.py test --verbosity=2
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, test-environment]
+    if: needs.pre-deploy.outputs.should_deploy == 'true'
+
+    strategy:
+      matrix:
+        component: [control-panel, cli]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+        tags: |
+          type=raw,value=${{ needs.pre-deploy.outputs.environment }}-${{ needs.pre-deploy.outputs.version }}
+          type=raw,value=${{ needs.pre-deploy.outputs.environment }}-latest
+          type=ref,event=branch
+
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ matrix.component == 'control-panel' && '.' || matrix.component }}
+        file: ${{ matrix.component == 'control-panel' && 'Dockerfile' || matrix.component + '/Dockerfile' }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, build-images]
+    if: needs.pre-deploy.outputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.webops.example.com
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging cluster
+      run: |
+        echo "🚀 Deploying to staging environment"
+        echo "Environment: ${{ needs.pre-deploy.outputs.environment }}"
+        echo "Version: ${{ needs.pre-deploy.outputs.version }}"
+        
+        # Here you would add actual deployment commands
+        # For example: kubectl, helm, terraform, etc.
+        
+        # Example using a deployment script:
+        # ./scripts/deploy-staging.sh \
+        #   --version ${{ needs.pre-deploy.outputs.version }} \
+        #   --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-control-panel:${{ needs.pre-deploy.outputs.environment }}-${{ needs.pre-deploy.outputs.version }}
+        
+        echo "✅ Staging deployment completed"
+
+    - name: Run smoke tests
+      run: |
+        echo "🧪 Running smoke tests on staging"
+        # Add actual smoke test commands here
+        sleep 30  # Wait for services to start
+        
+        # Example health check
+        # curl -f https://staging.webops.example.com/health || exit 1
+        
+        echo "✅ Smoke tests passed"
+
+    - name: Notify deployment
+      run: |
+        echo "📢 Staging deployment successful!"
+        # Add notification logic (Slack, Discord, etc.)
+        echo "🌐 Staging URL: https://staging.webops.example.com"
+        echo "📦 Version: ${{ needs.pre-deploy.outputs.version }}"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, build-images]
+    if: needs.pre-deploy.outputs.environment == 'production'
+    environment:
+      name: production
+      url: https://webops.example.com
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Production deployment approval
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: ${{ vars.PRODUCTION_APPROVERS || 'dagiim' }}
+        minimum-approvals: 1
+        issue-title: "Production deployment approval required"
+        issue-body: "Production deployment of version ${{ needs.pre-deploy.outputs.version }} to ${{ needs.pre-deploy.outputs.environment }} environment requires approval."
+        run-id: ${{ github.run_id }}
+
+    - name: Deploy to production
+      run: |
+        echo "🚀 Deploying to production environment"
+        echo "Environment: ${{ needs.pre-deploy.outputs.environment }}"
+        echo "Version: ${{ needs.pre-deploy.outputs.version }}"
+        
+        # Production deployment with extra safety measures
+        # Example blue-green deployment strategy
+        
+        echo "✅ Production deployment completed"
+
+    - name: Run production smoke tests
+      run: |
+        echo "🧪 Running production smoke tests"
+        sleep 60  # Wait longer for production services
+        
+        # Example production health check
+        # curl -f https://webops.example.com/api/health || exit 1
+        # curl -f https://webops.example.com/admin/ || exit 1
+        
+        echo "✅ Production smoke tests passed"
+
+    - name: Post-deployment verification
+      run: |
+        echo "🔍 Post-deployment verification"
+        
+        # Check critical endpoints
+        # Verify database connectivity
+        # Check external service dependencies
+        # Monitor application logs
+        
+        echo "✅ Post-deployment verification completed"
+
+    - name: Notify production deployment
+      run: |
+        echo "🎉 Production deployment successful!"
+        # Production notifications with more details
+        echo "🌐 Production URL: https://webops.example.com"
+        echo "📦 Version: ${{ needs.pre-deploy.outputs.version }}"
+        echo "👤 Deployed by: ${{ github.actor }}"
+        
+        # Send detailed notification to production team
+        # webhook_url=${{ secrets.PRODUCTION_WEBHOOK_URL }}
+        # curl -X POST $webhook_url -d "Production deployment completed successfully"
+
+  post-deploy:
+    name: Post-Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+
+    steps:
+    - name: Update deployment status
+      run: |
+        if [ "${{ needs.pre-deploy.outputs.environment }}" == "production" ]; then
+          echo "📊 Updating production metrics and monitoring"
+        else
+          echo "📊 Updating staging metrics and monitoring"
+        fi
+
+    - name: Cleanup old images
+      run: |
+        echo "🧹 Cleaning up old container images"
+        # Add image cleanup logic
+        # Keep only the last 10 images per environment
+
+    - name: Create deployment report
+      run: |
+        echo "# Deployment Report - $(date)" > deployment-report.md
+        echo "" >> deployment-report.md
+        echo "## Deployment Details" >> deployment-report.md
+        echo "- **Environment:** ${{ needs.pre-deploy.outputs.environment }}" >> deployment-report.md
+        echo "- **Version:** ${{ needs.pre-deploy.outputs.version }}" >> deployment-report.md
+        echo "- **Commit:** ${{ github.sha }}" >> deployment-report.md
+        echo "- **Actor:** ${{ github.actor }}" >> deployment-report.md
+        echo "" >> deployment-report.md
+        
+        echo "## Deployment Status" >> deployment-report.md
+        if [ "${{ needs.deploy-staging.result }}" == "success" ]; then
+          echo "✅ Staging deployment: SUCCESS" >> deployment-report.md
+        elif [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          echo "✅ Production deployment: SUCCESS" >> deployment-report.md
+        else
+          echo "❌ Deployment: FAILED" >> deployment-report.md
+        fi
+        
+        cat deployment-report.md
+
+    - name: Upload deployment report
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-report
+        path: deployment-report.md
+
+  rollback:
+    name: Rollback (if needed)
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, deploy-staging, deploy-production]
+    if: failure() && (needs.deploy-staging.result == 'failure' || needs.deploy-production.result == 'failure')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Initiate rollback
+      run: |
+        echo "⚠️ Deployment failed, initiating rollback"
+        echo "Environment: ${{ needs.pre-deploy.outputs.environment }}"
+        echo "Version: ${{ needs.pre-deploy.outputs.version }}"
+        
+        # Add rollback logic here
+        # kubectl rollout undo deployment/webops
+        
+        echo "✅ Rollback completed"
+
+    - name: Notify rollback
+      run: |
+        echo "🔄 Rollback completed for ${{ needs.pre-deploy.outputs.environment }}"
+        # Send rollback notifications

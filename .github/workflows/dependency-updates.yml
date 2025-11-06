@@ -1,0 +1,432 @@
+name: Dependency Updates & Security
+# Repository: https://github.com/dagiim/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
+# WebOps: Self-hosted VPS hosting platform for deploying and managing web applications
+
+on:
+  schedule:
+    # Run weekly on Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Type of update to perform'
+        required: true
+        default: 'security'
+        type: choice
+        options:
+          - security
+          - all
+          - patch
+          - minor
+  push:
+    branches: [ dependabot/** ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  dependency-review:
+    name: Dependency Security Review
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install safety pip-audit
+
+    - name: Run Security Audit
+      run: |
+        cd control-panel
+        echo "=== Security Audit Report - $(date) ===" > security-report.md
+        
+        echo "## Safety Check" >> security-report.md
+        safety check --json --output safety-report.json || true
+        safety check || true
+        
+        echo "## Pip Audit" >> security-report.md
+        pip-audit --format json --output pip-audit-report.json || true
+        pip-audit || true
+        
+        echo "" >> security-report.md
+        echo "Security checks completed. See artifacts for detailed reports." >> security-report.md
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          control-panel/safety-report.json
+          control-panel/pip-audit-report.json
+          security-report.md
+
+  dependabot-updates:
+    name: Dependabot Configuration & Updates
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Dependabot
+      run: |
+        echo "🔧 Setting up Dependabot configuration"
+        
+        # Create/update dependabot.yml for Python dependencies
+        mkdir -p .github
+        cat > .github/dependabot.yml << EOF
+        # Dependabot configuration for WebOps
+        # Repository: https://github.com/dagiim/webops
+        # Owner: Douglas Mutethia (Eleso Solutions)
+        
+        version: 2
+        updates:
+          # Python dependencies for control-panel
+          - package-ecosystem: "pip"
+            directory: "/control-panel"
+            schedule:
+              interval: "weekly"
+              day: "monday"
+              time: "03:00"
+            open-pull-requests-limit: 10
+            reviewers:
+              - "dagiim"
+            assignees:
+              - "dagiim"
+            commit-message:
+              prefix: "deps"
+              include: "scope"
+            labels:
+              - "dependencies"
+              - "python"
+            allow:
+              - dependency-type: "direct"
+              - dependency-type: "indirect"
+            ignore:
+              # Ignore major version updates for critical dependencies
+              - dependency-name: "django"
+                update-types: ["version-update:semver-major"]
+              - dependency-name: "celery"
+                update-types: ["version-update:semver-major"]
+            security-updates:
+              vulnerability-alerts: true
+              commit-message:
+                prefix: "security"
+                include: "scope"
+        
+          # Python dependencies for CLI
+          - package-ecosystem: "pip"
+            directory: "/cli"
+            schedule:
+              interval: "weekly"
+              day: "monday"
+              time: "03:00"
+            open-pull-requests-limit: 5
+            reviewers:
+              - "dagiim"
+            assignees:
+              - "dagiim"
+            commit-message:
+              prefix: "deps"
+              prefix-development: "deps-dev"
+              include: "scope"
+            labels:
+              - "dependencies"
+              - "python"
+              - "cli"
+        
+          # GitHub Actions dependencies
+          - package-ecosystem: "github-actions"
+            directory: "/"
+            schedule:
+              interval: "weekly"
+              day: "monday"
+              time: "03:00"
+            open-pull-requests-limit: 5
+            reviewers:
+              - "dagiim"
+            commit-message:
+              prefix: "ci"
+              include: "scope"
+            labels:
+              - "dependencies"
+              - "github-actions"
+        EOF
+        
+        echo "✅ Dependabot configuration created/updated"
+
+    - name: Commit dependabot configuration
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if git diff --quiet; then
+          echo "ℹ️ No changes to dependabot configuration"
+        else
+          git add .github/dependabot.yml
+          git commit -m "🔧 Update Dependabot configuration [skip ci]" || true
+          git push || true
+        fi
+
+  python-dependency-updates:
+    name: Python Dependency Updates
+    runs-on: ubuntu-latest
+    if: github.event.inputs.type == 'all' || github.event.inputs.type == 'patch' || github.event.inputs.type == 'minor' || github.event.inputs.type == 'security' || github.event.inputs.type == ''
+
+    strategy:
+      matrix:
+        component: [control-panel, cli]
+        python-version: ['3.11', '3.12', '3.13']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Update dependencies
+      run: |
+        cd ${{ matrix.component }}
+        
+        echo "🔄 Updating dependencies for ${{ matrix.component }} with Python ${{ matrix.python-version }}"
+        
+        # Create requirements.in if it doesn't exist
+        if [ ! -f "requirements.in" ]; then
+          echo "# Generated requirements.in - do not edit directly" > requirements.in
+          pip-compile --generate-hashes --output-file requirements.txt requirements.in || true
+        fi
+        
+        # Update with constraints based on input type
+        if [ "${{ github.event.inputs.type }}" == "security" ]; then
+          # Only update security-related packages
+          pip install pip-audit safety
+          safety check --json --output security-audit.json || true
+        elif [ "${{ github.event.inputs.type }}" == "patch" ]; then
+          # Only patch updates
+          pip install pip-tools
+          pip-compile --upgrade-package "*.==*" --output-file requirements.txt requirements.in || true
+        elif [ "${{ github.event.inputs.type }}" == "minor" ]; then
+          # Minor and patch updates
+          pip install pip-tools
+          pip-compile --upgrade-package "*<1.0.0" --output-file requirements.txt requirements.in || true
+        else:
+          # All updates
+          pip install pip-tools
+          pip-compile --upgrade --output-file requirements.txt requirements.in || true
+        fi
+
+    - name: Test updated dependencies
+      run: |
+        cd ${{ matrix.component }}
+        python -m pip install --upgrade pip
+        
+        # Install updated dependencies
+        pip install -r requirements.txt
+        
+        # Test basic import
+        if [ "${{ matrix.component }}" == "control-panel" ]; then
+          python -c "import django; print(f'Django version: {django.get_version()}')"
+          python -c "import celery; print(f'Celery version: {celery.__version__}')"
+        else
+          python -c "import click; print(f'Click version: {click.__version__}')"
+        fi
+
+    - name: Create Pull Request
+      if: github.event.inputs.type != 'security'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          ${{ matrix.component }}: Update Python dependencies
+          
+          Automated dependency update for ${{ matrix.component }} using Python ${{ matrix.python-version }}
+        title: "🔄 ${{ matrix.component }}: Update Python dependencies"
+        body: |
+          ## Automated Dependency Update
+          
+          **Component:** ${{ matrix.component }}
+          **Python Version:** ${{ matrix.python-version }}
+          **Update Type:** ${{ github.event.inputs.type || 'weekly' }}
+          **Date:** $(date)
+          
+          ### Changes
+          - Updated Python dependencies
+          - Tested compatibility
+          - Verified imports work correctly
+          
+          ### Testing
+          - [x] Dependencies install successfully
+          - [x] Basic imports work
+          - [x] No obvious breaking changes
+          
+          ### Review Checklist
+          - [ ] Review dependency changes
+          - [ ] Test in development environment
+          - [ ] Check for any breaking changes
+          - [ ] Update CHANGELOG if needed
+          
+          ---
+          *This PR was created automatically by the dependency update workflow.*
+        branch: "dependabot/updates/${{ matrix.component }}-${{ matrix.python-version }}"
+        delete-branch: true
+        reviewers:
+          - dagiim
+        labels: |
+          dependencies
+          python
+          automated-pr
+          ${{ matrix.component }}
+
+  github-actions-updates:
+    name: GitHub Actions Updates
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Update GitHub Actions
+      uses: macCesar/generic-github-action@v1.0.1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: '.github/workflows'
+        commitMessage: '🔧 Update GitHub Actions versions'
+        body: 'Automated update of GitHub Actions versions to latest stable releases'
+
+  security-vulnerability-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.type == 'security' || github.event.inputs.type == 'all'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+        queries: security-extended
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  create-vulnerability-report:
+    name: Create Vulnerability Report
+    runs-on: ubuntu-latest
+    needs: [dependency-review, security-vulnerability-scan]
+    if: always() && (github.event.inputs.type == 'security' || github.event.inputs.type == 'all')
+
+    steps:
+    - name: Download security reports
+      uses: actions/download-artifact@v4
+      with:
+        name: security-reports
+
+    - name: Create vulnerability report
+      run: |
+        echo "# Security Vulnerability Report - $(date)" > vulnerability-report.md
+        echo "" >> vulnerability-report.md
+        echo "**Repository:** ${{ github.repository }}" >> vulnerability-report.md
+        echo "**Trigger:** ${{ github.event.inputs.type || 'scheduled' }}" >> vulnerability-report.md
+        echo "**Date:** $(date)" >> vulnerability-report.md
+        echo "" >> vulnerability-report.md
+        
+        echo "## Summary" >> vulnerability-report.md
+        echo "" >> vulnerability-report.md
+        
+        # Check if security reports exist
+        if [ -f "control-panel/safety-report.json" ]; then
+          SAFETY_VULNS=$(jq '.vulnerabilities | length' control-panel/safety-report.json 2>/dev/null || echo "0")
+          echo "- **Safety vulnerabilities:** $SAFETY_VULNS" >> vulnerability-report.md
+        fi
+        
+        if [ -f "control-panel/pip-audit-report.json" ]; then
+          AUDIT_VULNS=$(jq '.vulnerabilities | length' control-panel/pip-audit-report.json 2>/dev/null || echo "0")
+          echo "- **Pip-audit vulnerabilities:** $AUDIT_VULNS" >> vulnerability-report.md
+        fi
+        
+        echo "" >> vulnerability-report.md
+        echo "## Recommendations" >> vulnerability-report.md
+        echo "" >> vulnerability-report.md
+        echo "1. Review the detailed reports in the artifacts" >> vulnerability-report.md
+        echo "2. Update vulnerable dependencies" >> vulnerability-report.md
+        echo "3. Test updates in a development environment" >> vulnerability-report.md
+        echo "4. Consider implementing dependency pinning for critical packages" >> vulnerability-report.md
+        
+        cat vulnerability-report.md
+
+    - name: Upload vulnerability report
+      uses: actions/upload-artifact@v4
+      with:
+        name: vulnerability-report
+        path: vulnerability-report.md
+
+    - name: Create Issue for Critical Vulnerabilities
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🚨 Security Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`;
+          const body = `## Security Vulnerability Alert
+          
+          Automated security scanning has detected potential vulnerabilities in the WebOps repository.
+          
+          **Repository:** ${{ github.repository }}
+          **Date:** ${new Date().toISOString()}
+          **Trigger:** ${{ github.event.inputs.type || 'scheduled' }}
+          
+          ### Next Steps
+          1. Review the vulnerability report artifact
+          2. Update affected dependencies
+          3. Test changes thoroughly
+          4. Deploy fixes as soon as possible
+          
+          ### Resources
+          - [Security Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - [Dependabot Security Updates](${{ github.server_url }}/${{ github.repository }}/network/updates)
+          
+          *This issue was created automatically by the security scanning workflow.*`;
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['security', 'vulnerability', 'automated']
+          });
