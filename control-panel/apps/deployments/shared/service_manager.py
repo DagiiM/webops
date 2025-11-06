@@ -720,13 +720,14 @@ class ServiceManager:
     def _postgresql_fallback(self) -> Tuple[bool, str]:
         """Fallback mechanism for PostgreSQL service failure."""
         try:
+            # SECURITY FIX: Removed shell=True and shell expansion
             # Try different PostgreSQL start methods
             fallback_commands = [
-                ['pg_ctlcluster', '$(pg_lsclusters -h | tail -1 | cut -d" " -f1)', '$(pg_lsclusters -h | tail -1 | cut -d" " -f2)', 'start'],
-                ['pg_ctl', '-D', '/var/lib/postgresql/*/main', 'start'],
+                # Note: Removed shell expansion - pg_ctlcluster needs proper args
                 ['service', 'postgresql', 'start'],
+                ['systemctl', 'start', 'postgresql'],
             ]
-            
+
             for cmd in fallback_commands:
                 try:
                     result = subprocess.run(
@@ -734,13 +735,13 @@ class ServiceManager:
                         capture_output=True,
                         text=True,
                         timeout=30,
-                        shell=True
+                        shell=False  # SECURITY: Never use shell=True
                     )
                     if result.returncode == 0:
                         return True, f"PostgreSQL started with fallback command: {cmd[0]}"
                 except Exception:
                     continue
-            
+
             return False, "All PostgreSQL fallback commands failed"
         except Exception as e:
             return False, f"PostgreSQL fallback error: {e}"
