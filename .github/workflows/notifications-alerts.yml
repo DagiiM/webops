@@ -290,11 +290,11 @@ jobs:
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/issues \
-            -d '{
-              "title": "🚨 Security Alert: '"$WORKFLOW_NAME"' Failed",
-              "body": "A security-related workflow has failed and requires immediate attention.\n\n**Details:**\n- Workflow: '"$WORKFLOW_NAME"'\n- Status: '"$WORKFLOW_STATUS"'\n- Run URL: '"$WORKFLOW_URL"'\n- Repository: '"${{ github.repository }}"\n- Branch: '"${{ github.event.workflow_run.head_branch }}"'\n\n**Next Steps:**\n1. Review the failed security scan\n2. Address any vulnerabilities found\n3. Re-run the workflow after fixes\n4. Update this issue with resolution details\n\n*This issue was created automatically by the security alert system.*",
-              "labels": ["security", "urgent", "automated"]
-            }'
+            -d "{
+              \"title\": \"🚨 Security Alert: $WORKFLOW_NAME Failed\",
+              \"body\": \"A security-related workflow has failed and requires immediate attention.\\n\\n**Details:**\\n- Workflow: $WORKFLOW_NAME\\n- Status: $WORKFLOW_STATUS\\n- Run URL: $WORKFLOW_URL\\n- Repository: ${{ github.repository }}\\n- Branch: ${{ github.event.workflow_run.head_branch }}\\n\\n**Next Steps:**\\n1. Review the failed security scan\\n2. Address any vulnerabilities found\\n3. Re-run the workflow after fixes\\n4. Update this issue with resolution details\\n\\n*This issue was created automatically by the security alert system.*\",
+              \"labels\": [\"security\", \"urgent\", \"automated\"]
+            }"
         fi
 
   daily-summary:
