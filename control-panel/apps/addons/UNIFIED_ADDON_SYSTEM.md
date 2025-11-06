@@ -91,7 +91,7 @@ The unified system bridges these layers, providing:
 
 ### 1. System Addons (Bash)
 
-**Location**: `.webops/versions/v1.0.0/addons/*.sh`
+**Location**: `provisioning/versions/v1.0.0/addons/*.sh`
 
 **Purpose**: Infrastructure provisioning and system-level configuration
 
@@ -457,7 +457,7 @@ result = registry.health_check_all()
 ### 1. Addon Development
 
 **System Addons**:
-- Start with the template: `.webops/versions/v1.0.0/addons/addon-template.sh`
+- Start with the template: `provisioning/versions/v1.0.0/addons/addon-template.sh`
 - Implement all required functions
 - Use JSON for all output
 - Handle errors gracefully
@@ -515,8 +515,8 @@ result = registry.health_check_all()
 ### Step 1: Create the Bash Script
 
 ```bash
-cp .webops/versions/v1.0.0/addons/addon-template.sh \
-   .webops/versions/v1.0.0/addons/redis.sh
+cp provisioning/versions/v1.0.0/addons/addon-template.sh \
+   provisioning/versions/v1.0.0/addons/redis.sh
 ```
 
 ### Step 2: Implement Required Functions
@@ -640,5 +640,5 @@ When contributing new addons:
 ## Support
 
 - Documentation: `/control-panel/apps/addons/UNIFIED_ADDON_SYSTEM.md`
-- Template: `.webops/versions/v1.0.0/addons/addon-template.sh`
+- Template: `provisioning/versions/v1.0.0/addons/addon-template.sh`
 - Issues: https://github.com/anthropics/webops/issues

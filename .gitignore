@@ -95,3 +95,213 @@ redis_*.aof
 cookies.txt
 *.cookies
 *_cookies.txt
+# =============================================================================
+# WEBOPS SPECIFIC FILES
+# =============================================================================
+
+# WebOps runtime directories (note: provisioning/ contains infrastructure setup code and should be tracked)
+deployments/
+llm-deployments/
+system-templates/compiled/
+ssl-certs/
+nginx-configs/
+addons/cache/
+addons/logs/
+
+# WebOps system files
+*.webops
+webops_config.json
+deployment_*.log
+webops_*.pid
+webops_*.sock
+
+# =============================================================================
+# SECURITY CRITICAL FILES
+# =============================================================================
+
+# SSL certificates and keys - CRITICAL for security
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+certbot/
+letsencrypt/
+.ssl/
+ssl/
+certs/
+keys/
+private/
+acme-challenge/
+
+# Encryption keys and tokens
+encryption.key
+secrets.key
+token_*.json
+credentials_*.json
+api_tokens.json
+
+# =============================================================================
+# SYSTEMD AND SERVICE FILES
+# =============================================================================
+
+# Systemd service files created during deployment
+*.service
+*.socket
+*.target
+*.timer
+*.slice
+nginx-sites-enabled/
+nginx-sites-available/
+nginx/conf.d/
+systemd/units/
+
+# =============================================================================
+# DATABASE FILES
+# =============================================================================
+
+# PostgreSQL files
+*.sql
+*.dump
+*.backup
+.postgresql/
+*.pg
+*.psql
+pgdata/
+postgresql_data/
+postgres_*.log
+
+# Django database files
+webops.db
+webops.sqlite3
+db_*.sqlite3
+database_*.db
+
+# Redis cache files
+*.redis
+session_*
+celerybeat-schedule.*
+
+# =============================================================================
+# DEVELOPMENT AND BUILD TOOLS
+# =============================================================================
+
+# Build artifacts
+*.whl
+*.tar.gz
+*.zip
+dist/
+build-artifacts/
+artifacts/
+
+# Static analysis and linting
+.pylint.d/
+.mypy_cache/
+.pytest_cache/
+.bandit/
+safety_check/
+
+# Performance profiling
+*.prof
+*.pstats
+profile_results/
+
+# Documentation builds
+docs/_build/
+docs/build/
+apidocs/
+static/docs/
+
+# =============================================================================
+# DOCKER AND CONTAINERIZATION
+# =============================================================================
+
+# Docker files
+.dockerignore
+Dockerfile.prod
+docker-compose.override.yml
+.docker/
+docker-volumes/
+container-logs/
+
+# Kubernetes
+.kube/
+kubeconfig
+*.yaml.tmp
+k8s-manifests/
+
+# =============================================================================
+# CLOUD AND INFRASTRUCTURE
+# =============================================================================
+
+# AWS
+.aws/
+credentials
+config
+aws-credentials/
+boto3-session/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+ansible-vault/
+*.vault
+host_inventory/
+
+# =============================================================================
+# ADDITIONAL PYTHON AND DJANGO
+# =============================================================================
+
+# Additional Django
+*.local
+django_project/
+manage_local.py
+settings_local.py
+
+# Celery additional
+celery-results/
+celery-schedule.bak
+
+# =============================================================================
+# MONITORING AND LOGGING
+# =============================================================================
+
+# Application monitoring
+monitoring/
+grafana-data/
+prometheus-data/
+metrics/
+apm-data/
+
+# Log files
+*.log.*
+error_*.log
+access_*.log
+app_*.log
+deploy_*.log
+
+# =============================================================================
+# TEMPORARY AND CACHE FILES
+# =============================================================================
+
+# Additional cache directories
+.cache/
+__pycache__backup/
+*.cache.tmp
+temp_cache/
+
+# PID files
+*.pid.bak
+*.pid.old
+service_*.pid
+
+# Runtime files
+*.runtime
+*.tmpfs
+swapfile
+core.*

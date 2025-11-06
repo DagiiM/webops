@@ -37,7 +37,7 @@ class SystemAddonWrapper(BaseAddon):
 
     # Default path to system addons
     SYSTEM_ADDONS_PATH = Path(
-        getattr(settings, 'SYSTEM_ADDONS_PATH', '/home/douglas/webops/.webops/versions/v1.0.0/addons')
+        getattr(settings, 'SYSTEM_ADDONS_PATH', '/home/douglas/webops/provisioning/versions/v1.0.0/addons')
     )
 
     # Default timeout for operations (in seconds)
@@ -139,7 +139,7 @@ class SystemAddonWrapper(BaseAddon):
 
         # Add WebOps-specific environment variables
         env['WEBOPS_ROOT'] = '/home/douglas/webops'
-        env['WEBOPS_CONFIG'] = '/home/douglas/webops/.webops/config.env'
+        env['WEBOPS_CONFIG'] = '/home/douglas/webops/provisioning/config.env'
 
         # Add addon config if available
         if self._db_instance and self._db_instance.config:

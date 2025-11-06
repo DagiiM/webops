@@ -1,6 +1,6 @@
 # WebOps Development Makefile
 # This Makefile is for DEVELOPMENT tasks only
-# For production deployment, use: .webops/versions/v1.0.0/bin/webops
+# For production deployment, use: provisioning/versions/v1.0.0/bin/webops
 
 .PHONY: help install dev test lint clean format check-security docs validate
 
@@ -35,7 +35,7 @@ help: ## Show this help message
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(YELLOW)Production:$(NC)"
-	@echo "  For production operations, use: $(BLUE).webops/versions/v1.0.0/bin/webops$(NC)"
+	@echo "  For production operations, use: $(BLUE)provisioning/versions/v1.0.0/bin/webops$(NC)"
 	@echo ""
 
 #=============================================================================
@@ -154,9 +154,9 @@ lint: ## Run all linters (bash + python)
 
 lint-bash: ## Lint bash scripts
 	@echo "$(BLUE)Linting bash scripts...$(NC)"
-	@for script in .webops/versions/v1.0.0/setup/*.sh \
-		.webops/versions/v1.0.0/lifecycle/*.sh \
-		.webops/versions/v1.0.0/bin/webops; do \
+	@for script in provisioning/versions/v1.0.0/setup/*.sh \
+		provisioning/versions/v1.0.0/lifecycle/*.sh \
+		provisioning/versions/v1.0.0/bin/webops; do \
 		bash -n $$script && echo "$(GREEN)✓$(NC) $$script" || exit 1; \
 	done
 
@@ -201,7 +201,7 @@ docs: ## Generate documentation
 	@echo "$(BLUE)Generating documentation...$(NC)"
 	@echo "$(YELLOW)Documentation tasks:$(NC)"
 	@echo "  - API docs: $(CONTROL_PANEL_DIR)/docs/"
-	@echo "  - Platform docs: .webops/versions/v1.0.0/README.md"
+	@echo "  - Platform docs: provisioning/versions/v1.0.0/README.md"
 	@echo "$(GREEN)✓ Documentation available$(NC)"
 
 #=============================================================================
@@ -210,7 +210,7 @@ docs: ## Generate documentation
 
 validate: ## Run pre-installation validation
 	@echo "$(BLUE)Running system validation...$(NC)"
-	sudo .webops/versions/v1.0.0/setup/validate.sh
+	sudo provisioning/versions/v1.0.0/setup/validate.sh
 
 ci: lint test check-security ## Run all CI checks (lint, test, security)
 	@echo "$(GREEN)✓ All CI checks passed$(NC)"
@@ -247,15 +247,15 @@ clean-all: clean ## Clean everything including venv
 deploy-install: ## Install WebOps platform (production)
 	@echo "$(BLUE)Installing WebOps platform...$(NC)"
 	@echo "$(YELLOW)⚠️  This will run the production installer$(NC)"
-	sudo .webops/versions/v1.0.0/lifecycle/install.sh
+	sudo provisioning/versions/v1.0.0/lifecycle/install.sh
 
 deploy-validate: ## Validate production deployment
 	@echo "$(BLUE)Validating deployment...$(NC)"
-	sudo .webops/versions/v1.0.0/bin/webops validate
+	sudo provisioning/versions/v1.0.0/bin/webops validate
 
 deploy-status: ## Show platform status
 	@echo "$(BLUE)Platform status:$(NC)"
-	.webops/versions/v1.0.0/bin/webops state
+	provisioning/versions/v1.0.0/bin/webops state
 
 #=============================================================================
 # Utilities
@@ -284,7 +284,7 @@ ps: ## Show running WebOps processes
 
 version: ## Show version information
 	@echo "$(BLUE)WebOps Version Information$(NC)"
-	@echo "Platform: $$(cat .webops/versions/v1.0.0/bin/webops | grep 'WEBOPS_VERSION=' | head -1 | cut -d'=' -f2 | tr -d '"')"
+	@echo "Platform: $$(cat provisioning/versions/v1.0.0/bin/webops | grep 'WEBOPS_VERSION=' | head -1 | cut -d'=' -f2 | tr -d '"')"
 	@echo "Python: $$($(PYTHON) --version)"
 	@echo "Django: $$($(MANAGE) --version)"
 

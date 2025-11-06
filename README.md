@@ -133,10 +133,10 @@ The production installer modifies system SSH configuration, installs system pack
 
 ```bash
 # Production installation (requires sudo)
-sudo ./.webops/versions/v1.0.0/lifecycle/install.sh
+sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 
 # Or customize installation
-cd .webops
+cd provisioning 
 cp versions/v1.0.0/config.env.template config.env
 # Edit config.env to customize settings
 sudo versions/v1.0.0/lifecycle/install.sh
@@ -210,18 +210,18 @@ WebOps includes a comprehensive enterprise infrastructure platform that transfor
 
 ```bash
 # Quick installation (with sudo)
-sudo ./.webops/versions/v1.0.0/lifecycle/install.sh
+sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 
 # Or customize installation
-cd .webops
+cd provisioning 
 cp versions/v1.0.0/config.env.template config.env
 # Edit config.env to customize settings
 sudo versions/v1.0.0/lifecycle/install.sh
 
 # Add specific infrastructure components
-sudo ./.webops/versions/v1.0.0/bin/webops apply postgresql
-sudo ./.webops/versions/v1.0.0/bin/webops apply monitoring
-sudo ./.webops/versions/v1.0.0/bin/webops apply kubernetes
+sudo ./provisioning/versions/v1.0.0/bin/webops apply postgresql
+sudo ./provisioning/versions/v1.0.0/bin/webops apply monitoring
+sudo ./provisioning/versions/v1.0.0/bin/webops apply kubernetes
 ```
 
 ### Infrastructure Addons
@@ -285,7 +285,7 @@ sudo ./.webops/versions/v1.0.0/bin/webops apply kubernetes
 
 ```
 webops/
-├── .webops/                          # Enterprise infrastructure platform
+├── provisioning/                          # Enterprise infrastructure platform
 │   ├── versions/                     # Version management
 │   │   └── v1.0.0/                  # Current platform version
 │   │       ├── bin/webops            # Platform CLI (infrastructure management)
@@ -411,8 +411,8 @@ make pre-commit           # Quick pre-commit checks
 
 **For production operations**, use the webops CLI:
 ```bash
-.webops/versions/v1.0.0/bin/webops install
-.webops/versions/v1.0.0/bin/webops restore-ssh
+provisioning/versions/v1.0.0/bin/webops install
+provisioning/versions/v1.0.0/bin/webops restore-ssh
 ```
 
 See `MAKEFILE_STRATEGY.md` for detailed information about the Makefile approach.

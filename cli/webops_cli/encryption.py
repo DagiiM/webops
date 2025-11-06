@@ -53,7 +53,7 @@ class SecureConfig:
                 raise EncryptionError(f"Invalid encryption key in environment: {e}")
         
         # Try to get key from key file
-        key_file = os.path.expanduser("~/.webops/.encryption_key")
+        key_file = os.path.expanduser("~/provisioning/.encryption_key")
         if os.path.exists(key_file):
             try:
                 with open(key_file, 'rb') as f:

@@ -29,7 +29,7 @@ class AddonRegistry:
         self._addons: Dict[str, BaseAddon] = {}
         self._system_addons_path = Path(
             getattr(settings, 'SYSTEM_ADDONS_PATH',
-                    '/home/douglas/webops/.webops/versions/v1.0.0/addons')
+                    '/home/douglas/webops/provisioning/versions/v1.0.0/addons')
         )
         self._app_addons_path = Path(
             getattr(settings, 'APP_ADDONS_PATH',
