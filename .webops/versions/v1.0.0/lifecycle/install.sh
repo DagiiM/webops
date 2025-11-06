@@ -20,9 +20,10 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-readonly WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-readonly WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
 
 # Logging setup
@@ -86,8 +87,9 @@ log_step() {
 #=============================================================================
 
 copy_to_install_location() {
-    local target_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
-    local current_root="$(dirname "$(dirname "$WEBOPS_PLATFORM_DIR")")"
+    local target_root current_root
+    target_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
+    current_root="$(dirname "$(dirname "$WEBOPS_PLATFORM_DIR")")"
 
     # Normalize paths for comparison
     target_root="$(readlink -f "$target_root" 2>/dev/null || echo "$target_root")"
