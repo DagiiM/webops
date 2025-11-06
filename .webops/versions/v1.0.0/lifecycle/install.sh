@@ -167,6 +167,33 @@ validate_environment() {
         exit 1
     fi
 
+    # Check for existing installation
+    if [[ -f "${WEBOPS_PLATFORM_DIR}/config.env" ]]; then
+        log_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log_warn "⚠️  WARNING: Existing WebOps installation detected"
+        log_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log_warn ""
+        log_warn "Config file exists: ${WEBOPS_PLATFORM_DIR}/config.env"
+        log_warn ""
+        log_warn "Running install again may:"
+        log_warn "  • Overwrite existing configuration"
+        log_warn "  • Reset SSH settings"
+        log_warn "  • Restart services (causing downtime)"
+        log_warn ""
+        log_warn "If you want to:"
+        log_warn "  • Update: Use '${WEBOPS_BIN} update' instead"
+        log_warn "  • Repair: Use './.webops/versions/${WEBOPS_VERSION}/lifecycle/repair.sh' instead"
+        log_warn "  • Reinstall: Remove ${WEBOPS_PLATFORM_DIR}/config.env first"
+        log_warn ""
+        read -p "Continue anyway? (type 'yes' to proceed): " -r
+        echo ""
+        if [[ ! $REPLY == "yes" ]]; then
+            log_info "Installation cancelled by user"
+            exit 0
+        fi
+        log_warn "Proceeding with installation (may overwrite existing setup)..."
+    fi
+
     log_info "Environment validation passed ✓"
 }
 
@@ -311,6 +338,64 @@ log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
+verify_installation() {
+    log_step "Verifying installation health..."
+
+    local failed_checks=0
+    local total_checks=0
+
+    # Check critical services
+    local services=("postgresql" "redis-server" "webops-web" "webops-worker")
+
+    for service in "${services[@]}"; do
+        ((total_checks++))
+        if systemctl is-active --quiet "$service" 2>/dev/null; then
+            log_info "✓ $service is running"
+        else
+            log_warn "✗ $service is not running"
+            ((failed_checks++))
+        fi
+    done
+
+    # Check Redis connectivity
+    ((total_checks++))
+    if redis-cli ping &>/dev/null; then
+        log_info "✓ Redis is responding to PING"
+    else
+        log_warn "✗ Redis is not responding"
+        ((failed_checks++))
+    fi
+
+    # Check PostgreSQL connectivity
+    ((total_checks++))
+    if sudo -u postgres psql -c "SELECT 1" &>/dev/null; then
+        log_info "✓ PostgreSQL is accepting connections"
+    else
+        log_warn "✗ PostgreSQL is not accepting connections"
+        ((failed_checks++))
+    fi
+
+    # Check control panel port
+    ((total_checks++))
+    if ss -tulpn | grep -q ":8000 "; then
+        log_info "✓ Control panel is listening on port 8000"
+    else
+        log_warn "✗ Control panel is not listening on port 8000"
+        ((failed_checks++))
+    fi
+
+    # Summary
+    echo ""
+    if [[ $failed_checks -eq 0 ]]; then
+        log_success "All health checks passed ($total_checks/$total_checks) ✓"
+        return 0
+    else
+        log_warn "Health checks: $(($total_checks - $failed_checks))/$total_checks passed, $failed_checks failed"
+        log_warn "Some services may need manual investigation"
+        return 1
+    fi
+}
+
 print_completion_message() {
     local server_ip=$(hostname -I | awk '{print $1}')
 
@@ -372,6 +457,9 @@ main() {
 
     # Run installation
     if run_installation; then
+        # Verify installation health
+        verify_installation
+
         # Print completion message
         print_completion_message
 
