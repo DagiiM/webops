@@ -9,8 +9,8 @@ WebOps is a lightweight, security-first hosting platform that transforms a fresh
 - **Security-First Design** - Minimal dependencies, encrypted credentials, isolated processes
 - **Pure Frontend** - Zero npm dependencies, pure HTML/CSS/JS frontend
 - **PostgreSQL Included** - Automatic database creation per application
-- **Background Tasks** - Celery integration for async operations
-- **Nginx Powered** - Automatic reverse proxy and virtual host configuration
+- **Background Tasks** - Celery + Redis integration for async operations
+- **Built-in Web Server** - Gunicorn with WebSocket support via Daphne
 - **Modern Web UI** - Clean Django interface for all operations
 - **Feature-Rich CLI** - Interactive wizards, WebSocket monitoring, real-time logs
 - **LLM Support** - Deploy vLLM models with GPU allocation
@@ -250,21 +250,21 @@ sudo ./.webops/versions/v1.0.0/bin/webops apply kubernetes
 │                 VPS Server                       │
 │                                                  │
 │  ┌────────────────────────────────────────────┐ │
-│  │      Nginx (Reverse Proxy + SSL)          │ │
+│  │   WebOps Panel (Gunicorn + Daphne)        │ │
+│  │         Django 5.0 Control Panel           │ │
 │  └──────┬─────────────────────────────────────┘ │
 │         │                                        │
 │  ┌──────▼──────────┐    ┌──────────────────┐   │
-│  │  WebOps Panel   │    │  User Apps       │   │
-│  │   (Django 5.0)  │    │  - Django Apps   │   │
-│  └────────┬────────┘    │  - Static Sites  │   │
-│           │             │  - LLM Models    │   │
-│  ┌────────▼────────┐    └─────────┬────────┘   │
-│  │   PostgreSQL    │◄─────────────┘            │
-│  └─────────────────┘                           │
-│                                                  │
-│  ┌─────────────────┐    ┌──────────────────┐   │
-│  │  Redis          │    │  Celery Workers  │   │
-│  └─────────────────┘    └──────────────────┘   │
+│  │   PostgreSQL    │    │  User Apps       │   │
+│  │   (Database)    │    │  - Django Apps   │   │
+│  └─────────────────┘    │  - Static Sites  │   │
+│                         │  - LLM Models    │   │
+│  ┌─────────────────┐    └──────────────────┘   │
+│  │  Redis          │                            │
+│  │  (Message Broker)│   ┌──────────────────┐   │
+│  └────────┬────────┘    │  Celery Workers  │   │
+│           └─────────────►  (Background Jobs)│   │
+│                         └──────────────────┘   │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -272,13 +272,13 @@ sudo ./.webops/versions/v1.0.0/bin/webops apply kubernetes
 - **Backend**: Django 5.0+, Python 3.11+ with domain-driven architecture
 - **Frontend**: Pure HTML5/CSS3/Vanilla JavaScript (zero npm dependencies, no build tools)
 - **Database**: PostgreSQL 14+ with encrypted credentials at rest
-- **Web Server**: Nginx with automatic SSL via Let's Encrypt
+- **Web Server**: Gunicorn (WSGI) + Daphne (WebSocket/ASGI) - no external web server required
 - **Task Queue**: Celery + Redis for background deployment tasks
 - **Process Manager**: systemd with security isolation per deployment
 - **Security**: Fernet encryption, CSRF protection, rate limiting
 - **CLI**: Rich-powered interface with interactive wizards and WebSocket monitoring
 - **Authentication**: Token-based with role-based access control
-- **WebSocket**: Django Channels for real-time log streaming
+- **WebSocket**: Django Channels + Daphne for real-time log streaming
 - **LLM Support**: vLLM integration for AI model deployment
 
 ## Project Structure
@@ -434,10 +434,10 @@ WebOps will automatically:
 4. Create a PostgreSQL database with unique credentials
 5. Run migrations with secure database connections
 6. Collect static files with security headers
-7. Configure Nginx with rate limiting and security policies
-8. Obtain SSL certificate via Let's Encrypt
-9. Create systemd service with resource limits
-10. Start your application with full audit logging
+7. Configure Gunicorn as WSGI server with resource limits
+8. Create systemd service with process isolation
+9. Start your application with full audit logging
+10. (Optional) Configure reverse proxy (Nginx, Caddy, etc.) for SSL termination
 
 ### LLM Models & Static Sites
 
