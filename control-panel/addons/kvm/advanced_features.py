@@ -273,13 +273,16 @@ class GPUPassthrough:
     def check_iommu_enabled(self) -> bool:
         """Check if IOMMU is enabled."""
         try:
+            # SECURITY FIX: Use shell=False and search in Python instead of piping
             result = subprocess.run(
-                ['dmesg', '|', 'grep', '-e', 'DMAR', '-e', 'IOMMU'],
-                shell=True,
+                ['dmesg'],
+                shell=False,  # SECURITY: Never use shell=True
                 capture_output=True,
                 text=True
             )
-            return 'IOMMU enabled' in result.stdout or 'DMAR' in result.stdout
+            # Search for IOMMU/DMAR in the output
+            output = result.stdout.lower()
+            return 'iommu enabled' in output or 'dmar' in output
         except Exception:
             return False
 
