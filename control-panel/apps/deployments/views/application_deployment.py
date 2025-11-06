@@ -12,8 +12,10 @@ from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
 
 @login_required
 def deployment_list(request):
-    """List all deployments."""
-    deployments = ApplicationDeployment.objects.all()
+    """List all deployments for the current user."""
+    # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+    # Only show deployments created by the current user
+    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user)
     return render(request, 'deployments/list.html', {
         'deployments': deployments
     })
@@ -22,7 +24,9 @@ def deployment_list(request):
 @login_required
 def deployment_detail(request, pk):
     """Show deployment details and logs."""
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    # SECURITY FIX: Verify ownership to prevent IDOR vulnerability
+    # Only allow access to deployments owned by the current user
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user)
     logs = deployment.logs.all()[:100]  # Last 100 logs
 
     # Get service status
