@@ -15,6 +15,7 @@ from datetime import timedelta
 from .models import ServiceStatus, ResourceUsage, Alert, HealthCheck
 from .monitoring import SystemMonitor
 from apps.deployments.models import BaseDeployment,ApplicationDeployment
+from apps.core.security.decorators import require_resource_ownership
 
 
 @login_required
@@ -37,7 +38,8 @@ def monitoring_dashboard(request):
     history = monitor.get_metrics_history(hours=24)
 
     # Service statuses
-    deployments = ApplicationDeployment.objects.all()
+    # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user)
     service_statuses = []
     for deployment in deployments:
         status = ServiceStatus.objects.filter(deployment=deployment).first()
@@ -50,7 +52,10 @@ def monitoring_dashboard(request):
         })
 
     # Recent health checks
-    recent_health_checks = HealthCheck.objects.select_related('deployment')[:10]
+    # SECURITY FIX: Only show health checks for user's deployments
+    recent_health_checks = HealthCheck.objects.select_related('deployment').filter(
+        deployment__deployed_by=request.user
+    )[:10]
 
     context = {
         'latest_metrics': latest_metrics,
@@ -156,9 +161,11 @@ def metrics_history(request):
 
 
 @login_required
+@require_resource_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def service_status_detail(request, deployment_id):
     """Get detailed service status."""
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    # SECURITY FIX: Ownership verified by decorator
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)
@@ -191,9 +198,11 @@ def service_status_detail(request, deployment_id):
 
 
 @login_required
+@require_resource_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def refresh_service_status(request, deployment_id):
     """Manually refresh service status."""
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id)
+    # SECURITY FIX: Ownership verified by decorator
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)
@@ -272,9 +281,12 @@ def system_summary_api(request):
 
 
 @login_required
+@require_resource_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def health_check_history(request, deployment_id):
     """Get health check history for a deployment."""
-    deployment = get_object_or_404(Deployment, pk=deployment_id)
+    # SECURITY FIX: Ownership verified by decorator
+    # BUG FIX: Changed from "Deployment" to "ApplicationDeployment"
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
 
     hours = int(request.GET.get('hours', 24))
     cutoff = timezone.now() - timedelta(hours=hours)
