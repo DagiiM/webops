@@ -34,8 +34,8 @@ Jinja2==3.1.3
 PyYAML==6.0.1
 
 # System Monitoring
-# SECURITY FIX: Updated from 5.9.8 to 6.0.1 (fixes CVE-2023-27043)
-psutil==6.0.1
+# Latest stable version with security updates and improved performance
+psutil==7.1.3
 
 # Redis Cache
 django-redis==5.4.0

@@ -1,0 +1,273 @@
+/**
+ * LLM Auto-Detection Preview Styles
+ * Railway-style detection preview component
+ */
+
+/* Detection Container */
+.webops-detection-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+/* Detection Preview Card */
+.webops-detection-preview {
+    background: var(--webops-color-bg-secondary, #ffffff);
+    border: 1px solid var(--webops-color-border, #e0e0e0);
+    border-radius: var(--webops-radius-lg, 12px);
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading State */
+.webops-detection-loading {
+    border-left: 4px solid var(--webops-color-primary, #007bff);
+}
+
+/* Success State */
+.webops-detection-success {
+    border-left: 4px solid var(--webops-color-success, #28a745);
+}
+
+/* Error State */
+.webops-detection-error {
+    border-left: 4px solid var(--webops-color-danger, #dc3545);
+}
+
+/* Detection Header */
+.webops-detection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--webops-color-border, #e0e0e0);
+}
+
+/* Detection Sections */
+.webops-detection-section {
+    margin-bottom: 1.5rem;
+}
+
+.webops-detection-section:last-child {
+    margin-bottom: 0;
+}
+
+.webops-detection-section h5 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--webops-color-text-primary, #333);
+}
+
+/* Detection Grid */
+.webops-detection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.webops-detection-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.webops-detection-item > span:first-child {
+    font-size: 0.875rem;
+    color: var(--webops-color-text-secondary, #666);
+}
+
+.webops-detection-item > span:last-child {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--webops-color-text-primary, #333);
+}
+
+/* Detection Footer */
+.webops-detection-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--webops-color-border, #e0e0e0);
+}
+
+/* Badges */
+.webops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--webops-radius-sm, 4px);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-badge-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--webops-color-success, #28a745);
+}
+
+.webops-badge-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--webops-color-warning, #ffc107);
+}
+
+.webops-badge-info {
+    background: rgba(0, 170, 255, 0.1);
+    color: var(--webops-color-info, #00aaff);
+}
+
+.webops-badge-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--webops-color-danger, #dc3545);
+}
+
+/* Spinner */
+.webops-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 123, 255, 0.1);
+    border-top-color: var(--webops-color-primary, #007bff);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Utility Classes */
+.webops-flex {
+    display: flex;
+}
+
+.webops-items-center {
+    align-items: center;
+}
+
+.webops-gap-2 {
+    gap: 0.5rem;
+}
+
+.webops-gap-3 {
+    gap: 0.75rem;
+}
+
+.webops-gap-4 {
+    gap: 1rem;
+}
+
+.webops-font-medium {
+    font-weight: 500;
+}
+
+.webops-text-muted {
+    color: var(--webops-color-text-secondary, #666);
+}
+
+.webops-text-primary {
+    color: var(--webops-color-primary, #007bff);
+}
+
+.webops-text-success {
+    color: var(--webops-color-success, #28a745);
+}
+
+.webops-text-warning {
+    color: var(--webops-color-warning, #ffc107);
+}
+
+.webops-text-info {
+    color: var(--webops-color-info, #00aaff);
+}
+
+.webops-text-danger {
+    color: var(--webops-color-danger, #dc3545);
+}
+
+.webops-text-sm {
+    font-size: 0.875rem;
+}
+
+.webops-m-0 {
+    margin: 0;
+}
+
+.webops-mt-3 {
+    margin-top: 0.75rem;
+}
+
+.webops-mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+.webops-p-3 {
+    padding: 0.75rem;
+}
+
+.webops-pl-4 {
+    padding-left: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .webops-detection-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .webops-detection-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .webops-detection-preview {
+        padding: 1rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .webops-detection-preview {
+        background: #1e1e1e;
+        border-color: #333;
+    }
+
+    .webops-detection-header {
+        border-color: #333;
+    }
+
+    .webops-detection-footer {
+        border-color: #333;
+    }
+
+    .webops-detection-item > span:first-child {
+        color: #999;
+    }
+
+    .webops-detection-item > span:last-child {
+        color: #e0e0e0;
+    }
+
+    .webops-detection-section h5 {
+        color: #e0e0e0;
+    }
+
+    .webops-text-muted {
+        color: #999;
+    }
+}

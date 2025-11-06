@@ -82,3 +82,16 @@ tmp/
 # System files
 .DS_Store
 Thumbs.db
+
+# Redis database files (contain sensitive cached data)
+dump.rdb
+appendonly.aof
+*.rdb
+*.aof
+redis_*.rdb
+redis_*.aof
+
+# Cookie files (contain authentication tokens and sensitive session data)
+cookies.txt
+*.cookies
+*_cookies.txt
