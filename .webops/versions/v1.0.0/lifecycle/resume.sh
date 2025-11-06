@@ -20,15 +20,39 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly WEBOPS_PLATFORM_DIR="$(pwd)/.webops"
-readonly WEBOPS_VERSION_DIR="${WEBOPS_PLATFORM_DIR}/versions/${WEBOPS_VERSION}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
 readonly STATE_FILE="${WEBOPS_PLATFORM_DIR}/.install_state"
+
+# Default install root (will be overridden by config.env if exists)
+WEBOPS_ROOT="/opt/webops"
 
 # Resume options
 FORCE=false
 VERBOSE=false
 DRY_RUN=false
+
+#=============================================================================
+# Configuration Functions
+#=============================================================================
+
+load_config() {
+    local config_file="${WEBOPS_PLATFORM_DIR}/config.env"
+
+    if [[ -f "$config_file" ]]; then
+        # Load WEBOPS_ROOT from config
+        WEBOPS_ROOT=$(grep "^WEBOPS_ROOT=" "$config_file" | cut -d'=' -f2) || WEBOPS_ROOT="/opt/webops"
+        log_verbose "Loaded configuration from $config_file"
+        log_verbose "Installation root: $WEBOPS_ROOT"
+        return 0
+    else
+        log_verbose "Configuration file not found, using default paths"
+        return 1
+    fi
+}
 
 #=============================================================================
 # Logging Functions
@@ -475,7 +499,10 @@ show_completion_info() {
 main() {
     # Parse arguments
     parse_args "$@"
-    
+
+    # Load configuration
+    load_config
+
     # Show welcome message
     echo -e "${BLUE}"
     cat <<'EOF'

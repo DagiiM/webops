@@ -170,10 +170,19 @@ cmd_install() {
             return 1
         fi
     done
-    
+
+    # Install Django control panel if enabled
+    if [[ "$(get_config CONTROL_PANEL_ENABLED false)" == "true" ]]; then
+        log_info "Installing Django control panel..."
+        if ! "${SCRIPT_DIR}/../setup/django.sh" install; then
+            log_error "Django control panel installation failed"
+            return 1
+        fi
+    fi
+
     # Mark platform as installed
     mark_component_installed "webops-platform" "$WEBOPS_VERSION"
-    
+
     log_success "WebOps platform installation completed ✓"
 }
 

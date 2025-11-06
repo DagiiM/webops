@@ -20,14 +20,38 @@ readonly NC='\033[0m' # No Color
 
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
-readonly WEBOPS_PLATFORM_DIR="$(pwd)/.webops"
-readonly WEBOPS_VERSION_DIR="${WEBOPS_PLATFORM_DIR}/versions/${WEBOPS_VERSION}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
+
+# Default install root (will be overridden by config.env if exists)
+WEBOPS_ROOT="/opt/webops"
 
 # Uninstall options
 PURGE_DATA=false
 FORCE=false
 DRY_RUN=false
+
+#=============================================================================
+# Configuration Functions
+#=============================================================================
+
+load_config() {
+    local config_file="${WEBOPS_PLATFORM_DIR}/config.env"
+
+    if [[ -f "$config_file" ]]; then
+        # Load WEBOPS_ROOT from config
+        WEBOPS_ROOT=$(grep "^WEBOPS_ROOT=" "$config_file" | cut -d'=' -f2) || WEBOPS_ROOT="/opt/webops"
+        log_info "Loaded configuration from $config_file"
+        log_info "Installation root: $WEBOPS_ROOT"
+        return 0
+    else
+        log_warn "Configuration file not found, using default paths"
+        return 1
+    fi
+}
 
 #=============================================================================
 # Logging Functions
@@ -172,10 +196,10 @@ confirm_uninstall() {
         echo "  • Nginx configurations"
         echo ""
         echo -e "${GREEN}Data will be preserved:${NC}"
-        echo "  • Databases in /opt/webops/postgresql/data"
-        echo "  • Deployments in /opt/webops/deployments"
-        echo "  • Logs in /opt/webops/logs"
-        echo "  • Backups in /opt/webops/backups"
+        echo "  • Databases in ${WEBOPS_ROOT}/postgresql/data"
+        echo "  • Deployments in ${WEBOPS_ROOT}/deployments"
+        echo "  • Logs in ${WEBOPS_ROOT}/logs"
+        echo "  • Backups in ${WEBOPS_ROOT}/backups"
     fi
     
     echo ""
@@ -261,19 +285,19 @@ remove_webops_packages() {
 
 remove_webops_directories() {
     log_step "Removing WebOps directories..."
-    
+
     local directories=(
-        "/opt/webops"
+        "${WEBOPS_ROOT}"
         "/etc/webops"
         "/var/log/webops"
         "/var/lib/webops"
     )
-    
+
     if [[ "$PURGE_DATA" == "true" ]]; then
         directories+=(
-            "/opt/webops/postgresql/data"
-            "/opt/webops/deployments"
-            "/opt/webops/backups"
+            "${WEBOPS_ROOT}/postgresql/data"
+            "${WEBOPS_ROOT}/deployments"
+            "${WEBOPS_ROOT}/backups"
         )
     fi
     
@@ -390,7 +414,10 @@ cleanup_system() {
 main() {
     # Parse arguments
     parse_args "$@"
-    
+
+    # Load configuration
+    load_config
+
     # Show welcome message
     echo -e "${BLUE}"
     cat <<'EOF'
@@ -430,10 +457,10 @@ EOF
     else
         echo -e "${YELLOW}WebOps components have been removed.${NC}"
         echo -e "${GREEN}Data has been preserved in:${NC}"
-        echo "  • /opt/webops/postgresql/data"
-        echo "  • /opt/webops/deployments"
-        echo "  • /opt/webops/logs"
-        echo "  • /opt/webops/backups"
+        echo "  • ${WEBOPS_ROOT}/postgresql/data"
+        echo "  • ${WEBOPS_ROOT}/deployments"
+        echo "  • ${WEBOPS_ROOT}/logs"
+        echo "  • ${WEBOPS_ROOT}/backups"
     fi
     
     echo ""
