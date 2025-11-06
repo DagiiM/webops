@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebOps AI Agent Chat</title>
+    <link rel="stylesheet" href="./css/variables.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <style>
+        /* Chat Interface Specific Styles */
+        .webops-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--webops-color-bg-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Chat Header */
+        .webops-chat-header {
+            background: var(--webops-color-bg-secondary);
+            border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+            padding: var(--webops-space-3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .webops-chat-header__title {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-2);
+            font-size: var(--webops-font-size-lg);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-chat-header__status {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-1);
+            font-size: var(--webops-font-size-sm);
+            color: var(--webops-color-text-secondary);
+        }
+
+        .webops-chat-status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--webops-color-success);
+            animation: webopsStatusPulse 2s ease-in-out infinite;
+        }
+
+        .webops-chat-status-indicator.connecting {
+            background: var(--webops-color-warning);
+        }
+
+        .webops-chat-status-indicator.disconnected {
+            background: var(--webops-color-error);
+        }
+
+        /* Chat Messages Container */
+        .webops-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--webops-space-3);
+            background: var(--webops-color-bg-primary);
+            position: relative;
+        }
+
+        .webops-chat-messages::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Chat Message Styles */
+        .webops-chat-message {
+            margin-bottom: var(--webops-space-4);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: webopsMessageSlideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes webopsMessageSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .webops-chat-message__wrapper {
+            display: flex;
+            gap: var(--webops-space-2);
+            max-width: 85%;
+        }
+
+        .webops-chat-message--user .webops-chat-message__wrapper {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .webops-chat-message--system .webops-chat-message__wrapper {
+            max-width: 95%;
+        }
+
+        .webops-chat-message__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--webops-font-size-lg);
+            font-weight: var(--webops-font-weight-bold);
+            flex-shrink: 0;
+            margin-top: var(--webops-space-1);
+        }
+
+        .webops-chat-message--user .webops-chat-message__avatar {
+            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+            color: var(--webops-color-bg-primary);
+        }
+
+        .webops-chat-message--assistant .webops-chat-message__avatar {
+            background: var(--webops-color-surface);
+            border: 2px solid var(--webops-color-primary-alpha-20);
+            color: var(--webops-color-primary);
+        }
+
+        .webops-chat-message--system .webops-chat-message__avatar {
+            background: var(--webops-color-info-alpha-10);
+            border: 2px solid var(--webops-color-info-alpha-20);
+            color: var(--webops-color-info);
+        }
+
+        .webops-chat-message__content {
+            background: var(--webops-color-bg-elevated);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-3);
+            box-shadow: var(--webops-shadow-sm);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .webops-chat-message--user .webops-chat-message__content {
+            background: linear-gradient(135deg, var(--webops-color-primary-alpha-10), var(--webops-color-primary-alpha-05));
+            border-color: var(--webops-color-primary-alpha-20);
+        }
+
+        .webops-chat-message--system .webops-chat-message__content {
+            background: var(--webops-color-info-alpha-10);
+            border-color: var(--webops-color-info-alpha-20);
+        }
+
+        .webops-chat-message__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--webops-space-2);
+        }
+
+        .webops-chat-message__sender {
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-chat-message__timestamp {
+            font-size: var(--webops-font-size-xs);
+            color: var(--webops-color-text-tertiary);
+        }
+
+        .webops-chat-message__text {
+            color: var(--webops-color-text-secondary);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .webops-chat-message__text code {
+            background: var(--webops-color-surface);
+            color: var(--webops-color-primary);
+            padding: var(--webops-space-0-5) var(--webops-space-1);
+            border-radius: var(--webops-radius-sm);
+            font-family: var(--webops-font-family-mono);
+            font-size: var(--webops-font-size-sm);
+        }
+
+        .webops-chat-message__text pre {
+            background: var(--webops-color-surface);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+            border-radius: var(--webops-radius-md);
+            padding: var(--webops-space-3);
+            margin: var(--webops-space-2) 0;
+            overflow-x: auto;
+            font-family: var(--webops-font-family-mono);
+            font-size: var(--webops-font-size-sm);
+        }
+
+        .webops-chat-message__actions {
+            margin-top: var(--webops-space-2);
+            display: flex;
+            gap: var(--webops-space-2);
+        }
+
+        /* Typing Indicator */
+        .webops-chat-typing {
+            display: flex;
+            align-items: center;
+            gap: var(--webops-space-2);
+            padding: var(--webops-space-2);
+            margin-bottom: var(--webops-space-3);
+            opacity: 0;
+            animation: webopsTypingFadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes webopsTypingFadeIn {
+            to { opacity: 1; }
+        }
+
+        .webops-chat-typing__dots {
+            display: flex;
+            gap: var(--webops-space-1);
+        }
+
+        .webops-chat-typing__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--webops-color-primary);
+            animation: webopsTypingDot 1.4s ease-in-out infinite;
+        }
+
+        .webops-chat-typing__dot:nth-child(2) { animation-delay: 0.2s; }
+        .webops-chat-typing__dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes webopsTypingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* Chat Input Area */
+        .webops-chat-input {
+            background: var(--webops-color-bg-secondary);
+            border-top: 1px solid var(--webops-color-primary-alpha-10);
+            padding: var(--webops-space-3);
+            flex-shrink: 0;
+        }
+
+        .webops-chat-input__container {
+            display: flex;
+            align-items: flex-end;
+            gap: var(--webops-space-2);
+            background: var(--webops-color-surface);
+            border: 1px solid var(--webops-color-primary-alpha-15);
+            border-radius: var(--webops-radius-lg);
+            padding: var(--webops-space-2);
+            transition: all var(--webops-transition-fast);
+        }
+
+        .webops-chat-input__container:focus-within {
+            border-color: var(--webops-color-primary);
+            box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-10);
+        }
+
+        .webops-chat-input__textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--webops-color-text-primary);
+            font-size: var(--webops-font-size-base);
+            font-family: var(--webops-font-family-primary);
+            resize: none;
+            outline: none;
+            min-height: 24px;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        .webops-chat-input__textarea::placeholder {
+            color: var(--webops-color-text-tertiary);
+        }
+
+        .webops-chat-input__actions {
+            display: flex;
+            gap: var(--webops-space-1);
+            align-items: center;
+        }
+
+        .webops-chat-input__button {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--webops-radius-md);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--webops-transition-fast);
+            font-size: var(--webops-font-size-base);
+        }
+
+        .webops-chat-input__button--send {
+            background: var(--webops-color-primary);
+            color: var(--webops-color-bg-primary);
+        }
+
+        .webops-chat-input__button--send:hover:not(:disabled) {
+            background: var(--webops-color-primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--webops-shadow-md);
+        }
+
+        .webops-chat-input__button--send:disabled {
+            background: var(--webops-color-primary-alpha-20);
+            color: var(--webops-color-text-tertiary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .webops-chat-input__button--attach {
+            background: var(--webops-color-surface);
+            color: var(--webops-color-text-secondary);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+        }
+
+        .webops-chat-input__button--attach:hover {
+            background: var(--webops-color-surface-hover);
+            color: var(--webops-color-primary);
+        }
+
+        /* Quick Actions */
+        .webops-chat-quick-actions {
+            display: flex;
+            gap: var(--webops-space-2);
+            margin-bottom: var(--webops-space-3);
+            flex-wrap: wrap;
+        }
+
+        .webops-chat-quick-action {
+            padding: var(--webops-space-1-5) var(--webops-space-3);
+            background: var(--webops-color-primary-alpha-05);
+            border: 1px solid var(--webops-color-primary-alpha-10);
+            border-radius: var(--webops-radius-md);
+            color: var(--webops-color-primary);
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--webops-font-weight-medium);
+            cursor: pointer;
+            transition: all var(--webops-transition-fast);
+            white-space: nowrap;
+        }
+
+        .webops-chat-quick-action:hover {
+            background: var(--webops-color-primary-alpha-10);
+            border-color: var(--webops-color-primary-alpha-20);
+            transform: translateY(-1px);
+        }
+
+        /* Chat Sidebar (Collapsible) */
+        .webops-chat-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100vh;
+            background: var(--webops-color-bg-elevated);
+            border-left: 1px solid var(--webops-color-primary-alpha-10);
+            transform: translateX(100%);
+            transition: transform var(--webops-transition-base);
+            z-index: var(--webops-z-modal);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .webops-chat-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .webops-chat-sidebar__header {
+            padding: var(--webops-space-3);
+            border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .webops-chat-sidebar__title {
+            font-size: var(--webops-font-size-lg);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-chat-sidebar__content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--webops-space-3);
+        }
+
+        .webops-chat-sidebar__section {
+            margin-bottom: var(--webops-space-4);
+        }
+
+        .webops-chat-sidebar__section-title {
+            font-size: var(--webops-font-size-sm);
+            font-weight: var(--webops-font-weight-semibold);
+            color: var(--webops-color-text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--webops-space-2);
+        }
+
+        .webops-chat-sidebar__item {
+            padding: var(--webops-space-2);
+            border-radius: var(--webops-radius-md);
+            color: var(--webops-color-text-secondary);
+            font-size: var(--webops-font-size-sm);
+            cursor: pointer;
+            transition: background var(--webops-transition-fast);
+            margin-bottom: var(--webops-space-1);
+        }
+
+        .webops-chat-sidebar__item:hover {
+            background: var(--webops-color-primary-alpha-05);
+            color: var(--webops-color-text-primary);
+        }
+
+        .webops-chat-sidebar__item.active {
+            background: var(--webops-color-primary-alpha-10);
+            color: var(--webops-color-primary);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .webops-chat-container {
+                height: 100vh;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: var(--webops-z-modal);
+            }
+
+            .webops-chat-header {
+                padding: var(--webops-space-2);
+            }
+
+            .webops-chat-header__title {
+                font-size: var(--webops-font-size-base);
+            }
+
+            .webops-chat-messages {
+                padding: var(--webops-space-2);
+            }
+
+            .webops-chat-message__wrapper {
+                max-width: 95%;
+            }
+
+            .webops-chat-input {
+                padding: var(--webops-space-2);
+            }
+
+            .webops-chat-sidebar {
+                width: 280px;
+            }
+
+            .webops-chat-quick-actions {
+                gap: var(--webops-space-1);
+            }
+
+            .webops-chat-quick-action {
+                padding: var(--webops-space-1) var(--webops-space-2);
+                font-size: var(--webops-font-size-xs);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .webops-chat-header__title {
+                gap: var(--webops-space-1);
+                font-size: var(--webops-font-size-sm);
+            }
+
+            .webops-chat-message__avatar {
+                width: 32px;
+                height: 32px;
+                font-size: var(--webops-font-size-base);
+            }
+
+            .webops-chat-message__content {
+                padding: var(--webops-space-2);
+            }
+
+            .webops-chat-input__textarea {
+                font-size: var(--webops-font-size-sm);
+            }
+
+            .webops-chat-input__button {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Scrollbar Styling for Chat */
+        .webops-chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .webops-chat-messages::-webkit-scrollbar-track {
+            background: var(--webops-color-primary-alpha-05);
+            border-radius: var(--webops-radius-sm);
+        }
+
+        .webops-chat-messages::-webkit-scrollbar-thumb {
+            background: var(--webops-color-primary-alpha-20);
+            border-radius: var(--webops-radius-sm);
+        }
+
+        .webops-chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--webops-color-primary-alpha-35);
+        }
+    </style>
+</head>
+<body>
+    <div class="webops-chat-container" id="chatContainer">
+        <!-- Chat Header -->
+        <div class="webops-chat-header">
+            <div class="webops-chat-header__title">
+                <span class="material-icons webops-icon">smart_toy</span>
+                <span>WebOps AI Assistant</span>
+            </div>
+            <div class="webops-chat-header__status">
+                <div class="webops-chat-status-indicator" id="statusIndicator"></div>
+                <span id="connectionStatus">Connected</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="webops-chat-quick-actions" id="quickActions">
+            <button class="webops-chat-quick-action" data-action="deploy-app">
+                🚀 Deploy Application
+            </button>
+            <button class="webops-chat-quick-action" data-action="check-health">
+                📊 Check System Health
+            </button>
+            <button class="webops-chat-quick-action" data-action="list-deployments">
+                📋 List Deployments
+            </button>
+            <button class="webops-chat-quick-action" data-action="security-audit">
+                🔒 Security Audit
+            </button>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="webops-chat-messages" id="chatMessages">
+            <!-- Welcome Message -->
+            <div class="webops-chat-message webops-chat-message--system">
+                <div class="webops-chat-message__wrapper">
+                    <div class="webops-chat-message__avatar">
+                        <span class="material-icons">info</span>
+                    </div>
+                    <div class="webops-chat-message__content">
+                        <div class="webops-chat-message__header">
+                            <span class="webops-chat-message__sender">WebOps AI Assistant</span>
+                            <span class="webops-chat-message__timestamp" id="welcomeTimestamp"></span>
+                        </div>
+                        <div class="webops-chat-message__text">
+                            Welcome to WebOps! I'm your AI assistant and I'm here to help you manage your deployments, 
+                            monitor system health, perform security audits, and troubleshoot issues. 
+
+                            You can ask me to:
+                            • Deploy new applications
+                            • Check system status and health
+                            • View deployment logs
+                            • Perform security audits
+                            • Manage databases and services
+                            • And much more!
+
+                            What would you like to do today?
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="webops-chat-typing" id="typingIndicator" style="display: none;">
+            <div class="webops-chat-message__avatar">
+                <span class="material-icons">smart_toy</span>
+            </div>
+            <div class="webops-chat-message__content">
+                <div class="webops-chat-message__text" style="display: flex; align-items: center; gap: var(--webops-space-2);">
+                    <span>AI Assistant is typing</span>
+                    <div class="webops-chat-typing__dots">
+                        <div class="webops-chat-typing__dot"></div>
+                        <div class="webops-chat-typing__dot"></div>
+                        <div class="webops-chat-typing__dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="webops-chat-input">
+            <div class="webops-chat-input__container">
+                <textarea 
+                    class="webops-chat-input__textarea" 
+                    id="chatInput" 
+                    placeholder="Ask me anything about your deployments, system health, or WebOps management..."
+                    rows="1"
+                    aria-label="Chat message input"
+                ></textarea>
+                <div class="webops-chat-input__actions">
+                    <button 
+                        class="webops-chat-input__button webops-chat-input__button--attach" 
+                        id="attachButton"
+                        title="Attach files"
+                        aria-label="Attach files"
+                    >
+                        <span class="material-icons">attach_file</span>
+                    </button>
+                    <button 
+                        class="webops-chat-input__button webops-chat-input__button--send" 
+                        id="sendButton"
+                        title="Send message"
+                        aria-label="Send message"
+                        disabled
+                    >
+                        <span class="material-icons">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Sidebar -->
+    <div class="webops-chat-sidebar" id="chatSidebar">
+        <div class="webops-chat-sidebar__header">
+            <h3 class="webops-chat-sidebar__title">Chat History</h3>
+            <button class="webops-chat-input__button" id="sidebarClose" style="width: auto; padding: var(--webops-space-1);">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="webops-chat-sidebar__content">
+            <div class="webops-chat-sidebar__section">
+                <h4 class="webops-chat-sidebar__section-title">Recent Chats</h4>
+                <div id="chatHistoryList">
+                    <!-- Chat history items will be populated here -->
+                </div>
+            </div>
+            <div class="webops-chat-sidebar__section">
+                <h4 class="webops-chat-sidebar__section-title">Saved Actions</h4>
+                <div id="savedActionsList">
+                    <!-- Saved actions will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Set welcome timestamp
+        document.getElementById('welcomeTimestamp').textContent = new Date().toLocaleTimeString();
+    </script>
+</body>
+</html>
