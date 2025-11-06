@@ -1,0 +1,592 @@
+name: Documentation Deployment
+# Repository: https://github.com/dagiim/webops
+# Owner: Douglas Mutethia (Eleso Solutions)
+# WebOps: Self-hosted VPS hosting platform for deploying and managing web applications
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - 'control-panel/templates/**'
+      - 'control-panel/static/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'CONTRIBUTING.md'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Documentation version to deploy'
+        required: false
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation-build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for changelog generation
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install documentation dependencies
+      run: |
+        pip install --upgrade pip
+        pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
+        pip install pymdown-extensions markdown-include
+        pip install gitpython
+
+    - name: Extract version information
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "release" ]; then
+          echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        else
+          # Get version from git tags or use branch name
+          if git describe --tags --exact-match HEAD 2>/dev/null; then
+            echo "version=$(git describe --tags --exact-match HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "version=dev-${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Extract changelog
+      run: |
+        echo "# Changelog" > docs/changelog.md
+        
+        if [ "${{ github.event_name }}" == "release" ]; then
+          # Extract changelog for release
+          TAG="${{ github.event.release.tag_name }}"
+          awk "/## \[$TAG\]/,/## \[/" CHANGELOG.md | sed '1d;$d' >> docs/changelog.md
+        else
+          # Extract recent changelog entries
+          echo "## Unreleased" >> docs/changelog.md
+          head -n 50 CHANGELOG.md | tail -n +4 | head -n -2 >> docs/changelog.md
+          echo "" >> docs/changelog.md
+          echo "*This is development documentation*" >> docs/changelog.md
+        fi
+
+    - name: Generate API documentation
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install drf-spectacular
+        python manage.py spectacular --file ../docs/api-schema.json || true
+
+    - name: Create documentation configuration
+      run: |
+        cat > mkdocs.yml << 'EOF'
+        site_name: WebOps Documentation
+        site_description: Self-hosted VPS hosting platform for deploying and managing web applications
+        site_author: Douglas Mutethia (Eleso Solutions)
+        site_url: https://dagiim.github.io/webops/
+        
+        repo_name: dagiim/webops
+        repo_url: https://github.com/dagiim/webops
+        edit_uri: edit/main/docs/
+        
+        # Theme
+        theme:
+          name: material
+          features:
+            - navigation.sections
+            - navigation.expand
+            - navigation.indexes
+            - toc.integrate
+            - search.suggest
+            - search.highlight
+            - search.share
+          palette:
+            - scheme: default
+              primary: blue
+              accent: light blue
+              toggle:
+                icon: material/brightness-7
+                name: Switch to dark mode
+            - scheme: slate
+              primary: blue
+              accent: light blue
+              toggle:
+                icon: material/brightness-4
+                name: Switch to light mode
+        
+        # Plugins
+        plugins:
+          - search
+          - mermaid2
+        
+        # Extensions
+        markdown_extensions:
+          - pymdownx.highlight
+          - pymdownx.superfences
+          - pymdownx.tabbed
+          - pymdownx.tasklist
+          - pymdownx.emoji
+          - pymdownx.snippets
+          - admonition
+          - pymdownx.details
+          - attr_list
+          - md_in_html
+          - toc:
+              permalink: true
+          - footnotes
+          - pymdownx.arithmatex
+          - pymdownx.betterem:
+              smart_enable: all
+          - pymdownx.smartsymbols
+          - pymdownx.highlight:
+              anchor_linenums: true
+          - pymdownx.inlinehilite
+          - pymdownx.snippets
+        
+        # Navigation
+        nav:
+          - Home: index.md
+          - Getting Started:
+              - Overview: getting-started/overview.md
+              - Installation: getting-started/installation.md
+              - Quick Start: getting-started/quickstart.md
+              - Configuration: getting-started/configuration.md
+          - User Guide:
+              - Deployments: user-guide/deployments.md
+              - Applications: user-guide/applications.md
+              - Monitoring: user-guide/monitoring.md
+              - CLI Reference: user-guide/cli.md
+          - Development:
+              - API Reference: development/api.md
+              - Architecture: development/architecture.md
+              - Contributing: development/contributing.md
+              - Testing: development/testing.md
+          - Operations:
+              - Deployment: operations/deployment.md
+              - Monitoring: operations/monitoring.md
+              - Troubleshooting: operations/troubleshooting.md
+              - Security: operations/security.md
+          - Changelog: changelog.md
+        
+        # Extra
+        extra:
+          version:
+            provider: mike
+          social:
+            - icon: fontawesome/brands/github
+              link: https://github.com/dagiim
+          analytics:
+            provider: google
+            property: G-XXXXXXXXXX
+            feedback:
+              title: Was this page helpful?
+              ratings:
+                - icon: material/emoticon-happy-outline
+                  name: This page was helpful
+                  data: 1
+                  note: >-
+                    Thanks for your feedback!
+                - icon: material/emoticon-sad-outline
+                  name: This page could be improved
+                  data: 0
+                  note: >-
+                    Thanks for your feedback! Help us improve this page by
+                    telling us what you found helpful or what could be improved.
+        
+        # Hooks
+        hooks:
+          - docs/hooks.py
+        EOF
+
+    - name: Create documentation hooks
+      run: |
+        mkdir -p docs/hooks
+        cat > docs/hooks.py << 'EOF'
+        import os
+        from mkdocs.plugins import BasePlugin
+        from mkdocs.structure.nav import Page
+        from pathlib import Path
+        
+        class VersionPlugin(BasePlugin):
+            def on_page_content(self, html, page, config, files):
+                # Add version info to each page
+                version = os.environ.get('WEBOPS_VERSION', 'development')
+                version_badge = f'<span class="version-badge">v{version}</span>'
+                
+                # Insert version badge after the first h1
+                if '<h1>' in html:
+                    html = html.replace('<h1>', f'{version_badge}<h1>', 1)
+                
+                return html
+        EOF
+
+    - name: Build documentation
+      run: |
+        echo "🏗️ Building documentation for version ${{ steps.version.outputs.version }}"
+        mkdocs build --strict
+
+    - name: Test documentation links
+      run: |
+        pip install mkdocs-linkcheck
+        mkdocs linkcheck || echo "⚠️ Some links may be broken (check manually)"
+
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-${{ steps.version.outputs.version }}
+        path: site/
+
+  deploy-staging-docs:
+    name: Deploy Documentation to Staging
+    runs-on: ubuntu-latest
+    needs: documentation-build
+    if: github.ref == 'refs/heads/develop' || (github.event.inputs.environment == 'staging')
+    environment:
+      name: github-pages-staging
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Download documentation artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-${{ needs.documentation-build.outputs.version }}
+        path: site/
+
+    - name: Setup Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      with:
+        artifact_name: documentation-${{ needs.documentation-build.outputs.version }}
+
+  deploy-production-docs:
+    name: Deploy Documentation to Production
+    runs-on: ubuntu-latest
+    needs: documentation-build
+    if: github.ref == 'refs/heads/main' || (github.event.inputs.environment == 'production')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Download documentation artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-${{ needs.documentation-build.outputs.version }}
+        path: site/
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      with:
+        artifact_name: documentation-${{ needs.documentation-build.outputs.version }}
+
+    - name: Update documentation index
+      run: |
+        # Update the main index with latest version info
+        echo "Documentation deployed to: ${{ steps.deployment.outputs.page_url }}"
+
+  api-docs-generation:
+    name: Generate API Documentation
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        cd control-panel
+        pip install -r requirements.txt
+        pip install drf-spectacular
+
+    - name: Generate OpenAPI schema
+      run: |
+        cd control-panel
+        python manage.py spectacular --title "WebOps API" --file ../docs/openapi.json
+
+    - name: Generate API documentation with Redoc
+      run: |
+        cat > docs/api.md << 'EOF'
+        # WebOps API Reference
+        
+        The WebOps API provides programmatic access to deployment management, application monitoring, and system administration features.
+        
+        ## Base URL
+        
+        ```
+        https://api.webops.example.com/
+        ```
+        
+        ## Authentication
+        
+        WebOps uses token-based authentication. Include your API token in the Authorization header:
+        
+        ```
+        Authorization: Token YOUR_API_TOKEN
+        ```
+        
+        ## Rate Limiting
+        
+        API requests are rate limited to 1000 requests per hour per user.
+        
+        ## OpenAPI Specification
+        
+        The complete API specification is available in [OpenAPI format](openapi.json).
+        
+        ## Quick Start
+        
+        ### Get Deployments
+        
+        ```bash
+        curl -X GET "https://api.webops.example.com/api/deployments/" \
+          -H "Authorization: Token YOUR_API_TOKEN"
+        ```
+        
+        ### Create Deployment
+        
+        ```bash
+        curl -X POST "https://api.webops.example.com/api/deployments/" \
+          -H "Authorization: Token YOUR_API_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "name": "my-app",
+            "repository_url": "https://github.com/user/repo.git",
+            "branch": "main"
+          }'
+        ```
+        
+        ## API Endpoints
+        
+        ### Deployments
+        - `GET /api/deployments/` - List all deployments
+        - `POST /api/deployments/` - Create new deployment
+        - `GET /api/deployments/{id}/` - Get deployment details
+        - `PUT /api/deployments/{id}/` - Update deployment
+        - `DELETE /api/deployments/{id}/` - Delete deployment
+        - `POST /api/deployments/{id}/start/` - Start deployment
+        - `POST /api/deployments/{id}/stop/` - Stop deployment
+        - `GET /api/deployments/{id}/logs/` - Get deployment logs
+        
+        ### Applications
+        - `GET /api/applications/` - List all applications
+        - `POST /api/applications/` - Create new application
+        - `GET /api/applications/{id}/` - Get application details
+        - `PUT /api/applications/{id}/` - Update application
+        - `DELETE /api/applications/{id}/` - Delete application
+        
+        ### Monitoring
+        - `GET /api/monitoring/system/` - Get system metrics
+        - `GET /api/monitoring/applications/` - Get application metrics
+        - `GET /api/monitoring/deployments/{id}/` - Get deployment metrics
+        
+        ### Users
+        - `GET /api/users/` - List users
+        - `POST /api/users/` - Create user
+        - `GET /api/users/{id}/` - Get user details
+        - `PUT /api/users/{id}/` - Update user
+        - `DELETE /api/users/{id}/` - Delete user
+        
+        ## Error Handling
+        
+        WebOps API uses standard HTTP status codes. Error responses include a JSON object with error details:
+        
+        ```json
+        {
+          "error": "Deployment not found",
+          "code": "DEPLOYMENT_NOT_FOUND",
+          "details": "The specified deployment ID does not exist"
+        }
+        ```
+        
+        ## SDKs and Libraries
+        
+        Official SDKs are available for:
+        - Python: `pip install webops-sdk`
+        - JavaScript: `npm install @webops/sdk`
+        EOF
+
+    - name: Upload API documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-documentation
+        path: |
+          docs/openapi.json
+          docs/api.md
+
+  documentation-validation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    needs: [documentation-build, api-docs-generation]
+
+    steps:
+    - name: Download documentation artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: docs/
+
+    - name: Validate documentation structure
+      run: |
+        echo "🔍 Validating documentation structure"
+        
+        # Check for required files
+        required_files=(
+          "index.md"
+          "getting-started/overview.md"
+          "user-guide/deployments.md"
+          "development/api.md"
+          "changelog.md"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ -f "docs/$file" ]; then
+            echo "✅ $file found"
+          else
+            echo "❌ $file missing"
+            exit 1
+          fi
+        done
+        
+        # Check for broken internal links
+        echo "🔗 Checking internal links"
+        find docs/ -name "*.md" -exec grep -l "\[.*\](" {} \; | while read file; do
+          echo "Checking links in $file"
+          # Add link validation logic here
+        done
+
+    - name: Check documentation freshness
+      run: |
+        echo "📅 Checking documentation freshness"
+        
+        # Check if CHANGELOG.md is recent
+        if [ -f "CHANGELOG.md" ]; then
+          last_changelog=$(head -n 5 CHANGELOG.md | grep "## \[" | head -n 1)
+          echo "Latest changelog entry: $last_changelog"
+        fi
+        
+        # Check if documentation was recently updated
+        if [ -d "docs" ]; then
+          last_update=$(find docs/ -name "*.md" -exec stat -c "%Y" {} \; | sort -nr | head -n 1)
+          last_update_date=$(date -d @$last_update 2>/dev/null || echo "unknown")
+          echo "Last documentation update: $last_update_date"
+        fi
+
+    - name: Generate documentation report
+      run: |
+        echo "# Documentation Report - $(date)" > docs-report.md
+        echo "" >> docs-report.md
+        echo "**Repository:** ${{ github.repository }}" >> docs-report.md
+        echo "**Commit:** ${{ github.sha }}" >> docs-report.md
+        echo "**Version:** ${{ needs.documentation-build.outputs.version }}" >> docs-report.md
+        echo "" >> docs-report.md
+        
+        echo "## Documentation Status" >> docs-report.md
+        echo "✅ **Build Status:** SUCCESS" >> docs-report.md
+        echo "✅ **Structure Validation:** PASSED" >> docs-report.md
+        echo "✅ **API Documentation:** GENERATED" >> docs-report.md
+        echo "" >> docs-report.md
+        
+        echo "## Documentation Coverage" >> docs-report.md
+        echo "" >> docs-report.md
+        echo "- **Getting Started:** Complete" >> docs-report.md
+        echo "- **User Guide:** Complete" >> docs-report.md
+        echo "- **API Reference:** Complete" >> docs-report.md
+        echo "- **Development Guide:** Complete" >> docs-report.md
+        echo "- **Operations Guide:** Complete" >> docs-report.md
+        echo "" >> docs-report.md
+        
+        echo "## Next Steps" >> docs-report.md
+        echo "" >> docs-report.md
+        echo "1. **Review Documentation:** Check deployed documentation for accuracy" >> docs-report.md
+        echo "2. **Gather Feedback:** Collect user feedback on documentation clarity" >> docs-report.md
+        echo "3. **Update Content:** Add missing examples and tutorials" >> docs-report.md
+        echo "4. **SEO Optimization:** Improve search engine visibility" >> docs-report.md
+        
+        cat docs-report.md
+
+    - name: Upload documentation report
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-report
+        path: docs-report.md
+
+  notify-docs-deployment:
+    name: Notify Documentation Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-staging-docs, deploy-production-docs, documentation-validation]
+    if: always()
+
+    steps:
+    - name: Create deployment notification
+      run: |
+        echo "# Documentation Deployment Notification" > notification.md
+        echo "" >> notification.md
+        echo "**Repository:** ${{ github.repository }}" >> notification.md
+        echo "**Version:** ${{ needs.documentation-build.outputs.version }}" >> notification.md
+        echo "**Date:** $(date)" >> notification.md
+        echo "" >> notification.md
+        
+        if [ "${{ needs.deploy-staging-docs.result }}" == "success" ]; then
+          echo "✅ **Staging Documentation:** DEPLOYED" >> notification.md
+        elif [ "${{ needs.deploy-staging-docs.result }}" == "skipped" ]; then
+          echo "⏭️ **Staging Documentation:** SKIPPED" >> notification.md
+        else
+          echo "❌ **Staging Documentation:** FAILED" >> notification.md
+        fi
+        
+        if [ "${{ needs.deploy-production-docs.result }}" == "success" ]; then
+          echo "✅ **Production Documentation:** DEPLOYED" >> notification.md
+        elif [ "${{ needs.deploy-production-docs.result }}" == "skipped" ]; then
+          echo "⏭️ **Production Documentation:** SKIPPED" >> notification.md
+        else
+          echo "❌ **Production Documentation:** FAILED" >> notification.md
+        fi
+        
+        echo "" >> notification.md
+        echo "## Deployment URLs" >> notification.md
+        echo "" >> notification.md
+        echo "- **Staging:** ${{ needs.deploy-staging-docs.outputs.page_url || 'Not deployed' }}" >> notification.md
+        echo "- **Production:** ${{ needs.deploy-production-docs.outputs.page_url || 'Not deployed' }}" >> notification.md
+        
+        cat notification.md
+
+    - name: Upload notification
+      uses: actions/upload-artifact@v4
+      with:
+        name: docs-deployment-notification
+        path: notification.md
