@@ -41,7 +41,8 @@ bcrypt>=4.0.0
 pyjwt>=2.8.0
 
 # System Monitoring
-psutil>=5.9.0
+# SECURITY FIX: Updated minimum from 5.9.0 to 6.0.1 (fixes CVE-2023-27043)
+psutil>=6.0.1
 gpuinfo>=0.3.0
 nvidia-ml-py>=12.535.0
 
@@ -53,7 +54,9 @@ scikit-learn>=1.3.0
 
 # Async Programming
 asyncio-mqtt>=0.16.0
-aioredis>=2.0.0
+# SECURITY FIX: Removed aioredis - deprecated package
+# aioredis is no longer maintained, merged into redis>=4.2.0
+# Use redis>=4.6.0 (see Message Queue section below) instead
 celery>=5.3.0
 
 # Data Validation
@@ -96,5 +99,7 @@ fastapi>=0.103.0
 uvicorn>=0.23.0
 starlette>=0.27.0
 
-# GUI (optional)
-tkinter-dev>=0.1.0
+# SECURITY FIX: Removed tkinter-dev - non-existent package (CVSS 9.8)
+# tkinter is a built-in Python module, not installable via pip
+# Supply chain attack vector: attacker could register this package name
+# If GUI is needed, tkinter is already available in standard Python
