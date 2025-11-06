@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 
 from .models import APIToken
+from apps.core.security.decorators import api_require_ownership
+from apps.deployments.models import ApplicationDeployment
 
 
 def api_status(request):
@@ -213,17 +215,18 @@ def deployment_env_unset(request, name):
 # File Editor API Views
 @login_required
 @require_http_methods(["GET"])
+@api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_files_tree(request, deployment_id):
     """
     Get the file tree structure for a deployment.
-    
+
     GET /api/deployments/{deployment_id}/files/tree/?path=/optional/subpath
     """
     try:
-        from apps.deployments.models import ApplicationDeployment
         from apps.deployments.services import DeploymentService
-        
-        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+
+        # SECURITY FIX: Ownership verified by decorator
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -279,17 +282,18 @@ def deployment_files_tree(request, deployment_id):
 
 @login_required
 @require_http_methods(["GET"])
+@api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_file_read(request, deployment_id):
     """
     Read the contents of a file in a deployment.
-    
+
     GET /api/deployments/{deployment_id}/files/read/?path=/path/to/file
     """
     try:
-        from apps.deployments.models import ApplicationDeployment
         from apps.deployments.services import DeploymentService
-        
-        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+
+        # SECURITY FIX: Ownership verified by decorator
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -339,10 +343,11 @@ def deployment_file_read(request, deployment_id):
 
 @login_required
 @require_http_methods(["POST"])
+@api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_file_write(request, deployment_id):
     """
     Write content to a file in a deployment.
-    
+
     POST /api/deployments/{deployment_id}/files/write/
     Body: {
         "path": "/path/to/file",
@@ -351,10 +356,10 @@ def deployment_file_write(request, deployment_id):
     }
     """
     try:
-        from apps.deployments.models import ApplicationDeployment
         from apps.deployments.services import DeploymentService
-        
-        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+
+        # SECURITY FIX: Ownership verified by decorator
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -410,13 +415,15 @@ def deployment_file_write(request, deployment_id):
 def database_list(request):
     """
     List all databases.
-    
+
     GET /api/databases/
     """
     try:
         from apps.databases.models import Database
-        
-        databases = Database.objects.all()
+
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        # Only show databases owned by the current user (through deployment)
+        databases = Database.objects.filter(deployment__deployed_by=request.user)
         db_list = []
         
         for db in databases:
@@ -459,17 +466,19 @@ def database_list(request):
 def database_detail(request, name):
     """
     Get details of a specific database.
-    
+
     GET /api/databases/{name}/
     """
     try:
         from apps.databases.models import Database
         from apps.core.utils import decrypt_password
         from django.conf import settings
-        
+
+        # SECURITY FIX: Filter by user ownership to prevent IDOR vulnerability
         try:
-            database = Database.objects.get(name=name)
+            database = Database.objects.get(name=name, deployment__deployed_by=request.user)
         except Database.DoesNotExist:
+            # Return generic error (don't reveal if database exists for security)
             return JsonResponse({'error': f'Database {name} not found'}, status=404)
         
         db_data = {
