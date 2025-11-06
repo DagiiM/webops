@@ -563,6 +563,7 @@ update_system_packages() {
                 python3
                 python3-pip
                 python3-venv
+                redis-server
             )
             ;;
         rocky|almalinux)
@@ -576,6 +577,7 @@ update_system_packages() {
                 make
                 autoconf
                 automake
+                redis
             )
             ;;
     esac
@@ -586,6 +588,65 @@ update_system_packages() {
     done
     
     log_success "System packages updated ✓"
+}
+
+#=============================================================================
+# Redis Configuration
+#=============================================================================
+
+configure_redis() {
+    log_step "Configuring Redis..."
+
+    # Ensure Redis is installed
+    if ! command -v redis-server &>/dev/null; then
+        log_warn "Redis not installed, skipping configuration"
+        return 0
+    fi
+
+    # Configure Redis for production use
+    local redis_conf=""
+    case "$OS_ID" in
+        ubuntu|debian)
+            redis_conf="/etc/redis/redis.conf"
+            ;;
+        rocky|almalinux)
+            redis_conf="/etc/redis.conf"
+            ;;
+    esac
+
+    if [[ -f "$redis_conf" ]]; then
+        # Backup original configuration
+        if [[ ! -f "$redis_conf.webops-backup" ]]; then
+            cp "$redis_conf" "$redis_conf.webops-backup"
+            log_info "Created Redis config backup"
+        fi
+
+        # Apply production settings
+        sed -i 's/^bind .*/bind 127.0.0.1/' "$redis_conf"
+        sed -i 's/^# maxmemory .*/maxmemory 256mb/' "$redis_conf"
+        sed -i 's/^# maxmemory-policy .*/maxmemory-policy allkeys-lru/' "$redis_conf"
+
+        log_info "Redis configured for localhost-only access with memory limits"
+    fi
+
+    # Enable and start Redis
+    case "$OS_ID" in
+        ubuntu|debian)
+            service_enable redis-server
+            service_start redis-server
+            ;;
+        rocky|almalinux)
+            service_enable redis
+            service_start redis
+            ;;
+    esac
+
+    # Verify Redis is running
+    if redis-cli ping &>/dev/null; then
+        log_success "Redis configured and running ✓"
+    else
+        log_warn "Redis may not be responding to PING"
+    fi
 }
 
 #=============================================================================
@@ -694,7 +755,10 @@ install_base_system() {
     
     # Update system packages
     update_system_packages
-    
+
+    # Configure Redis
+    configure_redis
+
     # Setup system user and security
     setup_webops_user
     configure_ssh_hardening
