@@ -39,6 +39,13 @@ class Command(BaseCommand):
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             # Create a default admin user if not found
+            import secrets
+            import string
+
+            # SECURITY FIX: Generate random password instead of hardcoded admin123
+            alphabet = string.ascii_letters + string.digits + string.punctuation
+            random_password = ''.join(secrets.choice(alphabet) for _ in range(20))
+
             user, created = User.objects.get_or_create(
                 username='admin',
                 defaults={
@@ -50,10 +57,19 @@ class Command(BaseCommand):
                 }
             )
             if created:
-                user.set_password('admin123')
+                user.set_password(random_password)
                 user.save()
                 self.stdout.write(
-                    self.style.SUCCESS('Created default admin user with password: admin123')
+                    self.style.SUCCESS(f'Created default admin user:')
+                )
+                self.stdout.write(
+                    self.style.SUCCESS(f'  Username: admin')
+                )
+                self.stdout.write(
+                    self.style.SUCCESS(f'  Password: {random_password}')
+                )
+                self.stdout.write(
+                    self.style.WARNING('⚠  Save this password! It will not be shown again.')
                 )
         
         # Create the workflow

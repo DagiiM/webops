@@ -16,32 +16,53 @@ from .webhooks.models import Webhook, WebhookDelivery
 from .notifications.models import NotificationChannel, NotificationLog
 from .common.models import SystemHealthCheck, SSLCertificate
 
+# Enterprise models
+from .enterprise.models import (
+    Organization, Team, Role, OrganizationMember, TeamMember,
+    Permission, RolePermission, ResourcePermission
+)
+from .enterprise.audit import AuditLog
+from .enterprise.sso import SSOProvider, SSOSession
+
 # Export all models for backward compatibility
 __all__ = [
     # Branding
     'BrandingSettings',
-    
+
     # Security
     'SecurityAuditLog',
-    
+
     # Authentication
     'TwoFactorAuth',
     'UserPreferences',
-    
+
     # Integrations
     'GitHubConnection',
     'HuggingFaceConnection',
     'GoogleConnection',
-    
+
     # Webhooks
     'Webhook',
     'WebhookDelivery',
-    
+
     # Notifications
     'NotificationChannel',
     'NotificationLog',
-    
+
     # Common models
     'SystemHealthCheck',
     'SSLCertificate',
+
+    # Enterprise
+    'Organization',
+    'Team',
+    'Role',
+    'OrganizationMember',
+    'TeamMember',
+    'Permission',
+    'RolePermission',
+    'ResourcePermission',
+    'AuditLog',
+    'SSOProvider',
+    'SSOSession',
 ]

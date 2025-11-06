@@ -38,7 +38,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: webops-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    # SECURITY FIX: Removed default password. Set REDIS_PASSWORD environment variable.
+    # Generate with: openssl rand -base64 32
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD environment variable is required}
     volumes:
       - redis_data:/data
     networks:
@@ -175,7 +177,9 @@ services:
     image: grafana/grafana:latest
     container_name: webops-grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      # SECURITY FIX: Removed default password. Set GRAFANA_PASSWORD environment variable.
+      # Generate with: openssl rand -base64 32
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD environment variable is required}
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards

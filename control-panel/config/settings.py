@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
     # WebOps apps
     'apps.core',
+    'apps.core.enterprise',
     'apps.deployments',
     'apps.databases',
     'apps.services',
