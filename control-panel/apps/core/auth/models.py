@@ -10,6 +10,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from apps.core.common.models import BaseModel
+from apps.core.security.encryption import encrypt_field, decrypt_field, is_encrypted
 
 
 class TwoFactorAuth(BaseModel):
@@ -23,6 +24,8 @@ class TwoFactorAuth(BaseModel):
 
     Uses TOTP (Time-based One-Time Password) - compatible with
     Google Authenticator, Authy, Microsoft Authenticator, etc.
+
+    SECURITY: The TOTP secret is encrypted at rest using Fernet symmetric encryption.
     """
 
     user = models.OneToOneField(
@@ -30,7 +33,14 @@ class TwoFactorAuth(BaseModel):
         on_delete=models.CASCADE,
         related_name='two_factor'
     )
-    secret = models.CharField(max_length=32, unique=True)
+    # SECURITY FIX: Store encrypted TOTP secret
+    # Note: Field is longer to accommodate encrypted data (Fernet tokens are ~140 bytes)
+    _secret_encrypted = models.CharField(
+        max_length=256,
+        unique=True,
+        db_column='secret',
+        help_text='Encrypted TOTP secret'
+    )
     is_enabled = models.BooleanField(default=False)
     backup_codes = models.JSONField(default=list)
     last_used = models.DateTimeField(null=True, blank=True)
@@ -43,6 +53,46 @@ class TwoFactorAuth(BaseModel):
     def __str__(self) -> str:
         status = "enabled" if self.is_enabled else "disabled"
         return f"{self.user.username} - 2FA {status}"
+
+    @property
+    def secret(self) -> str:
+        """
+        Get decrypted TOTP secret.
+
+        Returns:
+            Decrypted secret string
+
+        Raises:
+            ValueError: If encryption key is not configured
+        """
+        if not self._secret_encrypted:
+            return ''
+
+        # Check if already encrypted - if not, it's legacy unencrypted data
+        if not is_encrypted(self._secret_encrypted):
+            # Legacy unencrypted secret - return as-is and log warning
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"TwoFactorAuth {self.id} has unencrypted secret. "
+                "Run data migration to encrypt."
+            )
+            return self._secret_encrypted
+
+        return decrypt_field(self._secret_encrypted)
+
+    @secret.setter
+    def secret(self, value: str) -> None:
+        """
+        Set TOTP secret with automatic encryption.
+
+        Args:
+            value: Plain text TOTP secret
+        """
+        if value:
+            self._secret_encrypted = encrypt_field(value)
+        else:
+            self._secret_encrypted = ''
 
 
 class UserPreferences(BaseModel):

@@ -22,6 +22,7 @@ from ..models import ApplicationDeployment, DeploymentLog
 from apps.services.background import get_background_processor
 from apps.core.managers.env_manager import EnvManager
 from ..shared.validators import validate_project
+from apps.core.security.decorators import api_require_ownership
 
 
 @login_required
@@ -43,7 +44,8 @@ def list_deployments(request) -> JsonResponse:
     per_page = int(request.GET.get('per_page', 20))
     status_filter = request.GET.get('status')
 
-    queryset = ApplicationDeployment.objects.all()
+    # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+    queryset = ApplicationDeployment.objects.filter(deployed_by=request.user)
 
     if status_filter:
         queryset = queryset.filter(status=status_filter)
@@ -83,7 +85,8 @@ def list_deployments(request) -> JsonResponse:
 def get_deployment(request, name: str) -> JsonResponse:
     """Get deployment details by name."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         return JsonResponse({
             'id': deployment.id,
@@ -125,13 +128,15 @@ def create_deployment(request) -> JsonResponse:
             )
 
         # Create deployment
+        # SECURITY FIX: Set deployed_by to current user
         deployment = ApplicationDeployment.objects.create(
             name=data['name'],
             repo_url=data['repo_url'],
             branch=data.get('branch', 'main'),
             domain=data.get('domain', ''),
             env_vars=data.get('env_vars', {}),
-            status=ApplicationDeployment.Status.PENDING
+            status=ApplicationDeployment.Status.PENDING,
+            deployed_by=request.user
         )
 
         # Ensure Celery worker is running (non-interactive)
@@ -160,7 +165,8 @@ def create_deployment(request) -> JsonResponse:
 def get_deployment_logs(request, name: str) -> JsonResponse:
     """Get deployment logs."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         tail = request.GET.get('tail')
         queryset = DeploymentLog.objects.filter(deployment=deployment)
@@ -189,7 +195,8 @@ def get_deployment_logs(request, name: str) -> JsonResponse:
 def start_deployment_api(request, name: str) -> JsonResponse:
     """Start a deployment."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Update status
         deployment.status = ApplicationDeployment.Status.RUNNING
@@ -209,7 +216,8 @@ def start_deployment_api(request, name: str) -> JsonResponse:
 def stop_deployment_api(request, name: str) -> JsonResponse:
     """Stop a deployment."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Ensure Celery worker is running (non-interactive)
         from ..shared import ServiceManager
@@ -233,7 +241,8 @@ def stop_deployment_api(request, name: str) -> JsonResponse:
 def restart_deployment_api(request, name: str) -> JsonResponse:
     """Restart a deployment."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Ensure Celery worker is running (non-interactive)
         from ..shared import ServiceManager
@@ -257,7 +266,8 @@ def restart_deployment_api(request, name: str) -> JsonResponse:
 def delete_deployment_api(request, name: str) -> JsonResponse:
     """Delete a deployment."""
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Ensure Celery worker is running (non-interactive)
         from ..shared import ServiceManager
@@ -290,7 +300,8 @@ def generate_env_api(request, name: str) -> JsonResponse:
     }
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Parse request body
         try:
@@ -364,7 +375,8 @@ def validate_project_api(request, name: str) -> JsonResponse:
     GET /api/deployments/{name}/project/validate/
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Get repo path
         from ..services import DeploymentService
@@ -408,7 +420,8 @@ def validate_env_api(request, name: str) -> JsonResponse:
     GET /api/deployments/{name}/env/validate/
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Get deployment path
         from ..services import DeploymentService
@@ -444,7 +457,8 @@ def get_env_vars_api(request, name: str) -> JsonResponse:
     GET /api/deployments/{name}/env/
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Get deployment path
         from ..services import DeploymentService
@@ -489,7 +503,8 @@ def set_env_var_api(request, name: str) -> JsonResponse:
     Body: {"key": "DEBUG", "value": "False"}
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Parse request body
         try:
@@ -566,7 +581,8 @@ def unset_env_var_api(request, name: str) -> JsonResponse:
     Body: {"key": "DEBUG"}
     """
     try:
-        deployment = ApplicationDeployment.objects.get(name=name)
+        # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
 
         # Parse request body
         try:

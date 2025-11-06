@@ -245,18 +245,23 @@ class BackupManager:
         compress: bool = True
     ) -> Path:
         """Export VM disk to backup directory."""
-        import subprocess
+        import shutil
+        import gzip
 
         disk_name = Path(source_disk).name
-        if compress:
-            output_file = backup_dir / f"{disk_name}.gz"
-            cmd = f"gzip -c {source_disk} > {output_file}"
-        else:
-            output_file = backup_dir / disk_name
-            cmd = f"cp {source_disk} {output_file}"
+        output_file = backup_dir / (f"{disk_name}.gz" if compress else disk_name)
 
         logger.info(f"Exporting disk to {output_file}")
-        subprocess.run(cmd, shell=True, check=True)
+
+        # SECURITY FIX: Use Python libraries instead of shell=True
+        if compress:
+            # Use gzip module instead of shell command
+            with open(source_disk, 'rb') as f_in:
+                with gzip.open(output_file, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+        else:
+            # Use shutil.copy2 instead of shell command
+            shutil.copy2(source_disk, output_file)
 
         return output_file
 

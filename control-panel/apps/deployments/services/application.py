@@ -23,6 +23,7 @@ from jinja2 import Environment, FileSystemLoader
 import logging
 
 from apps.core.utils import generate_port, validate_repo_url, generate_secret_key
+from apps.core.security.command_execution import safe_run_install_command, safe_run_build_command
 from ..models import BaseDeployment, ApplicationDeployment, DeploymentLog
 from ..shared.validators import validate_project
 
@@ -1444,33 +1445,25 @@ LOG_DIR={logs_dir}
         repo_path = self.get_repo_path(deployment)
         self.log(deployment, f"Installing dependencies: {deployment.install_command}")
 
-        try:
-            result = subprocess.run(
-                deployment.install_command,
-                shell=True,
-                check=True,
-                capture_output=True,
-                text=True,
-                cwd=str(repo_path),
-                timeout=600  # 10 minute timeout
-            )
+        # SECURITY FIX: Use safe_run_install_command instead of shell=True
+        # This prevents command injection vulnerabilities
+        success, message = safe_run_install_command(
+            deployment.install_command,
+            cwd=repo_path,
+            timeout=600  # 10 minute timeout
+        )
+
+        if success:
             self.log(
                 deployment,
-                "Dependencies installed successfully",
+                message,
                 DeploymentLog.Level.SUCCESS
             )
             return True
-        except subprocess.TimeoutExpired:
+        else:
             self.log(
                 deployment,
-                "Dependency installation timed out after 10 minutes",
-                DeploymentLog.Level.ERROR
-            )
-            return False
-        except subprocess.CalledProcessError as e:
-            self.log(
-                deployment,
-                f"Failed to install dependencies: {e.stderr}",
+                f"Failed to install dependencies: {message}",
                 DeploymentLog.Level.ERROR
             )
             return False
@@ -1491,33 +1484,25 @@ LOG_DIR={logs_dir}
         repo_path = self.get_repo_path(deployment)
         self.log(deployment, f"Building project: {deployment.build_command}")
 
-        try:
-            result = subprocess.run(
-                deployment.build_command,
-                shell=True,
-                check=True,
-                capture_output=True,
-                text=True,
-                cwd=str(repo_path),
-                timeout=900  # 15 minute timeout for builds
-            )
+        # SECURITY FIX: Use safe_run_build_command instead of shell=True
+        # This prevents command injection vulnerabilities
+        success, message = safe_run_build_command(
+            deployment.build_command,
+            cwd=repo_path,
+            timeout=900  # 15 minute timeout for builds
+        )
+
+        if success:
             self.log(
                 deployment,
-                "Project built successfully",
+                message,
                 DeploymentLog.Level.SUCCESS
             )
             return True
-        except subprocess.TimeoutExpired:
+        else:
             self.log(
                 deployment,
-                "Build timed out after 15 minutes",
-                DeploymentLog.Level.ERROR
-            )
-            return False
-        except subprocess.CalledProcessError as e:
-            self.log(
-                deployment,
-                f"Build failed: {e.stderr}",
+                f"Build failed: {message}",
                 DeploymentLog.Level.ERROR
             )
             return False

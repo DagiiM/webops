@@ -35,8 +35,11 @@ logger = logging.getLogger(__name__)
 @login_required
 @database_read_rate_limit
 def database_list(request):
-    """List all databases."""
-    databases = Database.objects.all()
+    """List all databases for the current user."""
+    # SECURITY FIX: Filter by user to prevent IDOR vulnerability
+    # Only show databases owned by the current user (through deployment)
+    # Note: Standalone databases (no deployment) will need a user field in future
+    databases = Database.objects.filter(deployment__deployed_by=request.user)
 
     # Get statistics
     stats = {
@@ -56,7 +59,9 @@ def database_list(request):
 @database_rate_limit_by_database('read')
 def database_detail(request, pk):
     """Show database details and credentials."""
-    database = get_object_or_404(Database, pk=pk)
+    # SECURITY FIX: Verify ownership to prevent IDOR vulnerability
+    # Only allow access to databases owned by the current user
+    database = get_object_or_404(Database, pk=pk, deployment__deployed_by=request.user)
 
     # Decrypt password for display
     db_service = DatabaseService()
