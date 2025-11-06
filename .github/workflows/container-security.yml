@@ -181,7 +181,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.11'
         cache: 'pip'
 
     - name: Install dependencies
@@ -252,8 +252,8 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
-        head: HEAD
+        base: ${{ github.event.before }}
+        head: ${{ github.sha }}
         extra_args: --debug --only-verified
 
   license-scan:
@@ -267,7 +267,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.11'
 
     - name: Install license checker
       run: |
@@ -316,7 +316,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.11'
 
     - name: Install SBOM tools
       run: |
