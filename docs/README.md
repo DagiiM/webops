@@ -121,7 +121,7 @@ cd webops/control-panel
 ./quickstart.sh
 python manage.py runserver
 ```
-Access: http://localhost:8000 (admin/admin123)
+Access: http://localhost:8000 (credentials shown after quickstart.sh completes)
 
 ### For Production
 See [Installation Guide](getting-started/installation.md) for complete production setup with security hardening.
