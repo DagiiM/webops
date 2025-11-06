@@ -33,7 +33,7 @@ class SecurityLogger:
         """Initialize security logger.
         
         Args:
-            log_dir: Directory for security logs. Defaults to ~/.webops/logs
+            log_dir: Directory for security logs. Defaults to ~/provisioning/logs
         """
         if log_dir is None:
             log_dir = Path.home() / ".webops" / "logs"

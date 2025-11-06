@@ -2,7 +2,7 @@
 Agent Bridge - Connects automation workflows with the AI agent system.
 
 This module provides a bridge between the Django automation system and
-the independent AI agent system located in .webops/agents/.
+the independent AI agent system located in provisioning/agents/.
 """
 
 import logging
