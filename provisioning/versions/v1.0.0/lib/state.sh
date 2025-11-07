@@ -271,7 +271,7 @@ print_state() {
     # Print current installation state
     local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
     local STATE_FILE="${STATE_DIR}/installed.state"
-    
+
     init_state
 
     echo "WebOps Installation State"
@@ -283,14 +283,54 @@ print_state() {
         return
     fi
 
+    # Count components by status
+    local installed_count=0
+    local failed_count=0
+    local removed_count=0
+
+    # Display installed components
     echo "Installed Components:"
     echo "--------------------"
     while IFS= read -r line; do
-        if [[ "$line" =~ ^([^#][^=]+)=installed:([^:]+):([^:]+)$ ]]; then
+        if [[ "$line" =~ ^([^#][^=]+)=installed:([^:]+):(.+)$ ]]; then
             local comp="${BASH_REMATCH[1]}"
             local ver="${BASH_REMATCH[2]}"
             local ts="${BASH_REMATCH[3]}"
-            printf "  %-20s version: %-10s installed: %s\n" "$comp" "$ver" "$ts"
+            printf "  ✓ %-20s version: %-10s installed: %s\n" "$comp" "$ver" "$ts"
+            installed_count=$((installed_count + 1))
         fi
     done < "$STATE_FILE"
+
+    if [[ $installed_count -eq 0 ]]; then
+        echo "  (none)"
+    fi
+    echo ""
+
+    # Display failed components
+    echo "Failed Components:"
+    echo "-----------------"
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^([^#][^=]+)=failed:([^:]+):(.+)$ ]]; then
+            local comp="${BASH_REMATCH[1]}"
+            local ver="${BASH_REMATCH[2]}"
+            local ts="${BASH_REMATCH[3]}"
+            printf "  ✗ %-20s version: %-10s failed: %s\n" "$comp" "$ver" "$ts"
+            failed_count=$((failed_count + 1))
+        fi
+    done < "$STATE_FILE"
+
+    if [[ $failed_count -eq 0 ]]; then
+        echo "  (none)"
+    fi
+    echo ""
+
+    # Display summary
+    echo "Summary:"
+    echo "--------"
+    echo "  Total installed: $installed_count"
+    echo "  Total failed: $failed_count"
+
+    # Show platform version
+    local platform_version=$(get_platform_version 2>/dev/null || echo "unknown")
+    echo "  Platform version: $platform_version"
 }
