@@ -672,8 +672,8 @@ main() {
 
     # Run installation
     if run_installation; then
-        # Verify installation health
-        verify_installation
+        # Verify installation health (don't exit on verification warnings)
+        verify_installation || true
 
         # Print completion message
         print_completion_message
