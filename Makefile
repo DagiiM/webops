@@ -44,7 +44,7 @@ help: ## Show this help message
 
 install: ## Install development environment (full setup)
 	@echo "$(BLUE)Installing WebOps development environment...$(NC)"
-	cd $(CONTROL_PANEL_DIR) && ./quickstart.sh
+	provisioning/versions/v1.0.0/dev/quickstart.sh
 	@echo "$(GREEN)✓ Development environment ready!$(NC)"
 
 install-deps: $(VENV) ## Install Python dependencies only
@@ -64,7 +64,7 @@ $(VENV): ## Create virtual environment
 
 dev: ## Start development server (Django + Celery + Beat)
 	@echo "$(BLUE)Starting development server...$(NC)"
-	cd $(CONTROL_PANEL_DIR) && ./start_dev.sh
+	provisioning/versions/v1.0.0/dev/start_dev.sh
 
 dev-web: ## Start Django development server only
 	@echo "$(BLUE)Starting Django development server...$(NC)"
