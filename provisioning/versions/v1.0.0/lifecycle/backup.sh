@@ -1,14 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
 ###############################################################################
 # WebOps Secure Backup Script
-# 
+#
 # Purpose: Create secure, dependency-free backups of WebOps installation
 # Author: Douglas Mutethia, Eleso Solutions
 # Version: 1.0.0
 # License: MIT
 #
-# Philosophy: Minimal dependencies, security-first design, POSIX compliance
+# Philosophy: Minimal dependencies, security-first design, bash required
 ###############################################################################
 
 set -euo pipefail
