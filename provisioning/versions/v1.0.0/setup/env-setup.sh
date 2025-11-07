@@ -22,23 +22,23 @@ readonly CONTROL_PANEL_DIR="${CONTROL_PANEL_DIR:-${WEBOPS_ROOT}/control-panel}"
 #=============================================================================
 
 create_root_env_file() {
-    log_step "Checking root-level .env file..."
+    log_step "Creating main .env file..."
 
     local env_file="${WEBOPS_ROOT}/.env"
     local env_example="${WEBOPS_ROOT}/.env.example"
 
     if [[ -f "$env_file" ]]; then
-        log_info "Root .env file already exists at: $env_file"
+        log_info "Main .env file already exists at: $env_file"
         return 0
     fi
 
     if [[ ! -f "$env_example" ]]; then
-        log_warn ".env.example not found at: $env_example"
-        log_warn "Skipping root .env file creation"
-        return 0
+        log_error ".env.example not found at: $env_example"
+        log_error "Cannot create .env without template"
+        return 1
     fi
 
-    log_info "Creating root .env file from .env.example..."
+    log_info "Creating main .env file from .env.example..."
 
     # Copy .env.example to .env
     cp "$env_example" "$env_file"
@@ -46,141 +46,104 @@ create_root_env_file() {
     # Generate secure values for sensitive fields
     log_info "Generating secure credentials..."
 
-    # Generate SECRET_KEY
+    # Generate SECRET_KEY (Django)
     local secret_key=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))" 2>/dev/null || \
                        openssl rand -base64 50 | tr -d '\n')
-    sed -i "s|SECRET_KEY=.*|SECRET_KEY=${secret_key}|g" "$env_file"
+    sed -i "s|^SECRET_KEY=.*|SECRET_KEY=${secret_key}|g" "$env_file"
 
-    # Generate ENCRYPTION_KEY
+    # Generate ENCRYPTION_KEY (for encrypting sensitive data)
     local encryption_key=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" 2>/dev/null || \
                           openssl rand -base64 32 | tr -d '\n')
-    sed -i "s|ENCRYPTION_KEY=.*|ENCRYPTION_KEY=${encryption_key}|g" "$env_file"
+    sed -i "s|^ENCRYPTION_KEY=.*|ENCRYPTION_KEY=${encryption_key}|g" "$env_file"
 
     # Generate REDIS_PASSWORD
     local redis_password=$(openssl rand -base64 32 | tr -d '\n')
-    sed -i "s|REDIS_PASSWORD=.*|REDIS_PASSWORD=${redis_password}|g" "$env_file"
+    sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=${redis_password}|g" "$env_file"
 
-    # Update ALLOWED_HOSTS with current server IP
+    # Generate PostgreSQL password for webops user
+    local db_password=$(openssl rand -base64 24 | tr -d '\n' | tr -d '/+=' | cut -c1-24)
+    sed -i "s|^DATABASE_URL=.*|DATABASE_URL=postgresql://webops:${db_password}@localhost:5432/webops_db|g" "$env_file"
+
+    # Update ALLOWED_HOSTS with current server info
     local server_ip=$(hostname -I | awk '{print $1}' || echo "localhost")
-    local hostname=$(hostname)
-    sed -i "s|ALLOWED_HOSTS=.*|ALLOWED_HOSTS=localhost,127.0.0.1,${server_ip},${hostname}|g" "$env_file"
+    local hostname_val=$(hostname)
+    sed -i "s|^ALLOWED_HOSTS=.*|ALLOWED_HOSTS=localhost,127.0.0.1,${server_ip},${hostname_val}|g" "$env_file"
 
     # Set DEBUG to False for production
-    sed -i "s|DEBUG=.*|DEBUG=False|g" "$env_file"
+    sed -i "s|^DEBUG=.*|DEBUG=False|g" "$env_file"
 
-    # Set proper permissions
+    # Set WEBOPS_INSTALL_PATH
+    sed -i "s|^WEBOPS_INSTALL_PATH=.*|WEBOPS_INSTALL_PATH=${WEBOPS_ROOT}|g" "$env_file"
+
+    # Set proper permissions and ownership
     chmod 600 "$env_file"
-
-    log_success "Root .env file created at: $env_file ✓"
-    log_warn "IMPORTANT: Review and update the following in $env_file:"
-    log_warn "  - DATABASE_URL (PostgreSQL password)"
-    log_warn "  - REDIS_PASSWORD (should match Redis configuration)"
-    log_warn "  - GITHUB_OAUTH_* (if using GitHub integration)"
-    log_warn "  - EMAIL_* (if using email notifications)"
-}
-
-create_control_panel_env_file() {
-    log_step "Checking control panel .env file..."
-
-    local env_file="${CONTROL_PANEL_DIR}/.env"
-
-    if [[ ! -d "$CONTROL_PANEL_DIR" ]]; then
-        log_warn "Control panel directory not found: $CONTROL_PANEL_DIR"
-        log_warn "Skipping control panel .env creation"
-        return 0
-    fi
-
-    if [[ -f "$env_file" ]]; then
-        log_info "Control panel .env file already exists at: $env_file"
-        return 0
-    fi
-
-    log_info "Creating control panel .env file..."
-
-    # Get current server info
-    local server_ip=$(hostname -I | awk '{print $1}' || echo "127.0.0.1")
-    local hostname=$(hostname)
-
-    # Generate secure credentials
-    local secret_key=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))" 2>/dev/null || \
-                       openssl rand -base64 50 | tr -d '\n')
-    local encryption_key=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" 2>/dev/null || \
-                          openssl rand -base64 32 | tr -d '\n')
-    local redis_password=$(openssl rand -base64 32 | tr -d '\n')
-
-    # Create .env file with all required settings
-    cat > "$env_file" <<EOF
-# Django Configuration
-DEBUG=False
-SECRET_KEY=${secret_key}
-ALLOWED_HOSTS=localhost,127.0.0.1,${server_ip},${hostname}
-
-# Database
-# Default: Uses PostgreSQL with webops user
-# Update password if you changed the PostgreSQL webops user password
-DATABASE_URL=postgresql://webops:webops@localhost:5432/webops
-
-# Celery / Redis
-# IMPORTANT: Update REDIS_PASSWORD to match your Redis requirepass setting
-REDIS_PASSWORD=${redis_password}
-CELERY_BROKER_URL=redis://:${redis_password}@localhost:6379/0
-CELERY_RESULT_BACKEND=redis://:${redis_password}@localhost:6379/1
-
-# Channels (WebSocket support)
-REDIS_URL=redis://:${redis_password}@localhost:6379/3
-
-# Security
-# Encryption key for sensitive data (credentials, tokens, etc.)
-ENCRYPTION_KEY=${encryption_key}
-
-# WebOps Configuration
-WEBOPS_INSTALL_PATH=${WEBOPS_ROOT}
-WEBOPS_USER=webops
-MIN_PORT=8001
-MAX_PORT=9000
-
-# GitHub OAuth Integration (Optional)
-# Create OAuth App at: https://github.com/settings/developers
-# GITHUB_OAUTH_CLIENT_ID=
-# GITHUB_OAUTH_CLIENT_SECRET=
-# GITHUB_OAUTH_REDIRECT_URI=http://${server_ip}:8000/integrations/github/callback
-
-# Email Configuration (Optional - for notifications)
-# EMAIL_HOST=smtp.gmail.com
-# EMAIL_PORT=587
-# EMAIL_HOST_USER=
-# EMAIL_HOST_PASSWORD=
-# EMAIL_USE_TLS=True
-# DEFAULT_FROM_EMAIL=noreply@${hostname}
-EOF
-
-    # Set proper permissions
-    chmod 600 "$env_file"
-
-    # Set ownership if WEBOPS_USER exists
-    if id "webops" &>/dev/null; then
+    if id "webops" &>/dev/null 2>&1; then
         chown webops:webops "$env_file"
     fi
 
-    log_success "Control panel .env file created at: $env_file ✓"
+    log_success "Main .env file created at: $env_file ✓"
     log_info ""
-    log_info "Configuration notes:"
-    log_info "  1. Redis password generated: Configure Redis to use this password"
-    log_info "     Edit /etc/redis/redis.conf and set: requirepass ${redis_password}"
-    log_info "     Then restart Redis: systemctl restart redis-server"
+    log_info "Generated credentials (stored in .env):"
+    log_info "  ✓ SECRET_KEY (Django session security)"
+    log_info "  ✓ ENCRYPTION_KEY (Data encryption)"
+    log_info "  ✓ REDIS_PASSWORD (Redis authentication)"
+    log_info "  ✓ DATABASE_URL (PostgreSQL connection with password)"
     log_info ""
-    log_info "  2. Database password: Update DATABASE_URL if PostgreSQL password differs"
-    log_info ""
-    log_info "  3. Optional integrations: Uncomment and configure GitHub OAuth or Email if needed"
+}
+
+create_control_panel_env_link() {
+    log_step "Setting up control panel .env link..."
+
+    local env_link="${CONTROL_PANEL_DIR}/.env"
+    local main_env="${WEBOPS_ROOT}/.env"
+
+    if [[ ! -d "$CONTROL_PANEL_DIR" ]]; then
+        log_warn "Control panel directory not found: $CONTROL_PANEL_DIR"
+        log_warn "Skipping control panel .env setup"
+        return 0
+    fi
+
+    # Check if main .env exists
+    if [[ ! -f "$main_env" ]]; then
+        log_error "Main .env file not found at: $main_env"
+        log_error "Please run create_root_env_file first"
+        return 1
+    fi
+
+    # If .env already exists and is not a symlink, back it up
+    if [[ -f "$env_link" ]] && [[ ! -L "$env_link" ]]; then
+        local backup="${env_link}.backup-$(date +%Y%m%d-%H%M%S)"
+        log_warn "Existing .env found, backing up to: $backup"
+        mv "$env_link" "$backup"
+    fi
+
+    # Remove existing symlink if it exists
+    if [[ -L "$env_link" ]]; then
+        log_info "Removing existing .env symlink"
+        rm "$env_link"
+    fi
+
+    # Create symlink to main .env
+    log_info "Creating symlink: $env_link -> $main_env"
+    ln -s "$main_env" "$env_link"
+
+    # Verify symlink was created
+    if [[ -L "$env_link" ]]; then
+        log_success "Control panel now uses main .env file ✓"
+        log_info "  Symlink: $env_link -> $main_env"
+    else
+        log_error "Failed to create symlink"
+        return 1
+    fi
 }
 
 configure_redis_password() {
     log_step "Configuring Redis authentication..."
 
-    local env_file="${CONTROL_PANEL_DIR}/.env"
+    local env_file="${WEBOPS_ROOT}/.env"
 
     if [[ ! -f "$env_file" ]]; then
-        log_warn "Control panel .env not found, skipping Redis configuration"
+        log_warn "Main .env not found, skipping Redis configuration"
         return 0
     fi
 
@@ -248,22 +211,16 @@ verify_environment_files() {
     log_step "Verifying environment configuration..."
 
     local errors=0
+    local main_env="${WEBOPS_ROOT}/.env"
 
-    # Check root .env
-    if [[ -f "${WEBOPS_ROOT}/.env" ]]; then
-        log_success "✓ Root .env file exists"
-    else
-        log_info "  Root .env file not found (optional)"
-    fi
-
-    # Check control panel .env
-    if [[ -f "${CONTROL_PANEL_DIR}/.env" ]]; then
-        log_success "✓ Control panel .env file exists"
+    # Check main .env exists
+    if [[ -f "$main_env" ]]; then
+        log_success "✓ Main .env file exists at: $main_env"
 
         # Verify critical settings exist
-        local required_vars=("SECRET_KEY" "DATABASE_URL" "CELERY_BROKER_URL" "ENCRYPTION_KEY")
+        local required_vars=("SECRET_KEY" "DATABASE_URL" "CELERY_BROKER_URL" "ENCRYPTION_KEY" "REDIS_PASSWORD")
         for var in "${required_vars[@]}"; do
-            if grep -q "^${var}=" "${CONTROL_PANEL_DIR}/.env"; then
+            if grep -q "^${var}=" "$main_env"; then
                 log_success "  ✓ ${var} configured"
             else
                 log_error "  ✗ ${var} missing"
@@ -271,8 +228,20 @@ verify_environment_files() {
             fi
         done
     else
-        log_error "✗ Control panel .env file missing"
+        log_error "✗ Main .env file missing at: $main_env"
         ((errors++))
+    fi
+
+    # Check control panel symlink
+    if [[ -L "${CONTROL_PANEL_DIR}/.env" ]]; then
+        log_success "✓ Control panel .env symlink exists"
+        local link_target=$(readlink "${CONTROL_PANEL_DIR}/.env")
+        log_info "  Links to: $link_target"
+    elif [[ -f "${CONTROL_PANEL_DIR}/.env" ]]; then
+        log_warn "⚠ Control panel has a regular .env file (should be symlink)"
+        log_warn "  Consider recreating as symlink to main .env"
+    else
+        log_info "  Control panel .env not found (will be created during installation)"
     fi
 
     if [[ $errors -eq 0 ]]; then
@@ -292,17 +261,20 @@ show_next_steps() {
     echo ""
     echo -e "${BLUE}Next Steps:${NC}"
     echo ""
-    echo "  1. Review environment configuration:"
-    echo "     ${CONTROL_PANEL_DIR}/.env"
+    echo "  1. Review main environment configuration:"
+    echo "     ${WEBOPS_ROOT}/.env"
     echo ""
     echo "  2. If Redis is installed, ensure it's using the generated password:"
     echo "     grep requirepass /etc/redis/redis.conf"
     echo "     systemctl restart redis-server"
     echo ""
-    echo "  3. If services are installed, restart them to apply new configuration:"
+    echo "  3. When installing PostgreSQL, use the password from .env:"
+    echo "     grep DATABASE_URL ${WEBOPS_ROOT}/.env"
+    echo ""
+    echo "  4. If services are installed, restart them to apply new configuration:"
     echo "     systemctl restart webops-web webops-worker webops-beat webops-channels"
     echo ""
-    echo "  4. Test the application:"
+    echo "  5. Test the application:"
     echo "     http://$(hostname -I | awk '{print $1}'):8000/"
     echo ""
 }
@@ -314,6 +286,7 @@ show_next_steps() {
 main() {
     log_info "WebOps Environment Setup v1.0.0"
     log_info "================================"
+    log_info "Creating main .env from .env.example with generated credentials"
     echo ""
 
     # Check if running as root
@@ -322,11 +295,12 @@ main() {
         exit 1
     fi
 
-    # Create environment files
+    # Create main environment file
     create_root_env_file
     echo ""
 
-    create_control_panel_env_file
+    # Create control panel symlink to main .env
+    create_control_panel_env_link
     echo ""
 
     # Configure Redis (optional, will skip if Redis not installed)
