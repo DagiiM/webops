@@ -219,22 +219,24 @@ EOF
     echo "  • Install the Django control panel"
     echo ""
 
-    echo -e "${RED}⚠️  IMPORTANT SECURITY CHANGES:${NC}"
+    echo -e "${BLUE}ℹ️  SSH Configuration (Default Settings):${NC}"
     echo -e "${YELLOW}By default, this installer will:${NC}"
-    echo "  • Configure SSH to allow root login with keys only (prohibit-password)"
-    echo "  • Disable SSH password authentication (SSH keys required)"
+    echo "  • Keep SSH root login enabled (PERMIT_ROOT_LOGIN=yes)"
+    echo "  • Keep SSH password authentication enabled (SSH_PASSWORD_AUTH=yes)"
     echo "  • Configure firewall rules (SSH, HTTP, HTTPS)"
     echo ""
-    echo -e "${YELLOW}Before continuing, ensure you have:${NC}"
-    echo "  ✓ SSH key-based authentication set up for this server"
-    echo "  ✓ Console/VNC access to your server (backup access method)"
-    echo "  ✓ Reviewed the configuration that will be created"
+    echo -e "${YELLOW}⚠️  For production security, consider:${NC}"
+    echo "  • Setting up SSH key authentication and disabling password auth"
+    echo "  • Restricting root login to SSH keys only"
     echo ""
-    echo -e "${BLUE}To customize SSH security settings:${NC}"
-    echo "  • To disable SSH hardening: set ENABLE_SSH_HARDENING=false"
-    echo "  • To disable root login entirely: set PERMIT_ROOT_LOGIN=no"
-    echo "  • To allow password auth: set SSH_PASSWORD_AUTH=yes"
-    echo "  • Edit ${WEBOPS_PLATFORM_DIR}/config.env after this step"
+    echo -e "${BLUE}To customize SSH security settings before installation:${NC}"
+    echo "  1. Cancel this installation (Ctrl+C or type 'no' below)"
+    echo "  2. Edit ${WEBOPS_PLATFORM_DIR}/config.env (will be created)"
+    echo "  3. Set PERMIT_ROOT_LOGIN=prohibit-password to require SSH keys for root"
+    echo "  4. Set SSH_PASSWORD_AUTH=no to disable password authentication"
+    echo "  5. Re-run the installer"
+    echo ""
+    echo -e "${BLUE}Or edit config.env after installation and re-run to apply changes.${NC}"
     echo ""
 
     read -p "Do you want to continue? (yes/no): " -r
@@ -302,9 +304,9 @@ ENABLE_AUTO_UPDATES=false
 # Set ENABLE_SSH_HARDENING=false to skip SSH hardening entirely
 ENABLE_SSH_HARDENING=true
 # Root login options: no, yes, prohibit-password, forced-commands-only
-PERMIT_ROOT_LOGIN=prohibit-password
-# Password authentication (set to yes to allow password login as fallback)
-SSH_PASSWORD_AUTH=no
+PERMIT_ROOT_LOGIN=yes
+# Password authentication (set to no to require SSH keys only)
+SSH_PASSWORD_AUTH=yes
 # Maximum authentication attempts before disconnect
 SSH_MAX_AUTH_TRIES=3
 
