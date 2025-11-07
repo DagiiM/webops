@@ -201,28 +201,38 @@ validate_environment() {
 show_welcome() {
     clear
     echo ""
-    echo -e "${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║                                                                ║${NC}"
-    echo -e "${BLUE}║${GREEN}     ╦ ╦┌─┐┌┐ ╔═╗┌─┐┌─┐  ${BLUE}VPS Hosting Platform Installer${BLUE}      ║${NC}"
-    echo -e "${BLUE}║${GREEN}     ║║║├┤ ├┴┐║ ║├─┘└─┐${BLUE}                                   ║${NC}"
-    echo -e "${BLUE}║${GREEN}     ╚╩╝└─┘└─┘╚═╝┴  └─┘${BLUE}  Version ${WEBOPS_VERSION}${BLUE}                  ║${NC}"
-    echo -e "${BLUE}║                                                                ║${NC}"
-    echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-
-    echo -e "${GREEN}✨ Welcome to WebOps Platform Installation!${NC}"
+    echo -e "${GREEN}     ██╗    ██╗███████╗██████╗  ██████╗ ██████╗ ███████╗${NC}"
+    echo -e "${GREEN}     ██║    ██║██╔════╝██╔══██╗██╔═══██╗██╔══██╗██╔════╝${NC}"
+    echo -e "${GREEN}     ██║ █╗ ██║█████╗  ██████╔╝██║   ██║██████╔╝███████╗${NC}"
+    echo -e "${GREEN}     ██║███╗██║██╔══╝  ██╔══██╗██║   ██║██╔═══╝ ╚════██║${NC}"
+    echo -e "${GREEN}     ╚███╔███╔╝███████╗██████╔╝╚██████╔╝██║     ███████║${NC}"
+    echo -e "${GREEN}      ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝ ╚═╝     ╚══════╝${NC}"
     echo ""
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${YELLOW}This installer will set up:${NC}                                 ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}                                                            ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} System hardening and security configuration           ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} PostgreSQL database with optimized settings           ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} Redis for caching and message queuing                 ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} Django control panel with WebSocket support           ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} Systemd services with auto-restart                    ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}   ${GREEN}✓${NC} Firewall and monitoring configuration                 ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}                                                            ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${BLUE}           VPS Hosting Platform · Version ${WEBOPS_VERSION}${NC}"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Welcome to the WebOps Installation Wizard!${NC}"
+    echo ""
+    echo -e "  This interactive installer will help you set up a production-ready"
+    echo -e "  hosting platform on your VPS server."
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${BLUE}What will be installed:${NC}"
+    echo ""
+    echo -e "    ${GREEN}✓${NC}  System hardening and security configuration"
+    echo -e "    ${GREEN}✓${NC}  PostgreSQL database with optimized settings"
+    echo -e "    ${GREEN}✓${NC}  Redis for caching and message queuing"
+    echo -e "    ${GREEN}✓${NC}  Django control panel with WebSocket support"
+    echo -e "    ${GREEN}✓${NC}  Systemd services with auto-restart capability"
+    echo -e "    ${GREEN}✓${NC}  Firewall and monitoring configuration"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${YELLOW}⏱  Estimated time:${NC} 5-10 minutes"
+    echo ""
     echo ""
 }
 
@@ -231,70 +241,72 @@ show_welcome() {
 #=============================================================================
 
 configure_hostname() {
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${YELLOW}Step 1/2: Server Hostname Configuration${NC}                    ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo ""
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${YELLOW}Step 1 of 2: Server Hostname${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
     local current_hostname=$(hostname)
-    echo -e "${BLUE}Current hostname:${NC} ${current_hostname}"
+    echo -e "  Current hostname: ${GREEN}${current_hostname}${NC}"
     echo ""
-    echo -e "${YELLOW}Enter a hostname for your server:${NC}"
-    echo -e "${BLUE}Examples:${NC} webops-prod, app-server-01, myapp.example.com"
-    echo -e "${BLUE}Leave blank to keep current hostname${NC}"
+    echo -e "  ${BLUE}Enter a new hostname for your server:${NC}"
+    echo -e "  ${BLUE}(Leave blank to keep current hostname)${NC}"
+    echo ""
+    echo -e "  Examples: ${BLUE}webops-prod${NC}, ${BLUE}app-server-01${NC}, ${BLUE}myapp.example.com${NC}"
     echo ""
 
     while true; do
-        read -p "Hostname: " -r NEW_HOSTNAME
+        read -p "  Hostname: " -r NEW_HOSTNAME
 
         # If blank, keep current hostname
         if [[ -z "$NEW_HOSTNAME" ]]; then
             NEW_HOSTNAME="$current_hostname"
-            echo -e "${GREEN}✓ Keeping current hostname: ${NEW_HOSTNAME}${NC}"
+            echo ""
+            echo -e "  ${GREEN}✓${NC} Keeping current hostname: ${GREEN}${NEW_HOSTNAME}${NC}"
             break
         fi
 
         # Validate hostname
         if [[ "$NEW_HOSTNAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
-            echo -e "${GREEN}✓ Valid hostname: ${NEW_HOSTNAME}${NC}"
+            echo ""
+            echo -e "  ${GREEN}✓${NC} Valid hostname: ${GREEN}${NEW_HOSTNAME}${NC}"
             break
         else
-            echo -e "${RED}✗ Invalid hostname. Use only letters, numbers, hyphens, and dots.${NC}"
-            echo -e "${YELLOW}Try again:${NC}"
+            echo ""
+            echo -e "  ${RED}✗${NC} Invalid hostname. Use only letters, numbers, hyphens, and dots."
+            echo ""
+            echo -e "  ${YELLOW}Please try again:${NC}"
         fi
     done
 
     echo ""
+    echo ""
 }
 
 configure_ssh_security() {
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${YELLOW}Step 2/2: SSH Security Configuration${NC}                       ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${YELLOW}Step 2 of 2: SSH Security${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-
-    echo -e "${YELLOW}Choose your SSH security level:${NC}"
+    echo -e "  ${BLUE}Choose your SSH security level:${NC}"
     echo ""
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${GREEN}[1]${NC} Easy Access ${BLUE}(Recommended for Development/Testing)${NC}      ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Root login with password: ${GREEN}Enabled${NC}                     ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Password authentication: ${GREEN}Enabled${NC}                      ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Best for: Quick setup, testing, development              ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Security: ⚠️  Lower (easy to access)                     ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "  ${GREEN}[1] Easy Access${NC} ${BLUE}(Development/Testing)${NC}"
+    echo -e "      • Root login with password: ${GREEN}Enabled${NC}"
+    echo -e "      • Password authentication: ${GREEN}Enabled${NC}"
+    echo -e "      • Best for: Quick setup, testing, learning"
+    echo -e "      • Security: ⚠️  Lower (convenient but less secure)"
     echo ""
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${YELLOW}[2]${NC} Hardened ${BLUE}(Recommended for Production)${NC}                 ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Root login: ${YELLOW}SSH keys only${NC}                             ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Password authentication: ${RED}Disabled${NC}                     ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Best for: Production servers, public internet            ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     • Security: ${GREEN}✓ High${NC} (SSH keys required)                   ${BLUE}│${NC}"
-    echo -e "${BLUE}│${NC}     ${RED}⚠️  Requires SSH keys already configured!${NC}              ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "  ${YELLOW}[2] Hardened${NC} ${BLUE}(Production)${NC}"
+    echo -e "      • Root login: ${YELLOW}SSH keys only${NC}"
+    echo -e "      • Password authentication: ${RED}Disabled${NC}"
+    echo -e "      • Best for: Production servers, public internet"
+    echo -e "      • Security: ${GREEN}✓ High${NC} (SSH keys required)"
+    echo -e "      • ${RED}⚠️  Requires SSH keys already configured!${NC}"
     echo ""
 
     while true; do
-        read -p "Enter your choice [1/2] (default: 1): " -r SSH_CHOICE
+        read -p "  Enter your choice [1/2] (default: 1): " -r SSH_CHOICE
 
         # Default to 1 if empty
         SSH_CHOICE="${SSH_CHOICE:-1}"
@@ -305,8 +317,8 @@ configure_ssh_security() {
                 PERMIT_ROOT_LOGIN="yes"
                 SSH_PASSWORD_AUTH="yes"
                 echo ""
-                echo -e "${GREEN}✓ Selected: Easy Access${NC}"
-                echo -e "${BLUE}  Root login and password authentication will be enabled${NC}"
+                echo -e "  ${GREEN}✓${NC} Selected: ${GREEN}Easy Access${NC}"
+                echo -e "  Root login and password authentication will be enabled"
                 break
                 ;;
             2)
@@ -314,17 +326,19 @@ configure_ssh_security() {
                 PERMIT_ROOT_LOGIN="prohibit-password"
                 SSH_PASSWORD_AUTH="no"
                 echo ""
-                echo -e "${YELLOW}✓ Selected: Hardened${NC}"
-                echo -e "${BLUE}  SSH keys will be required for root login${NC}"
+                echo -e "  ${YELLOW}✓${NC} Selected: ${YELLOW}Hardened${NC}"
+                echo -e "  SSH keys will be required for root login"
                 echo ""
-                echo -e "${RED}⚠️  IMPORTANT: Make sure you have SSH keys configured!${NC}"
-                echo -e "${YELLOW}   If you get locked out, use your VPS console access${NC}"
+                echo -e "  ${RED}⚠️  IMPORTANT: Make sure you have SSH keys configured!${NC}"
+                echo -e "  ${YELLOW}If you get locked out, use your VPS console access${NC}"
                 echo ""
-                read -p "Continue with hardened SSH? (yes/no): " -r CONFIRM
+                read -p "  Continue with hardened SSH? (yes/no): " -r CONFIRM
+                echo ""
                 if [[ $CONFIRM =~ ^[Yy][Ee][Ss]$ ]]; then
                     break
                 else
-                    echo -e "${YELLOW}Switching to Easy Access mode...${NC}"
+                    echo -e "  ${YELLOW}→${NC} Switching to Easy Access mode..."
+                    echo ""
                     SSH_SECURITY_LEVEL="easy"
                     PERMIT_ROOT_LOGIN="yes"
                     SSH_PASSWORD_AUTH="yes"
@@ -332,7 +346,9 @@ configure_ssh_security() {
                 fi
                 ;;
             *)
-                echo -e "${RED}Invalid choice. Please enter 1 or 2.${NC}"
+                echo ""
+                echo -e "  ${RED}✗${NC} Invalid choice. Please enter 1 or 2."
+                echo ""
                 ;;
         esac
     done
@@ -341,21 +357,24 @@ configure_ssh_security() {
 }
 
 show_configuration_summary() {
-    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│${NC} ${GREEN}Configuration Summary${NC}                                      ${BLUE}│${NC}"
-    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${GREEN}✓${NC} Configuration Summary"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  ${BLUE}Hostname:${NC}          ${GREEN}${NEW_HOSTNAME}${NC}"
-    echo -e "  ${BLUE}SSH Security:${NC}      ${GREEN}${SSH_SECURITY_LEVEL^}${NC}"
-    echo -e "  ${BLUE}Root Login:${NC}        ${GREEN}${PERMIT_ROOT_LOGIN}${NC}"
-    echo -e "  ${BLUE}Password Auth:${NC}     ${GREEN}${SSH_PASSWORD_AUTH}${NC}"
-    echo -e "  ${BLUE}Install Location:${NC}  ${GREEN}/opt/webops${NC}"
+    echo -e "    Hostname:         ${GREEN}${NEW_HOSTNAME}${NC}"
+    echo -e "    SSH Security:     ${GREEN}${SSH_SECURITY_LEVEL^}${NC}"
+    echo -e "    Root Login:       ${GREEN}${PERMIT_ROOT_LOGIN}${NC}"
+    echo -e "    Password Auth:    ${GREEN}${SSH_PASSWORD_AUTH}${NC}"
+    echo -e "    Install Path:     ${GREEN}/opt/webops${NC}"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
-    read -p "Continue with installation? (yes/no): " -r
+    read -p "  Ready to begin installation? (yes/no): " -r
     if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
         echo ""
-        echo -e "${YELLOW}Installation cancelled by user${NC}"
+        echo -e "  ${YELLOW}Installation cancelled by user${NC}"
+        echo ""
         exit 0
     fi
     echo ""
