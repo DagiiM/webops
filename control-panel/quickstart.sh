@@ -296,18 +296,21 @@ echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}  Setup Complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
 
-echo -e "\n${BLUE}Quick Start:${NC}"
+echo -e "\n${RED}⚠️  IMPORTANT: Server is NOT running yet!${NC}"
+echo -e "${YELLOW}You must manually start the development server:${NC}\n"
+
+echo -e "${BLUE}Start the server (REQUIRED):${NC}"
 echo -e "  cd control-panel"
-echo -e "  ./start_dev.sh"
+echo -e "  ./start_dev.sh\n"
 
-echo -e "\n${BLUE}Alternative - Django only (without Celery):${NC}"
+echo -e "${BLUE}Alternative - Django only (without Celery):${NC}"
 echo -e "  source venv/bin/activate"
-echo -e "  python manage.py runserver"
+echo -e "  python manage.py runserver\n"
 
-echo -e "\n${BLUE}To stop all services:${NC}"
-echo -e "  ./stop_dev.sh"
+echo -e "${BLUE}To stop all services:${NC}"
+echo -e "  ./stop_dev.sh\n"
 
-echo -e "\n${BLUE}Access the application:${NC}"
+echo -e "${BLUE}After starting, access the application:${NC}"
 echo -e "  Web UI:      http://127.0.0.1:8000"
 echo -e "  Admin panel: http://127.0.0.1:8000/admin/"
 echo -e "  ${GREEN}Login:${NC}"
@@ -319,3 +322,4 @@ echo -e "  ${YELLOW}⚠  Keep this file secure and do not commit it to version c
 
 echo -e "\n${YELLOW}Note:${NC} start_dev.sh runs on port 8000 by default"
 echo -e "      Customize with: ./start_dev.sh 8080"
+echo -e "\n${BLUE}For more help, see: POST_INSTALLATION.md${NC}"
