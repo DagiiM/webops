@@ -426,22 +426,29 @@ The installation automatically applies:
 
 1. **SSH Hardening** (Configurable)
    - Control root login via PERMIT_ROOT_LOGIN setting
-   - Configure password authentication (optional)
+   - Configure password authentication
    - Limit max auth tries
    - Enable public key authentication
 
-   **Configuration Options:**
+   **Default Configuration (Prioritizes Accessibility):**
+   - Root login: **Enabled** (PERMIT_ROOT_LOGIN=yes)
+   - Password authentication: **Enabled** (SSH_PASSWORD_AUTH=yes)
+
+   **⚠️  For production, consider hardening SSH:**
    ```bash
    # Disable SSH hardening entirely
    ENABLE_SSH_HARDENING=false
 
-   # Allow root login with SSH keys (recommended, default)
+   # Allow root login with SSH keys only (RECOMMENDED for production)
    PERMIT_ROOT_LOGIN=prohibit-password
+   SSH_PASSWORD_AUTH=no
 
-   # Disable root login entirely (can lock you out)
+   # Disable root login entirely (most secure, but can lock you out)
    PERMIT_ROOT_LOGIN=no
+   SSH_PASSWORD_AUTH=no
 
-   # Allow password authentication (less secure)
+   # Keep defaults (less secure, better for development/testing)
+   PERMIT_ROOT_LOGIN=yes
    SSH_PASSWORD_AUTH=yes
    ```
 

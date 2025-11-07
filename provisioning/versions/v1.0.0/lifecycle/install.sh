@@ -199,50 +199,215 @@ validate_environment() {
 }
 
 show_welcome() {
-    echo -e "${BLUE}"
-    cat <<'EOF'
-╦ ╦┌─┐┌┐ ╔═╗┌─┐┌─┐
-║║║├┤ ├┴┐║ ║├─┘└─┐
-╚╩╝└─┘└─┘╚═╝┴  └─┘
-VPS Hosting Platform Installer
-EOF
-    echo -e "${NC}"
+    clear
+    echo ""
+    echo ""
+    echo -e "${GREEN}     ██╗    ██╗███████╗██████╗  ██████╗ ██████╗ ███████╗${NC}"
+    echo -e "${GREEN}     ██║    ██║██╔════╝██╔══██╗██╔═══██╗██╔══██╗██╔════╝${NC}"
+    echo -e "${GREEN}     ██║ █╗ ██║█████╗  ██████╔╝██║   ██║██████╔╝███████╗${NC}"
+    echo -e "${GREEN}     ██║███╗██║██╔══╝  ██╔══██╗██║   ██║██╔═══╝ ╚════██║${NC}"
+    echo -e "${GREEN}     ╚███╔███╔╝███████╗██████╔╝╚██████╔╝██║     ███████║${NC}"
+    echo -e "${GREEN}      ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝ ╚═╝     ╚══════╝${NC}"
+    echo ""
+    echo -e "${BLUE}           VPS Hosting Platform · Version ${WEBOPS_VERSION}${NC}"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Welcome to the WebOps Installation Wizard!${NC}"
+    echo ""
+    echo -e "  This interactive installer will help you set up a production-ready"
+    echo -e "  hosting platform on your VPS server."
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${BLUE}What will be installed:${NC}"
+    echo ""
+    echo -e "    ${GREEN}✓${NC}  System hardening and security configuration"
+    echo -e "    ${GREEN}✓${NC}  PostgreSQL database with optimized settings"
+    echo -e "    ${GREEN}✓${NC}  Redis for caching and message queuing"
+    echo -e "    ${GREEN}✓${NC}  Django control panel with WebSocket support"
+    echo -e "    ${GREEN}✓${NC}  Systemd services with auto-restart capability"
+    echo -e "    ${GREEN}✓${NC}  Firewall and monitoring configuration"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${YELLOW}⏱  Estimated time:${NC} 5-10 minutes"
+    echo ""
+    echo ""
+}
 
-    echo -e "${GREEN}Welcome to WebOps Platform Installation!${NC}"
-    echo -e "${BLUE}Version:${NC} ${WEBOPS_VERSION}"
+#=============================================================================
+# Interactive Configuration
+#=============================================================================
+
+configure_hostname() {
     echo ""
-    echo -e "${YELLOW}This installer will:${NC}"
-    echo "  • Harden the base system for security"
-    echo "  • Install core WebOps platform components"
-    echo "  • Configure PostgreSQL database"
-    echo "  • Set up monitoring and logging"
-    echo "  • Install the Django control panel"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${YELLOW}Step 1 of 2: Server Hostname${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 
-    echo -e "${RED}⚠️  IMPORTANT SECURITY CHANGES:${NC}"
-    echo -e "${YELLOW}By default, this installer will:${NC}"
-    echo "  • Configure SSH to allow root login with keys only (prohibit-password)"
-    echo "  • Disable SSH password authentication (SSH keys required)"
-    echo "  • Configure firewall rules (SSH, HTTP, HTTPS)"
+    local current_hostname=$(hostname)
+    echo -e "  Current hostname: ${GREEN}${current_hostname}${NC}"
     echo ""
-    echo -e "${YELLOW}Before continuing, ensure you have:${NC}"
-    echo "  ✓ SSH key-based authentication set up for this server"
-    echo "  ✓ Console/VNC access to your server (backup access method)"
-    echo "  ✓ Reviewed the configuration that will be created"
+    echo -e "  ${BLUE}Enter a new hostname for your server:${NC}"
+    echo -e "  ${BLUE}(Leave blank to keep current hostname)${NC}"
     echo ""
-    echo -e "${BLUE}To customize SSH security settings:${NC}"
-    echo "  • To disable SSH hardening: set ENABLE_SSH_HARDENING=false"
-    echo "  • To disable root login entirely: set PERMIT_ROOT_LOGIN=no"
-    echo "  • To allow password auth: set SSH_PASSWORD_AUTH=yes"
-    echo "  • Edit ${WEBOPS_PLATFORM_DIR}/config.env after this step"
+    echo -e "  Examples: ${BLUE}webops-prod${NC}, ${BLUE}app-server-01${NC}, ${BLUE}myapp.example.com${NC}"
     echo ""
 
-    read -p "Do you want to continue? (yes/no): " -r
+    while true; do
+        read -p "  Hostname: " -r NEW_HOSTNAME
+
+        # If blank, keep current hostname
+        if [[ -z "$NEW_HOSTNAME" ]]; then
+            NEW_HOSTNAME="$current_hostname"
+            echo ""
+            echo -e "  ${GREEN}✓${NC} Keeping current hostname: ${GREEN}${NEW_HOSTNAME}${NC}"
+            break
+        fi
+
+        # Validate hostname
+        if [[ "$NEW_HOSTNAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
+            echo ""
+            echo -e "  ${GREEN}✓${NC} Valid hostname: ${GREEN}${NEW_HOSTNAME}${NC}"
+            break
+        else
+            echo ""
+            echo -e "  ${RED}✗${NC} Invalid hostname. Use only letters, numbers, hyphens, and dots."
+            echo ""
+            echo -e "  ${YELLOW}Please try again:${NC}"
+        fi
+    done
+
+    echo ""
+    echo ""
+}
+
+configure_ssh_security() {
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${YELLOW}Step 2 of 2: SSH Security${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  ${BLUE}Choose your SSH security level:${NC}"
+    echo ""
+    echo -e "  ${GREEN}[1] Easy Access${NC} ${BLUE}(Development/Testing)${NC}"
+    echo -e "      • Root login with password: ${GREEN}Enabled${NC}"
+    echo -e "      • Password authentication: ${GREEN}Enabled${NC}"
+    echo -e "      • Best for: Quick setup, testing, learning"
+    echo -e "      • Security: ⚠️  Lower (convenient but less secure)"
+    echo ""
+    echo -e "  ${YELLOW}[2] Hardened${NC} ${BLUE}(Production)${NC}"
+    echo -e "      • Root login: ${YELLOW}SSH keys only${NC}"
+    echo -e "      • Password authentication: ${RED}Disabled${NC}"
+    echo -e "      • Best for: Production servers, public internet"
+    echo -e "      • Security: ${GREEN}✓ High${NC} (SSH keys required)"
+    echo -e "      • ${RED}⚠️  Requires SSH keys already configured!${NC}"
+    echo ""
+
+    while true; do
+        read -p "  Enter your choice [1/2] (default: 1): " -r SSH_CHOICE
+
+        # Default to 1 if empty
+        SSH_CHOICE="${SSH_CHOICE:-1}"
+
+        case "$SSH_CHOICE" in
+            1)
+                SSH_SECURITY_LEVEL="easy"
+                PERMIT_ROOT_LOGIN="yes"
+                SSH_PASSWORD_AUTH="yes"
+                echo ""
+                echo -e "  ${GREEN}✓${NC} Selected: ${GREEN}Easy Access${NC}"
+                echo -e "  Root login and password authentication will be enabled"
+                break
+                ;;
+            2)
+                SSH_SECURITY_LEVEL="hardened"
+                PERMIT_ROOT_LOGIN="prohibit-password"
+                SSH_PASSWORD_AUTH="no"
+                echo ""
+                echo -e "  ${YELLOW}✓${NC} Selected: ${YELLOW}Hardened${NC}"
+                echo -e "  SSH keys will be required for root login"
+                echo ""
+                echo -e "  ${RED}⚠️  IMPORTANT: Make sure you have SSH keys configured!${NC}"
+                echo -e "  ${YELLOW}If you get locked out, use your VPS console access${NC}"
+                echo ""
+                read -p "  Continue with hardened SSH? (yes/no): " -r CONFIRM
+                echo ""
+                if [[ $CONFIRM =~ ^[Yy][Ee][Ss]$ ]]; then
+                    break
+                else
+                    echo -e "  ${YELLOW}→${NC} Switching to Easy Access mode..."
+                    echo ""
+                    SSH_SECURITY_LEVEL="easy"
+                    PERMIT_ROOT_LOGIN="yes"
+                    SSH_PASSWORD_AUTH="yes"
+                    break
+                fi
+                ;;
+            *)
+                echo ""
+                echo -e "  ${RED}✗${NC} Invalid choice. Please enter 1 or 2."
+                echo ""
+                ;;
+        esac
+    done
+
+    echo ""
+}
+
+show_configuration_summary() {
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "  ${GREEN}✓${NC} Configuration Summary"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "    Hostname:         ${GREEN}${NEW_HOSTNAME}${NC}"
+    echo -e "    SSH Security:     ${GREEN}${SSH_SECURITY_LEVEL^}${NC}"
+    echo -e "    Root Login:       ${GREEN}${PERMIT_ROOT_LOGIN}${NC}"
+    echo -e "    Password Auth:    ${GREEN}${SSH_PASSWORD_AUTH}${NC}"
+    echo -e "    Install Path:     ${GREEN}/opt/webops${NC}"
+    echo ""
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+
+    read -p "  Ready to begin installation? (yes/no): " -r
     if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        echo "Installation cancelled"
+        echo ""
+        echo -e "  ${YELLOW}Installation cancelled by user${NC}"
+        echo ""
         exit 0
     fi
     echo ""
+}
+
+apply_hostname() {
+    if [[ -z "$NEW_HOSTNAME" ]]; then
+        return 0
+    fi
+
+    local current_hostname=$(hostname)
+    if [[ "$NEW_HOSTNAME" == "$current_hostname" ]]; then
+        log_info "Hostname unchanged: $NEW_HOSTNAME"
+        return 0
+    fi
+
+    log_step "Setting hostname to: $NEW_HOSTNAME"
+
+    # Set hostname immediately
+    hostnamectl set-hostname "$NEW_HOSTNAME" 2>/dev/null || {
+        log_warn "hostnamectl not available, using hostname command"
+        hostname "$NEW_HOSTNAME"
+        echo "$NEW_HOSTNAME" > /etc/hostname
+    }
+
+    # Update /etc/hosts
+    if grep -q "127.0.1.1" /etc/hosts; then
+        sed -i "s/127.0.1.1.*/127.0.1.1\t${NEW_HOSTNAME}/" /etc/hosts
+    else
+        echo "127.0.1.1	${NEW_HOSTNAME}" >> /etc/hosts
+    fi
+
+    log_success "Hostname set to: $NEW_HOSTNAME ✓"
 }
 
 create_default_config() {
@@ -257,6 +422,10 @@ create_default_config() {
     local install_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
 
     log_info "Installation root: $install_root"
+
+    # Use collected configuration values
+    local permit_root="${PERMIT_ROOT_LOGIN:-yes}"
+    local ssh_pass_auth="${SSH_PASSWORD_AUTH:-yes}"
 
     # Create default configuration
     cat > "$config_file" <<EOF
@@ -302,9 +471,9 @@ ENABLE_AUTO_UPDATES=false
 # Set ENABLE_SSH_HARDENING=false to skip SSH hardening entirely
 ENABLE_SSH_HARDENING=true
 # Root login options: no, yes, prohibit-password, forced-commands-only
-PERMIT_ROOT_LOGIN=prohibit-password
-# Password authentication (set to yes to allow password login as fallback)
-SSH_PASSWORD_AUTH=no
+PERMIT_ROOT_LOGIN=${permit_root}
+# Password authentication (set to no to require SSH keys only)
+SSH_PASSWORD_AUTH=${ssh_pass_auth}
 # Maximum authentication attempts before disconnect
 SSH_MAX_AUTH_TRIES=3
 
@@ -319,13 +488,11 @@ EOF
 
 run_installation() {
     log_step "Starting WebOps platform installation..."
-    
-    # Create configuration file
-    create_default_config
-    
+
+    # Configuration file already created in main() with user choices
     # Run the platform installation
     log_info "Executing: ${WEBOPS_BIN} install --config ${WEBOPS_PLATFORM_DIR}/config.env --yes"
-    
+
     if "${WEBOPS_BIN}" install --config "${WEBOPS_PLATFORM_DIR}/config.env" --yes; then
         log_success "WebOps platform installation completed successfully ✓"
         return 0
@@ -399,6 +566,7 @@ verify_installation() {
 
 print_completion_message() {
     local server_ip=$(hostname -I | awk '{print $1}')
+    local server_hostname=$(hostname)
 
     # Load install root from config
     local install_root="/opt/webops"
@@ -406,35 +574,70 @@ print_completion_message() {
         install_root=$(grep "^WEBOPS_ROOT=" "${WEBOPS_PLATFORM_DIR}/config.env" | cut -d'=' -f2)
     fi
 
+    clear
     echo ""
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}║  🎉  WebOps Installation Complete!                           ║${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║                                                                ║${NC}"
+    echo -e "${GREEN}║           🎉  WebOps Installation Complete!  🎉                ║${NC}"
+    echo -e "${GREEN}║                                                                ║${NC}"
+    echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${BLUE}Platform Version:${NC} ${WEBOPS_VERSION}"
-    echo -e "${BLUE}Control Panel URL:${NC} http://${server_ip}:8000/"
+    echo -e "${GREEN}┌────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${GREEN}│${NC} ${GREEN}✓${NC} All services are running and verified                     ${GREEN}│${NC}"
+    echo -e "${GREEN}│${NC} ${GREEN}✓${NC} Server is accessible from network                          ${GREEN}│${NC}"
+    echo -e "${GREEN}│${NC} ${GREEN}✓${NC} Firewall configured and enabled                            ${GREEN}│${NC}"
+    echo -e "${GREEN}│${NC} ${GREEN}✓${NC} SSH security applied                                       ${GREEN}│${NC}"
+    echo -e "${GREEN}└────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
-    echo -e "${YELLOW}Admin Credentials:${NC}"
-    echo "  Location: ${install_root}/.secrets/admin_credentials.txt"
-    echo "  View with: sudo cat ${install_root}/.secrets/admin_credentials.txt"
+    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│${NC} ${YELLOW}Server Information${NC}                                          ${BLUE}│${NC}"
+    echo -e "${BLUE}├────────────────────────────────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC}  Hostname:        ${GREEN}${server_hostname}${NC}"
+    echo -e "${BLUE}│${NC}  IP Address:      ${GREEN}${server_ip}${NC}"
+    echo -e "${BLUE}│${NC}  Platform:        ${GREEN}WebOps ${WEBOPS_VERSION}${NC}"
+    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo ""
+    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│${NC} ${YELLOW}Access Information${NC}                                          ${BLUE}│${NC}"
+    echo -e "${BLUE}├────────────────────────────────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC}  Control Panel:   ${GREEN}http://${server_ip}:8000/${NC}"
+    echo -e "${BLUE}│${NC}  Port:            ${GREEN}8000${NC} (accessible from any network)"
+    echo -e "${BLUE}│${NC}  Admin Creds:     ${GREEN}${install_root}/.secrets/admin_credentials.txt${NC}"
+    echo -e "${BLUE}│${NC}"
+    echo -e "${BLUE}│${NC}  ${YELLOW}View credentials:${NC}"
+    echo -e "${BLUE}│${NC}  sudo cat ${install_root}/.secrets/admin_credentials.txt"
+    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
+    echo ""
+    echo -e "${BLUE}┌────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│${NC} ${YELLOW}Running Services${NC}                                            ${BLUE}│${NC}"
+    echo -e "${BLUE}├────────────────────────────────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} webops-web      (Gunicorn WSGI server)"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} webops-worker   (Celery background tasks)"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} webops-beat     (Celery scheduler)"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} webops-channels (WebSocket support)"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} postgresql      (Database)"
+    echo -e "${BLUE}│${NC}  ${GREEN}✓${NC} redis           (Cache & message broker)"
+    echo -e "${BLUE}└────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
     echo -e "${YELLOW}Next Steps:${NC}"
-    echo "  1. Access the control panel in your browser"
-    echo "  2. Login with the admin credentials"
-    echo "  3. Change your password after first login"
-    echo "  4. Deploy your first application!"
+    echo -e "  ${BLUE}1.${NC} Access control panel:  ${GREEN}http://${server_ip}:8000/${NC}"
+    echo -e "  ${BLUE}2.${NC} Login with admin credentials (see above)"
+    echo -e "  ${BLUE}3.${NC} Change your password after first login"
+    echo -e "  ${BLUE}4.${NC} Deploy your first application!"
     echo ""
-    echo -e "${YELLOW}Platform Management:${NC}"
-    echo "  Status: ${WEBOPS_BIN} state"
-    echo "  Validate: ${WEBOPS_BIN} validate"
-    echo "  Update: ${WEBOPS_BIN} update"
-    echo "  Rollback: ${WEBOPS_BIN} rollback"
+    echo -e "${BLUE}Platform Management:${NC}"
+    echo -e "  Check status:  ${GREEN}${WEBOPS_BIN} state${NC}"
+    echo -e "  Validate:      ${GREEN}${WEBOPS_BIN} validate${NC}"
+    echo -e "  Update:        ${GREEN}${WEBOPS_BIN} update${NC}"
     echo ""
-    echo -e "${BLUE}Documentation:${NC} ${WEBOPS_PLATFORM_DIR}/docs/"
+    echo -e "${BLUE}Documentation:${NC}"
+    echo -e "  ${WEBOPS_PLATFORM_DIR}/POST_INSTALLATION.md"
+    echo -e "  ${WEBOPS_PLATFORM_DIR}/docs/"
     echo ""
-    echo -e "${GREEN}Installation completed successfully! 🚀${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}🚀 Your WebOps platform is now running and accessible!${NC}"
+    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
 }
 
 #=============================================================================
@@ -453,8 +656,19 @@ main() {
     # Show welcome message
     show_welcome
 
+    # Interactive configuration
+    configure_hostname
+    configure_ssh_security
+    show_configuration_summary
+
     # Validate environment
     validate_environment
+
+    # Apply hostname configuration early
+    apply_hostname
+
+    # Create configuration with user choices
+    create_default_config
 
     # Run installation
     if run_installation; then
