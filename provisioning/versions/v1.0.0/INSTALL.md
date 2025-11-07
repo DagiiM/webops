@@ -271,11 +271,11 @@ Installs and configures:
 #### Step 6: Security Hardening
 
 Applies security configurations:
-- **SSH Hardening** (if enabled):
-  - Sets `PermitRootLogin prohibit-password`
-  - Sets `PasswordAuthentication no`
+- **SSH Hardening** (if enabled, configurable):
+  - Default: `PermitRootLogin yes` (allows root login)
+  - Default: `PasswordAuthentication yes` (allows password authentication)
   - Sets `MaxAuthTries 3`
-  - Restarts SSH service
+  - **Note:** Defaults prioritize accessibility over security. See configuration section to harden SSH.
 - **Firewall Configuration**:
   - Allows SSH (22), HTTP (80), HTTPS (443)
   - Allows control panel port (default: 8000)
@@ -449,11 +449,15 @@ CONTROL_PANEL_HOST=0.0.0.0
 # Firewall
 ENABLE_FIREWALL=true
 
-# SSH Hardening
+# SSH Hardening (Defaults allow root and password login)
 ENABLE_SSH_HARDENING=true
-PERMIT_ROOT_LOGIN=prohibit-password  # Options: no, yes, prohibit-password
-SSH_PASSWORD_AUTH=no                  # Options: yes, no
+PERMIT_ROOT_LOGIN=yes                 # Options: no, yes, prohibit-password
+SSH_PASSWORD_AUTH=yes                 # Options: yes, no
 SSH_MAX_AUTH_TRIES=3
+
+# For production security, consider:
+# PERMIT_ROOT_LOGIN=prohibit-password  # Require SSH keys for root
+# SSH_PASSWORD_AUTH=no                 # Disable password authentication
 
 # Automatic Updates
 ENABLE_AUTO_UPDATES=false
@@ -997,15 +1001,15 @@ sudo nano /opt/webops/.webops/config.env
 # Disable SSH hardening completely
 ENABLE_SSH_HARDENING=false
 
-# Allow root login with password
+# Allow root login with password (DEFAULT)
 PERMIT_ROOT_LOGIN=yes
 SSH_PASSWORD_AUTH=yes
 
-# Allow root login with keys only (default)
+# Allow root login with keys only (RECOMMENDED for production)
 PERMIT_ROOT_LOGIN=prohibit-password
 SSH_PASSWORD_AUTH=no
 
-# Disable root login entirely
+# Disable root login entirely (MOST SECURE)
 PERMIT_ROOT_LOGIN=no
 SSH_PASSWORD_AUTH=no
 ```
