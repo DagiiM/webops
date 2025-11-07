@@ -108,6 +108,10 @@ nginx-configs/
 addons/cache/
 addons/logs/
 
+# WebOps configuration files (generated during installation)
+provisioning/config.env
+control-panel/.dev_admin_password
+
 # WebOps system files
 *.webops
 webops_config.json
