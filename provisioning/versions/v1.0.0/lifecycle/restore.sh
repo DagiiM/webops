@@ -1,14 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
 ###############################################################################
 # WebOps Secure Restore Script
-# 
+#
 # Purpose: Safe, dependency-free restore of WebOps backups with rollback capability
 # Author: Douglas Mutethia, Eleso Solutions
 # Version: 1.0.0
 # License: MIT
 #
-# Philosophy: Minimal dependencies, security-first design, POSIX compliance
+# Philosophy: Minimal dependencies, security-first design, bash required
 ###############################################################################
 
 set -euo pipefail
