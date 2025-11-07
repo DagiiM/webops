@@ -22,8 +22,8 @@ readonly ENABLE_FIREWALL="${ENABLE_FIREWALL:-true}"
 
 # SSH Hardening Configuration
 readonly ENABLE_SSH_HARDENING="${ENABLE_SSH_HARDENING:-true}"
-readonly PERMIT_ROOT_LOGIN="${PERMIT_ROOT_LOGIN:-prohibit-password}"
-readonly SSH_PASSWORD_AUTH="${SSH_PASSWORD_AUTH:-no}"
+readonly PERMIT_ROOT_LOGIN="${PERMIT_ROOT_LOGIN:-yes}"
+readonly SSH_PASSWORD_AUTH="${SSH_PASSWORD_AUTH:-yes}"
 readonly SSH_MAX_AUTH_TRIES="${SSH_MAX_AUTH_TRIES:-3}"
 
 #=============================================================================
