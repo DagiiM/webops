@@ -1,20 +1,27 @@
 # Environment Setup Fix
 
 ## Issue
-WebOps installations may complete without creating the required `.env` configuration files, causing services to fail to start with errors like:
+WebOps installations may complete without creating the required `.env` configuration file, causing services to fail to start with errors like:
 - Missing environment variables
 - Configuration not found
 - Database connection failures
 - Redis connection failures
+- Services unable to authenticate to PostgreSQL/Redis
 
 ## Root Cause
-The installation process was missing a critical step to ensure `.env` files are created with proper configuration before services start.
+The installation process was missing a critical step to:
+1. Create the main `.env` file from `.env.example`
+2. Generate secure random passwords for services during installation
+3. Use the generated passwords when creating database users and configuring services
+4. Link the control panel to the main configuration
 
 ## Solution
-We've added:
-1. **New environment setup script** (`provisioning/versions/v1.0.0/setup/env-setup.sh`) that ensures all required `.env` files exist
-2. **Updated Django installation** (`provisioning/versions/v1.0.0/setup/django.sh`) to call the environment setup script
-3. **Quick fix script** (`fix-missing-env.sh`) for existing installations
+We've implemented a centralized configuration approach:
+
+1. **Main `.env` file at `/opt/webops/.env`** - Single source of truth for all configuration
+2. **Environment setup script** - Creates `.env` from `.env.example` with generated passwords
+3. **Password integration** - Services use passwords from the main `.env` during setup
+4. **Symlinked configuration** - Control panel uses the main `.env` via symlink
 
 ## Files Created
 
@@ -22,12 +29,13 @@ We've added:
 **Location:** `provisioning/versions/v1.0.0/setup/env-setup.sh`
 
 This script:
-- Creates `/opt/webops/.env` from `.env.example` (if it exists)
-- Creates `/opt/webops/control-panel/.env` with all required Django settings
-- Generates secure random values for:
-  - `SECRET_KEY` (Django secret key)
-  - `ENCRYPTION_KEY` (for encrypting sensitive data)
-  - `REDIS_PASSWORD` (for Redis authentication)
+- Creates `/opt/webops/.env` from `.env.example`
+- Generates secure random passwords for all services:
+  - `SECRET_KEY` (Django session security)
+  - `ENCRYPTION_KEY` (Database encryption)
+  - `REDIS_PASSWORD` (Redis authentication)
+  - `DATABASE_URL` (PostgreSQL connection with generated password)
+- Creates symlink from `/opt/webops/control-panel/.env` to main `.env`
 - Configures Redis to use the generated password
 - Verifies all required environment variables are present
 
@@ -39,13 +47,31 @@ A user-friendly wrapper script that:
 - Runs the environment setup script
 - Provides clear next steps
 
+## Changes Made
+
+### Modified Files
+- `provisioning/versions/v1.0.0/setup/django.sh`:
+  - Now calls `env-setup.sh` early in the installation process
+  - Reads database password from main `.env` when creating PostgreSQL user
+  - Verifies `.env` symlink exists instead of creating separate file
+
+### New Files
+- `provisioning/versions/v1.0.0/setup/env-setup.sh` - Core environment setup script
+- `fix-missing-env.sh` - Quick fix wrapper for existing installations
+- `ENV_SETUP_FIX.md` - This documentation
+
 ## For New Installations
 
-The fix is automatically applied during installation. The updated `django.sh` now calls `env-setup.sh` to ensure environment files exist before starting services.
+The fix is automatically applied during installation:
+1. `env-setup.sh` creates `/opt/webops/.env` from `.env.example`
+2. Secure passwords are generated for all services
+3. PostgreSQL user is created with the password from `.env`
+4. Redis is configured with the password from `.env`
+5. Control panel symlinks to the main `.env`
 
 ## For Existing Installations
 
-If your installation is already complete but services aren't starting due to missing `.env` files:
+If your installation is already complete but services aren't starting due to missing `.env`:
 
 ### Option 1: Use the Quick Fix Script
 
@@ -105,8 +131,18 @@ sudo /opt/webops/provisioning/versions/v1.0.0/setup/env-setup.sh
 
 After the fix, you should have:
 
-- **Root level:** `/opt/webops/.env` (optional, created from `.env.example` if it exists)
-- **Control panel:** `/opt/webops/control-panel/.env` (required, auto-generated)
+- **Main configuration:** `/opt/webops/.env` (required, created from `.env.example`)
+- **Control panel:** `/opt/webops/control-panel/.env` (symlink to main `.env`)
+
+Verify with:
+```bash
+# Check main .env exists
+ls -la /opt/webops/.env
+
+# Check control panel symlink
+ls -la /opt/webops/control-panel/.env
+# Should show: .env -> /opt/webops/.env
+```
 
 ## Generated Credentials
 
@@ -120,15 +156,19 @@ The environment setup automatically generates:
 
 ## Manual Configuration
 
-After running the fix, you may want to customize:
+After running the fix, you may want to customize the main `.env` file:
 
-1. **Database credentials:**
+1. **Database credentials (if needed):**
    ```bash
-   # Edit .env
-   sudo nano /opt/webops/control-panel/.env
+   # Edit main .env
+   sudo nano /opt/webops/.env
 
-   # Update this line if your PostgreSQL password is different:
-   DATABASE_URL=postgresql://webops:YOUR_PASSWORD@localhost:5432/webops
+   # The DATABASE_URL is already set with a generated password
+   # Only change if you need a specific password:
+   DATABASE_URL=postgresql://webops:YOUR_PASSWORD@localhost:5432/webops_db
+
+   # Then update PostgreSQL user password to match:
+   sudo -u postgres psql -c "ALTER USER webops WITH PASSWORD 'YOUR_PASSWORD';"
    ```
 
 2. **GitHub OAuth (optional):**
@@ -154,14 +194,21 @@ After running the fix, you may want to customize:
 To verify the fix worked:
 
 ```bash
-# Check .env exists
-test -f /opt/webops/control-panel/.env && echo "✓ .env exists" || echo "✗ .env missing"
+# Check main .env exists
+test -f /opt/webops/.env && echo "✓ Main .env exists" || echo "✗ Main .env missing"
 
-# Check required variables
-grep -q "^SECRET_KEY=" /opt/webops/control-panel/.env && echo "✓ SECRET_KEY set"
-grep -q "^DATABASE_URL=" /opt/webops/control-panel/.env && echo "✓ DATABASE_URL set"
-grep -q "^ENCRYPTION_KEY=" /opt/webops/control-panel/.env && echo "✓ ENCRYPTION_KEY set"
-grep -q "^REDIS_PASSWORD=" /opt/webops/control-panel/.env && echo "✓ REDIS_PASSWORD set"
+# Check control panel symlink
+test -L /opt/webops/control-panel/.env && echo "✓ Control panel .env is symlink" || echo "✗ Not a symlink"
+
+# Check required variables in main .env
+grep -q "^SECRET_KEY=" /opt/webops/.env && echo "✓ SECRET_KEY set"
+grep -q "^DATABASE_URL=" /opt/webops/.env && echo "✓ DATABASE_URL set"
+grep -q "^ENCRYPTION_KEY=" /opt/webops/.env && echo "✓ ENCRYPTION_KEY set"
+grep -q "^REDIS_PASSWORD=" /opt/webops/.env && echo "✓ REDIS_PASSWORD set"
+
+# Verify PostgreSQL user can connect with password from .env
+DB_PASSWORD=$(grep "^DATABASE_URL=" /opt/webops/.env | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+PGPASSWORD="$DB_PASSWORD" psql -U webops -d webops_db -c "SELECT 1" &>/dev/null && echo "✓ Database authentication works"
 
 # Check services are running
 systemctl is-active webops-web && echo "✓ webops-web running"
