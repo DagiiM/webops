@@ -34,37 +34,61 @@ cat control-panel/.dev_admin_password
 
 ### For Production Setup (install.sh)
 
-After running the production installer, services **SHOULD be automatically started** and enabled for auto-restart. However, you need to verify this.
+After running the production installer, services **ARE automatically started** and verified. The installation will **FAIL** if services don't start successfully.
 
-#### Step 1: Check if Services Are Running
+**What happens during installation:**
+- ✅ Services are enabled for auto-start on boot
+- ✅ Services are started with up to 3 retry attempts
+- ✅ Installation waits 5 seconds for web services to initialize
+- ✅ Network accessibility is verified (0.0.0.0 binding)
+- ✅ HTTP connectivity is tested
+- ❌ Installation **FAILS** if any critical service doesn't start
+
+**If installation completed successfully, your services ARE running.**
+
+#### Verify Services Are Running (Optional)
+
+If you want to double-check:
 
 ```bash
 # Check all WebOps services
 systemctl status webops-web
 systemctl status webops-worker
 systemctl status webops-beat
+systemctl status webops-channels
 
 # Or check all at once
 systemctl status "webops-*"
 ```
 
-#### Step 2: Start Services (if not running)
+#### If Installation Failed Due to Service Startup
 
-If services are not running after installation:
+If the installation failed with "Critical services failed to start":
 
+1. **Check the error logs** shown during installation
+2. **Fix the underlying issue** (usually PostgreSQL, Redis, or port conflicts)
+3. **Re-run the installation**
+
+Common fixes:
 ```bash
-# Start individual services
-sudo systemctl start webops-web
-sudo systemctl start webops-worker
-sudo systemctl start webops-beat
+# Ensure PostgreSQL is running
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 
-# Enable auto-start on boot (if not already enabled)
-sudo systemctl enable webops-web
-sudo systemctl enable webops-worker
-sudo systemctl enable webops-beat
+# Ensure Redis is running
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+
+# Check for port conflicts
+sudo ss -tulpn | grep :8000
+
+# Then re-run install
+sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 ```
 
-#### Step 3: Access the Control Panel
+#### Access the Control Panel
+
+The server is **automatically accessible** from your network on port 8000:
 
 ```bash
 # Find your server IP
@@ -74,7 +98,17 @@ hostname -I | awk '{print $1}'
 # http://YOUR_SERVER_IP:8000
 ```
 
-#### Step 4: Get Admin Credentials
+**Default Configuration:**
+- **Binding:** 0.0.0.0 (all network interfaces)
+- **Port:** 8000
+- **Access:** From any IP address on your network
+
+This means you can access the control panel from:
+- The server itself: `http://localhost:8000`
+- Other computers on the network: `http://SERVER_IP:8000`
+- The internet (if firewall allows): `http://YOUR_PUBLIC_IP:8000`
+
+#### Get Admin Credentials
 
 ```bash
 # View admin credentials
@@ -371,15 +405,28 @@ If services still won't start:
 - ✅ Must manually run `./start_dev.sh` to access server
 - 🌐 Access at: http://127.0.0.1:8000
 
-**Production:**
-- ✅ SHOULD auto-start after `install.sh` completes
-- ✅ Services have `Restart=always` for automatic recovery
+**Production (Updated Behavior):**
+- ✅✅ **GUARANTEED to auto-start** - installation fails if services don't start
+- ✅ Up to 3 retry attempts per service with 5-second delays
+- ✅ Network accessibility verified (0.0.0.0 binding)
+- ✅ HTTP connectivity tested before completion
+- ✅ Services have `Restart=always` for automatic recovery after crashes
 - ✅ Services are enabled for boot auto-start
-- 🔧 If not running, use: `sudo systemctl start webops-web webops-worker webops-beat`
-- 🌐 Access at: http://YOUR_SERVER_IP:8000
+- 🌐 **Access at:** http://YOUR_SERVER_IP:8000
+- 🌐 **Accessible from:** Server itself, LAN, and internet (if firewall allows)
 
-**Verify everything is working:**
+**If installation completed successfully:**
 ```bash
-systemctl status "webops-*"
+# Services ARE running and accessible
+# Simply access: http://YOUR_SERVER_IP:8000
+
+# View admin credentials
 sudo cat /opt/webops/.secrets/admin_credentials.txt
+```
+
+**If installation FAILED:**
+```bash
+# Check the error logs shown during installation
+# Fix the underlying issue (PostgreSQL, Redis, ports)
+# Re-run the installation - it will not complete until services start successfully
 ```

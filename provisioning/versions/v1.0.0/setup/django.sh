@@ -259,23 +259,86 @@ start_services() {
     log_step "Starting Django services..."
 
     # Enable and start services
-    local services=(webops-web webops-worker webops-beat)
+    local services=(webops-web webops-worker webops-beat webops-channels)
+    local failed_services=()
+    local max_retries=3
+    local retry_delay=5
 
     for service in "${services[@]}"; do
         if [[ -f "/etc/systemd/system/${service}.service" ]]; then
             log_info "Enabling and starting $service..."
-            systemctl enable "$service"
-            systemctl restart "$service"
 
-            # Wait a moment and check status
-            sleep 2
-            if systemctl is-active --quiet "$service"; then
-                log_success "$service started successfully ✓"
-            else
-                log_warn "$service failed to start - check logs with: journalctl -xeu $service"
+            # Enable service for auto-start on boot
+            systemctl enable "$service" 2>/dev/null || log_warn "Failed to enable $service"
+
+            # Try to start service with retries
+            local retry=0
+            local started=false
+
+            while [[ $retry -lt $max_retries ]]; do
+                if [[ $retry -gt 0 ]]; then
+                    log_info "Retry attempt $retry/$((max_retries-1)) for $service..."
+                    sleep $retry_delay
+                fi
+
+                # Restart the service
+                systemctl restart "$service" 2>/dev/null
+
+                # Wait for service to initialize (longer for web service)
+                if [[ "$service" == "webops-web" ]] || [[ "$service" == "webops-channels" ]]; then
+                    sleep 5
+                else
+                    sleep 3
+                fi
+
+                # Check if service is active
+                if systemctl is-active --quiet "$service"; then
+                    log_success "$service started successfully ✓"
+                    started=true
+                    break
+                fi
+
+                retry=$((retry + 1))
+            done
+
+            # If service failed to start after retries
+            if [[ "$started" == "false" ]]; then
+                log_error "$service failed to start after $max_retries attempts"
+                log_error "Check logs with: journalctl -xeu $service"
+                failed_services+=("$service")
+
+                # Show last 20 lines of logs for debugging
+                echo ""
+                log_error "Last 20 log lines for $service:"
+                journalctl -u "$service" -n 20 --no-pager || true
+                echo ""
             fi
         fi
     done
+
+    # If critical services failed, fail the installation
+    if [[ ${#failed_services[@]} -gt 0 ]]; then
+        log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log_error "Critical services failed to start:"
+        for service in "${failed_services[@]}"; do
+            log_error "  • $service"
+        done
+        log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        log_error ""
+        log_error "Installation cannot continue with failed services."
+        log_error "Please check the logs above and fix any issues."
+        log_error ""
+        log_error "Common issues:"
+        log_error "  1. PostgreSQL not running: systemctl start postgresql"
+        log_error "  2. Redis not running: systemctl start redis-server"
+        log_error "  3. Port 8000 already in use: ss -tulpn | grep :8000"
+        log_error "  4. Permission issues: check /var/log/webops/ permissions"
+        log_error ""
+        return 1
+    fi
+
+    log_success "All services started successfully ✓"
+    return 0
 }
 
 #=============================================================================
@@ -328,8 +391,12 @@ install_django_control_panel() {
     # Install systemd services
     install_systemd_services
 
-    # Start services
-    start_services
+    # Start services (fail installation if services don't start)
+    if ! start_services; then
+        log_error "Django control panel installation failed - services did not start"
+        log_error "Installation cannot continue. Please fix the issues above and try again."
+        return 1
+    fi
 
     # Prompt for superuser
     prompt_create_superuser
@@ -339,19 +406,52 @@ install_django_control_panel() {
 
     log_success "Django control panel installation completed ✓"
 
-    # Print access information
+    # Verify network accessibility
+    log_step "Verifying network accessibility..."
     local server_ip=$(hostname -I | awk '{print $1}')
+    local port="${CONTROL_PANEL_PORT}"
+
+    # Check if port is listening on all interfaces
+    if ss -tulpn 2>/dev/null | grep -q ":${port}.*0.0.0.0"; then
+        log_success "Server is listening on 0.0.0.0:${port} (accessible from network) ✓"
+    elif ss -tulpn 2>/dev/null | grep -q ":${port}"; then
+        log_warn "Server is listening on port ${port} but may not be accessible from network"
+        log_warn "Check binding configuration in .env: CONTROL_PANEL_HOST=0.0.0.0"
+    else
+        log_error "Server is not listening on port ${port}"
+        log_error "Service may not have started correctly. Check: systemctl status webops-web"
+    fi
+
+    # Test HTTP connectivity
+    log_info "Testing HTTP connectivity..."
+    if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${port}/" 2>/dev/null | grep -q "200\|302\|301"; then
+        log_success "HTTP server is responding ✓"
+    else
+        log_warn "HTTP server is not responding to requests"
+        log_warn "This may be normal if authentication is required"
+    fi
+
+    # Print access information
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║  Django Control Panel Installed Successfully                 ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${BLUE}Access URL:${NC} http://${server_ip}:${CONTROL_PANEL_PORT}/"
+    echo -e "${GREEN}✓ Services Started and Running${NC}"
+    echo -e "${GREEN}✓ Server Accessible on Network${NC}"
+    echo ""
+    echo -e "${BLUE}Access URL:${NC} ${GREEN}http://${server_ip}:${port}/${NC}"
+    echo ""
+    echo -e "${BLUE}Network Info:${NC}"
+    echo "  Server IP: ${server_ip}"
+    echo "  Port: ${port}"
+    echo "  Binding: 0.0.0.0 (all network interfaces)"
     echo ""
     echo -e "${BLUE}Service Management:${NC}"
     echo "  systemctl status webops-web"
     echo "  systemctl status webops-worker"
     echo "  systemctl status webops-beat"
+    echo "  systemctl status webops-channels"
     echo ""
     echo -e "${BLUE}Logs:${NC}"
     echo "  journalctl -f -u webops-web"
