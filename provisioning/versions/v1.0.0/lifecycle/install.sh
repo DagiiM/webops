@@ -21,9 +21,10 @@ readonly NC='\033[0m' # No Color
 # Configuration
 readonly WEBOPS_VERSION="v1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-WEBOPS_VERSION_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+WEBOPS_VERSION_DIR="$(dirname "$SCRIPT_DIR")"
 WEBOPS_PLATFORM_DIR="$(dirname "$(dirname "$WEBOPS_VERSION_DIR")")"
-readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR
+WEBOPS_PLATFORM_DIR_NAME="$(basename "$WEBOPS_PLATFORM_DIR")"
+readonly SCRIPT_DIR WEBOPS_VERSION_DIR WEBOPS_PLATFORM_DIR WEBOPS_PLATFORM_DIR_NAME
 readonly WEBOPS_BIN="${WEBOPS_VERSION_DIR}/bin/webops"
 
 # Logging setup
@@ -89,7 +90,7 @@ log_step() {
 copy_to_install_location() {
     local target_root current_root
     target_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
-    current_root="$(dirname "$(dirname "$WEBOPS_PLATFORM_DIR")")"
+    current_root="$(dirname "$WEBOPS_PLATFORM_DIR")"
 
     # Normalize paths for comparison
     target_root="$(readlink -f "$target_root" 2>/dev/null || echo "$target_root")"
@@ -126,7 +127,7 @@ copy_to_install_location() {
     cp -a "$current_root" "$target_root"
 
     # Verify copy succeeded
-    if [[ ! -d "$target_root/.webops/versions/${WEBOPS_VERSION}" ]]; then
+    if [[ ! -d "$target_root/${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}" ]]; then
         log_error "Failed to copy repository to $target_root"
         exit 1
     fi
@@ -134,7 +135,7 @@ copy_to_install_location() {
     log_success "Repository copied successfully ✓"
 
     # Re-execute from new location
-    local new_script="$target_root/.webops/versions/${WEBOPS_VERSION}/lifecycle/install.sh"
+    local new_script="$target_root/${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}/lifecycle/install.sh"
 
     log_info "Re-executing installer from $target_root..."
     echo ""
@@ -182,7 +183,7 @@ validate_environment() {
         log_warn ""
         log_warn "If you want to:"
         log_warn "  • Update: Use '${WEBOPS_BIN} update' instead"
-        log_warn "  • Repair: Use './.webops/versions/${WEBOPS_VERSION}/lifecycle/repair.sh' instead"
+        log_warn "  • Repair: Use './${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}/lifecycle/repair.sh' instead"
         log_warn "  • Reinstall: Remove ${WEBOPS_PLATFORM_DIR}/config.env first"
         log_warn ""
         read -p "Continue anyway? (type 'yes' to proceed): " -r
@@ -249,7 +250,7 @@ create_default_config() {
 
     local config_file="${WEBOPS_PLATFORM_DIR}/config.env"
 
-    # Detect installation root (parent directory of .webops)
+    # Detect installation root (parent directory of provisioning/.webops)
     local detected_root="$(cd "$(dirname "${WEBOPS_PLATFORM_DIR}")" && pwd)"
 
     # Use detected path for development, /opt/webops for production
