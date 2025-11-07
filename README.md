@@ -75,6 +75,7 @@ WebOps has **TWO distinct setup paths** - choose the one appropriate for your us
 - Use SQLite database by default
 - Run on http://127.0.0.1:8000
 - Create admin user with randomly generated password (shown during setup)
+- ⚠️  **Does NOT auto-start** - you must manually start the server (see below)
 
 #### Option 1: Using Makefile (Recommended)
 
@@ -136,11 +137,18 @@ The production installer modifies system SSH configuration, installs system pack
 sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 
 # Or customize installation
-cd provisioning 
+cd provisioning
 cp versions/v1.0.0/config.env.template config.env
 # Edit config.env to customize settings
 sudo versions/v1.0.0/lifecycle/install.sh
 ```
+
+**📖 After Installation:** See **[POST_INSTALLATION.md](POST_INSTALLATION.md)** for:
+- How to access the server and verify services are running
+- Admin credentials location
+- How to start/stop/restart services
+- Auto-restart configuration and verification
+- Troubleshooting common issues
 
 See the [Infrastructure Platform](#infrastructure-platform) section below for advanced production setup options.
 

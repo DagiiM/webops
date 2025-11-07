@@ -89,7 +89,19 @@ chown -R root:root /home/douglas/webops/.webops/
 chmod -R 755 /home/douglas/webops/.webops/
 ```
 
-### Locked Out After Installation (SSH Root Login Disabled)
+### Locked Out After Installation (If SSH Was Hardened)
+
+**⚠️  Note:** As of the latest version, WebOps **does NOT lock out root or disable password authentication by default**. This issue only occurs if you explicitly configured SSH hardening before installation.
+
+**Default Settings (No Lockout):**
+- Root login: **Enabled** (PERMIT_ROOT_LOGIN=yes)
+- Password authentication: **Enabled** (SSH_PASSWORD_AUTH=yes)
+
+**This Issue Only Applies If You Configured:**
+```bash
+PERMIT_ROOT_LOGIN=prohibit-password  # or "no"
+SSH_PASSWORD_AUTH=no
+```
 
 **Symptoms:**
 - Cannot SSH as root after WebOps installation
@@ -103,7 +115,7 @@ chmod -R 755 /home/douglas/webops/.webops/
 # 2. Login with root password via console
 
 # 3. Restore original SSH configuration using WebOps CLI
-/home/douglas/webops/.webops/versions/v1.0.0/bin/webops restore-ssh
+/opt/webops/provisioning/versions/v1.0.0/bin/webops restore-ssh
 
 # 4. Or manually restore from backup
 cp /etc/ssh/sshd_config.webops-backup* /etc/ssh/sshd_config
@@ -125,36 +137,31 @@ sudo su -
 sudo systemctl status webops-web
 ```
 
-**Solution Option 3: Enable Root Login with Keys Only (Secure)**
+**Solution Option 3: Re-enable Root Login**
 ```bash
 # 1. Access via console or webops user
 
 # 2. Edit SSH config
 sudo nano /etc/ssh/sshd_config
 
-# 3. Change this line:
-PermitRootLogin prohibit-password  # Instead of "no"
+# 3. Change these lines:
+PermitRootLogin yes                # Allow root login
+PasswordAuthentication yes         # Allow password authentication
 
 # 4. Restart SSH
 sudo systemctl restart sshd
 
-# 5. Set up root SSH keys if not already configured
-sudo mkdir -p /root/.ssh
-sudo chmod 700 /root/.ssh
-# Copy your public key to /root/.ssh/authorized_keys
+# 5. Test SSH connection (keep console open until verified!)
 ```
 
-**Prevention:**
-Before installing WebOps, configure SSH settings in config.env:
+**Hardening SSH (Optional, For Production):**
+If you want to harden SSH after installation:
 ```bash
-# Allow root login with SSH keys (recommended)
-PERMIT_ROOT_LOGIN=prohibit-password
+# Edit config before installation
+PERMIT_ROOT_LOGIN=prohibit-password  # Require SSH keys for root
+SSH_PASSWORD_AUTH=no                 # Disable password authentication
 
-# Or disable SSH hardening entirely
-ENABLE_SSH_HARDENING=false
-
-# Or allow password authentication as fallback
-SSH_PASSWORD_AUTH=yes
+# Make sure you have SSH keys set up first!
 ```
 
 ### Package Installation Fails
