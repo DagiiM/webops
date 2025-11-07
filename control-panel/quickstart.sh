@@ -116,10 +116,16 @@ if command -v dpkg &> /dev/null; then
         echo ""
         echo "Install with: sudo apt-get install ${MISSING_PACKAGES[*]}"
         echo ""
-        read -p "Continue anyway? (y/N) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
+
+        # Allow non-interactive mode via environment variable
+        if [ "${WEBOPS_SKIP_DEPENDENCY_CHECK:-}" = "1" ]; then
+            print_warning "Skipping dependency check (WEBOPS_SKIP_DEPENDENCY_CHECK=1)"
+        else
+            read -p "Continue anyway? (y/N) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                exit 1
+            fi
         fi
     else
         print_success "System dependencies available"
@@ -129,7 +135,12 @@ fi
 # Step 2: Create or verify virtual environment
 print_step "Setting up virtual environment..."
 
-if [ ! -d "venv" ]; then
+# Check if virtual environment exists AND is valid (has activate script)
+if [ ! -f "venv/bin/activate" ]; then
+    if [ -d "venv" ]; then
+        print_warning "Virtual environment directory exists but is corrupted, recreating..."
+        rm -rf venv
+    fi
     echo -e "${BLUE}Creating virtual environment (this may take a minute)...${NC}"
     python3 -m venv venv || {
         print_error "Failed to create virtual environment"
