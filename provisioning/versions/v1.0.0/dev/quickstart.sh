@@ -13,7 +13,9 @@ NC='\033[0m'
 
 # Detect script and project directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# Navigate from provisioning/versions/v1.0.0/dev to webops root
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+CONTROL_PANEL_DIR="${PROJECT_ROOT}/control-panel"
 ENV_FILE="${PROJECT_ROOT}/.env"
 
 # Total steps for progress tracking
@@ -43,11 +45,12 @@ cleanup_on_failure() {
     echo -e "${RED}  Setup failed!${NC}"
     echo -e "${RED}========================================${NC}"
     echo -e "\n${YELLOW}To clean up and retry:${NC}"
-    echo "  cd ${SCRIPT_DIR}"
+    echo "  cd ${CONTROL_PANEL_DIR}"
     echo "  rm -rf venv"
+    echo "  cd ${PROJECT_ROOT}"
     echo "  rm -f ${ENV_FILE}"
-    echo "  rm -f db.sqlite3"
-    echo "  ./quickstart.sh"
+    echo "  rm -f control-panel/db.sqlite3"
+    echo "  provisioning/versions/v1.0.0/dev/quickstart.sh"
     exit 1
 }
 
@@ -57,7 +60,14 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  WebOps Development Quick Start${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo -e "\n${BLUE}Project root:${NC} ${PROJECT_ROOT}"
-echo -e "${BLUE}Control panel:${NC} ${SCRIPT_DIR}"
+echo -e "${BLUE}Control panel:${NC} ${CONTROL_PANEL_DIR}"
+echo -e "${BLUE}Dev scripts:${NC} ${SCRIPT_DIR}"
+
+# Change to control panel directory
+cd "$CONTROL_PANEL_DIR" || {
+    echo -e "${RED}Failed to change to control panel directory: ${CONTROL_PANEL_DIR}${NC}"
+    exit 1
+}
 
 # Step 1: Pre-flight checks
 print_step "Running pre-flight checks..."

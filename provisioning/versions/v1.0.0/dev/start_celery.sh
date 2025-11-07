@@ -7,8 +7,16 @@
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR"
-VENV_DIR="$PROJECT_DIR/venv"
+# Navigate from provisioning/versions/v1.0.0/dev to webops root
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+CONTROL_PANEL_DIR="${PROJECT_ROOT}/control-panel"
+VENV_DIR="$CONTROL_PANEL_DIR/venv"
+
+# Change to control panel directory
+cd "$CONTROL_PANEL_DIR" || {
+    echo -e "${RED}Failed to change to control panel directory: ${CONTROL_PANEL_DIR}${NC}"
+    exit 1
+}
 CELERY_APP="config.celery_app"
 LOG_LEVEL="info"
 CONCURRENCY=4
