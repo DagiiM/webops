@@ -303,7 +303,7 @@ webops/
 │   │       ├── os/                  # OS-specific handlers
 │   │       ├── systemd/             # Service templates
 │   │       └── contracts/           # Security contracts
-│   └── config.env                    # Platform configuration
+│   └── config.env.template           # Platform configuration template
 ├── cli/                              # WebOps CLI with enhanced features
 │   ├── webops_cli/
 │   │   ├── api.py                    # API client for control panel
