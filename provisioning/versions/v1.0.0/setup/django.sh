@@ -379,7 +379,13 @@ install_django_control_panel() {
     # Setup Python environment
     setup_python_venv
 
-    # Configure Django
+    # Ensure environment files exist (run env-setup for safety)
+    log_step "Ensuring environment configuration..."
+    if [[ -f "${SCRIPT_DIR}/env-setup.sh" ]]; then
+        CONFIGURE_REDIS=no "${SCRIPT_DIR}/env-setup.sh" || log_warn "Environment setup had warnings (continuing)"
+    fi
+
+    # Configure Django (legacy - env-setup.sh now handles this)
     configure_django_env
 
     # Setup database
