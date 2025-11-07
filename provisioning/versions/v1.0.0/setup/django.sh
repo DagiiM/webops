@@ -94,45 +94,33 @@ setup_python_venv() {
 #=============================================================================
 
 configure_django_env() {
-    log_step "Configuring Django environment..."
+    log_step "Verifying Django environment configuration..."
 
-    local env_file="${CONTROL_PANEL_DIR}/.env"
+    local env_link="${CONTROL_PANEL_DIR}/.env"
+    local main_env="${WEBOPS_ROOT}/.env"
 
-    # Create .env file if it doesn't exist
-    if [[ ! -f "$env_file" ]]; then
-        log_info "Creating Django .env file"
+    # Check if main .env exists
+    if [[ ! -f "$main_env" ]]; then
+        log_error "Main .env file not found at: $main_env"
+        log_error "Please run env-setup.sh first"
+        return 1
+    fi
 
-        cat > "$env_file" <<EOF
-# Django Configuration
-DEBUG=False
-SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
-ALLOWED_HOSTS=localhost,127.0.0.1,$(hostname -I | awk '{print $1}')
-
-# Database
-DATABASE_URL=postgresql://webops:webops@localhost:5432/webops
-
-# Celery
-CELERY_BROKER_URL=redis://localhost:6379/0
-CELERY_RESULT_BACKEND=redis://localhost:6379/1
-
-# Channels
-REDIS_URL=redis://localhost:6379/3
-
-# Security
-ENCRYPTION_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
-
-# WebOps
-WEBOPS_INSTALL_PATH=${WEBOPS_ROOT}
-MIN_PORT=8001
-MAX_PORT=9000
-EOF
-
-        chown "$WEBOPS_USER:$WEBOPS_USER" "$env_file"
-        chmod 600 "$env_file"
-
-        log_success "Django .env file created"
+    # Check if control panel .env exists (should be symlink)
+    if [[ -L "$env_link" ]]; then
+        log_info "Control panel .env symlink exists"
+        local target=$(readlink "$env_link")
+        if [[ "$target" == "$main_env" ]]; then
+            log_success "Django environment configured via symlink ✓"
+        else
+            log_warn "Symlink points to unexpected location: $target"
+            log_warn "Expected: $main_env"
+        fi
+    elif [[ -f "$env_link" ]]; then
+        log_warn "Control panel has standalone .env file (not symlink)"
+        log_info "This will work but consider using symlink for consistency"
     else
-        log_info "Django .env file already exists"
+        log_info ".env not found in control panel, will be created by env-setup.sh"
     fi
 }
 
@@ -144,6 +132,31 @@ setup_django_database() {
     log_step "Setting up Django database..."
 
     local venv_dir="${CONTROL_PANEL_DIR}/venv"
+    local main_env="${WEBOPS_ROOT}/.env"
+
+    # Extract database password from .env
+    local db_password="webops"  # Default fallback
+    if [[ -f "$main_env" ]]; then
+        # Extract password from DATABASE_URL
+        # Format: postgresql://webops:PASSWORD@localhost:5432/webops_db
+        local db_url=$(grep "^DATABASE_URL=" "$main_env" | cut -d'=' -f2-)
+        if [[ -n "$db_url" ]]; then
+            # Extract password between : and @
+            db_password=$(echo "$db_url" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+            log_info "Using database password from .env"
+        fi
+    else
+        log_warn "Main .env not found, using default password"
+    fi
+
+    # Extract database name from .env (default: webops_db)
+    local db_name="webops_db"
+    if [[ -f "$main_env" ]]; then
+        local db_url=$(grep "^DATABASE_URL=" "$main_env" | cut -d'=' -f2-)
+        if [[ -n "$db_url" ]]; then
+            db_name=$(echo "$db_url" | sed -n 's|.*/\([^?]*\).*|\1|p')
+        fi
+    fi
 
     # Check if PostgreSQL is running
     if ! systemctl is-active --quiet postgresql; then
@@ -153,13 +166,25 @@ setup_django_database() {
     fi
 
     # Create database if it doesn't exist
-    if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw webops; then
-        log_info "Creating webops database..."
-        sudo -u postgres createdb webops
-        sudo -u postgres psql -c "CREATE USER webops WITH PASSWORD 'webops';" 2>/dev/null || true
-        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE webops TO webops;"
+    if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw "$db_name"; then
+        log_info "Creating database: $db_name"
+        sudo -u postgres createdb "$db_name"
+
+        # Create user with generated password
+        log_info "Creating database user: webops"
+        sudo -u postgres psql -c "CREATE USER webops WITH PASSWORD '${db_password}';" 2>/dev/null || {
+            # User might exist, try to update password
+            log_info "User exists, updating password"
+            sudo -u postgres psql -c "ALTER USER webops WITH PASSWORD '${db_password}';"
+        }
+
+        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${db_name} TO webops;"
+        log_success "Database created with password from .env ✓"
     else
-        log_info "Database 'webops' already exists"
+        log_info "Database '$db_name' already exists"
+        # Ensure password is up to date
+        log_info "Updating webops user password from .env"
+        sudo -u postgres psql -c "ALTER USER webops WITH PASSWORD '${db_password}';" 2>/dev/null || true
     fi
 
     # Run migrations
@@ -379,7 +404,13 @@ install_django_control_panel() {
     # Setup Python environment
     setup_python_venv
 
-    # Configure Django
+    # Ensure environment files exist (run env-setup for safety)
+    log_step "Ensuring environment configuration..."
+    if [[ -f "${SCRIPT_DIR}/env-setup.sh" ]]; then
+        CONFIGURE_REDIS=no "${SCRIPT_DIR}/env-setup.sh" || log_warn "Environment setup had warnings (continuing)"
+    fi
+
+    # Configure Django (legacy - env-setup.sh now handles this)
     configure_django_env
 
     # Setup database
