@@ -66,7 +66,7 @@ def llm_create(request):
 
         # Create LLM deployment
         try:
-            from ..tasks.application import deploy_application
+            from ..tasks.llm import deploy_llm_model
 
             deployment = LLMDeployment.objects.create(
                 name=sanitized_name,
@@ -84,7 +84,7 @@ def llm_create(request):
             ServiceManager().ensure_celery_running()
 
             # Queue LLM deployment task
-            deploy_application.delay(deployment.id)
+            deploy_llm_model.delay(deployment.id)
 
             messages.success(
                 request,

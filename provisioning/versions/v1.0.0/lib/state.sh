@@ -205,7 +205,7 @@ get_component_dependencies() {
     local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
     local COMPONENT_DEPENDENCIES_FILE="${STATE_DIR}/dependencies.map"
 
-    init_dependencies
+    init_dependencies >/dev/null 2>&1
 
     local line=$(grep "^${component}=" "$COMPONENT_DEPENDENCIES_FILE" | head -n1)
     if [[ -n "$line" ]]; then
@@ -243,7 +243,7 @@ check_dependents() {
     local STATE_DIR="${WEBOPS_ROOT:-/webops}/.webops/state"
     local COMPONENT_DEPENDENCIES_FILE="${STATE_DIR}/dependencies.map"
 
-    init_dependencies
+    init_dependencies >/dev/null 2>&1
 
     local dependents=""
     while IFS= read -r line; do

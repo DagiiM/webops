@@ -5,7 +5,7 @@ After=network.target redis.service postgresql.service
 Wants=redis.service postgresql.service
 
 [Service]
-Type=forking
+Type=simple
 User={{WEBOPS_USER}}
 Group={{WEBOPS_USER}}
 WorkingDirectory={{CONTROL_PANEL_DIR}}
@@ -27,7 +27,7 @@ ExecStart={{CONTROL_PANEL_DIR}}/venv/bin/celery \
     --max-tasks-per-child=1000 \
     --logfile={{WEBOPS_LOG_DIR}}/celery-worker.log \
     --pidfile={{WEBOPS_RUN_DIR}}/celery-worker.pid \
-    --hostname=worker@%h
+    --hostname=worker@%H
 
 # Graceful shutdown
 ExecStop={{CONTROL_PANEL_DIR}}/venv/bin/celery \

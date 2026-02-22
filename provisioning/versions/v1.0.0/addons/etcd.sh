@@ -13,10 +13,9 @@
 set -euo pipefail
 
 # Addon metadata
-# Addon metadata (use local variables to avoid conflicts when sourced)
-local ADDON_NAME="etcd"
-local ADDON_VERSION="3.5.9"
-local ADDON_DESCRIPTION="etcd Distributed Key-Value Store"
+ADDON_NAME="etcd"
+ADDON_VERSION="3.5.9"
+ADDON_DESCRIPTION="etcd Distributed Key-Value Store"
 
 # Source libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,13 +24,12 @@ source "${SCRIPT_DIR}/../lib/os.sh"
 source "${SCRIPT_DIR}/../lib/state.sh"
 
 # Configuration
-# Configuration (use local variables to avoid conflicts when sourced)
-local ETCD_VERSION="${ETCD_VERSION:-3.5.9}"
-local ETCD_USER="${ETCD_USER:-etcd}"
-local ETCD_DATA_DIR="${ETCD_DATA_DIR:-/var/lib/etcd}"
-local ETCD_CONFIG_DIR="${ETCD_CONFIG_DIR:-/etc/etcd}"
-local ETCD_LOG_DIR="${ETCD_LOG_DIR:-/var/log/etcd}"
-local ETCD_CERT_DIR="${ETCD_CERT_DIR:-/etc/etcd/certs}"
+ETCD_VERSION="${ETCD_VERSION:-3.5.9}"
+ETCD_USER="${ETCD_USER:-etcd}"
+ETCD_DATA_DIR="${ETCD_DATA_DIR:-/var/lib/etcd}"
+ETCD_CONFIG_DIR="${ETCD_CONFIG_DIR:-/etc/etcd}"
+ETCD_LOG_DIR="${ETCD_LOG_DIR:-/var/log/etcd}"
+ETCD_CERT_DIR="${ETCD_CERT_DIR:-/etc/etcd/certs}"
 
 # Load configuration
 load_config

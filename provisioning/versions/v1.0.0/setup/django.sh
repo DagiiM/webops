@@ -39,11 +39,17 @@ setup_directories() {
     fi
 
     # Create necessary directories
-    ensure_directory "$WEBOPS_LOG_DIR" "root:root" "755"
+    ensure_directory "$WEBOPS_LOG_DIR" "$WEBOPS_USER:$WEBOPS_USER" "755"
     ensure_directory "$WEBOPS_RUN_DIR" "$WEBOPS_USER:$WEBOPS_USER" "755"
+    ensure_directory "${CONTROL_PANEL_DIR}/logs" "$WEBOPS_USER:$WEBOPS_USER" "755"
     ensure_directory "${CONTROL_PANEL_DIR}/static" "$WEBOPS_USER:$WEBOPS_USER" "755"
     ensure_directory "${CONTROL_PANEL_DIR}/media" "$WEBOPS_USER:$WEBOPS_USER" "755"
     ensure_directory "${CONTROL_PANEL_DIR}/staticfiles" "$WEBOPS_USER:$WEBOPS_USER" "755"
+    chown -R "$WEBOPS_USER:$WEBOPS_USER" \
+        "${CONTROL_PANEL_DIR}/logs" \
+        "${CONTROL_PANEL_DIR}/static" \
+        "${CONTROL_PANEL_DIR}/media" \
+        "${CONTROL_PANEL_DIR}/staticfiles"
 
     log_success "Django directories configured ✓"
 }
@@ -57,10 +63,18 @@ setup_python_venv() {
 
     local venv_dir="${CONTROL_PANEL_DIR}/venv"
 
-    # Check if venv already exists
-    if [[ -d "$venv_dir" ]]; then
+    # Check if a valid venv already exists
+    if [[ -x "${venv_dir}/bin/python" ]]; then
         log_info "Virtual environment already exists at $venv_dir"
     else
+        # Ensure clean writable target for the webops user
+        if [[ -d "$venv_dir" ]]; then
+            rm -rf "$venv_dir"
+        fi
+        mkdir -p "$venv_dir"
+        chown "$WEBOPS_USER:$WEBOPS_USER" "$venv_dir"
+        chmod 755 "$venv_dir"
+
         # Create virtual environment
         log_info "Creating virtual environment at $venv_dir"
         sudo -u "$WEBOPS_USER" python3 -m venv "$venv_dir"
@@ -84,6 +98,7 @@ setup_python_venv() {
         gunicorn \
         gevent \
         daphne \
+        django-celery-beat \
         setproctitle
 
     log_success "Python environment configured ✓"
@@ -306,8 +321,8 @@ start_services() {
                     sleep $retry_delay
                 fi
 
-                # Restart the service
-                systemctl restart "$service" 2>/dev/null
+                # Start the service. Restart can block for worker units with ExecStop hooks.
+                systemctl start "$service" 2>/dev/null
 
                 # Wait for service to initialize (longer for web service)
                 if [[ "$service" == "webops-web" ]] || [[ "$service" == "webops-channels" ]]; then

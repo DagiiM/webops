@@ -13,6 +13,7 @@ This module follows WebOps coding standards:
 
 import os
 from pathlib import Path
+from urllib.parse import quote
 from decouple import config, Csv
 import dj_database_url
 import sys
@@ -136,9 +137,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Redis settings
+REDIS_PASSWORD = config('REDIS_PASSWORD', default='')
+
+
+def _resolve_redis_url(url: str) -> str:
+    """
+    Resolve Redis password placeholders in URLs loaded from .env.
+
+    python-decouple does not expand ${VAR} references automatically, so this
+    keeps existing .env formats working while URL-encoding Redis passwords.
+    """
+    if not url:
+        return url
+
+    if '${REDIS_PASSWORD}' in url or '$REDIS_PASSWORD' in url:
+        if REDIS_PASSWORD:
+            encoded = quote(REDIS_PASSWORD, safe='')
+            url = url.replace('${REDIS_PASSWORD}', encoded).replace('$REDIS_PASSWORD', encoded)
+        else:
+            url = url.replace(':${REDIS_PASSWORD}@', '').replace(':$REDIS_PASSWORD@', '')
+
+    return url
+
+
 # Celery Configuration
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/1')
+CELERY_BROKER_URL = _resolve_redis_url(config('CELERY_BROKER_URL', default='redis://localhost:6379/0'))
+CELERY_RESULT_BACKEND = _resolve_redis_url(config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/1'))
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -148,11 +173,14 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Eliminates deprecation warnings
 
 # Channels Configuration
+REDIS_URL = _resolve_redis_url(config('REDIS_URL', default='redis://localhost:6379/3'))
+REDIS_CACHE_URL = _resolve_redis_url(config('REDIS_CACHE_URL', default='redis://:${REDIS_PASSWORD}@127.0.0.1:6379/2'))
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [config('REDIS_URL', default='redis://localhost:6379/3')],
+            'hosts': [REDIS_URL],
         },
     },
 }
@@ -284,7 +312,7 @@ if not DEBUG:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://127.0.0.1:6379/2',
+            'LOCATION': REDIS_CACHE_URL,
             'OPTIONS': {
                 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             }

@@ -4,10 +4,14 @@ Views for Deployments app.
 "Django App Structure" section
 """
 
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -394,7 +398,22 @@ def deployment_start(request, pk):
         if llm_deployment.status == 'pending':
             # Trigger initial LLM deployment
             from ..tasks.llm import deploy_llm_model
-            deploy_llm_model.delay(llm_deployment.id)
+            try:
+                deploy_llm_model.delay(llm_deployment.id)
+            except Exception:
+                logger.exception(
+                    "Failed to enqueue LLM deployment task for deployment_id=%s",
+                    llm_deployment.id
+                )
+                messages.error(
+                    request,
+                    (
+                        "Failed to queue LLM deployment task. "
+                        "Check Redis/Celery configuration and connectivity."
+                    ),
+                )
+                return redirect('deployments:llm_detail', pk=pk)
+
             messages.success(request, f'LLM deployment started! Check deployment logs for progress.')
             return redirect('deployments:llm_detail', pk=pk)
     except LLMDeployment.DoesNotExist:

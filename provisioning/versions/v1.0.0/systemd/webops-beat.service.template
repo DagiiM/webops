@@ -23,9 +23,9 @@ ExecStart={{CONTROL_PANEL_DIR}}/venv/bin/celery \
     -A config.celery_app \
     beat \
     --loglevel=info \
+    --schedule={{WEBOPS_RUN_DIR}}/celerybeat-schedule \
     --logfile={{WEBOPS_LOG_DIR}}/celery-beat.log \
-    --pidfile={{WEBOPS_RUN_DIR}}/celery-beat.pid \
-    --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    --pidfile={{WEBOPS_RUN_DIR}}/celery-beat.pid
 
 # Graceful shutdown
 ExecStop=/bin/kill -TERM $MAINPID

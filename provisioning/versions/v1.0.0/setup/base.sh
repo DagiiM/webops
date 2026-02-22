@@ -15,16 +15,33 @@ source "${SCRIPT_DIR}/../lib/common.sh"
 source "${SCRIPT_DIR}/../lib/os.sh"
 source "${SCRIPT_DIR}/../lib/state.sh"
 
+# Load configuration before finalizing defaults
+load_config
+
 # Configuration
-readonly WEBOPS_USER="${WEBOPS_USER:-webops}"
-readonly TIMEZONE="${TIMEZONE:-UTC}"
-readonly ENABLE_FIREWALL="${ENABLE_FIREWALL:-true}"
+if [[ -z "${WEBOPS_USER:-}" ]]; then
+    readonly WEBOPS_USER="webops"
+fi
+if [[ -z "${TIMEZONE:-}" ]]; then
+    readonly TIMEZONE="UTC"
+fi
+if [[ -z "${ENABLE_FIREWALL:-}" ]]; then
+    readonly ENABLE_FIREWALL="true"
+fi
 
 # SSH Hardening Configuration
-readonly ENABLE_SSH_HARDENING="${ENABLE_SSH_HARDENING:-true}"
-readonly PERMIT_ROOT_LOGIN="${PERMIT_ROOT_LOGIN:-yes}"
-readonly SSH_PASSWORD_AUTH="${SSH_PASSWORD_AUTH:-yes}"
-readonly SSH_MAX_AUTH_TRIES="${SSH_MAX_AUTH_TRIES:-3}"
+if [[ -z "${ENABLE_SSH_HARDENING:-}" ]]; then
+    readonly ENABLE_SSH_HARDENING="true"
+fi
+if [[ -z "${PERMIT_ROOT_LOGIN:-}" ]]; then
+    readonly PERMIT_ROOT_LOGIN="yes"
+fi
+if [[ -z "${SSH_PASSWORD_AUTH:-}" ]]; then
+    readonly SSH_PASSWORD_AUTH="yes"
+fi
+if [[ -z "${SSH_MAX_AUTH_TRIES:-}" ]]; then
+    readonly SSH_MAX_AUTH_TRIES="3"
+fi
 
 #=============================================================================
 # System User and Security Setup

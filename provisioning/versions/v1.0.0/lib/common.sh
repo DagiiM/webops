@@ -75,7 +75,8 @@ get_config() {
     local key="$1"
     local default="${2:-}"
 
-    load_config
+    # Suppress load logs so command substitution consumers get clean values.
+    load_config >/dev/null 2>&1 || true
 
     # Use environment variable if set, otherwise use default
     echo "${!key:-$default}"
