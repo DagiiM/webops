@@ -15,6 +15,7 @@ This module provides:
 from typing import Dict, Any, List, Optional, Tuple
 import subprocess
 import logging
+import os
 import psutil
 from django.conf import settings
 from django.utils import timezone
@@ -26,6 +27,14 @@ from apps.deployments.models import BaseDeployment, ApplicationDeployment
 from apps.deployments.shared import ServiceManager
 
 logger = logging.getLogger(__name__)
+
+
+def _systemctl_binary() -> str:
+    """Resolve an absolute path to systemctl for restricted service PATHs."""
+    for candidate in ("/bin/systemctl", "/usr/bin/systemctl"):
+        if os.path.exists(candidate):
+            return candidate
+    return "systemctl"
 
 
 class ServiceControlError(Exception):
@@ -552,11 +561,12 @@ class ServiceController:
         """
         services = ['nginx', 'postgresql', 'redis-server']
         statuses = {}
+        systemctl = _systemctl_binary()
 
         for service in services:
             try:
                 result = subprocess.run(
-                    ['systemctl', 'is-active', service],
+                    [systemctl, 'is-active', service],
                     capture_output=True,
                     text=True,
                     timeout=5
@@ -591,41 +601,86 @@ class ServiceController:
         Returns:
             Celery worker status summary
         """
+        status: Dict[str, Any] = {
+            'success': True,
+            'healthy': False,
+            'worker_count': 0,
+            'workers': [],
+            'beat_running': False,
+        }
+
         try:
             from celery import current_app
             inspect = current_app.control.inspect()
-            
-            # Get active workers
-            active_workers = inspect.active()
-            if not active_workers:
-                return {
-                    'healthy': False,
-                    'worker_count': 0,
-                    'workers': []
-                }
-            
-            workers = []
+
+            # Get active workers from Celery inspect
+            active_workers = inspect.active() or {}
             for worker_name, tasks in active_workers.items():
-                workers.append({
+                status['workers'].append({
                     'name': worker_name,
                     'active_tasks': len(tasks),
                     'status': 'online'
                 })
-            
-            return {
-                'healthy': len(workers) > 0,
-                'worker_count': len(workers),
-                'workers': workers
-            }
-            
+
+            status['worker_count'] = len(status['workers'])
+            status['healthy'] = status['worker_count'] > 0
+
+            # Fallback: inspect can return empty in some deployments even when
+            # workers are alive (broker ACL/networking constraints).
+            if status['worker_count'] == 0:
+                worker_processes = subprocess.run(
+                    ['pgrep', '-f', 'celeryd: worker@'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                worker_pids = [pid for pid in worker_processes.stdout.splitlines() if pid.strip()]
+                for pid_str in worker_pids:
+                    try:
+                        pid = int(pid_str)
+                        process = psutil.Process(pid)
+                        status['workers'].append({
+                            'pid': pid,
+                            'name': process.name(),
+                            'status': process.status(),
+                            'active_tasks': 0
+                        })
+                    except (ValueError, psutil.NoSuchProcess):
+                        continue
+
+                status['worker_count'] = len(status['workers'])
+                status['healthy'] = status['worker_count'] > 0
+
+            # Detect beat scheduler using systemd first, then process fallback.
+            systemctl = _systemctl_binary()
+            beat_units = ('webops-beat', 'celery-beat', 'celerybeat')
+            for unit in beat_units:
+                result = subprocess.run(
+                    [systemctl, 'is-active', unit],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0 and result.stdout.strip() == 'active':
+                    status['beat_running'] = True
+                    break
+
+            if not status['beat_running']:
+                beat_process = subprocess.run(
+                    ['pgrep', '-f', 'celery beat'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                status['beat_running'] = bool(beat_process.stdout.strip())
+
+            return status
+
         except Exception as e:
             logger.error(f"Failed to check Celery workers: {e}")
-            return {
-                'healthy': False,
-                'worker_count': 0,
-                'workers': [],
-                'error': str(e)
-            }
+            status['success'] = False
+            status['error'] = str(e)
+            return status
 
     def restart_celery_workers(self) -> Dict[str, Any]:
         """
@@ -635,25 +690,50 @@ class ServiceController:
             Restart result
         """
         try:
-            # Use systemctl to restart Celery workers
-            result = subprocess.run(
-                ['systemctl', 'restart', 'celery'],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if result.returncode == 0:
-                return {
-                    'success': True,
-                    'message': 'Celery workers restarted successfully'
-                }
-            else:
+            # Use systemctl to restart worker/beat services
+            systemctl = _systemctl_binary()
+            worker_units = ('webops-worker', 'celery')
+            restarted_worker_unit = None
+
+            for unit in worker_units:
+                result = subprocess.run(
+                    [systemctl, 'restart', unit],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    restarted_worker_unit = unit
+                    break
+
+            if not restarted_worker_unit:
                 return {
                     'success': False,
-                    'error': result.stderr,
-                    'message': f'Failed to restart Celery workers: {result.stderr}'
+                    'error': result.stderr if result else 'Failed to restart worker unit',
+                    'message': f"Failed to restart Celery workers using units: {', '.join(worker_units)}"
                 }
+
+            # Beat service is optional in some environments.
+            restarted_beat_unit = None
+            for unit in ('webops-beat', 'celery-beat', 'celerybeat'):
+                beat_result = subprocess.run(
+                    [systemctl, 'restart', unit],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if beat_result.returncode == 0:
+                    restarted_beat_unit = unit
+                    break
+
+            message = f"Celery workers restarted successfully via {restarted_worker_unit}"
+            if restarted_beat_unit:
+                message = f"{message}; beat restarted via {restarted_beat_unit}"
+
+            return {
+                'success': True,
+                'message': message
+            }
                 
         except subprocess.TimeoutExpired:
             return {

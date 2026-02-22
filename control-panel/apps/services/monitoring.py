@@ -8,6 +8,7 @@ Architecture: Real-time system monitoring using psutil
 from typing import Dict, Any, List, Optional
 import psutil
 import subprocess
+import os
 from django.utils import timezone
 from .models import ResourceUsage, ServiceStatus, Alert, HealthCheck
 from apps.deployments.models import BaseDeployment, ApplicationDeployment
@@ -15,6 +16,14 @@ import requests
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _systemctl_binary() -> str:
+    """Resolve an absolute path to systemctl for restricted service PATHs."""
+    for candidate in ("/bin/systemctl", "/usr/bin/systemctl"):
+        if os.path.exists(candidate):
+            return candidate
+    return "systemctl"
 
 
 class SystemMonitor:
@@ -157,11 +166,12 @@ class SystemMonitor:
     def check_service_status(self, deployment: BaseDeployment) -> ServiceStatus:
         """Check status of a deployed service."""
         service_name = f"webops-{deployment.name}"
+        systemctl = _systemctl_binary()
 
         try:
             # Check systemd service status
             result = subprocess.run(
-                ['systemctl', 'is-active', service_name],
+                [systemctl, 'is-active', service_name],
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -178,7 +188,7 @@ class SystemMonitor:
             if is_active:
                 # Get PID
                 pid_result = subprocess.run(
-                    ['systemctl', 'show', service_name, '--property=MainPID'],
+                    [systemctl, 'show', service_name, '--property=MainPID'],
                     capture_output=True,
                     text=True,
                     timeout=5
@@ -203,7 +213,7 @@ class SystemMonitor:
             else:
                 # Check if it's failed
                 result = subprocess.run(
-                    ['systemctl', 'is-failed', service_name],
+                    [systemctl, 'is-failed', service_name],
                     capture_output=True,
                     text=True,
                     timeout=5

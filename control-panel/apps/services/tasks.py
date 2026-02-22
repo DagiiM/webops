@@ -260,9 +260,10 @@ def check_celery_health() -> Dict[str, Any]:
                 f"Celery health check failed: {status['worker_count']} workers running"
             )
         else:
+            beat_running = status.get('beat_running', False)
             logger.info(
                 f"Celery health check passed: {status['worker_count']} workers, "
-                f"beat {'running' if status['beat_running'] else 'not running'}"
+                f"beat {'running' if beat_running else 'not running'}"
             )
 
         return status
