@@ -50,3 +50,7 @@ coverage==7.4.0
 
 # Development
 django-extensions==3.2.3
+
+# Supported SQL and document database adapter drivers
+pymysql==1.2.4
+pymongo==4.20.1
