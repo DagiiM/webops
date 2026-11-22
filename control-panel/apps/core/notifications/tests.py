@@ -308,7 +308,8 @@ class NotificationServiceTests(TestCase):
         
         result = self.service.delete_channel(channel)
         self.assertTrue(result)
-        self.assertFalse(NotificationChannel.objects.filter(id=channel.id).exists())
+        self.assertTrue(NotificationChannel.objects.filter(id=channel.id, is_deleted=True).exists())
+        self.assertFalse(NotificationChannel.objects.filter(id=channel.id, is_deleted=False).exists())
 
     @patch('apps.core.notifications.services.send_mail')
     def test_test_channel(self, mock_send_mail):
