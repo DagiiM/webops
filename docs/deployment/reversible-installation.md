@@ -22,6 +22,10 @@ restoration.
 ## Uninstall
 
 Use the platform lifecycle script, not the Python CLI addon subcommand.
+The platform Bash CLI also supports the equivalent
+sudo /opt/webops/provisioning/versions/v1.0.0/bin/webops uninstall platform --dry-run
+and sudo /opt/webops/provisioning/versions/v1.0.0/bin/webops uninstall platform.
+The normal addon uninstall command is unchanged.
 
     sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/uninstall.sh --dry-run
     sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/uninstall.sh
