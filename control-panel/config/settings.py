@@ -26,8 +26,15 @@ LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Security Settings
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production')
 DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='')
+if not SECRET_KEY and DEBUG:
+    # An ephemeral development-only secret is never suitable for production.
+    from django.core.management.utils import get_random_secret_key
+    SECRET_KEY = get_random_secret_key()
+if not DEBUG and (len(SECRET_KEY) < 50 or SECRET_KEY.startswith('django-insecure')):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured('Set a unique SECRET_KEY of at least 50 characters for production')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 # Application definition
