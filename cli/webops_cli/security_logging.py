@@ -83,8 +83,7 @@ class SecurityLogger:
         
         # Set restrictive permissions on log files
         for log_file in [self.security_log_file, self.audit_log_file]:
-            if not log_file.exists():
-                log_file.touch()
+            # FileHandler creates each file before permissions are applied.
             os.chmod(log_file, 0o600)
         
         # JSON formatter for structured logging

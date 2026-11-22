@@ -1,10 +1,9 @@
 """Security, encryption and failure-path coverage without storing secrets."""
-from pathlib import Path
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 import builtins
 import os
-import json
 import pytest
 from cryptography.fernet import Fernet
 from webops_cli import encryption as enc
@@ -43,10 +42,12 @@ def test_invalid_environment_key_is_rejected(monkeypatch):
 def test_unreadable_persisted_key_is_rejected(secure, monkeypatch):
     obj, keyfile = secure
     original_open = builtins.open
+
     def broken(path, *a, **k):
         if str(path) == str(keyfile):
             raise PermissionError("private file denied")
         return original_open(path, *a, **k)
+
     monkeypatch.setattr(builtins, "open", broken)
     with pytest.raises(enc.EncryptionError, match="Failed to read"):
         enc.SecureConfig()
@@ -55,7 +56,9 @@ def test_unreadable_persisted_key_is_rejected(secure, monkeypatch):
 def test_generate_key_write_error_is_wrapped(secure, monkeypatch):
     obj, keyfile = secure
     keyfile.unlink()
-    monkeypatch.setattr(enc.Fernet, "generate_key", MagicMock(side_effect=OSError("no entropy")))
+    monkeypatch.setattr(
+        enc.Fernet, "generate_key", MagicMock(side_effect=OSError("no entropy"))
+    )
     with pytest.raises(enc.EncryptionError, match="generate"):
         obj._get_or_create_key()
 
@@ -121,8 +124,9 @@ def test_sensitive_dict_preserves_unknown_fields_and_skips_none(secure):
 def test_sensitive_dict_decrypt_failure_preserves_value(secure, monkeypatch):
     crypt, _ = secure
     value = crypt.encrypt_value("secret")
-    monkeypatch.setattr(crypt, "decrypt_value",
-                        MagicMock(side_effect=enc.EncryptionError("tampered")))
+    monkeypatch.setattr(
+        crypt, "decrypt_value", MagicMock(side_effect=enc.EncryptionError("tampered"))
+    )
     assert crypt.decrypt_dict_values({"token": value}, ["token"])["token"] == value
 
 
@@ -139,13 +143,19 @@ def test_generated_password_required_complexity_is_retryable(monkeypatch):
     assert password == "Aa1_abcdefgh"
 
 
-@pytest.mark.parametrize("value,valid", [
-    ("Aa1!some-secret-password", True),
-    ("abc", False), ("abcdefghijklmnop", False),
-    ("ABCDEFGHIJKLMN12!", False), ("abcdefghij12345!", False),
-    ("Abcdefghijklmno!", False), ("Abcdefghijklmno1", False),
-    ("password", False),
-])
+@pytest.mark.parametrize(
+    "value,valid",
+    [
+        ("Aa1!some-secret-password", True),
+        ("abc", False),
+        ("abcdefghijklmnop", False),
+        ("ABCDEFGHIJKLMN12!", False),
+        ("abcdefghij12345!", False),
+        ("Abcdefghijklmno!", False),
+        ("Abcdefghijklmno1", False),
+        ("password", False),
+    ],
+)
 def test_password_strength_and_failure_advice(value, valid):
     result = enc.PasswordManager.validate_password_strength(value)
     assert result["valid"] is valid
@@ -175,12 +185,22 @@ def handler(monkeypatch):
     return err.ErrorHandler()
 
 
-@pytest.mark.parametrize("message", [
-    "connection refused", "401 unauthorized", "permission denied",
-    "service not found", "database unavailable", "celery worker unavailable",
-    "disk full", "python module not found", "git clone failed",
-    "address already in use", "unrecognized problem",
-])
+@pytest.mark.parametrize(
+    "message",
+    [
+        "connection refused",
+        "401 unauthorized",
+        "permission denied",
+        "service not found",
+        "database unavailable",
+        "celery worker unavailable",
+        "disk full",
+        "python module not found",
+        "git clone failed",
+        "address already in use",
+        "unrecognized problem",
+    ],
+)
 def test_error_classifier_and_generic_fallback(handler, message):
     kind = handler.identify_error_type(message)
     suggestions = handler.get_suggestions(message)
@@ -188,12 +208,18 @@ def test_error_classifier_and_generic_fallback(handler, message):
     assert (kind is None) is (message == "unrecognized problem")
 
 
-@pytest.mark.parametrize("message,context,suggestions", [
-    ("server down", None, False), ("Unauthorized 401", "syncing", True),
-    ("permission denied", "starting deployment", True),
-])
+@pytest.mark.parametrize(
+    "message,context,suggestions",
+    [
+        ("server down", None, False),
+        ("Unauthorized 401", "syncing", True),
+        ("permission denied", "starting deployment", True),
+    ],
+)
 def test_error_panel_rendering(handler, message, context, suggestions):
-    handler.display_error(ValueError(message), context=context, show_suggestions=suggestions)
+    handler.display_error(
+        ValueError(message), context=context, show_suggestions=suggestions
+    )
     err.console.print.assert_called()
 
 
@@ -203,10 +229,14 @@ def test_custom_error_suggestions_are_used(handler):
     err.console.print.assert_called()
 
 
-@pytest.mark.parametrize("error", [
-    RuntimeError("connection refused"), RuntimeError("401 Unauthorized"),
-    RuntimeError("unidentified HTTP error"),
-])
+@pytest.mark.parametrize(
+    "error",
+    [
+        RuntimeError("connection refused"),
+        RuntimeError("401 Unauthorized"),
+        RuntimeError("unidentified HTTP error"),
+    ],
+)
 def test_api_error_recovery_paths(handler, monkeypatch, error):
     display = MagicMock()
     monkeypatch.setattr(handler, "display_error", display)
@@ -235,14 +265,21 @@ def test_global_exception_handler_exits_with_expected_code(monkeypatch):
     assert captured.value.code == 7
 
 
-@pytest.mark.parametrize("configured,url,token,failure", [
-    (False, None, None, True), (True, "ftp://panel.org", "long-api-token", True),
-    (True, "https://panel.org", "tiny", True),
-    (True, "https://panel.org", "very-long-secure-token", False),
-])
-def test_config_preflight_catches_unusable_auth_details(configured, url, token, failure):
-    config = SimpleNamespace(is_configured=lambda: configured,
-                             get_url=lambda: url, get_token=lambda: token)
+@pytest.mark.parametrize(
+    "configured,url,token,failure",
+    [
+        (False, None, None, True),
+        (True, "ftp://panel.org", "long-api-token", True),
+        (True, "https://panel.org", "tiny", True),
+        (True, "https://panel.org", "very-long-secure-token", False),
+    ],
+)
+def test_config_preflight_catches_unusable_auth_details(
+    configured, url, token, failure
+):
+    config = SimpleNamespace(
+        is_configured=lambda: configured, get_url=lambda: url, get_token=lambda: token
+    )
     if failure:
         with pytest.raises(err.ConfigurationError):
             err.validate_configuration(config)
@@ -252,7 +289,10 @@ def test_config_preflight_catches_unusable_auth_details(configured, url, token, 
 
 def test_auto_config_preflight_protects_missing_config(monkeypatch):
     from webops_cli import config as c
-    monkeypatch.setattr(c, "Config", lambda: SimpleNamespace(is_configured=lambda: False))
+
+    monkeypatch.setattr(
+        c, "Config", lambda: SimpleNamespace(is_configured=lambda: False)
+    )
     with pytest.raises(err.ConfigurationError):
         err.validate_configuration()
 
@@ -265,4 +305,3 @@ def test_privileged_operation_requires_root(monkeypatch, user_id, allowed):
     else:
         with pytest.raises(err.PermissionError):
             err.require_root_privileges("service restart")
-

@@ -163,33 +163,30 @@ jobs:
         cd cli
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install coverage pytest pytest-cov diff-cover
+        pip install coverage pytest pytest-cov pytest-asyncio diff-cover
 
     - name: Run CLI tests with coverage
       run: |
         cd cli
-        coverage run --source='webops_cli' -m pytest tests/
-        coverage report
-        coverage xml
-        coverage html
+        python -m pytest -q tests/ --cov=webops_cli --cov-report=term-missing --cov-report=xml --cov-report=html --cov-fail-under=100
 
     - name: Check CLI coverage threshold
       run: |
         cd cli
-        coverage report --fail-under=80 || echo "⚠ Warning: CLI coverage below 80%"
+        coverage report --fail-under=100
 
     - name: Generate CLI diff coverage report
       run: |
         cd cli
         git fetch origin ${{ github.base_ref }}
-        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=80 || true
+        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=100
 
     - name: Comment CLI coverage on PR
       uses: py-cov-action/python-coverage-comment-action@v3
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MINIMUM_GREEN: 80
-        MINIMUM_ORANGE: 60
+        MINIMUM_GREEN: 100
+        MINIMUM_ORANGE: 95
 
   test-coverage:
     name: Test Coverage Check
@@ -268,7 +265,7 @@ jobs:
       run: |
         cd control-panel
         git fetch origin ${{ github.base_ref }}
-        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=80 || true
+        diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=100
 
     - name: Comment coverage on PR
       uses: py-cov-action/python-coverage-comment-action@v3

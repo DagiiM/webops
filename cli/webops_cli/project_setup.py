@@ -81,10 +81,13 @@ class ProjectSetupWorkflow:
             # Validate repo URL
             validated_repo = InputValidator.validate_git_url(repo_url)
             
-            # Ensure HTTPS format for GitHub
+            # Normalize approved GitHub SSH/Git forms without embedding tokens
+            # or accepting lookalike hosts such as github.com.evil.example.
             if not validated_repo.startswith('https://'):
-                if 'github.com' in validated_repo:
-                    validated_repo = f"https://github.com/{validated_repo.split('github.com/')[-1]}"
+                if validated_repo.startswith('git@github.com:'):
+                    validated_repo = "https://github.com/" + validated_repo.split(':', 1)[1]
+                elif validated_repo.startswith(('ssh://git@github.com/', 'git://github.com/')):
+                    validated_repo = "https://github.com/" + validated_repo.split('github.com/', 1)[1]
                 else:
                     return False, "Only HTTPS URLs are supported for cloning", Path()
 
@@ -177,20 +180,13 @@ class ProjectSetupWorkflow:
                         best_score = score
                         best_settings = settings_file
 
-                if best_settings:
-                    relative_path = best_settings.relative_to(repo_path)
-                    module_parts = relative_path.parts[:-1]
-                    if module_parts:
-                        entry_point = '.'.join(module_parts) + '.settings'
-                    else:
-                        entry_point = 'settings'
-                    
-                    details['settings_file'] = str(relative_path)
-                    details['manage_py'] = True
-                else:
-                    entry_point = 'settings'
-                    details['settings_file'] = 'settings.py'
-                    details['manage_py'] = True
+                # valid_settings is nonempty; the scoring loop always
+                # selects a candidate (every score is nonnegative).
+                relative_path = best_settings.relative_to(repo_path)
+                module_parts = relative_path.parts[:-1]
+                entry_point = '.'.join(module_parts) + '.settings' if module_parts else 'settings'
+                details['settings_file'] = str(relative_path)
+                details['manage_py'] = True
             else:
                 entry_point = 'settings'
                 details['manage_py'] = True

@@ -5,7 +5,6 @@ to prevent injection attacks and ensure data integrity.
 """
 
 import re
-import ipaddress
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
@@ -176,19 +175,8 @@ class InputValidator:
         if not cls.PATTERNS['domain_name'].match(domain):
             raise ValidationError("Invalid domain name format")
         
-        # Additional validation
-        try:
-            # Validate IP address format if it's an IP
-            ipaddress.ip_address(domain)
-            # If it's a valid IP, that's fine for internal networks
-        except ValueError:
-            # Not an IP, so it should be a domain name
-            if domain.startswith('.') or domain.endswith('.'):
-                raise ValidationError("Domain name cannot start or end with a dot")
-            
-            if '..' in domain:
-                raise ValidationError("Domain name cannot contain consecutive dots")
-        
+        # The anchored domain pattern already excludes leading, trailing
+        # and consecutive dots while permitting IPv4 literals.
         return domain
     
     @classmethod

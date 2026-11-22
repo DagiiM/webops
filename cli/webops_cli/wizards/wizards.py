@@ -300,14 +300,14 @@ class SetupWizard(InteractiveWizard):
         verify_table.add_column("Status", justify="center")
         verify_table.add_column("Details")
         
-        checks = [
+        checks = getattr(self, "verification_checks", [
             ("WebOps Web Service", True, "Running on port 8000"),
             ("Celery Worker", True, "2 workers active"),
             ("Celery Beat", True, "Scheduler running"),
             ("Database", True, "Connected successfully"),
             ("Admin User", True, "Created successfully"),
             ("Nginx", True, "Configured and running")
-        ]
+        ])
         
         all_good = True
         for component, status, details in checks:

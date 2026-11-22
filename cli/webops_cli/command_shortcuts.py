@@ -59,7 +59,9 @@ class CommandShortcuts:
                 deployment_data['domain'] = domain
             
             # Create deployment
-            result = self.api_client.create_deployment(deployment_data)
+            result = self.api_client.create_deployment(
+                name=name, repo_url=repo_url, branch=branch, domain=domain or ""
+            )
             console.print(f"[green]✓ Deployment '{name}' created successfully[/green]")
             
             # Auto-start if requested
@@ -114,7 +116,10 @@ class CommandShortcuts:
             else:
                 # Show all deployments
                 deployments = self.api_client.list_deployments()
-                display_deployment_table(deployments)
+                display_deployment_table(
+                    deployments.get("deployments", deployments.get("results", []))
+                    if isinstance(deployments, dict) else deployments
+                )
                 
         except WebOpsError as e:
             console.print(f"[red]✗ Status check failed: {e}[/red]")
@@ -216,7 +221,9 @@ class CommandShortcuts:
             
             # Check deployments
             deployments_response = self.api_client.list_deployments()
-            deployments = deployments_response.get('results', [])
+            deployments = deployments_response.get(
+                "deployments", deployments_response.get("results", [])
+            )
             running_count = len([d for d in deployments if isinstance(d, dict) and d.get('status') == 'running'])
             total_count = len(deployments)
             

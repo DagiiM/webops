@@ -294,10 +294,10 @@ def status() -> None:
                 info = ''
             
             # Color code status
-            if 'active' in status_text.lower() or 'running' in status_text.lower():
-                status_display = f"[green]●[/green] {status_text}"
-            elif 'inactive' in status_text.lower() or 'stopped' in status_text.lower():
+            if 'inactive' in status_text.lower() or 'stopped' in status_text.lower():
                 status_display = f"[red]●[/red] {status_text}"
+            elif 'active' in status_text.lower() or 'running' in status_text.lower():
+                status_display = f"[green]●[/green] {status_text}"
             else:
                 status_display = f"[yellow]?[/yellow] {status_text}"
             

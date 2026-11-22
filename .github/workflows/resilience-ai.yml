@@ -47,4 +47,4 @@ jobs:
         run: |
           python -m compileall -q cli/webops_cli control-panel/apps/deployments/llm_gateway.py
 
-# This does not replace the existing required global 80% CLI coverage gate.
+# This does not replace the full 100% CLI statement coverage gate.

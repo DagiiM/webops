@@ -336,45 +336,6 @@ def info(name: str) -> None:
 
 
 @main.command()
-@click.option('--repo', required=True, help='Repository URL')
-@click.option('--name', required=True, help='Deployment name')
-@click.option('--branch', default='main', help='Git branch')
-@click.option('--domain', default='', help='Domain name')
-def deploy(repo: str, name: str, branch: str, domain: str) -> None:
-    """Deploy a new application."""
-    try:
-        # Validate all inputs
-        validated_name = InputValidator.validate_deployment_name(name)
-        validated_repo = InputValidator.validate_git_url(repo)
-        validated_branch = InputValidator.validate_git_branch(branch)
-        validated_domain = InputValidator.validate_domain_name(domain)
-    except ValidationError as e:
-        console.print(f"[red]Validation Error:[/red] {e}")
-        sys.exit(1)
-    
-    client = get_api_client()
-
-    try:
-        console.print(f"[cyan]Creating deployment:[/cyan] {validated_name}")
-        result = client.create_deployment(
-            name=validated_name,
-            repo_url=validated_repo,
-            branch=validated_branch,
-            domain=validated_domain
-        )
-
-        sanitized_name = result.get('name', validated_name)
-        console.print(f"[green]✓[/green] Deployment created: {result.get('message')}")
-        console.print(f"[cyan]ID:[/cyan] {result.get('id')}")
-        console.print(f"[cyan]Name:[/cyan] {sanitized_name}")
-        console.print(f"\nUse [cyan]webops logs {sanitized_name}[/cyan] to monitor deployment progress")
-
-    except WebOpsAPIError as e:
-        console.print(f"[red]Error:[/red] {e}")
-        sys.exit(1)
-
-
-@main.command()
 @click.argument('name')
 @click.option('--tail', type=int, help='Number of lines to show')
 @click.option('--follow', '-f', is_flag=True, help='Follow log output')
@@ -785,11 +746,12 @@ def env_set(name: str, key: str, value: str, restart: bool) -> None:
                 value=value
             )
 
-        console.print(f"[green]✓[/green] {key} = {value}")
+        # Never echo environment values; they may contain API keys or passwords.
+        console.print(f"[green]✓[/green] {key} updated")
 
         if restart:
-            console.print(f"\n[cyan]Restarting {validated_name}...[/cyan]")
-            restart_result = client.restart_deployment(validated_name)
+            console.print(f"\n[cyan]Restarting {name}...[/cyan]")
+            restart_result = client.restart_deployment(name)
             console.print(f"[green]✓[/green] Deployment restarted")
         else:
             console.print(f"\n[dim]Tip: Use --restart to apply changes immediately[/dim]")
@@ -983,12 +945,9 @@ def project_setup(repo: str, name: Optional[str], no_deploy: bool, no_verify: bo
         if not name:
             # Extract from URL like https://github.com/user/project.git
             repo_parts = validated_repo.rstrip('/').split('/')
-            if len(repo_parts) >= 2:
-                name = repo_parts[-1].replace('.git', '')
-            else:
-                console.print("[red]Error:[/red] Could not extract project name from URL. Please provide --name parameter.")
-                sys.exit(1)
-        
+            # validate_git_url ensures that the repository path is present.
+            name = repo_parts[-1].replace('.git', '')
+
         # Validate project name
         validated_name = InputValidator.validate_deployment_name(name)
         
@@ -1013,22 +972,15 @@ def project_setup(repo: str, name: Optional[str], no_deploy: bool, no_verify: bo
         # Display summary
         workflow.display_result_summary(result)
         
-        # Log the operation
-        if result.success:
-            security_logger.log_security_event(
-                user=security_logger.get_user(),
-                event_type="project_setup_completed",
-                description=f"Successfully set up project: {validated_name}",
-                severity="INFO"
-            )
-        else:
-            security_logger.log_security_event(
-                user=security_logger.get_user(),
-                event_type="project_setup_failed",
-                description=f"Failed to set up project: {validated_name} - {result.error_message}",
-                severity="MEDIUM"
-            )
-            
+        # Log only the outcome and project identity, not credentials or prompts.
+        logger = get_security_logger()
+        logger.log_deployment_operation(
+            user=logger.get_user(),
+            operation="project_setup",
+            deployment=validated_name,
+            success=result.success,
+        )
+
         # Exit with appropriate code
         sys.exit(0 if result.success else 1)
         
