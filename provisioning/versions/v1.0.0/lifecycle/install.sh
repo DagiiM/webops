@@ -157,6 +157,35 @@ copy_to_install_location() {
             log_error "Run --recover-staged from the updated source checkout"
             exit 1
         fi
+        # Direct invocations from an existing install root must also classify
+        # previous attempts; otherwise they could redo setup or misreport success.
+        if [[ -f "$target_root/.webops-install-origin" ||
+              -f "$ROLLBACK_BASE_DIR/installation-inventory/inventory.json" ]]; then
+            local state_json action
+            state_json="$(python3 "${SCRIPT_DIR}/installation_recovery.py" inspect \
+                --target "$target_root" --state-dir "$ROLLBACK_BASE_DIR/installation-inventory")" || {
+                log_error "Cannot inspect previous installation"
+                exit 1
+            }
+            action="$(printf '%s' "$state_json" | python3 -c \
+                'import json,sys;print(json.load(sys.stdin)["action"])')" || exit 1
+            case "$action" in
+                installed)
+                    log_info "WebOps already installed and previously passed health verification"
+                    log_info "No installation changes made; use --doctor for a recorded-state report"
+                    exit 0 ;;
+                resume)
+                    log_info "Detected safely resumable pre-system-change installation"
+                    INSTALL_RESUME=true ;;
+                staged)
+                    log_info "Completing staged installation without overwriting configuration"
+                    WEBOPS_NEW_INSTALL_COPY=true ;;
+                *)
+                    log_error "Existing installation needs operator review: $state_json"
+                    log_error "Do not reinstall over an incomplete or unverified installation"
+                    exit 1 ;;
+            esac
+        fi
         log_info "Already running from installation directory: $target_root"
         return 0
     fi
@@ -191,8 +220,9 @@ copy_to_install_location() {
                 exec "$installed_script" --resume
                 ;;
             installed)
-                log_info "WebOps already installed at $target_root; skipping duplicate setup"
-                return 0
+                log_info "WebOps already installed and previously passed installation verification at $target_root"
+                log_info "Skipping duplicate setup; use --doctor or the health dashboard for current health"
+                exit 0
                 ;;
             manual)
                 if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
@@ -804,43 +834,43 @@ verify_installation() {
     local total_checks=0
 
     # Check critical services
-    local services=("postgresql" "redis-server" "webops-web" "webops-worker")
+    local services=("postgresql" "redis-server" "webops-web" "webops-worker" "webops-beat" "webops-channels")
 
     for service in "${services[@]}"; do
-        ((total_checks++))
+        ((total_checks += 1))
         if systemctl is-active --quiet "$service" 2>/dev/null; then
             log_info "✓ $service is running"
         else
             log_warn "✗ $service is not running"
-            ((failed_checks++))
+            ((failed_checks += 1))
         fi
     done
 
     # Check Redis connectivity
-    ((total_checks++))
+    ((total_checks += 1))
     if redis-cli ping &>/dev/null; then
         log_info "✓ Redis is responding to PING"
     else
         log_warn "✗ Redis is not responding"
-        ((failed_checks++))
+        ((failed_checks += 1))
     fi
 
     # Check PostgreSQL connectivity
-    ((total_checks++))
+    ((total_checks += 1))
     if sudo -u postgres psql -c "SELECT 1" &>/dev/null; then
         log_info "✓ PostgreSQL is accepting connections"
     else
         log_warn "✗ PostgreSQL is not accepting connections"
-        ((failed_checks++))
+        ((failed_checks += 1))
     fi
 
     # Check control panel port
-    ((total_checks++))
+    ((total_checks += 1))
     if ss -tulpn | grep -q ":8000 "; then
         log_info "✓ Control panel is listening on port 8000"
     else
         log_warn "✗ Control panel is not listening on port 8000"
-        ((failed_checks++))
+        ((failed_checks += 1))
     fi
 
     # Summary
@@ -1015,8 +1045,17 @@ main() {
         apply_hostname
     fi
 
-    # Run installation
+    # A successful setup command is not proof of a working installation.
+    # Never seal installation history until service and network checks pass.
     if run_installation; then
+        if ! verify_installation; then
+            log_error "Installation health verification failed; status remains incomplete."
+            log_error "A later install attempt must diagnose or repair this installation."
+            if [[ "$INSTALL_RESUME" != "true" ]]; then
+                rollback_installation || log_warn "Automatic rollback was not fully successful"
+            fi
+            exit 1
+        fi
         if ! python3 "${SCRIPT_DIR}/installation_inventory.py" seal \
             --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
             log_error "Could not seal the installation inventory"
@@ -1024,11 +1063,8 @@ main() {
             exit 1
         fi
 
-        # Verify installation health (don't exit on verification warnings)
-        verify_installation || true
-
-        # Print completion message
-        print_completion_message
+        # Display failures cannot negate an already verified installation.
+        print_completion_message || log_warn "Installation verified; completion summary unavailable"
 
         log_info "Installation log saved to: $INSTALL_LOG"
         exit 0
