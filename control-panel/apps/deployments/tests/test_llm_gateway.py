@@ -1,5 +1,6 @@
 """Regression tests for the authenticated Runpod loopback LLM gateway."""
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -8,6 +9,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+os.environ.setdefault('WEBOPS_LLM_KEY_FILE', '/dev/null')
 from apps.deployments import llm_gateway as gateway
 
 
