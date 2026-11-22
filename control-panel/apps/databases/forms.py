@@ -3,6 +3,7 @@ Forms for Databases app.
 """
 
 from django import forms
+import re
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from .models import Database
@@ -127,8 +128,12 @@ class DatabaseForm(forms.ModelForm):
     def clean_database_name(self):
         """Custom validation for database name."""
         database_name = self.cleaned_data.get('database_name')
-        if database_name and not database_name_validator(database_name):
-            raise ValidationError("Invalid database name format")
+        if database_name and self.cleaned_data.get('db_type') != DatabaseType.SQLITE.value:
+            database_name_validator(database_name)
+        elif database_name and self.cleaned_data.get('db_type') == DatabaseType.SQLITE.value:
+            # SQLite uses filesystem paths, not SQL identifiers.
+            if '..' in database_name or not re.fullmatch(r'[A-Za-z0-9_./-]+',database_name):
+                raise ValidationError("Invalid SQLite database path")
         
         # Additional length validation
         if database_name and len(database_name) > 63:
@@ -139,8 +144,8 @@ class DatabaseForm(forms.ModelForm):
     def clean_name(self):
         """Custom validation for database name."""
         name = self.cleaned_data.get('name')
-        if name and not identifier_validator(name):
-            raise ValidationError("Invalid database name format")
+        if name:
+            identifier_validator(name)
         
         # Additional length validation
         if name and len(name) > 63:
@@ -151,8 +156,8 @@ class DatabaseForm(forms.ModelForm):
     def clean_username(self):
         """Custom validation for username."""
         username = self.cleaned_data.get('username')
-        if username and not identifier_validator(username):
-            raise ValidationError("Invalid username format")
+        if username:
+            username_validator(username)
         
         # Additional length validation
         if username and len(username) > 63:
@@ -191,56 +196,48 @@ class DatabaseForm(forms.ModelForm):
         connection_uri = self.cleaned_data.get('connection_uri')
         if connection_uri:
             # Basic URI validation to prevent injection
-            if not re.match(r'^[a-zA-Z0-9+://[a-zA-Z0-9\.\-@:/]+[a-zA-Z0-9\.\-@:/]*$', connection_uri):
+            if not re.fullmatch(r'(?:mongodb|mysql|postgresql|sqlite)://[A-Za-z0-9_./:@%-]+', connection_uri):
                 raise ValidationError("Invalid connection URI format")
         return connection_uri
     
     def clean(self):
-        """Clean and validate form data based on database type."""
-        cleaned_data = super().clean()
-        db_type = cleaned_data.get('db_type')
-        
+        """Apply provider-specific field validation and sensible default ports."""
+        data=super().clean()
+        db_type=data.get('db_type')
         if not db_type:
-            raise ValidationError("Database type is required")
-        
-        db_type_enum = DatabaseType(db_type)
-        
-        # Validate required fields based on database type
-        if db_type_enum == DatabaseType.POSTGRESQL:
-            self._validate_relational_db(cleaned_data, "PostgreSQL")
-            # Set default port if not provided
-            if not cleaned_data.get('port'):
-                cleaned_data['port'] = 5432
-                
-        elif db_type_enum == DatabaseType.MYSQL:
-            self._validate_relational_db(cleaned_data, "MySQL")
-            # Set default port if not provided
-            if not cleaned_data.get('port'):
-                cleaned_data['port'] = 3306
-                
-        elif db_type_enum == DatabaseType.MONGODB:
-            self._validate_mongodb(cleaned_data)
-            # Set default port if not provided
-            if not cleaned_data.get('port'):
-                cleaned_data['port'] = 27017
-                
-        elif db_type_enum == DatabaseType.SQLITE:
-            if not cleaned_data.get('database_name'):
-                raise ValidationError("Database file path is required for SQLite")
-                
-        elif db_type_enum == DatabaseType.PINECONE:
-            if not cleaned_data.get('api_key'):
-                raise ValidationError("API key is required for Pinecone")
-            if not cleaned_data.get('environment'):
-                raise ValidationError("Environment is required for Pinecone")
-                
-        elif db_type_enum == DatabaseType.REDIS:
-            if not cleaned_data.get('host'):
-                raise ValidationError("Host is required for Redis")
-            if not cleaned_data.get('port'):
-                cleaned_data['port'] = 6379  # Default Redis port
-        
-        return cleaned_data
+            self.add_error('db_type','Database type is required')
+            return data
+        kind=DatabaseType(db_type)
+        defaults={DatabaseType.POSTGRESQL:5432,DatabaseType.MYSQL:3306,
+                  DatabaseType.MONGODB:27017,DatabaseType.REDIS:6379}
+        if kind in (DatabaseType.POSTGRESQL,DatabaseType.MYSQL):
+            if not data.get('host'):self.add_error('host','Host is required')
+            if not data.get('username'):self.add_error('username','Username is required')
+            if not data.get('port') and data.get('host') and data.get('username'):
+                data['port']=defaults[kind]
+            if not data.get('port') and (not data.get('host') or not data.get('username')):
+                self.add_error('port','Port is required when connection settings are incomplete')
+            data['database_name']=data.get('database_name') or data.get('name')
+        elif kind==DatabaseType.MONGODB:
+            if not data.get('connection_uri'):
+                if not data.get('host'):
+                    self.add_error('host','Host is required without a MongoDB URI')
+                    self.add_error('connection_uri','Provide a URI or a host')
+                if data.get('host') and not data.get('port'):
+                    data['port']=defaults[kind]
+            data['database_name']=data.get('database_name') or data.get('name')
+        elif kind==DatabaseType.SQLITE:
+            if not data.get('database_name'):self.add_error('database_name','SQLite path required')
+        elif kind==DatabaseType.PINECONE:
+            if not data.get('api_key'):self.add_error('api_key','Pinecone API key required')
+            if not data.get('environment'):self.add_error('environment','Pinecone environment required')
+        elif kind==DatabaseType.REDIS:
+            if not data.get('host'):
+                self.add_error('host','Redis host required')
+                if not data.get('port'):
+                    self.add_error('port','Redis port required')
+            if data.get('host') and not data.get('port'):data['port']=defaults[kind]
+        return data
 
     def _validate_relational_db(self, cleaned_data, db_name):
         """Validate fields for relational databases (PostgreSQL, MySQL)."""
@@ -271,18 +268,17 @@ class DatabaseForm(forms.ModelForm):
             # If URI is provided, username/password are optional
             pass
 
-    def _post_clean(self):
-        """Override to skip model validation since form already validated."""
-        # We skip calling super()._post_clean() which would call instance.clean()
-        # This prevents duplicate validation errors since we've already validated
-        # everything in the form's clean() method
-        pass
-
     def save(self, commit=True):
         """Save the form instance."""
         instance = super().save(commit=False)
 
-        # Set default values if not provided
+        # Encrypt secrets before storage; never persist plaintext credentials.
+        from apps.core.utils import encrypt_password, decrypt_password
+        if instance.password:
+            try:
+                decrypt_password(instance.password)
+            except Exception:
+                instance.password = encrypt_password(instance.password)
         if not instance.connection_timeout:
             instance.connection_timeout = 30
         if not instance.pool_size:
