@@ -23,7 +23,7 @@ from apps.deployments.models import LLMDeployment, DeploymentLog
 
 def process_alive(pid, needle):
     try:
-        return needle in Path(f"/proc/{pid}/cmdline").read_bytes().decode("utf-8", "replace")
+        return needle in Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\\x00", b" ").decode("utf-8", "replace")
     except (OSError, ValueError):
         return False
 
