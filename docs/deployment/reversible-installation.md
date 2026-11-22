@@ -72,3 +72,49 @@ preview, backup corruption, initial system settings, user data, opt-in purge,
 symlinks, package retention and repeat uninstall rejection. Disposable full-VM
 Ubuntu and RHEL integration tests remain necessary before a production-wide
 exact rollback claim.
+
+
+## Installer says an existing config.env was found
+
+An existing /opt/webops/config.env is not a reason to delete the file or
+overwrite the install directory. It may contain passwords and server settings.
+
+The updated installer recognizes a preconfigured source tree copied into a
+**brand-new** install root. It keeps the source config byte-for-byte and
+skips interactive hostname/SSH choices that would conflict with the config.
+It also offers restricted --resume support when the verified installation
+inventory proves that a pre-install baseline was captured and no host
+modifications were started.
+
+To inspect the state without changing anything, on the host run:
+
+    sudo python3 /opt/webops/provisioning/versions/v1.0.0/lifecycle/installation_inventory.py inspect --state-dir /var/backups/webops-install/installation-inventory
+
+Inventory states:
+- **missing**: no verified before-state exists. Automatic retry/reinstall is
+  intentionally blocked. Inspect logs, services and snapshots; do not delete
+  config.env or rerun the installer with force.
+- **captured**, **phase=baseline-captured**: it is possible to continue with:
+
+      sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/install.sh --resume
+
+  This reuses the original baseline and existing configuration. It does not
+  recreate the inventory or prompt for new SSH settings.
+- **captured**, **phase=system-changes-started**: host modifications may have
+  occurred. An automatic replay is unsafe because some setup components are
+  not transactionally idempotent. Use the independent rollback snapshots and
+  the repair tooling after review.
+- **sealed**: installation finished; use management or repair commands, not
+  the installer again.
+- **removed**: previous tracked install was uninstalled. Review the machine
+  before any new install.
+
+When the installed copy does not contain the inspect command, inspect the
+inventory JSON's status and phase keys with a read-only JSON parser instead
+of replacing the installation directory. Avoid displaying or sharing
+config.env's contents because it can contain credentials.
+
+If the original source checkout remains at ~/webops but /opt/webops already
+exists, do not copy the checkout over /opt/webops. Operate on the installed
+lifecycle script after reviewing the inventory state. An untracked legacy
+setup cannot automatically be adopted as if it were a fresh installation.
