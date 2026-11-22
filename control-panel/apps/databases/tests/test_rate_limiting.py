@@ -7,7 +7,7 @@ Tests for database rate limiting functionality.
 import time
 import json
 from unittest.mock import Mock, patch, MagicMock
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, override_settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.http import JsonResponse, HttpResponse
@@ -30,6 +30,8 @@ from apps.databases.decorators import (
     database_rate_limit_by_database
 )
 from apps.databases.models import Database
+from apps.deployments.models import ApplicationDeployment
+from apps.core.utils import encrypt_password
 
 
 class DatabaseRateLimiterTest(TestCase):
@@ -62,15 +64,16 @@ class DatabaseRateLimiterTest(TestCase):
     
     def test_is_allowed_exceeds_limit(self):
         """Test that requests exceeding limits are blocked."""
-        # Make 5 requests (at limit)
+        # Isolate the hourly quota from the separate burst quota:
+        # five requests are allowed; the sixth exceeds the configured limit.
+        self.limiter.burst_requests = 100
         for i in range(5):
             allowed, info = self.limiter.is_allowed(self.identifier)
-            if i < 4:  # First 4 should be allowed
-                self.assertTrue(allowed)
-            else:  # 5th should hit limit
-                self.assertFalse(allowed)
-                self.assertIn('retry_after', info)
-                self.assertEqual(info['remaining'], 0)
+            self.assertTrue(allowed)
+        allowed, info = self.limiter.is_allowed(self.identifier)
+        self.assertFalse(allowed)
+        self.assertIn('retry_after', info)
+        self.assertEqual(info['remaining'], 0)
     
     def test_burst_limiting(self):
         """Test burst limiting functionality."""
@@ -328,7 +331,10 @@ class DatabaseRateLimitDecoratorsTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+@override_settings(GLOBAL_RATE_LIMIT_BURST=1000)
 class DatabaseRateLimitIntegrationTest(TestCase):
+    # Isolate database-specific limiter from the separate, also-tested
+    # generic global limiter; production defaults remain unchanged.
     """Integration tests for database rate limiting."""
     
     def setUp(self):
@@ -340,17 +346,20 @@ class DatabaseRateLimitIntegrationTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        # Create a test database
-        self.database = Database.objects.create(
-            name='test_db',
-            db_type='postgresql',
-            host='localhost',
-            port=5432,
-            username='testuser',
-            password='encrypted_password',
-            database_name='test_db'
+        # Authenticate and bind the record to an owned deployment.
+        # Rate-limit tests must not bypass the actual ownership policy.
+        self.client.force_login(self.user)
+        deployment = ApplicationDeployment.objects.create(
+            name='rate-limit-owned-app', deployed_by=self.user,
+            repo_url='https://example.invalid/repository', branch='main'
         )
-    
+        self.database = Database.objects.create(
+            name='test_db', db_type='postgresql', host='localhost',
+            port=5432, username='testuser',
+            password=encrypt_password('test_password'),
+            database_name='test_db', deployment=deployment
+        )
+
     def test_database_list_view_rate_limiting(self):
         """Test rate limiting on database list view."""
         url = reverse('database_list')
