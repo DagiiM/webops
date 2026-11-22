@@ -195,3 +195,38 @@ remains an outstanding release-validation requirement.
 Run the isolated lifecycle contracts in Runpod or CI:
 
     python3 -m unittest discover -v -s provisioning/versions/v1.0.0/tests -p 'test_*.py'
+
+
+## Fault injection, failure journaling and cleanup hardening
+
+A 3,000+ case installation safety matrix tests independent combinations of
+original files, post-install file types, later administrator changes, package
+and service failures, symlink replacements, protected data directories,
+malformed recovery history, and invalid installation locations.
+
+Installed data directories are never deleted by an ordinary uninstall, even
+if they are empty. Configuration restoration refuses symlinked ancestor
+directories because those may redirect operations onto unrelated software.
+Unsafe installation roots inside operating system paths such as /etc, /usr,
+/proc and /var are rejected, even if a forged ownership marker is present.
+Uninstall validates the fixed backup index for every tracked configuration
+entry before any changes. The recovery classifier requires a timezone-aware,
+parseable health verification timestamp, not simply a nonempty value.
+
+If host modifications may have started and installation fails, WebOps does
+not run a destructive whole-tree restore. That previously could erase
+deployments or uploads created after the backup was taken. The install
+failure remains recorded in the protected inventory (failure_reason,
+failure_recorded_at), and the system requests operator-guided repair. A
+safe preflight-only interruption can still use the original baseline to resume.
+
+The full matrix runs automatically in the reversible-installation GitHub
+Actions workflow, including the existing unittest contracts.
+
+    python -m pip install pytest==9.2.0
+    python -m pytest -q provisioning/versions/v1.0.0/tests
+
+These tests use isolated temporary fake system roots and command shims.
+They test real file operations and lifecycle logic but intentionally never
+change the Runpod host's SSH/firewall/packages. A disposable systemd
+virtual machine test remains required for evidence of real service recovery.
