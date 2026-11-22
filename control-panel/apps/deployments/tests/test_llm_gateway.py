@@ -20,10 +20,19 @@ class FakeModel(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'{"object":"list","data":[]}')
     def do_POST(self):
+        raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
+        request = json.loads(raw)
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(b'{"object":"chat.completion","choices":[]}')
+        if self.path == "/api/chat":
+            if request.get("stream"):
+                self.wfile.write(b'{"message":{"content":"READY"},"done":false}\\n')
+                self.wfile.write(b'{"message":{"content":""},"done":true}\\n')
+            else:
+                self.wfile.write(b'{"message":{"content":"READY"},"done":true,"prompt_eval_count":3,"eval_count":1}')
+        else:
+            self.wfile.write(b'{"object":"chat.completion","choices":[]}')
     def log_message(self, *_):
         pass
 
@@ -81,6 +90,42 @@ class GatewayTests(unittest.TestCase):
             urlopen(request, timeout=3)
         self.assertEqual(ctx.exception.code, 413)
 
+
+    def test_ollama_payload_disables_thinking(self):
+        payload = gateway.ollama_payload({"model": "qwen3:1.7b",
+            "messages": [{"role": "user", "content": "READY"}],
+            "max_tokens": 60})
+        self.assertFalse(payload["think"])
+        self.assertEqual(payload["options"]["num_predict"], 60)
+
+    def test_ollama_chat_produces_answer(self):
+        previous = gateway.BACKEND
+        gateway.BACKEND = "ollama"
+        try:
+            request = Request(self.url + "/v1/chat/completions",
+                data=b'{"model":"qwen3:1.7b","messages":[{"role":"user","content":"READY"}]}',
+                headers={"Authorization": "Bearer test-only-key", "Content-Type": "application/json"},
+                method="POST")
+            with urlopen(request, timeout=5) as response:
+                result = json.load(response)
+            self.assertEqual(result["choices"][0]["message"]["content"], "READY")
+        finally:
+            gateway.BACKEND = previous
+
+    def test_ollama_chat_streaming_sse(self):
+        previous = gateway.BACKEND
+        gateway.BACKEND = "ollama"
+        try:
+            request = Request(self.url + "/v1/chat/completions",
+                data=b'{"model":"qwen3:1.7b","messages":[],"stream":true}',
+                headers={"Authorization": "Bearer test-only-key", "Content-Type": "application/json"},
+                method="POST")
+            with urlopen(request, timeout=5) as response:
+                data = response.read().decode()
+            self.assertIn("READY", data)
+            self.assertIn("data: [DONE]", data)
+        finally:
+            gateway.BACKEND = previous
 
 if __name__ == "__main__":
     unittest.main()
