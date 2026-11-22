@@ -104,8 +104,13 @@ Inventory states:
   occurred. An automatic replay is unsafe because some setup components are
   not transactionally idempotent. Use the independent rollback snapshots and
   the repair tooling after review.
-- **sealed**: installation finished; use management or repair commands, not
-  the installer again.
+- **sealed** with **health_verified_at**: installation passed its required
+  service, database, Redis and control-panel port checks before success was
+  recorded. Retrying the installer is a no-op. This is historical verification,
+  not proof that services are still healthy now.
+- **sealed** without **health_verified_at**: legacy completion was not
+  health-verified, so retry requires diagnosis/repair rather than assuming
+  success. The recorded state is preserved and cannot be overwritten.
 - **removed**: previous tracked install was uninstalled. Review the machine
   before any new install.
 
@@ -129,8 +134,8 @@ while /opt/webops exists:
 | fresh | Stage a new installation with a private recovery marker |
 | staged | Continue a copied, preflight-only installation |
 | resume | Reuse the original captured pre-install baseline |
-| installed | Exit successfully without reinstalling |
-| repair | Refuse automatic replay after system changes started |
+| installed | Exit successfully without reinstalling, only when prior health verification is recorded |
+| repair | Refuse automatic replay after system changes started, health failed or legacy success lacked verification |
 | manual/unsafe | Refuse untracked or foreign directories |
 
 To diagnose the installation without changes, from the updated source checkout:
@@ -167,3 +172,26 @@ confirm out-of-band SSH access, and review installation logs first. A status of
 repair, an existing deployment, or conflicting system modifications means a
 manual repair plan is required. Do not delete /opt/webops/config.env, remove
 /opt/webops, or falsify the private inventory to bypass safety checks.
+
+## Installation success and retry acceptance
+
+WebOps treats installation as successful only after platform setup exits
+successfully and required service and connectivity checks pass. It checks
+PostgreSQL and Redis service readiness/connectivity, core WebOps systemd units
+(web, worker, beat, channels), and the control-panel listener on port 8000.
+Only then is the inventory sealed with a health_verified_at timestamp.
+
+A failed setup or health check exits nonzero and leaves the inventory
+incomplete. When rerun, WebOps examines the previous inventory and staged
+ownership state before making changes. A host that may already have been
+modified is classified as repair; it is never silently reinstalled.
+A pre-system-change interrupted install can safely resume using the recorded
+baseline. A previously health-verified installation is recognized and skipped.
+
+The check reports the state at installation time. It is not an ongoing uptime
+monitor, and a complete disposable systemd-VM install/reboot/repair cycle
+remains an outstanding release-validation requirement.
+
+Run the isolated lifecycle contracts in Runpod or CI:
+
+    python3 -m unittest discover -v -s provisioning/versions/v1.0.0/tests -p 'test_*.py'
