@@ -133,29 +133,10 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
             await self.close(code=4003)  # Forbidden
             return
 
-        # Resolve deployment name for group subscription; signals use name-based groups
-        self.deployment_name = await self.get_deployment_name(self.deployment_id)
-
-        # Set a default deployment name if none exists
-        if not self.deployment_name:
-            self.deployment_name = f"deployment_{self.deployment_id}"
-
-        # Create a valid room group name
-        base_name = self.deployment_name or f"deployment_{self.deployment_id}"
-        self.room_group_name = f"deployment_{base_name}"
-
-        # Ensure room_group_name meets Django Channels requirements
-        if len(self.room_group_name) >= 100:
-            # Truncate if too long
-            self.room_group_name = f"dep_{self.deployment_id}"
-
-        # Validate group name contains only allowed characters
-        if not re.match(r'^[a-zA-Z0-9_-]+$', self.room_group_name):
-            self.room_group_name = f"deployment_{self.deployment_id}"
-
-        # Ensure it's a non-empty string
-        if not self.room_group_name or not isinstance(self.room_group_name, str):
-            self.room_group_name = f"deployment_{self.deployment_id}"
+        # Canonical immutable group key shared with deployment signals.
+        # Human-readable names may contain spaces, Unicode or >100 chars;
+        # database primary keys remain valid for Django Channels.
+        self.room_group_name = f"deployment_{self.deployment_id}"
 
         # Join room group
         await self.channel_layer.group_add(
