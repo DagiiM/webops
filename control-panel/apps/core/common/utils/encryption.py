@@ -11,32 +11,27 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 
 
+def _balanced_random_secret(length: int, symbols: str) -> str:
+    """Generate a CSPRNG secret with each required character class."""
+    if length < 4:
+        raise ValueError("A balanced secret requires four characters")
+    groups = (string.ascii_uppercase, string.ascii_lowercase,
+              string.digits, symbols)
+    chars = [secrets.choice(group) for group in groups]
+    alphabet = ''.join(groups)
+    chars.extend(secrets.choice(alphabet) for _ in range(length - len(chars)))
+    secrets.SystemRandom().shuffle(chars)
+    return ''.join(chars)
+
+
 def generate_password(length: int = 32) -> str:
-    """
-    Generate cryptographically secure password.
-    
-    Args:
-        length: Password length (minimum 12)
-        
-    Returns:
-        Secure random password
-    """
-    if length < 12:
-        length = 12
-        
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+    """Generate a strong password (minimum twelve characters)."""
+    return _balanced_random_secret(max(length, 12), "!@#$%^&*")
 
 
 def generate_secret_key() -> str:
-    """
-    Generate Django SECRET_KEY.
-    
-    Returns:
-        Cryptographically secure secret key
-    """
-    chars = string.ascii_letters + string.digits + '!@#$%^&*(-_=+)'
-    return ''.join(secrets.choice(chars) for _ in range(50))
+    """Generate a fifty-character Django secret with balanced character classes."""
+    return _balanced_random_secret(50, "!@#$%^&*(-_=+)")
 
 
 def encrypt_value(value: str) -> str:
