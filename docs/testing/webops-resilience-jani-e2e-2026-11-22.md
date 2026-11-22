@@ -2,8 +2,8 @@
 
 ## What was actually demonstrated
 
-Runpod CPU: **2,033 CLI tests passed**, including **1,415 resilience cases**,
-**536 AI deployment-contract cases** and **13 model-gateway tests**, plus
+Runpod CPU: **2,042 CLI tests passed**, including **1,415 resilience cases**,
+**537 AI deployment-contract cases** and **21 model-gateway tests**, plus
 the pre-existing CLI tests. A concurrent probe exercised 4,096 requests across
 64 workers. These are isolated, fast, deterministic workload and fault-injection
 tests rather than a sustained public-hosting load test.
@@ -17,11 +17,23 @@ and the 1.7B model answered a real Chat Completions request (HTTP 200).
 Jani 0.1.2 was built from `ifinsta/jani`, and `jani doctor` confirmed its
 model and default-deny read-only authority.
 
-**Unresolved live integration:** Jani `--print` requests to the original
-WebOps Ollama adapter returned upstream HTTP 400 while parsing generated tool
-call JSON, for both models. The adapter's streaming tool-call bridge is repaired
-in this change and requires repeat real-provider verification. No Jani agent
-review is claimed successful until that has occurred.
+**Live Jani integration verified:** The initial gateway returned HTTP 400
+when Jani sent multi-step tool-call history. The fix translates OpenAI tool
+arguments from JSON strings into native Ollama objects and forwards streaming
+tool calls correctly. After upgrading and restarting the actual model gateways,
+Jani `--print` completed a read-only inspection of the `ifinsta/jani`
+repository using the WebOps-hosted `qwen3:8b` model (exit 0).
+
+**One-command preflight verified:** On the GPU Pod, the published CLI executed
+`webops deploy DagiiM/webops --ai-assist --model qwen3:8b
+--model-endpoint http://127.0.0.1:8003/v1 --jani-binary /opt/jani/bin/jani
+--worktree /work/webops --dry-run --json-output` (exit 0, Jani 3,682 ms).
+The output included the validated repository, branch, a deterministic
+idempotency key, a Jani evidence digest and a no-write dry-run status.
+Authenticated gateway `/health` also responded HTTP 200 with `ready`
+and an installed model count. The CLI refused an intentionally mismatched
+`--worktree` for `ifinsta/ifinsta` before invoking Jani (exit 1).
+**This was an actual AI-assisted dry run, not a real application deployment.**
 
 **Not yet proven:** cloning and deploying the private `ifinsta/ifinsta`
 repository, a public site health check, application rollback/restore, or
@@ -86,13 +98,13 @@ python -m pytest -q -o addopts= tests/
 
 These commands use `-o addopts=` to separate functional test results from
 the existing **80% total CLI coverage** release gate. The entire suite measured
-**32.05% coverage**, below the 80% threshold; this remains a release blocker,
+**32.15% coverage**, below the 80% threshold; this remains a release blocker,
 not a reason to lower the requirement.
 
 ## Production acceptance criteria
 
-- Resolve actual Jani tool-call interoperability and repeat read-only review
-  against the WebOps-managed authenticated model, including model restarts.
+- Repeat Jani tool-call review after Pod/model restarts; test model upgrades
+  and API outage recovery across host boundaries.
 - Provide an authorized short-lived GitHub token for private repository
   checkout; avoid embedding it in command arguments or Git remote URLs.
 - Deploy `ifinsta/ifinsta` in an isolated staging environment with Docker,
