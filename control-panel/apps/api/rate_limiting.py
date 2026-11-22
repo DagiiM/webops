@@ -7,6 +7,7 @@ Rate limiting middleware and decorators for WebOps API.
 import time
 from typing import Dict, Tuple, Optional
 from django.core.cache import cache
+from django.conf import settings
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
@@ -225,7 +226,11 @@ class RateLimitMiddleware:
     
     def __init__(self, get_response):
         self.get_response = get_response
-        self.global_limiter = RateLimiter(max_requests=1000, window_seconds=3600)  # 1000/hour
+        self.global_limiter = RateLimiter(
+            max_requests=getattr(settings,'GLOBAL_RATE_LIMIT_MAX',1000),
+            window_seconds=3600,
+            burst_requests=getattr(settings,'GLOBAL_RATE_LIMIT_BURST',20)
+        )  # 1000/hour
     
     def __call__(self, request):
         # Skip rate limiting for static files and admin
@@ -240,10 +245,10 @@ class RateLimitMiddleware:
         # Check global rate limit
         allowed, info = self.global_limiter.is_allowed(identifier)
         
-        print(f"Rate limit check for {identifier} on {request.path}: allowed={allowed}")
+        # Avoid noisy stdout in production and leaking customer routes.
         
         if not allowed:
-            print(f"Rate limit exceeded for {identifier}")
+            # Return explicit rate-limit response without console output.
 
             # Check if request expects JSON (API request)
             if request.path.startswith('/api/') or request.META.get('HTTP_ACCEPT', '').startswith('application/json'):
