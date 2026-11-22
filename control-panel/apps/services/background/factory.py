@@ -31,12 +31,15 @@ def get_background_processor() -> BackgroundProcessor:
         if _processor_instance is not None:
             return _processor_instance
 
-        # Prefer database configuration via config manager, fallback to environment
-        try:
-            from apps.services.config_manager import config_manager
-            choice = str(config_manager.get('background.processor', 'celery')).lower()
-        except Exception:
-            choice = os.getenv("WEBOPS_BG_PROCESSOR", "celery").lower()
+        # Explicit process configuration has priority over database defaults.
+        # This also permits deterministic Celery/memory selection in tests.
+        choice = os.getenv("WEBOPS_BG_PROCESSOR", "").strip().lower()
+        if not choice:
+            try:
+                from apps.services.config_manager import config_manager
+                choice = str(config_manager.get('background.processor', 'celery')).lower()
+            except Exception:
+                choice = 'celery' 
 
         if choice == "celery":
             try:
