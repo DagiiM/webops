@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
 from apps.core.integrations.models import GitHubConnection
+from apps.core.common.utils.encryption import encrypt_value
 from apps.core.integrations.services.github import GitHubIntegrationService
 
 
@@ -81,7 +82,7 @@ class GitHubIntegrationServiceTests(TestCase):
             user=self.user,
             github_user_id=12345,
             username='testuser',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Test getting connection
@@ -103,14 +104,15 @@ class GitHubIntegrationServiceTests(TestCase):
             user=self.user,
             github_user_id=12345,
             username='testuser',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Test disconnecting
         success = self.service.disconnect(self.user)
         
         self.assertTrue(success)
-        self.assertFalse(GitHubConnection.objects.filter(user=self.user).exists())
+        self.assertTrue(GitHubConnection.objects.filter(user=self.user, is_deleted=True).exists())
+        self.assertIsNone(self.service.get_connection(self.user))
 
     def test_disconnect_none(self):
         """Test disconnecting non-existent connection."""
@@ -127,7 +129,7 @@ class GitHubIntegrationServiceTests(TestCase):
             user=self.user,
             github_user_id=12345,
             username='testuser',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Mock successful API response
@@ -153,7 +155,7 @@ class GitHubIntegrationServiceTests(TestCase):
             user=self.user,
             github_user_id=12345,
             username='testuser',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Mock failed API response
