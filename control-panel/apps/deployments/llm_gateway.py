@@ -45,6 +45,47 @@ def normalized_tool_calls(calls):
     return result
 
 
+def ollama_messages(messages):
+    """Convert OpenAI tool history into Ollama-native tool arguments.
+
+    OpenAI emits JSON-encoded function.arguments strings, while Ollama
+    expects decoded JSON objects. Keep tool results intact, but remove
+    the OpenAI-only tool_call_id for the native backend.
+    """
+    result = []
+    for message in messages:
+        if not isinstance(message, dict):
+            raise ValueError("Message must be an object")
+        if message.get("role") not in ("system", "developer", "user", "assistant", "tool"):
+            raise ValueError("Invalid message role")
+        item = message.copy()
+        if "tool_calls" in item:
+            calls = item["tool_calls"]
+            if not isinstance(calls, list) or len(calls) > 32:
+                raise ValueError("Invalid tool call list")
+            converted = []
+            for call in calls:
+                if not isinstance(call, dict):
+                    raise ValueError("Invalid tool call")
+                fn = call.get("function")
+                if not isinstance(fn, dict) or not isinstance(fn.get("name"), str):
+                    raise ValueError("Invalid tool function")
+                arguments = fn.get("arguments", {})
+                if isinstance(arguments, str):
+                    try:
+                        arguments = json.loads(arguments)
+                    except json.JSONDecodeError as exc:
+                        raise ValueError("Invalid tool arguments") from exc
+                if not isinstance(arguments, dict):
+                    raise ValueError("Tool arguments must be an object")
+                converted.append({"function": {"name": fn["name"], "arguments": arguments}})
+            item["tool_calls"] = converted
+        if item["role"] == "tool":
+            item.pop("tool_call_id", None)
+        result.append(item)
+    return result
+
+
 def ollama_payload(data):
     """Translate a subset of OpenAI Chat Completions to native Ollama Chat."""
     if not isinstance(data, dict) or not isinstance(data.get("model"), str):
@@ -54,7 +95,7 @@ def ollama_payload(data):
     if len(data["messages"]) > 100:
         raise ValueError("Too many messages")
     request = {
-        "model": data["model"], "messages": data["messages"],
+        "model": data["model"], "messages": ollama_messages(data["messages"]),
         "stream": bool(data.get("stream", False)), "think": False,
     }
     options = {}

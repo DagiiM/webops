@@ -113,3 +113,38 @@ def test_gateway_declares_only_known_paths_and_bounds(gateway):
     assert "/health" in gateway.ALLOWED_PATHS
     assert "/admin" not in gateway.ALLOWED_PATHS
 
+
+
+
+def test_ollama_converts_prior_tool_history_for_multi_step_jani(gateway):
+    history = [
+        {"role": "user", "content": "Inspect README"},
+        {"role": "assistant", "content": "", "tool_calls": [{
+            "id": "call_abc", "type": "function",
+            "function": {"name": "read", "arguments": '{"path":"README.md"}'},
+        }]},
+        {"role": "tool", "tool_call_id": "call_abc", "content": "# Project"},
+    ]
+    result = gateway.ollama_payload({"model": "qwen3:8b", "messages": history})
+    assert result["messages"][1]["tool_calls"] == [{
+        "function": {"name": "read", "arguments": {"path": "README.md"}}
+    }]
+    assert result["messages"][2] == {"role": "tool", "content": "# Project"}
+    assert history[1]["tool_calls"][0]["function"]["arguments"] == '{"path":"README.md"}'
+
+
+@pytest.mark.parametrize("arguments", ["{", "[]", "null", "3", '"text"', "[1,2]"])
+def test_history_tool_argument_errors_fail_closed(gateway, arguments):
+    with pytest.raises(ValueError):
+        gateway.ollama_messages([{
+            "role": "assistant", "content": "", "tool_calls": [
+                {"function": {"name": "read", "arguments": arguments}}
+            ]
+        }])
+
+
+def test_ollama_native_object_arguments_are_preserved(gateway):
+    h = [{"role": "assistant", "content": "", "tool_calls": [
+        {"function": {"name": "read", "arguments": {"path": "README.md"}}}
+    ]}]
+    assert gateway.ollama_messages(h)[0]["tool_calls"][0]["function"]["arguments"]["path"] == "README.md"
