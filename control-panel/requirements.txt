@@ -1,7 +1,7 @@
 # Core Django
-Django==5.0.1
+Django==5.2.19
 psycopg2-binary==2.9.9
-gunicorn==21.2.0
+gunicorn==26.2.0
 dj-database-url==2.1.0
 
 # Background tasks
@@ -11,24 +11,24 @@ celery[redis]==5.3.4
 python-decouple==3.8
 
 # Security & Cryptography
-cryptography==42.0.2
+cryptography==50.0.2
 
 # 2FA Support (minimal TOTP library)
 pyotp==2.9.0
 qrcode==7.4.2
-Pillow==10.2.0
+Pillow==13.0.0
 
 # HTTP Requests
-requests==2.31.0
+requests==2.34.2
 
 # HuggingFace Integration
 huggingface-hub==0.20.3
 
 # Git Integration
-GitPython==3.1.41
+GitPython==3.2.1
 
 # Templates
-Jinja2==3.1.3
+Jinja2==3.1.6
 
 # YAML parsing
 PyYAML==6.0.1
@@ -43,7 +43,7 @@ django-redis==5.4.0
 # WebSocket Support
 channels==4.0.0
 channels-redis==4.2.0
-daphne==4.2.1
+daphne==4.2.3
 
 # Testing
 coverage==7.4.0
@@ -54,3 +54,8 @@ django-extensions==3.2.3
 # Supported SQL and document database adapter drivers
 pymysql==1.2.4
 pymongo==4.20.1
+
+# Explicit transitive security floors (2026-11)
+Twisted==26.10.0
+pyOpenSSL==26.4.0
+autobahn==26.11.1
