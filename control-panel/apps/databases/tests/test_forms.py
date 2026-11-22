@@ -19,79 +19,102 @@ class DatabaseFormTest(TestCase):
     def test_identifier_validator_valid(self):
         """Test identifier validator with valid inputs."""
         # Test valid identifiers
-        self.assertTrue(identifier_validator("valid_name"))
-        self.assertTrue(identifier_validator("valid_name_123"))
-        self.assertTrue(identifier_validator("ValidName"))
+        self.assertIsNone(identifier_validator("valid_name"))
+        self.assertIsNone(identifier_validator("valid_name_123"))
+        self.assertIsNone(identifier_validator("ValidName"))
         
     def test_identifier_validator_invalid(self):
         """Test identifier validator with invalid inputs."""
         # Test invalid identifiers
-        self.assertFalse(identifier_validator(""))
-        self.assertFalse(identifier_validator("123invalid"))
-        self.assertFalse(identifier_validator("invalid-name"))
-        self.assertFalse(identifier_validator("invalid@name"))
-        self.assertFalse(identifier_validator("invalid name"))
+        with self.assertRaises(ValidationError):
+            identifier_validator("")
+        with self.assertRaises(ValidationError):
+            identifier_validator("123invalid")
+        with self.assertRaises(ValidationError):
+            identifier_validator("invalid-name")
+        with self.assertRaises(ValidationError):
+            identifier_validator("invalid@name")
+        with self.assertRaises(ValidationError):
+            identifier_validator("invalid name")
         
         # Test length validation
         long_name = "a" * 64  # 64 characters, exceeds limit
-        self.assertFalse(identifier_validator(long_name))
+        with self.assertRaises(ValidationError):
+            identifier_validator(long_name)
 
     def test_database_name_validator_valid(self):
         """Test database name validator with valid inputs."""
         # Test valid database names
-        self.assertTrue(database_name_validator("valid_db"))
-        self.assertTrue(database_name_validator("valid_db_123"))
-        self.assertTrue(database_name_validator("ValidDB"))
+        self.assertIsNone(database_name_validator("valid_db"))
+        self.assertIsNone(database_name_validator("valid_db_123"))
+        self.assertIsNone(database_name_validator("ValidDB"))
         
     def test_database_name_validator_invalid(self):
         """Test database name validator with invalid inputs."""
         # Test invalid database names
-        self.assertFalse(database_name_validator(""))
-        self.assertFalse(database_name_validator("123invalid"))
-        self.assertFalse(database_name_validator("invalid-db"))
-        self.assertFalse(database_name_validator("invalid@db"))
-        self.assertFalse(database_name_validator("invalid db"))
+        with self.assertRaises(ValidationError):
+            database_name_validator("")
+        with self.assertRaises(ValidationError):
+            database_name_validator("123invalid")
+        with self.assertRaises(ValidationError):
+            database_name_validator("invalid-db")
+        with self.assertRaises(ValidationError):
+            database_name_validator("invalid@db")
+        with self.assertRaises(ValidationError):
+            database_name_validator("invalid db")
         
         # Test length validation
         long_name = "a" * 64  # 64 characters, exceeds limit
-        self.assertFalse(database_name_validator(long_name))
+        with self.assertRaises(ValidationError):
+            database_name_validator(long_name)
 
     def test_username_validator_valid(self):
         """Test username validator with valid inputs."""
         # Test valid usernames
-        self.assertTrue(username_validator("valid_user"))
-        self.assertTrue(username_validator("valid_user_123"))
-        self.assertTrue(username_validator("ValidUser"))
+        self.assertIsNone(username_validator("valid_user"))
+        self.assertIsNone(username_validator("valid_user_123"))
+        self.assertIsNone(username_validator("ValidUser"))
         
     def test_username_validator_invalid(self):
         """Test username validator with invalid inputs."""
         # Test invalid usernames
-        self.assertFalse(username_validator(""))
-        self.assertFalse(username_validator("123invalid"))
-        self.assertFalse(username_validator("invalid-user"))
-        self.assertFalse(username_validator("invalid@user"))
-        self.assertFalse(username_validator("invalid user"))
+        with self.assertRaises(ValidationError):
+            username_validator("")
+        with self.assertRaises(ValidationError):
+            username_validator("123invalid")
+        with self.assertRaises(ValidationError):
+            username_validator("invalid-user")
+        with self.assertRaises(ValidationError):
+            username_validator("invalid@user")
+        with self.assertRaises(ValidationError):
+            username_validator("invalid user")
         
         # Test length validation
         long_name = "a" * 64  # 64 characters, exceeds limit
-        self.assertFalse(username_validator(long_name))
+        with self.assertRaises(ValidationError):
+            username_validator(long_name)
 
     def test_connection_uri_validator_valid(self):
         """Test connection URI validator with valid inputs."""
         # Test valid connection URIs
-        self.assertTrue(connection_uri_validator("mongodb://localhost:27017"))
-        self.assertTrue(connection_uri_validator("mysql://localhost:3306"))
-        self.assertTrue(connection_uri_validator("postgresql://localhost:5432"))
-        self.assertTrue(connection_uri_validator("sqlite:///path/to/db.sqlite3"))
+        self.assertIsNone(connection_uri_validator("mongodb://localhost:27017"))
+        self.assertIsNone(connection_uri_validator("mysql://localhost:3306"))
+        self.assertIsNone(connection_uri_validator("postgresql://localhost:5432"))
+        self.assertIsNone(connection_uri_validator("sqlite:///path/to/db.sqlite3"))
         
     def test_connection_uri_validator_invalid(self):
         """Test connection URI validator with invalid inputs."""
         # Test invalid connection URIs
-        self.assertFalse(connection_uri_validator(""))
-        self.assertFalse(connection_uri_validator("invalid://localhost"))
-        self.assertFalse(connection_uri_validator("mongodb://localhost:27017; DROP TABLE users"))
-        self.assertFalse(connection_uri_validator("mongodb://localhost:27017 --"))
-        self.assertFalse(connection_uri_validator("mongodb://localhost:27017 /*"))
+        with self.assertRaises(ValidationError):
+            connection_uri_validator("")
+        with self.assertRaises(ValidationError):
+            connection_uri_validator("invalid://localhost")
+        with self.assertRaises(ValidationError):
+            connection_uri_validator("mongodb://localhost:27017; DROP TABLE users")
+        with self.assertRaises(ValidationError):
+            connection_uri_validator("mongodb://localhost:27017 --")
+        with self.assertRaises(ValidationError):
+            connection_uri_validator("mongodb://localhost:27017 /*")
 
     def test_form_valid_postgresql(self):
         """Test form validation with valid PostgreSQL data."""
@@ -559,8 +582,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_name should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_name()
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
 
     def test_form_clean_username(self):
         """Test form clean_username method."""
@@ -595,8 +618,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_username should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_username()
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)
 
     def test_form_clean_database_name(self):
         """Test form clean_database_name method."""
@@ -631,8 +654,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_database_name should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_database_name()
+        self.assertFalse(form.is_valid())
+        self.assertIn("database_name", form.errors)
 
     def test_form_clean_host(self):
         """Test form clean_host method."""
@@ -667,8 +690,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_host should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_host()
+        self.assertFalse(form.is_valid())
+        self.assertIn("host", form.errors)
 
     def test_form_clean_port(self):
         """Test form clean_port method."""
@@ -703,8 +726,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_port should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_port()
+        self.assertFalse(form.is_valid())
+        self.assertIn("port", form.errors)
 
     def test_form_clean_port_out_of_range(self):
         """Test form clean_port method with port out of range."""
@@ -720,8 +743,8 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_port should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_port()
+        self.assertFalse(form.is_valid())
+        self.assertIn("port", form.errors)
 
     def test_form_clean_connection_uri(self):
         """Test form clean_connection_uri method."""
@@ -748,5 +771,5 @@ class DatabaseFormTest(TestCase):
         
         form = DatabaseForm(data=form_data)
         # Even if form is invalid, clean_connection_uri should raise ValidationError
-        with self.assertRaises(ValidationError):
-            form.clean_connection_uri()
+        self.assertFalse(form.is_valid())
+        self.assertIn("connection_uri", form.errors)
