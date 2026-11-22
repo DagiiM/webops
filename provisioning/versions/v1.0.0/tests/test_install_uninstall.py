@@ -15,6 +15,8 @@ from unittest import mock
 SCRIPT = Path(__file__).resolve().parents[1] / "lifecycle" / "installation_inventory.py"
 INSTALL = SCRIPT.parent / "install.sh"
 UNINSTALL = SCRIPT.parent / "uninstall.sh"
+PLATFORM_CLI = SCRIPT.parent.parent / "bin" / "webops"
+BASE_SETUP = SCRIPT.parent.parent / "setup" / "base.sh"
 spec = importlib.util.spec_from_file_location("webops_install_inventory", SCRIPT)
 inventory = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(inventory)
@@ -218,6 +220,21 @@ class ReversibleInstallTests(unittest.TestCase):
         self.assertLess(install.index("prepare_rollback_snapshot\n", install.index("main() {", 0) if False else
                                       install.rindex("main() {")),
                         install.index("    apply_hostname\n", install.rindex("main() {")))
+
+    def test_platform_cli_uninstall_uses_lifecycle_script_before_state_creation(self):
+        content = PLATFORM_CLI.read_text()
+        self.assertIn('if [[ "$command" == "uninstall"', content)
+        self.assertIn('exec "${SCRIPT_DIR}/../lifecycle/uninstall.sh" "$@"', content)
+        self.assertLess(content.index('exec "${SCRIPT_DIR}/../lifecycle/uninstall.sh"'),
+                        content.index('ensure_directory "${WEBOPS_PLATFORM}/versions"',
+                                      content.rindex('main() {')))
+
+    def test_firewall_setup_does_not_reset_existing_rules(self):
+        content = BASE_SETUP.read_text()
+        self.assertNotIn("ufw --force reset", content)
+        self.assertNotIn("firewall-cmd --set-default-zone=public", content)
+        self.assertIn("Existing active UFW detected", content)
+        self.assertIn("Existing active firewalld detected", content)
 
     def test_missing_inventory_cli_fails_closed(self):
         result = subprocess.run(
