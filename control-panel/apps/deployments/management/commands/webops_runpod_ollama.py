@@ -125,6 +125,7 @@ class Command(BaseCommand):
                 "WEBOPS_LLM_KEY_FILE": str(keyfile),
                 "WEBOPS_LLM_PROXY_PORT": str(port),
                 "WEBOPS_LLM_UPSTREAM_PORT": str(upstream),
+                "WEBOPS_LLM_BACKEND": "ollama",
                 "PYTHONPATH": str(settings.BASE_DIR),
             })
             with (base / "gateway.log").open("ab") as output:
