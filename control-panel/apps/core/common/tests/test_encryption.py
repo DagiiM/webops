@@ -50,7 +50,7 @@ class EncryptionUtilsTests(TestCase):
     @patch('apps.core.common.utils.encryption.settings')
     def test_encrypt_value(self, mock_settings):
         """Test value encryption."""
-        mock_settings.ENCRYPTION_KEY = 'test-key-for-encryption-32-chars'
+        mock_settings.ENCRYPTION_KEY = __import__("cryptography.fernet", fromlist=["Fernet"]).Fernet.generate_key().decode()
         
         value = 'test_password'
         encrypted = encrypt_value(value)
@@ -61,7 +61,7 @@ class EncryptionUtilsTests(TestCase):
     @patch('apps.core.common.utils.encryption.settings')
     def test_encrypt_decrypt_value(self, mock_settings):
         """Test value encryption and decryption."""
-        mock_settings.ENCRYPTION_KEY = 'test-key-for-encryption-32-chars'
+        mock_settings.ENCRYPTION_KEY = __import__("cryptography.fernet", fromlist=["Fernet"]).Fernet.generate_key().decode()
         
         original_value = 'test_password'
         encrypted = encrypt_value(original_value)
