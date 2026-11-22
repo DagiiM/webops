@@ -37,4 +37,4 @@ jobs:
         run: |
           python -m unittest discover -v \
             -s provisioning/versions/v1.0.0/tests \
-            -p 'test_install_uninstall.py'
+            -p 'test_*.py'
