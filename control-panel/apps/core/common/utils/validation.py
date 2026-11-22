@@ -33,6 +33,8 @@ def validate_domain_name(domain: str) -> bool:
         
     # Check label lengths
     labels = domain.split('.')
+    if len(labels) < 2 or len(labels[-1]) < 2:
+        return False
     for label in labels:
         if len(label) > 63:
             return False
