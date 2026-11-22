@@ -107,7 +107,7 @@ class BackwardCompatibilityTests(TestCase):
     @patch('apps.core.common.utils.encryption.settings')
     def test_encryption_functions_work(self, mock_settings):
         """Test that encryption functions work through the compatibility layer."""
-        mock_settings.ENCRYPTION_KEY = 'test-key-for-encryption-32-chars'
+        mock_settings.ENCRYPTION_KEY = __import__("cryptography.fernet", fromlist=["Fernet"]).Fernet.generate_key().decode()
         
         # Test encryption
         original_value = 'test_password'
@@ -121,7 +121,9 @@ class BackwardCompatibilityTests(TestCase):
         decrypted_alias = decrypt_password(encrypted_alias)
         
         self.assertEqual(original_value, decrypted_alias)
-        self.assertEqual(encrypted, encrypted_alias)
+        # Fernet intentionally uses random IVs: two ciphertexts must differ.
+        self.assertNotEqual(encrypted, encrypted_alias)
+        self.assertEqual(original_value, decrypted)
         self.assertEqual(decrypted, decrypted_alias)
 
     def test_utility_functions_work(self):
