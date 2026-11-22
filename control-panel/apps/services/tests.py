@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from unittest import mock
 import time
 
-from apps.deployments.models import BaseDeployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 from apps.services.background import factory as bg_factory
 from apps.services.background.memory_adapter import InMemoryBackgroundProcessor
 
