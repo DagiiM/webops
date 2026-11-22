@@ -40,8 +40,11 @@ def require_resource_ownership(model_class, ownership_field='user', lookup_field
                 raise PermissionDenied("Resource identifier not provided")
 
             # Build the ownership filter
+            # URL kwarg may be named deployment_id, while model PK is id.
+            model_fields = {f.name for f in model_class._meta.get_fields()}
+            model_lookup = lookup_field if lookup_field in model_fields else 'pk'
             ownership_filter = {
-                lookup_field: lookup_value,
+                model_lookup: lookup_value,
                 ownership_field: request.user
             }
 
@@ -128,8 +131,11 @@ def api_require_ownership(model_class, ownership_field='user', lookup_field='pk'
                 }, status=400)
 
             # Build the ownership filter
+            # URL kwarg may be named deployment_id, while model PK is id.
+            model_fields = {f.name for f in model_class._meta.get_fields()}
+            model_lookup = lookup_field if lookup_field in model_fields else 'pk'
             ownership_filter = {
-                lookup_field: lookup_value,
+                model_lookup: lookup_value,
                 ownership_field: request.user
             }
 
