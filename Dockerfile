@@ -57,7 +57,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=config.settings.production
+    DJANGO_SETTINGS_MODULE=config.settings
 
 # Run entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
