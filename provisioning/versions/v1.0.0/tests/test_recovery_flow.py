@@ -109,6 +109,58 @@ class SmartInstallTests(unittest.TestCase):
         self.capture(phase="system-changes-started")
         self.assertEqual(self.inspect(), "repair")
 
+    def direct_installed_root_reentry(self):
+        lifecycle = self.root / "provisioning/versions/v1.0.0/lifecycle"
+        shutil.copy2(RECOVERY, lifecycle / "installation_recovery.py")
+        shutil.copy2(INVENTORY, lifecycle / "installation_inventory.py")
+        source = INSTALL.read_text().replace(
+            'readonly ROLLBACK_BASE_DIR="/var/backups/webops-install"',
+            'readonly ROLLBACK_BASE_DIR="' + str(self.state.parent) + '"')
+        source = source[:source.rindex('main "$@"')]
+        source += "\ncopy_to_install_location\n"
+        script = self.root / "provisioning/versions/v1.0.0/lifecycle/direct-reentry.sh"
+        script.write_text(source)
+        return subprocess.run(["bash", str(script)], env=self.env(),
+                              capture_output=True, text=True, timeout=10)
+
+    def test_direct_rerun_of_verified_install_is_no_op(self):
+        self.make_root()
+        self.capture(status="sealed")
+        result = self.direct_installed_root_reentry()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("already installed", result.stdout)
+        self.assertEqual(inventory.load(self.state)["status"], "sealed")
+
+    def test_direct_rerun_of_partial_install_requires_repair(self):
+        self.make_root()
+        self.capture(phase="system-changes-started")
+        important = self.root / "database.sqlite"
+        important.write_text("KEEP DATA")
+        result = self.direct_installed_root_reentry()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("needs operator review", result.stderr)
+        self.assertEqual(important.read_text(), "KEEP DATA")
+
+    def test_legacy_sealed_without_health_proof_requires_repair(self):
+        self.make_root()
+        self.capture(status="sealed")
+        data = inventory.load(self.state)
+        data.pop("health_verified_at", None)
+        inventory.atomic_save(self.state, data)
+        self.assertEqual(self.inspect(), "repair")
+        result = self.execute_handoff()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('"action": "repair"', result.stderr)
+
+    def test_failed_health_does_not_retry_unsafe_partial_install(self):
+        self.make_root()
+        self.capture(phase="system-changes-started")
+        status = recovery.inspect(self.root, self.state)
+        self.assertEqual(status["action"], "repair")
+        result = self.execute_handoff()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("DELEGATED", result.stdout)
+
     def test_inventory_sealed_means_skip_duplicate_install(self):
         self.make_root()
         self.capture(status="sealed")
