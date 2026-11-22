@@ -106,7 +106,7 @@ class HuggingFaceIntegrationService:
             HuggingFaceConnection or None
         """
         try:
-            return HuggingFaceConnection.objects.get(user=user)
+            return HuggingFaceConnection.objects.get(user=user, is_deleted=False)
         except HuggingFaceConnection.DoesNotExist:
             return None
 
