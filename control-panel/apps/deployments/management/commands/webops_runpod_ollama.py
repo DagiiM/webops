@@ -10,6 +10,7 @@ import re
 import secrets
 import signal
 import subprocess
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -87,6 +88,11 @@ class Command(BaseCommand):
                 row = LLMDeployment.objects.create(name=name, model_name=model_name,
                                                    backend="ollama", port=port, deployed_by=admin)
             uid, gid = os_user.pw_uid, os_user.pw_gid
+            state_root = Path(settings.WEBOPS_INSTALL_PATH)
+            state_root.mkdir(parents=True, exist_ok=True)
+            state_root.chmod(0o711)  # Traverse only; private files remain mode 0600.
+            base.parent.mkdir(parents=True, exist_ok=True)
+            base.parent.chmod(0o711)
             base.mkdir(parents=True, exist_ok=True, mode=0o700)
             base.chmod(0o700)
             os.chown(base, uid, gid)
@@ -123,7 +129,7 @@ class Command(BaseCommand):
             })
             with (base / "gateway.log").open("ab") as output:
                 gateway = subprocess.Popen(
-                    ["/workspace/webops/.venv/bin/python", "-m", "apps.deployments.llm_gateway"],
+                    [sys.executable, "-m", "apps.deployments.llm_gateway"],
                     cwd=str(settings.BASE_DIR), env=proxy_env,
                     stdout=output, stderr=subprocess.STDOUT,
                     user=uid, group=gid, start_new_session=True)
@@ -141,11 +147,18 @@ else:
     raise SystemExit("Ollama server unavailable; model pull cancelled")
 raise SystemExit(subprocess.call(["/usr/local/bin/ollama","pull",sys.argv[1]]))
 """
-            with (base / "ollama-pull.log").open("ab") as output:
-                pull = subprocess.Popen(
-                    ["/usr/local/bin/python3", "-u", "-c", script, model_name],
-                    cwd=str(base), env=env, stdout=output, stderr=subprocess.STDOUT,
-                    user=uid, group=gid, start_new_session=True)
+            try:
+                with (base / "ollama-pull.log").open("ab") as output:
+                    pull = subprocess.Popen(
+                        [sys.executable, "-u", "-c", script, model_name],
+                        cwd=str(base), env=env, stdout=output, stderr=subprocess.STDOUT,
+                        user=uid, group=gid, start_new_session=True)
+            except Exception:
+                gateway.terminate()
+                server.terminate()
+                row.status = LLMDeployment.Status.FAILED
+                row.save(update_fields=["status"])
+                raise
             pidfile.write_text(json.dumps({"model": server.pid, "gateway": gateway.pid,
                                            "pull": pull.pid, "upstream_port": upstream,
                                            "model_name": model_name}))
