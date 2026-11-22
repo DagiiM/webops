@@ -23,6 +23,10 @@ class BrandingService:
 
     # Theme presets configuration
     THEME_PRESETS = {
+        'modern': {'primary_hue':217,'primary_saturation':91,'primary_lightness':60,
+                   'color_harmony':'analogous','supports_dark_mode':True},
+        'classic': {'primary_hue':220,'primary_saturation':60,'primary_lightness':45,
+                    'color_harmony':'monochromatic','supports_dark_mode':False},
         'forest': {
             'primary_hue': 142,      # Forest green
             'primary_saturation': 71,
@@ -103,9 +107,9 @@ class BrandingService:
             b = hue_to_rgb(p, q, h - 1/3)
 
         # Convert to hex
-        r_hex = format(int(r * 255), '02x')
-        g_hex = format(int(g * 255), '02x')
-        b_hex = format(int(b * 255), '02x')
+        r_hex = format(round(r * 255), '02x')
+        g_hex = format(round(g * 255), '02x')
+        b_hex = format(round(b * 255), '02x')
 
         return f'#{r_hex}{g_hex}{b_hex}'
 
@@ -124,72 +128,85 @@ class BrandingService:
         """
         scale = {}
 
-        # Generate 9 shades from very light to very dark
-        lightness_values = [95, 85, 75, 65, base_lightness, 45, 35, 25, 15]
-        shade_names = ['50', '100', '200', '300', '400', '500', '600', '700', '800']
-
+        # Ten standard shades. 500 is the exact base color; other steps
+        # maintain a monotonic light-to-dark progression.
+        lightness_values = [min(99,base_lightness+36),min(98,base_lightness+28),
+                            min(97,base_lightness+21),min(95,base_lightness+14),
+                            min(90,base_lightness+7),base_lightness,
+                            max(0,base_lightness-10),max(0,base_lightness-20),
+                            max(0,base_lightness-30),max(0,base_lightness-40)]
+        shade_names = ['50','100','200','300','400','500','600','700','800','900']
         for i, lightness in enumerate(lightness_values):
             scale[shade_names[i]] = BrandingService.hsl_to_hex(hue, saturation, lightness)
 
         return scale
 
     @staticmethod
-    def generate_color_palette(primary_hue: int, primary_saturation: int,
-                              primary_lightness: int, color_harmony: str) -> Dict[str, Dict[str, str]]:
+    def generate_color_palette(hue: int, saturation: int,
+                              lightness: int, harmony: str) -> Dict[str, Dict[str, str]]:
         """
         Generate complete color palette based on harmony scheme.
 
         Args:
-            primary_hue: Primary color hue
-            primary_saturation: Primary color saturation
-            primary_lightness: Primary color lightness
-            color_harmony: Harmony scheme ('monochromatic', 'complementary', 'triadic', 'analogous', 'split_complementary')
+            hue: Primary color hue
+            saturation: Primary color saturation
+            lightness: Primary color lightness
+            harmony: Harmony scheme ('monochromatic', 'complementary', 'triadic', 'analogous', 'split_complementary')
 
         Returns:
             Dictionary of color scales for different palette colors
         """
         palette = {
             'primary': BrandingService.generate_color_scale(
-                primary_hue,
-                primary_saturation,
-                primary_lightness
+                hue,
+                saturation,
+                lightness
             ),
             'secondary': BrandingService.generate_color_scale(
-                primary_hue,
-                primary_saturation,
-                max(20, primary_lightness - 25)
+                hue,
+                saturation,
+                max(20, lightness - 25)
             )
         }
 
         # Add harmony colors based on scheme
-        if color_harmony == 'complementary':
-            comp_hue = (primary_hue + 180) % 360
+        if harmony == 'complementary':
+            comp_hue = (hue + 180) % 360
             palette['complementary'] = BrandingService.generate_color_scale(
-                comp_hue, primary_saturation, primary_lightness
+                comp_hue, saturation, lightness
             )
-        elif color_harmony == 'triadic':
+        elif harmony == 'triadic':
             palette['triadic_1'] = BrandingService.generate_color_scale(
-                (primary_hue + 120) % 360,
-                primary_saturation,
-                primary_lightness
+                (hue + 120) % 360,
+                saturation,
+                lightness
             )
             palette['triadic_2'] = BrandingService.generate_color_scale(
-                (primary_hue + 240) % 360,
-                primary_saturation,
-                primary_lightness
+                (hue + 240) % 360,
+                saturation,
+                lightness
             )
-        elif color_harmony == 'analogous':
+        elif harmony == 'analogous':
             palette['analogous_1'] = BrandingService.generate_color_scale(
-                (primary_hue + 30) % 360,
-                primary_saturation,
-                primary_lightness
+                (hue + 30) % 360,
+                saturation,
+                lightness
             )
             palette['analogous_2'] = BrandingService.generate_color_scale(
-                (primary_hue - 30) % 360,
-                primary_saturation,
-                primary_lightness
+                (hue - 30) % 360,
+                saturation,
+                lightness
             )
 
+        # Expose a predictable accent scale for all harmonies.
+        if harmony == 'analogous':
+            palette['accent'] = palette['analogous_1']
+        elif harmony == 'triadic':
+            palette['accent'] = palette['triadic_1']
+        elif harmony == 'complementary':
+            palette['accent'] = palette['complementary']
+        else:
+            palette['accent'] = BrandingService.generate_color_scale((hue+30)%360,saturation,lightness)
         # Add semantic colors
         palette['success'] = BrandingService.generate_color_scale(142, 71, 45)  # Green
         palette['warning'] = BrandingService.generate_color_scale(38, 92, 50)   # Orange
@@ -239,7 +256,9 @@ class BrandingService:
         return (lum1 + 0.05) / (lum2 + 0.05)
 
     @staticmethod
-    def validate_accessibility(primary_color: str, secondary_color: str) -> Dict[str, bool]:
+    def validate_accessibility(primary_color: str = None, secondary_color: str = None,
+                               *, foreground: str = None, background: str = None,
+                               level: str = 'AA') -> Dict[str, bool]:
         """
         Validate color accessibility against WCAG standards.
 
@@ -250,6 +269,14 @@ class BrandingService:
         Returns:
             Dictionary of WCAG compliance results
         """
+        if foreground is not None or background is not None:
+            if not foreground or not background or level not in ('AA','AAA'):
+                raise ValueError("Valid foreground, background and AA/AAA level required")
+            ratio = BrandingService.get_contrast_ratio(foreground,background)
+            return {
+                'passes_normal': ratio >= (7.0 if level == 'AAA' else 4.5),
+                'passes_large': ratio >= (4.5 if level == 'AAA' else 3.0),
+            }
         results = {}
 
         # Test primary color against white and black backgrounds
@@ -283,6 +310,15 @@ class BrandingService:
         Returns:
             CSS string with all custom properties for the design system
         """
+        # Partial theme previews inherit safe defaults without requiring a
+        # database record. Fully specified settings remain unchanged.
+        from apps.core.branding.models import BrandingSettings
+        original = settings
+        defaults = BrandingSettings()
+        class ThemeValues:
+            def __getattr__(self, name):
+                return getattr(original, name, getattr(defaults, name))
+        settings = ThemeValues()
         css_vars = []
 
         # Core theme parameters
@@ -301,6 +337,7 @@ class BrandingService:
 
         for variant, color in primary_variants.items():
             css_vars.append(f"  --webops-primary-{variant}: {color};")
+            css_vars.append(f"  --primary-{variant}: {color};")
 
         # Primary color with alpha variants
         css_vars.extend([
@@ -472,8 +509,7 @@ class BrandingService:
 }"""
 
         # Combine all CSS variables
-        css_content = f"""/* WebOps Design System - Auto-generated from BrandingSettings */
-:root {{
+        css_content = f""":root {{
 {chr(10).join(css_vars)}
 }}
 
