@@ -161,7 +161,8 @@ def capture(state_dir: Path, install_root: Path, system_root: Path) -> dict:
                 for s in SHARED_SERVICES + WEBOPS_SERVICES}
     packages = command("dpkg-query", "-W", "-f=" + chr(36) + "{binary:Package}\\n")
     data = {
-        "version": VERSION, "status": "captured", "install_root": str(install_root),
+        "version": VERSION, "status": "captured", "phase": "baseline-captured",
+        "install_root": str(install_root),
         "owned_root": (install_root / MARKER).is_file(),
         "config": config, "services": services,
         "packages_before": sorted(packages.splitlines()) if packages else [],
@@ -396,9 +397,40 @@ def plan_or_uninstall(state_dir: Path, system_root: Path, apply: bool,
     return report
 
 
+def begin_system_changes(state_dir: Path) -> dict:
+    """Explicit barrier: once reached, an incomplete setup needs manual repair."""
+    data = load(state_dir)
+    if data["status"] != "captured" or data.get("phase") != "baseline-captured":
+        raise ValueError("Cannot begin: installation has already advanced")
+    data["phase"] = "system-changes-started"
+    atomic_save(state_dir, data)
+    return {"status": "captured", "phase": data["phase"]}
+
+
+def inspect_inventory(state_dir: Path) -> dict:
+    if not state_path(state_dir).is_file():
+        return {"status": "missing", "message": "No tracked installation inventory"}
+    data = load(state_dir)
+    return {"status": data["status"], "install_root": data["install_root"],
+            "owned_root": data["owned_root"], "phase": data.get("phase", "unknown")}
+
+
+def check_resume(state_dir: Path, install_root: str) -> dict:
+    data = load(state_dir)
+    root = valid_install_root(install_root)
+    if data["status"] != "captured" or data.get("phase") != "baseline-captured":
+        raise ValueError("Cannot automatically resume after host modifications may have started")
+    if valid_install_root(data["install_root"]) != root:
+        raise ValueError("Inventory belongs to a different installation root")
+    if data["owned_root"] and not (root / MARKER).is_file():
+        raise ValueError("Original WebOps installation ownership marker missing")
+    # In particular, do not overwrite or recapture a valid baseline.
+    return {"status": data["status"], "install_root": str(root)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall"))
+    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall", "inspect", "check-resume", "begin"))
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--install-root")
     parser.add_argument("--system-root", type=Path, default=Path("/"),
@@ -406,6 +438,17 @@ def main() -> int:
     parser.add_argument("--purge-data", action="store_true")
     args = parser.parse_args()
     try:
+        if args.action == "begin":
+            print(json.dumps(begin_system_changes(args.state_dir), indent=2))
+            return 0
+        if args.action == "inspect":
+            print(json.dumps(inspect_inventory(args.state_dir), indent=2))
+            return 0
+        if args.action == "check-resume":
+            if not args.install_root:
+                raise ValueError("--install-root required for resume")
+            print(json.dumps(check_resume(args.state_dir, args.install_root), indent=2))
+            return 0
         if args.action == "capture":
             if not args.install_root:
                 raise ValueError("--install-root required for capture")
