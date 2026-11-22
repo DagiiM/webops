@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
 from apps.core.integrations.models import GoogleConnection
+from apps.core.common.utils.encryption import encrypt_value
 from apps.core.integrations.services.google import GoogleIntegrationService
 
 
@@ -20,6 +21,9 @@ class GoogleIntegrationServiceTests(TestCase):
             password='testpass123'
         )
         self.service = GoogleIntegrationService()
+        # Valid test-only OAuth configuration; no external credentials.
+        self.service.client_id = 'test-client.apps.googleusercontent.com'
+        self.service.client_secret = 'test-only-secret' 
 
     @patch('apps.core.integrations.services.google.requests.get')
     def test_get_user_info_success(self, mock_get):
@@ -135,7 +139,7 @@ class GoogleIntegrationServiceTests(TestCase):
             google_user_id='123456789',
             email='test@example.com',
             name='Test User',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Test getting connection
@@ -158,14 +162,15 @@ class GoogleIntegrationServiceTests(TestCase):
             google_user_id='123456789',
             email='test@example.com',
             name='Test User',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Test disconnecting
         success = self.service.disconnect(self.user)
         
         self.assertTrue(success)
-        self.assertFalse(GoogleConnection.objects.filter(user=self.user).exists())
+        self.assertTrue(GoogleConnection.objects.filter(user=self.user, is_deleted=True).exists())
+        self.assertIsNone(self.service.get_connection(self.user))
 
     def test_disconnect_none(self):
         """Test disconnecting non-existent connection."""
@@ -183,7 +188,7 @@ class GoogleIntegrationServiceTests(TestCase):
             google_user_id='123456789',
             email='test@example.com',
             name='Test User',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Mock successful API response
@@ -211,7 +216,7 @@ class GoogleIntegrationServiceTests(TestCase):
             google_user_id='123456789',
             email='test@example.com',
             name='Test User',
-            access_token='encrypted_token'
+            access_token=encrypt_value('test_token')
         )
 
         # Mock failed API response
@@ -267,7 +272,7 @@ class GoogleIntegrationServiceTests(TestCase):
     def test_test_oauth_config_request_exception(self, mock_post):
         """Test OAuth config test with request exception."""
         # Mock request exception
-        mock_post.side_effect = Exception("Connection error")
+        mock_post.side_effect = __import__("requests").RequestException("Connection error")
 
         # Test OAuth config
         is_valid, message = self.service.test_oauth_config()
