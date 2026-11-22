@@ -27,8 +27,8 @@ class FakeModel(BaseHTTPRequestHandler):
         self.end_headers()
         if self.path == "/api/chat":
             if request.get("stream"):
-                self.wfile.write(b'{"message":{"content":"READY"},"done":false}\\n')
-                self.wfile.write(b'{"message":{"content":""},"done":true}\\n')
+                self.wfile.write(b'{"message":{"content":"READY"},"done":false}' + bytes([10]))
+                self.wfile.write(b'{"message":{"content":""},"done":true}' + bytes([10]))
             else:
                 self.wfile.write(b'{"message":{"content":"READY"},"done":true,"prompt_eval_count":3,"eval_count":1}')
         else:
