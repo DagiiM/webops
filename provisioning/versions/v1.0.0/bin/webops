@@ -44,6 +44,7 @@ COMMANDS:
     install           Install base system and enabled addons
     apply <addon>     Install/update a specific addon
     uninstall <addon> Remove an addon (keeps data by default)
+    uninstall platform Safely uninstall the WebOps platform (data kept by default)
     validate          Run pre-flight validation checks
     restore-ssh       Restore SSH configuration from backup
     update            Update platform to latest version
@@ -71,6 +72,8 @@ EXAMPLES:
     webops apply postgresql           # Install PostgreSQL only
     webops uninstall postgresql       # Remove PostgreSQL (keep data)
     webops uninstall postgresql --purge  # Remove PostgreSQL and data
+    webops uninstall platform --dry-run  # Preview reversible platform cleanup
+    webops uninstall platform            # Safely remove tracked platform changes
     webops validate                   # Run system validation
     webops rollback v1.0.0           # Rollback to version 1.0.0
 
@@ -467,6 +470,13 @@ main() {
             ;;
     esac
     
+    # Platform uninstall must run before state/installation directory creation.
+    # In particular, a dry run must never create new host files.
+    if [[ "$command" == "uninstall" && "${1:-}" == "platform" ]]; then
+        shift
+        exec "${SCRIPT_DIR}/../lifecycle/uninstall.sh" "$@"
+    fi
+
     # Initialize platform directory structure
     ensure_directory "${WEBOPS_PLATFORM}/versions" "root:root" "755"
     ensure_directory "${WEBOPS_PLATFORM}/state" "root:root" "755"
