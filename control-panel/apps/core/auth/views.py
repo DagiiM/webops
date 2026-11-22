@@ -118,6 +118,18 @@ def login_view(request: HttpRequest) -> HttpResponse:
                     description=f'Failed login attempt for username: {username}'
                 )
                 messages.error(request, 'Invalid username or password.')
+        else:
+            # AuthenticationForm.is_valid() returns False for bad credentials.
+            # Log these denials rather than silently omitting the audit event.
+            submitted_user = request.POST.get('username', '')[:150]
+            if submitted_user and request.POST.get('password'):
+                SecurityAuditLog.objects.create(
+                    event_type=SecurityAuditLog.EventType.LOGIN_FAILED,
+                    severity=SecurityAuditLog.Severity.WARNING,
+                    ip_address=get_client_ip(request),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+                    description=f'Failed login attempt for username: {submitted_user}'
+                )
     else:
         form = WebOpsLoginForm()
 
