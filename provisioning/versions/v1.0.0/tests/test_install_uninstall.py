@@ -215,7 +215,7 @@ class ReversibleInstallTests(unittest.TestCase):
         self.assertNotIn("apt-get remove", text)
         self.assertNotIn("rm -rf", text)
         install = INSTALL.read_text()
-        self.assertIn('if [[ -e "$target_root" ]]', install)
+        self.assertIn('if [[ -e "$target_root" || -L "$target_root" ]]', install)
         self.assertIn("installation_inventory.py", install)
         self.assertLess(install.index("prepare_rollback_snapshot\n", install.index("main() {", 0) if False else
                                       install.rindex("main() {")),
