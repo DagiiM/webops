@@ -18,6 +18,7 @@ from django.conf import settings
 from apps.core.webhooks.models import Webhook, WebhookDelivery
 from apps.deployments.models import BaseDeployment
 from apps.services.background import get_background_processor
+from apps.deployments.shared.service_manager import ServiceManager
 
 logger = logging.getLogger(__name__)
 
@@ -157,19 +158,16 @@ class WebhookService:
             )
 
             # Trigger deployment
-            from apps.deployments.tasks import deploy_django_app
-
             webhook.last_triggered = timezone.now()
             webhook.trigger_count += 1
             webhook.save()
 
             # Ensure Celery worker is running (non-interactive)
-            from apps.deployments.shared.service_manager import ServiceManager
             ServiceManager().ensure_celery_running()
 
             # Queue deployment task via background processor
             handle = get_background_processor().submit(
-                'apps.deployments.tasks.deploy_application',
+                'apps.deployments.tasks.application.deploy_application',
                 webhook.deployment.id
             )
 
@@ -223,7 +221,7 @@ class WebhookService:
         Returns:
             List of webhooks with metadata
         """
-        webhooks = Webhook.objects.filter(user=user).select_related("deployment")
+        webhooks = Webhook.objects.filter(user=user, is_deleted=False).select_related("deployment").order_by("-created_at","-pk")
 
         return [
             {
@@ -291,7 +289,7 @@ class WebhookService:
         Returns:
             List of delivery records
         """
-        deliveries = webhook.deliveries.all()[:limit]
+        deliveries = webhook.deliveries.order_by("-created_at","-pk")[:limit]
 
         return [
             {
