@@ -152,7 +152,7 @@ class WebhookServiceTests(TestCase):
         
         result = self.service.delete_webhook(webhook)
         self.assertTrue(result)
-        self.assertFalse(Webhook.objects.filter(id=webhook.id).exists())
+        self.assertTrue(Webhook.objects.filter(id=webhook.id, is_deleted=True).exists())
 
     def test_get_recent_deliveries(self):
         """Test getting recent webhook deliveries."""
@@ -181,8 +181,8 @@ class WebhookServiceTests(TestCase):
         deliveries = self.service.get_recent_deliveries(webhook)
         
         self.assertEqual(len(deliveries), 2)
-        self.assertEqual(deliveries[0]['status'], 'FAILED')
-        self.assertEqual(deliveries[1]['status'], 'SUCCESS')
+        self.assertEqual(deliveries[0]['status'], WebhookDelivery.Status.FAILED)
+        self.assertEqual(deliveries[1]['status'], WebhookDelivery.Status.SUCCESS)
         self.assertEqual(deliveries[0]['payload_summary']['commits'], 1)
         self.assertEqual(deliveries[1]['payload_summary']['ref'], 'refs/heads/main')
 
