@@ -34,6 +34,8 @@ readonly INSTALL_LOG="${LOG_DIR}/install-$(date +%Y%m%d-%H%M%S).log"
 readonly ROLLBACK_BASE_DIR="/var/backups/webops-install"
 ROLLBACK_DIR=""
 ROLLBACK_PREPARED=false
+INSTALL_RESUME=false
+WEBOPS_NEW_INSTALL_COPY="${WEBOPS_NEW_INSTALL_COPY:-false}"
 
 # Initialize logging
 init_logging() {
@@ -185,6 +187,7 @@ copy_to_install_location() {
 
     # Export flag to prevent infinite loop
     export WEBOPS_ALREADY_RELOCATED=true
+    export WEBOPS_NEW_INSTALL_COPY=true
 
     exec "$new_script" "$@"
 }
@@ -211,23 +214,44 @@ validate_environment() {
         exit 1
     fi
 
-    # Check for existing installation
-    local existing_config=""
-    local primary_config legacy_config
+    local primary_config legacy_config existing_config="" state_file root
     primary_config="$(get_primary_config_file)"
     legacy_config="$(get_legacy_config_file)"
-
+    root="$(detect_install_root)"
+    state_file="${ROLLBACK_BASE_DIR}/installation-inventory/inventory.json"
     if [[ -f "$primary_config" ]]; then
         existing_config="$primary_config"
     elif [[ -f "$legacy_config" ]]; then
         existing_config="$legacy_config"
     fi
-
-    if [[ -n "$existing_config" ]]; then
-        log_error "Existing WebOps configuration found: $existing_config"
-        log_error "Refusing reinstall that may overwrite data or invalidate ownership history."
-        log_error "Use the dedicated update or repair path instead."
+    if [[ "$INSTALL_RESUME" == "true" ]]; then
+        if [[ -z "$existing_config" ]] || ! python3 "${SCRIPT_DIR}/installation_inventory.py" check-resume \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" --install-root "$root"; then
+            log_error "Cannot resume: matching captured baseline and configuration required"
+            exit 1
+        fi
+        log_info "Verified interrupted installation; configuration preserved"
+        return 0
+    fi
+    if [[ -f "$state_file" ]]; then
+        log_error "Existing installation inventory found; refusing to overwrite history"
+        log_error "Use --resume only for a captured, incomplete install"
         exit 1
+    fi
+    if [[ -f "$root/.webops-install-origin" && "$WEBOPS_NEW_INSTALL_COPY" != "true" ]]; then
+        log_error "Previously staged WebOps root found; refusing untracked reinstall"
+        exit 1
+    fi
+    if [[ -n "$existing_config" ]]; then
+        if [[ "$WEBOPS_NEW_INSTALL_COPY" == "true" &&
+              -f "$root/.webops-install-origin" &&
+              "$primary_config" == "$root/config.env" ]]; then
+            log_info "Fresh installation with existing source config; preserving: $existing_config"
+        else
+            log_error "Existing WebOps configuration found: $existing_config"
+            log_error "Refusing untracked reinstall; inspect the existing installation state"
+            exit 1
+        fi
     fi
 
     log_info "Environment validation passed ✓"
@@ -452,6 +476,15 @@ create_default_config() {
     config_file="$(get_primary_config_file)"
     local legacy_config
     legacy_config="$(get_legacy_config_file)"
+    # A preconfigured source file is authoritative. Never silently replace it.
+    if [[ -e "$config_file" || -L "$config_file" ]]; then
+        log_info "Preserving existing configuration: $config_file"
+        return 0
+    fi
+    if [[ -e "$legacy_config" || -L "$legacy_config" ]]; then
+        log_error "Legacy-only configuration exists; refusing overwrite"
+        return 1
+    fi
 
     # Detect installation root (parent directory of provisioning/.webops)
     local detected_root="$(cd "$(dirname "${WEBOPS_PLATFORM_DIR}")" && pwd)"
@@ -829,6 +862,12 @@ print_completion_message() {
 #=============================================================================
 
 main() {
+    if [[ "${1:-}" == "--resume" && $# -eq 1 ]]; then
+        INSTALL_RESUME=true
+    elif [[ $# -gt 0 ]]; then
+        log_error "Only --resume is supported as an installation option"
+        exit 2
+    fi
     # Initialize logging
     init_logging
 
@@ -840,28 +879,47 @@ main() {
     # Show welcome message
     show_welcome
 
-    # Interactive configuration
-    configure_hostname
-    configure_ssh_security
-    show_configuration_summary
+    if [[ "$INSTALL_RESUME" == "true" ]]; then
+        # Reuse the original before-state, never capture a partially modified host.
+        validate_environment
+        log_info "Resuming with previously captured baseline; configuration unchanged"
+    else
+        if [[ "$WEBOPS_NEW_INSTALL_COPY" == "true" &&
+              -f "$(get_primary_config_file)" ]]; then
+            # Existing user config is authoritative. Do not ask for choices
+            # that would silently be ignored by the preconfigured installer.
+            log_warn "Using a preconfigured source config; interactive SSH/hostname choices are skipped."
+            read -r -p "Preserve the copied settings and install? (yes/no): " answer
+            if [[ "$answer" != "yes" ]]; then
+                log_info "Installation cancelled without modifying system configuration"
+                exit 0
+            fi
+            NEW_HOSTNAME=""
+        else
+            configure_hostname
+            configure_ssh_security
+            show_configuration_summary
+        fi
+        validate_environment
+        prepare_rollback_snapshot
+        python3 "${SCRIPT_DIR}/installation_inventory.py" capture \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" \
+            --install-root "$(detect_install_root)" || {
+            log_error "Cannot record pre-install inventory; aborting"
+            exit 1
+        }
+        create_default_config
+    fi
 
-    # Validate environment
-    validate_environment
-
-    # Snapshot BEFORE hostname, SSH, firewall, packages, or shared services change.
-    prepare_rollback_snapshot
-    python3 "${SCRIPT_DIR}/installation_inventory.py" capture \
-        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" \
-        --install-root "$(detect_install_root)" || {
-        log_error "Could not capture reversible installation inventory; aborting"
+    # Mark the last safe automatic-resume point before any host changes.
+    if ! python3 "${SCRIPT_DIR}/installation_inventory.py" begin \
+        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
+        log_error "Cannot advance the installation inventory; refusing system changes"
         exit 1
-    }
-
-    # Apply selected system changes only after the audit baseline is safe.
-    apply_hostname
-
-    # Create configuration with user choices
-    create_default_config
+    fi
+    if [[ "$INSTALL_RESUME" != "true" ]]; then
+        apply_hostname
+    fi
 
     # Run installation
     if run_installation; then
@@ -881,7 +939,11 @@ main() {
         log_info "Installation log saved to: $INSTALL_LOG"
         exit 0
     else
-        rollback_installation || log_warn "Automatic rollback was not fully successful"
+        if [[ "$INSTALL_RESUME" == "true" ]]; then
+            log_warn "Resume failed; original inventory preserved for recovery."
+        else
+            rollback_installation || log_warn "Automatic rollback was not fully successful"
+        fi
         log_error "Installation failed. Please check the logs above."
         log_error "Full log available at: $INSTALL_LOG"
         exit 1
