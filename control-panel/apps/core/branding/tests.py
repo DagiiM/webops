@@ -3,9 +3,14 @@ Tests for branding domain.
 """
 
 from django.test import TestCase
+from django.forms.models import model_to_dict
+from io import BytesIO
+from PIL import Image
+import os
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from apps.core.branding.models import BrandingSettings
+from apps.core.branding.forms import BrandingSettingsForm
 from apps.core.branding.services import BrandingService
 
 
@@ -25,7 +30,7 @@ class BrandingSettingsTests(TestCase):
         """Test HSL to hex color conversion."""
         # Test blue
         hex_color = BrandingService.hsl_to_hex(210, 80, 50)
-        self.assertEqual(hex_color, '#3399ff')
+        self.assertEqual(hex_color, '#197fe6')  # exact HSL(210,80%,50%)
 
     def test_color_palette_generation(self):
         """Test color palette generation."""
@@ -63,7 +68,7 @@ class BrandingSettingsTests(TestCase):
 
         # Check that primary_color was updated
         self.settings.refresh_from_db()
-        self.assertEqual(self.settings.primary_color, '#00cc66')
+        self.assertEqual(self.settings.primary_color, '#19e619')  # HSL(120,80%,50%)
 
 
 class BrandingFormTests(TestCase):
@@ -79,6 +84,22 @@ class BrandingFormTests(TestCase):
         )
         self.settings = BrandingSettings.get_settings()
 
+    def _form(self, data, files=None):
+        # Full settings form requires all configuration fields. Use a valid
+        # saved instance as the baseline and override only the tested values.
+        values = model_to_dict(self.settings)
+        values['theme_preset'] = 'custom'
+        values.update(data)
+        return BrandingSettingsForm(data=values, files=files, instance=self.settings)
+
+    @staticmethod
+    def _png_bytes(size=(16, 16), random_pixels=False):
+        buffer = BytesIO()
+        img = (Image.frombytes('RGB', size, os.urandom(size[0]*size[1]*3))
+               if random_pixels else Image.new('RGB', size, (45, 115, 190)))
+        img.save(buffer, format='PNG')
+        return buffer.getvalue()
+
     def test_form_valid_data(self):
         """Test form with valid data."""
         form_data = {
@@ -88,7 +109,7 @@ class BrandingFormTests(TestCase):
             'primary_lightness': 50,
             'color_harmony': 'monochromatic',
         }
-        form = BrandingSettingsForm(data=form_data)
+        form = self._form(form_data)
         self.assertTrue(form.is_valid())
 
     def test_form_invalid_hue(self):
@@ -99,7 +120,7 @@ class BrandingFormTests(TestCase):
             'primary_saturation': 70,
             'primary_lightness': 50,
         }
-        form = BrandingSettingsForm(data=form_data)
+        form = self._form(form_data)
         self.assertFalse(form.is_valid())
 
     def test_logo_upload(self):
@@ -107,7 +128,7 @@ class BrandingFormTests(TestCase):
         # Valid small PNG
         logo = SimpleUploadedFile(
             "logo.png",
-            b'\x89PNG\r\n\x1a\n' + b'\x00' * 100,  # Small PNG
+            self._png_bytes(),  # Fully valid PNG, verified by Pillow
             content_type="image/png"
         )
         form_data = {
@@ -116,7 +137,7 @@ class BrandingFormTests(TestCase):
             'primary_saturation': 70,
             'primary_lightness': 50,
         }
-        form = BrandingSettingsForm(data=form_data, files={'logo': logo})
+        form = self._form(form_data, files={'logo': logo})
         self.assertTrue(form.is_valid())
 
     def test_logo_too_large(self):
@@ -124,7 +145,7 @@ class BrandingFormTests(TestCase):
         # Create a large file (over 2MB)
         large_logo = SimpleUploadedFile(
             "large.png",
-            b'\x89PNG\r\n\x1a\n' + b'\x00' * (3 * 1024 * 1024),  # 3MB
+            self._png_bytes((1100,1100), random_pixels=True),  # >2MB valid PNG
             content_type="image/png"
         )
         form_data = {
@@ -133,6 +154,6 @@ class BrandingFormTests(TestCase):
             'primary_saturation': 70,
             'primary_lightness': 50,
         }
-        form = BrandingSettingsForm(data=form_data, files={'logo': large_logo})
+        form = self._form(form_data, files={'logo': large_logo})
         self.assertFalse(form.is_valid())
         self.assertIn('Logo file size must be under 2MB', str(form.errors))
