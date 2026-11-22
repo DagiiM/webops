@@ -35,6 +35,19 @@ and an installed model count. The CLI refused an intentionally mismatched
 `--worktree` for `ifinsta/ifinsta` before invoking Jani (exit 1).
 **This was an actual AI-assisted dry run, not a real application deployment.**
 
+**Bounded live gateway load:** Against the GPU Pod's loopback interface,
+128 authenticated `/health` requests at concurrency 16 all returned HTTP 200
+(observed p95 18.5 ms). A simultaneous 12-request inference burst returned
+two HTTP 200 responses and ten HTTP 429 overload rejections, consistent with
+the explicit two-request model concurrency limit; maximum observed response
+duration was 483 ms. An unauthenticated `/health` request returned HTTP 401.
+These are local short bursts, **not** multi-day soak or public-network SLO
+evidence.
+
+**Published code verification:** A fresh detached checkout of `main` at
+`b2dd67f6eb21ba656240527dd1d6bcfb4e7a6ad2` passed all **2,042 CLI
+tests and 41 subtests** in 1.94 seconds.
+
 **Not yet proven:** cloning and deploying the private `ifinsta/ifinsta`
 repository, a public site health check, application rollback/restore, or
 multi-day traffic soak. Private GitHub credentials were not supplied to the
