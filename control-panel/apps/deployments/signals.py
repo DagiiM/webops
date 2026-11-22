@@ -70,7 +70,7 @@ def deployment_status_changed(sender: type, instance: BaseDeployment, created: b
     broadcast_to_websocket('deployments', message)
     
     # Broadcast to specific deployment group
-    broadcast_to_websocket(f'deployment_{instance.name}', message)
+    broadcast_to_websocket(f'deployment_{instance.pk}', message)
 
 
 @receiver(post_delete, sender=BaseDeployment)
@@ -98,7 +98,7 @@ def deployment_deleted(sender: type, instance: BaseDeployment, **kwargs: Any) ->
     broadcast_to_websocket('deployments', message)
     
     # Broadcast to specific deployment group
-    broadcast_to_websocket(f'deployment_{instance.name}', message)
+    broadcast_to_websocket(f'deployment_{instance.pk}', message)
 
 
 @receiver(post_save, sender=DeploymentLog)
@@ -133,7 +133,7 @@ def deployment_log_created(sender: type, instance: DeploymentLog, created: bool,
     broadcast_to_websocket('deployments', message)
     
     # Broadcast to specific deployment group
-    broadcast_to_websocket(f'deployment_{instance.deployment.name}', message)
+    broadcast_to_websocket(f'deployment_{instance.deployment.pk}', message)
 
 
 @receiver(post_save, sender=HealthCheckRecord)
@@ -178,4 +178,4 @@ def health_check_completed(sender: type, instance: HealthCheckRecord, created: b
     broadcast_to_websocket('deployments', message)
     
     # Broadcast to specific deployment group
-    broadcast_to_websocket(f'deployment_{instance.deployment.name}', message)
+    broadcast_to_websocket(f'deployment_{instance.deployment.pk}', message)
