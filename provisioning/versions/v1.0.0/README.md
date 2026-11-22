@@ -408,15 +408,26 @@ If installation is broken:
 sudo /home/douglas/webops/.webops/versions/v1.0.0/lifecycle/repair.sh
 ```
 
-### Clean Uninstall
+### Safe Uninstall
 
-```bash
-# Uninstall platform (keep data)
-sudo /home/douglas/webops/.webops/versions/v1.0.0/lifecycle/uninstall.sh
+For new installations with a recorded, sealed inventory:
 
-# Complete removal including data
-sudo /home/douglas/webops/.webops/versions/v1.0.0/lifecycle/uninstall.sh --purge
-```
+~~~bash
+# Preview every tracked removal/restoration; no changes
+sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/uninstall.sh --dry-run
+
+# Reverse tracked installation changes; preserve data and shared packages
+sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/uninstall.sh
+
+# Explicitly purge WebOps-managed data in addition to safe cleanup
+sudo /opt/webops/provisioning/versions/v1.0.0/lifecycle/uninstall.sh --purge-data
+~~~
+
+**Important:** This is guarded cleanup, not guaranteed full machine rollback.
+Existing host software, untracked changes and modified configuration are
+preserved; see [reversible installation guide](../../../docs/deployment/reversible-installation.md).
+Old installs without a trusted inventory refuse automatic removal.
+
 
 ## Security
 
