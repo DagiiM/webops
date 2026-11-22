@@ -42,18 +42,29 @@ collect_static() {
 
 # Function to create superuser if needed
 create_superuser() {
-    if [ "${CREATE_SUPERUSER:-false}" = "true" ]; then
-        echo "👤 Creating superuser..."
-        python manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@webops.local', 'admin123')
-    print('✅ Superuser created: admin/admin123')
-else:
-    print('ℹ️ Superuser already exists')
-"
+    if [ "${CREATE_SUPERUSER:-false}" != "true" ]; then
+        return
     fi
+    if [ -z "${WEBOPS_ADMIN_PASSWORD:-}" ] || [ "${#WEBOPS_ADMIN_PASSWORD}" -lt 16 ] || [ -z "${WEBOPS_ADMIN_EMAIL:-}" ]; then
+        echo "ERROR: CREATE_SUPERUSER=true requires WEBOPS_ADMIN_PASSWORD (16+ chars) and WEBOPS_ADMIN_EMAIL" >&2
+        exit 1
+    fi
+    python manage.py shell <<'PY'
+import os
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+username = os.environ.get("WEBOPS_ADMIN_USERNAME", "webops-admin")
+password = os.environ["WEBOPS_ADMIN_PASSWORD"]
+email = os.environ["WEBOPS_ADMIN_EMAIL"]
+if password.lower() in ("admin123", "password123", "changeme", "password"):
+    raise SystemExit("Refusing an insecure administrator password")
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print("Administrator account created; credentials are not logged")
+else:
+    print("Administrator already exists; credentials were not changed")
+PY
 }
 
 # Function to initialize WebOps directories
