@@ -7,11 +7,13 @@ Views for Databases app.
 import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.generic import CreateView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from .models import Database
 from .services import DatabaseService
@@ -32,6 +34,14 @@ from .decorators import (
 logger = logging.getLogger(__name__)
 
 
+def _databases_visible_to(user):
+    """Scope database access to explicit creator or owned deployment."""
+    return Database.objects.filter(is_deleted=False).filter(
+        Q(deployment__deployed_by=user) |
+        Q(deployment__isnull=True, created_by=user)
+    ).distinct()
+
+
 @login_required
 @database_read_rate_limit
 def database_list(request):
@@ -39,7 +49,7 @@ def database_list(request):
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
     # Only show databases owned by the current user (through deployment)
     # Note: Standalone databases (no deployment) will need a user field in future
-    databases = Database.objects.filter(deployment__deployed_by=request.user)
+    databases = _databases_visible_to(request.user)
 
     # Get statistics
     stats = {
@@ -61,7 +71,7 @@ def database_detail(request, pk):
     """Show database details and credentials."""
     # SECURITY FIX: Verify ownership to prevent IDOR vulnerability
     # Only allow access to databases owned by the current user
-    database = get_object_or_404(Database, pk=pk, deployment__deployed_by=request.user)
+    database = get_object_or_404(_databases_visible_to(request.user), pk=pk)
 
     # Decrypt password for display
     db_service = DatabaseService()
@@ -95,7 +105,7 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
     template_name = 'databases/create.html'
     success_url = '/databases/'
 
-    @database_write_rate_limit
+    @method_decorator(database_write_rate_limit)
     def dispatch(self, request, *args, **kwargs):
         logger.debug(
             "Database create view dispatch",
@@ -212,6 +222,7 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
                     'user_id': self.request.user.id,
                 }
             )
+            form.instance.created_by = self.request.user
             result = super().form_valid(form)
             logger.info(
                 "Database created successfully",
@@ -251,42 +262,44 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
 
 @login_required
 @database_write_rate_limit
+@require_http_methods(["GET", "POST"])
+def database_update(request, pk):
+    """Update an owned connection configuration, not a physical database."""
+    db = get_object_or_404(_databases_visible_to(request.user), pk=pk)
+    form = DatabaseForm(request.POST or None, instance=db)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f"Configuration for {db.name} updated.")
+        return redirect('database_list')
+    return render(request, 'databases/create.html',
+                  {'form': form, 'database': db, 'editing': True})
+
+
+@login_required
+@database_write_rate_limit
 @database_rate_limit_by_database('write')
 def database_delete(request, pk):
-    """Delete database."""
-    database = get_object_or_404(Database, pk=pk)
-
+    """Delete only an owned database after explicit confirmation and backend success."""
+    database = get_object_or_404(_databases_visible_to(request.user), pk=pk)
     if request.method == 'POST':
+        if request.POST.get('confirm') != 'yes':
+            messages.error(request, "Deletion must be explicitly confirmed.")
+            return render(request, 'databases/delete_confirm.html', {'database': database}, status=400)
         db_service = DatabaseService()
-        database_name = database.name
-        username = database.username
-
-        # Delete database and user
-        db_service.delete_database(database_name)
-        db_service.delete_user(username)
-
-        # Delete from our database
-        database.delete()
-
-        # Log database deletion for security auditing
-        from django.utils import timezone
-        logger.info(
-            "Database deleted",
-            extra={
-                'user_id': request.user.id,
-                'username': request.user.username,
-                'database_name': database_name,
-                'username_field': username,
-                'timestamp': str(timezone.now())
-            }
-        )
-
-        messages.success(request, f'Database {database_name} deleted successfully')
+        success, error = db_service.delete_database(database.database_name or database.name)
+        if not success:
+            messages.error(request, f"Database deletion failed: {error}")
+            return render(request, 'databases/delete_confirm.html', {'database': database}, status=502)
+        if database.username:
+            user_success, user_error = db_service.delete_user(database.username)
+            if not user_success:
+                # Physical database already dropped; retain record for reconciliation.
+                messages.error(request, f"Database deleted but role cleanup failed: {user_error}")
+                return render(request, 'databases/delete_confirm.html', {'database': database}, status=502)
+        database.delete(user=request.user)
+        messages.success(request, f'Database {database.name} deleted.')
         return redirect('database_list')
-
-    return render(request, 'databases/delete_confirm.html', {
-        'database': database
-    })
+    return render(request, 'databases/delete_confirm.html', {'database': database})
 
 
 @login_required
@@ -294,7 +307,7 @@ def database_delete(request, pk):
 @database_rate_limit_by_database('admin')
 def database_credentials_json(request, pk):
     """Get database credentials as JSON (for copy functionality)."""
-    database = get_object_or_404(Database, pk=pk)
+    database = get_object_or_404(_databases_visible_to(request.user), pk=pk)
 
     db_service = DatabaseService()
     connection_string = db_service.get_connection_string(database, decrypted=True)
@@ -332,7 +345,7 @@ def check_dependencies(request, db_id=None):
         db_type = request.GET.get('db_type') if request.method == 'GET' else request.POST.get('db_type')
         
         if not db_type and db_id:
-            database = get_object_or_404(Database, pk=db_id)
+            database = get_object_or_404(_databases_visible_to(request.user), pk=db_id)
             db_type = database.db_type
         
         if not db_type:
