@@ -1,0 +1,34 @@
+name: Reversible Installation Safety
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/tests/**'
+      - '.github/workflows/reversible-installation.yml'
+  pull_request:
+    paths:
+      - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/tests/**'
+
+jobs:
+  safe-uninstall:
+    name: Isolated install/uninstall safety contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate lifecycle script syntax
+        run: |
+          bash -n provisioning/versions/v1.0.0/lifecycle/install.sh
+          bash -n provisioning/versions/v1.0.0/lifecycle/uninstall.sh
+          python -m py_compile provisioning/versions/v1.0.0/lifecycle/installation_inventory.py
+      - name: Run isolated rollback safety contracts
+        run: |
+          python -m unittest discover -v \
+            -s provisioning/versions/v1.0.0/tests \
+            -p 'test_install_uninstall.py'
