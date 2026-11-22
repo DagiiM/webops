@@ -90,7 +90,7 @@ class SecurityAuditService:
         user_agent = request.META.get('HTTP_USER_AGENT', '')
 
         # Get user
-        user = request.user if request.user.is_authenticated else None
+        user = request.user if getattr(request.user, 'is_authenticated', False) and getattr(request.user, 'pk', None) is not None else None
 
         return SecurityAuditLog.objects.create(
             event_type=event_type,
