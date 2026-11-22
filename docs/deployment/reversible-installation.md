@@ -118,3 +118,52 @@ If the original source checkout remains at ~/webops but /opt/webops already
 exists, do not copy the checkout over /opt/webops. Operate on the installed
 lifecycle script after reviewing the inventory state. An untracked legacy
 setup cannot automatically be adopted as if it were a fresh installation.
+
+## Self-healing install retries
+
+The installer detects the following conditions when run from a source checkout
+while /opt/webops exists:
+
+| State | Automatic behavior |
+| --- | --- |
+| fresh | Stage a new installation with a private recovery marker |
+| staged | Continue a copied, preflight-only installation |
+| resume | Reuse the original captured pre-install baseline |
+| installed | Exit successfully without reinstalling |
+| repair | Refuse automatic replay after system changes started |
+| manual/unsafe | Refuse untracked or foreign directories |
+
+To diagnose the installation without changes, from the updated source checkout:
+
+    cd ~/webops
+    git pull --ff-only
+    sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh --doctor
+
+After a harmless preflight interruption on a newly staged installation,
+rerunning the installer automatically continues the existing staged copy.
+No repository copy or user-data overwrite is attempted.
+
+### Recover an older preflight-only copy
+
+Older installations may have an ownership marker but no recovery journal.
+The installer cannot establish that they were stopped before host changes.
+It therefore requires an explicit operator-approved recovery:
+
+    cd ~/webops
+    git pull --ff-only
+    sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh --recover-staged
+
+This is ONLY for copies you have verified were stopped before any host
+modifications. The command checks the ownership marker, recorded inventory,
+known WebOps services, system configuration, and deployment/data directories.
+If eligible, it asks for the exact words RECOVER PREFLIGHT COPY, backs up
+existing lifecycle scripts under /var/backups/webops-install, refreshes only
+those scripts, and proceeds with existing configuration. It does not delete
+the existing installation root, packages or database data.
+
+This action is NOT a way to repair a partially applied OS installation.
+Untracked system changes cannot be proven absent. Take a provider snapshot,
+confirm out-of-band SSH access, and review installation logs first. A status of
+repair, an existing deployment, or conflicting system modifications means a
+manual repair plan is required. Do not delete /opt/webops/config.env, remove
+/opt/webops, or falsify the private inventory to bypass safety checks.
