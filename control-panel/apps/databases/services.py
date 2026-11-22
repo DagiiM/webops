@@ -64,41 +64,13 @@ class DatabaseService:
         # Prevents SQL injection and command injection
         return bool(re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', identifier))
 
-    def _validate_sql_query(self, sql: str) -> bool:
-        """
-        Validate SQL query to prevent injection attacks.
-        
-        Args:
-            sql: SQL query to validate
-            
-        Returns:
-            True if safe, False otherwise
-        """
-        if not sql:
+    def _validate_sql_query(self, statement: str) -> bool:
+        """Defense in depth for SQL admin queries; not a substitute for parameters."""
+        if not isinstance(statement, str) or not statement.strip() or len(statement)>1000000:
             return False
-            
-        # Convert to lowercase for checking
-        sql_lower = sql.lower().strip()
-        
-        # Check for dangerous SQL patterns
-        dangerous_patterns = [
-            '--', ';', '/*', '*/', 'xp_', 'sp_',
-            'drop ', 'delete ', 'insert ', 'update ',
-            'create ', 'alter ', 'exec ', 'execute ',
-            'union ', 'select ', 'from ', 'where ', 'having ',
-            'group by', 'order by', 'limit ', 'offset '
-        ]
-        
-        # Check if any dangerous pattern is present
-        for pattern in dangerous_patterns:
-            if pattern in sql_lower:
-                return False
-                
-        # Additional check for multiple statements
-        if sql_lower.count(';') > 1:
+        if re.search(r";|--|/\*|\*/|\bunion\b|\bxp_cmdshell\b",statement,re.I):
             return False
-            
-        return True
+        return bool(re.match(r"^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|GRANT|REVOKE)\b",statement,re.I))
 
     def _connect_as_superuser(self):
         """
@@ -113,110 +85,55 @@ class DatabaseService:
             logger.error(f"Failed to connect to PostgreSQL as superuser: {e}")
             raise
 
-    def execute_sql(self, sql: str, database: str = 'postgres', params: Optional[tuple] = None) -> tuple[bool, str]:
-        """
-        Execute SQL command as postgres user using parameterized queries.
-
-        Args:
-            sql: SQL command to execute
-            database: Database to connect to
-            params: Parameters for parameterized query
-
-        Returns:
-            Tuple of (success, output)
-        """
-        # Validate SQL to prevent injection through SQL parameter
-        if not self._validate_sql_query(sql):
-            logger.error(f"Invalid SQL query detected: {sql[:100]}...")
-            return False, "Invalid SQL query detected"
-        
-        # Development mode: Skip actual PostgreSQL operations if DEBUG is True
-        if getattr(settings, 'DEBUG', False):
-            logger.info(f"[DEV MODE] Would execute SQL: {sql}")
-            return True, "Development mode: SQL simulated"
-
-        conn = None
+    def execute_sql(self, statement: str, database: str = 'postgres',
+                    params: Optional[tuple] = None) -> tuple[bool,str]:
+        """Run real, parameterized admin SQL. Never simulate writes in DEBUG."""
+        if not self._validate_sql_query(statement):
+            return False,"Invalid SQL query detected"
+        conn=None
         try:
-            # Update database parameter for connection
-            conn_params = self.connection_params.copy()
-            conn_params['database'] = database
-            conn = psycopg2.connect(**conn_params)
-            
+            cp=dict(self.connection_params);cp['database']=database
+            conn=psycopg2.connect(**cp)
             with conn.cursor() as cursor:
-                if params:
-                    cursor.execute(sql, params)
-                else:
-                    cursor.execute(sql)
-                conn.commit()
-                
-                # For SELECT queries, fetch results
-                if cursor.description:
-                    result = cursor.fetchall()
-                    return True, str(result)
-                else:
-                    return True, f"Query executed successfully. Rows affected: {cursor.rowcount}"
-                    
-        except psycopg2.Error as e:
-            # Log error without exposing sensitive data
-            logger.error(f"SQL execution failed: {type(e).__name__}")
-            if conn:
-                conn.rollback()
-            return False, "Database operation failed"
-        except Exception as e:
-            # Log error without exposing sensitive data
-            logger.error(f"Unexpected error during SQL execution: {type(e).__name__}")
-            if conn:
-                conn.rollback()
-            return False, "Database operation failed"
+                try:
+                    cursor.execute(statement,params) if params is not None else cursor.execute(statement)
+                    out=str(cursor.fetchall()) if cursor.description else f"Query executed successfully. Rows affected: {cursor.rowcount}"
+                    conn.commit()
+                finally:cursor.close()
+            return True,out
+        except psycopg2.Error:
+            logger.exception("Database operation failed")
+            if conn:conn.rollback()
+            return False,"Database operation failed"
+        except Exception:
+            logger.exception("Database unexpected operation failure")
+            if conn:conn.rollback()
+            return False,"Database operation failed"
         finally:
-            if conn:
-                conn.close()
+            if conn:conn.close()
 
-    def database_exists(self, db_name: str) -> bool:
-        """
-        Check if database exists.
-
-        Args:
-            db_name: Database name
-
-        Returns:
-            True if exists, False otherwise
-        """
-        # Validate database name
-        if not self._validate_identifier(db_name):
-            logger.error(f"Invalid database name: {db_name}")
+    def _record_exists(self, statement, value):
+        conn=None
+        try:
+            conn=psycopg2.connect(**self.connection_params)
+            with conn.cursor() as cursor:
+                try:
+                    cursor.execute(statement,(value,))
+                    return cursor.fetchone() is not None
+                finally:cursor.close()
+        except psycopg2.Error:
+            logger.exception("Database existence check failed")
             return False
-            
-        # Development mode: Check our database model instead
-        if getattr(settings, 'DEBUG', False):
-            return Database.objects.filter(name=db_name).exists()
+        finally:
+            if conn:conn.close()
 
-        sql = "SELECT 1 FROM pg_database WHERE datname = %s"
-        success, output = self.execute_sql(sql, params=(db_name,))
-        return success and '1 row' in output
+    def database_exists(self, db_name):
+        return self._validate_identifier(db_name) and self._record_exists(
+            "SELECT 1 FROM pg_database WHERE datname = %s", db_name)
 
-    def user_exists(self, username: str) -> bool:
-        """
-        Check if PostgreSQL user exists.
-
-        Args:
-            username: Username to check
-
-        Returns:
-            True if exists, False otherwise
-        """
-        # Validate username
-        if not self._validate_identifier(username):
-            logger.error(f"Invalid username: {username}")
-            return False
-            
-        # Development mode: Check our database model instead
-        if getattr(settings, 'DEBUG', False):
-            return Database.objects.filter(username=username).exists()
-
-        sql = "SELECT 1 FROM pg_roles WHERE rolname = %s"
-        success, output = self.execute_sql(sql, params=(username,))
-        return success and '1 row' in output
+    def user_exists(self, username):
+        return self._validate_identifier(username) and self._record_exists(
+            "SELECT 1 FROM pg_roles WHERE rolname = %s", username)
 
     def create_database(
         self,
