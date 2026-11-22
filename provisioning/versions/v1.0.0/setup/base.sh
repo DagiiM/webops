@@ -499,9 +499,14 @@ configure_firewall() {
 }
 
 configure_ufw() {
-    # Reset UFW to defaults
-    ufw --force reset
-    
+    # Never reset or replace an administrator's active firewall rules.
+    if ufw status 2>/dev/null | grep -q "^Status: active"; then
+        log_warn "Existing active UFW detected; leaving firewall policy untouched"
+        log_warn "Check required service ports using your own firewall rules"
+        return 0
+    fi
+
+    # Keep any saved rules; reset would irreversibly discard custom policy.
     # Default policies
     ufw default deny incoming
     ufw default allow outgoing
@@ -518,13 +523,18 @@ configure_ufw() {
 }
 
 configure_firewalld() {
+    # Never change an already active administrator-managed firewalld.
+    if command -v firewall-cmd >/dev/null 2>&1 &&
+       firewall-cmd --state 2>/dev/null | grep -q "^running"; then
+        log_warn "Existing active firewalld detected; preserving firewall policy"
+        return 0
+    fi
+
     # Ensure firewalld is installed and running
     pkg_install firewalld
     service_enable firewalld
     service_restart firewalld
-    
-    # Set default zone
-    firewall-cmd --set-default-zone=public
+    # Preserve the host-selected default firewall zone.
     
     # Allow SSH (critical!)
     firewall-cmd --permanent --add-service=ssh
