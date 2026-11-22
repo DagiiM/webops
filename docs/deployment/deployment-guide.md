@@ -239,53 +239,42 @@ git push origin main
 
 1. **Install WebOps CLI:**
    ```bash
-   pip install webops-cli
+   # From the WebOps repository root
+   python -m pip install -e ./cli
    ```
 
-2. **Configure authentication:**
+2. **Configure authentication using an approved, least-privileged WebOps API token:**
    ```bash
-   webops login
-   # Enter your WebOps server URL and credentials
+   webops config --url https://panel.example.com --token "$WEBOPS_CLI_TOKEN" --role developer
+   ```
+   A token provided as a process argument may be visible to other local processes; use a trusted host and your organization's secret-handling procedure. Do not paste literal credentials into shell history.
+
+3. **Validate the plan, then submit the application deployment explicitly:**
+   ```bash
+   webops deploy yourusername/your-repo --name my-django-app \
+     --branch main --domain myapp.example.com --dry-run
+
+   webops deploy yourusername/your-repo --name my-django-app \
+     --branch main --domain myapp.example.com --approve --wait
+   ```
+   `webops deploy` does **not** accept `--env`. Configure application secrets through the approved WebOps environment/secret management workflow, avoiding plaintext command arguments and repository files.
+
+4. **Inspect WebOps-reported state (not an HTTP health guarantee):**
+   ```bash
+   webops info my-django-app
    ```
 
-3. **Deploy your application:**
+5. **Inspect logs and probe the real application HTTPS endpoint:**
    ```bash
-   webops deploy \
-     --name my-django-app \
-     --repo https://github.com/yourusername/your-repo \
-     --branch main \
-     --env SECRET_KEY=your-secret-key \
-     --env DEBUG=False \
-     --env ALLOWED_HOSTS=myapp.example.com
+   webops logs my-django-app --tail 100
+   # Replace with your actual verified deployment URL / health endpoint
+   curl --fail --show-error --silent https://myapp.example.com/health/
    ```
-
-4. **Check deployment status:**
-   ```bash
-   webops status my-django-app
-   ```
-
-5. **View logs:**
-   ```bash
-   webops logs my-django-app
-   ```
+   A reported `running` state from `--wait` is not proof that the application answered the probe.
 
 ### Method 3: Using the API
 
-```bash
-curl -X POST https://your-webops-server/api/deployments/ \
-  -H "Authorization: Token your-api-token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "my-django-app",
-    "repo_url": "https://github.com/yourusername/your-repo",
-    "branch": "main",
-    "env_vars": {
-      "SECRET_KEY": "your-secret-key",
-      "DEBUG": "False",
-      "ALLOWED_HOSTS": "myapp.example.com"
-    }
-  }'
-```
+For automation, use the authenticated `webops deploy ... --approve` CLI or follow the deployment API contract exposed by **your installed control-panel version**. Do not copy unverified endpoint paths or authentication schemes from older examples, and do not send application secrets in terminal-visible inline JSON. See the [API reference](../reference/api-reference.md) and the [AI-assisted deployment guide](ai-assisted-github-deployments.md).
 
 ---
 
@@ -344,32 +333,25 @@ https://djecrety.ir/
 
 ## Database Setup
 
-### Automatic Database Creation
+### Database provisioning and migration verification
 
-When you deploy a Django app, WebOps automatically:
+Depending on the selected deployment backend, WebOps may provision a database
+or coordinate application startup. **Do not assume** a database was created,
+credentials were rotated or Django migrations completed until the live worker
+and database are inspected.
 
-1. ✅ Creates a PostgreSQL database
-2. ✅ Generates secure credentials
-3. ✅ Provides connection details via environment variables
-4. ✅ Runs `python manage.py migrate`
-5. ✅ Creates necessary tables
-
-### Manual Database Operations
-
-**Create superuser:**
 ```bash
-webops run my-django-app "python manage.py createsuperuser"
+webops db:list
+webops info my-django-app
+webops logs my-django-app --tail 100
 ```
 
-**Run migrations:**
-```bash
-webops run my-django-app "python manage.py migrate"
-```
-
-**Load fixtures:**
-```bash
-webops run my-django-app "python manage.py loaddata initial_data.json"
-```
+For migrations, fixture loading or Django superuser creation, connect to the
+**approved deployed application's execution context** using your hosting
+provider's documented administrative procedure. These operations are not exposed
+as a general `webops run` or `webops shell` command. Use secrets from the
+approved secret store; never put passwords in command history. Record migration
+and backup/restore results before production release.
 
 ### Using SQLite (Development Only)
 
@@ -407,30 +389,21 @@ https://your-domain.com
 
 The port number is shown in the deployment details.
 
-### Creating a Superuser
+### Creating a Django superuser
 
-**Via WebOps CLI:**
-```bash
-webops shell my-django-app
->>> from django.contrib.auth.models import User
->>> User.objects.create_superuser('admin', 'admin@example.com', 'password')
-```
-
-**Via SSH:**
-```bash
-ssh webops-server
-cd /opt/webops/deployments/my-django-app/repo
-source ../venv/bin/activate
-python manage.py createsuperuser
-```
+From the securely authorized **application runtime** (not the WebOps CLI),
+run Django's interactive `python manage.py createsuperuser` according to
+your runtime's approved administrative procedure. Verify the application's
+virtual environment and database selection, and use a unique credential
+issued through your identity/secret-management process.
 
 ### Collecting Static Files
 
-WebOps runs `collectstatic` automatically, but you can run it manually:
-
-```bash
-webops run my-django-app "python manage.py collectstatic --noinput"
-```
+Confirm that the build pipeline ran `python manage.py collectstatic --noinput`
+and that your reverse proxy serves the generated assets correctly. If it did
+not, repair the project build/start configuration and rerun the approved
+deployment job; `webops logs` only displays logs and does **not** execute
+remote commands.
 
 ### Setting Up a Custom Domain
 
@@ -439,10 +412,10 @@ webops run my-django-app "python manage.py collectstatic --noinput"
    ```
    A Record: myapp.example.com → your-webops-server-ip
    ```
-3. **SSL Certificate** (automatic with Let's Encrypt):
-   ```bash
-   webops ssl my-django-app --domain myapp.example.com
-   ```
+3. **TLS certificate:** Configure the approved ingress/reverse proxy and
+   certificate automation for your deployment. `webops ssl` is not a
+   supported CLI command. Verify certificate chain and expiry against
+   `https://myapp.example.com` from an external client.
 
 ---
 
@@ -463,7 +436,7 @@ git commit -m "Add missing dependency"
 git push
 
 # Redeploy
-webops deploy my-django-app
+webops deploy yourusername/your-repo --name my-django-app --approve --wait
 ```
 
 #### 2. DisallowedHost at /
@@ -473,7 +446,7 @@ webops deploy my-django-app
 **Solution:**
 ```bash
 # Update environment variable
-webops env:set my-django-app ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+webops env:set my-django-app ALLOWED_HOSTS yourdomain.com,www.yourdomain.com
 
 # Restart
 webops restart my-django-app
@@ -485,12 +458,14 @@ webops restart my-django-app
 
 **Solution:**
 ```bash
-# Manually collect static files
-webops run my-django-app "python manage.py collectstatic --noinput"
+# Check your Django project settings and deployment logs.
+# In settings.py:
+# STATIC_URL = '/static/'
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
+webops logs my-django-app --tail 100
 
-# Check settings.py
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Run collectstatic via the authenticated application environment only
+# after confirming the deployed app's documented execution procedure.
 ```
 
 #### 4. Database connection refused
@@ -499,11 +474,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 **Solution:**
 ```bash
-# View database credentials
-webops db:info my-django-app
+# Inspect the database entry, using its actual database name
+webops db:list
+webops db:credentials myapp_db
 
-# Update DATABASE_URL
-webops env:set my-django-app DATABASE_URL=postgresql://user:pass@host:5432/dbname
+# Rotate/update DATABASE_URL through an approved secret manager and
+# deployment configuration, not as a plaintext command-line argument.
 ```
 
 #### 5. Application not starting
@@ -516,7 +492,7 @@ webops env:set my-django-app DATABASE_URL=postgresql://user:pass@host:5432/dbnam
 webops logs my-django-app --tail 100
 
 # Check service status
-webops status my-django-app
+webops info my-django-app
 
 # Restart the service
 webops restart my-django-app
@@ -528,20 +504,23 @@ webops restart my-django-app
 
 **Solution:**
 ```bash
-# Fix permissions (run on server)
-sudo chown -R webops:webops /opt/webops/deployments/my-django-app
+# Diagnose permissions before making changes.
+webops system doctor
+# On the approved hosting server, an administrator may use:
+# sudo webops admin fix-permissions
+# Review the command's scope and host paths before running it.
 ```
 
 ### Viewing Logs
 
 **Deployment logs:**
 ```bash
-webops logs my-django-app --deployment
+webops logs my-django-app --tail 100
 ```
 
 **Application logs:**
 ```bash
-webops logs my-django-app --app
+webops logs my-django-app --tail 100
 ```
 
 **Real-time logs:**
@@ -643,15 +622,11 @@ CSRF_COOKIE_SECURE = True
 
 ### 7. Regular Backups
 
-WebOps handles automatic backups, but you can also:
-
-```bash
-# Manual backup
-webops db:backup my-django-app
-
-# Download backup
-webops db:download my-django-app backup-2024-01-01.sql
-```
+Backups and restore verification must be configured for the selected hosting
+database and storage backend. The current CLI does **not** provide
+`webops db:backup` or `webops db:download`; use an approved database
+backup mechanism and prove that a restore works with disposable data.
+Record retention, encryption, and recovery-point/recovery-time objectives.
 
 ---
 
@@ -751,10 +726,10 @@ DATABASE_URL=postgresql://user:password@localhost:5432/myapp
 
 ```bash
 # Deploy
-webops deploy --name myapp --repo https://github.com/user/repo
+webops deploy user/repo --name myapp --approve --wait
 
 # Status
-webops status myapp
+webops info myapp
 
 # Logs
 webops logs myapp --follow
@@ -768,19 +743,18 @@ webops stop myapp
 # Delete
 webops delete myapp
 
-# Environment
-webops env:set myapp KEY=value
-webops env:get myapp KEY
-webops env:list myapp
+# Environment (do not pass sensitive values through process arguments)
+webops env:show myapp
+webops env:set myapp DEBUG false
+webops env:unset myapp DEBUG
 
-# Database
-webops db:info myapp
-webops db:backup myapp
-webops db:restore myapp backup.sql
+# Database (the argument is the database name)
+webops db:list
+webops db:credentials myapp_db
 
-# Shell
-webops shell myapp
-webops run myapp "python manage.py migrate"
+# For migration or shell access, follow the hosting runtime's
+# approved application procedure; the CLI does not expose
+# a general-purpose 'webops run' or 'webops shell' command.
 ```
 
 ---

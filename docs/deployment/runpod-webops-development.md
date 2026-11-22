@@ -84,8 +84,9 @@ locally.
 **Not production-ready:** In this tested configuration the 40 GB container
 disk is ephemeral and the Pod startup command is temporary; there is no
 persistent model volume, automatic recovery, production rate limiting,
-external monitoring, or durable WebOps service provisioning. The baseline
-repository test suite still has many failures. Do not expose the WebOps
+external monitoring, or durable WebOps service provisioning. At this historical checkpoint, some repository test suites had failures;
+the current CLI statement-coverage suite later reached 100% but production
+integration/security gates still require independent verification. Do not expose the WebOps
 control panel publicly in this state.
 
 ---
@@ -98,14 +99,13 @@ control panel publicly in this state.
    Pod restart or stop. Move persistent data to an appropriately located volume
    for non-experimental use.
 4. Do **not** expose WebOps port 8009. Initially expose no ports.
-5. Clone the `feat/runpod-llm-safe-dev` branch into `/workspace/webops`.
+5. Clone the current reviewed `main` branch of `DagiiM/webops` into `/workspace/webops`; pin a tested commit SHA for reproducibility.
 6. Create a Python 3.11 virtual environment and install
    `control-panel/requirements.txt`; inspect and upgrade obsolete dependencies
    before production. Generate unique `SECRET_KEY` and `ENCRYPTION_KEY`
    and set `WEBOPS_INSTALL_PATH` to a dedicated writable location.
 7. Run `manage.py check`, `manage.py migrate --noinput`; create a
-   **strong** administrator account with a generated password. Never use
-   the documented default `admin123`.
+   **strong** administrator account with a generated password. Never use any fixed sample credential.
 8. Create an unprivileged Linux user named `webops`.
 9. Install a **GPU-capable** version of vLLM into the Python interpreter named
    by `WEBOPS_LLM_PYTHON`. Verify GPU availability with `nvidia-smi`

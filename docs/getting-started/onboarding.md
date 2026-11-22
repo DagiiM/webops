@@ -188,7 +188,7 @@ source venv/bin/activate
 python manage.py runserver
 ```
 - SQLite database for development
-- Auto-generated admin user (admin/admin123)
+- Auto-generated development admin account with a random password stored locally in `control-panel/.dev_admin_password`; never use a fixed demo password.
 - Local environment configuration
 
 ### Production Installation
@@ -273,4 +273,4 @@ Key environment variables:
 
 WebOps represents a comprehensive, enterprise-grade solution for self-hosted application deployment. By combining Django's robust framework with modern security practices and automation, it provides a compelling alternative to commercial hosting platforms. The platform's focus on simplicity, security, and automation makes it particularly suitable for development teams, small businesses, and organizations looking to maintain control over their hosting infrastructure while minimizing operational overhead.
 
-The modular architecture allows for customization and extension, while the comprehensive security features ensure production readiness. With its clean separation of concerns and well-designed deployment workflow, WebOps successfully abstracts away the complexity of application hosting while providing the flexibility needed for real-world deployments.
+The modular architecture supports customization and self-hosted deployment experiments. Production readiness must be established per installation through staging deployment, HTTPS health checks, security validation, persistent storage, backup/restore, rollback and sustained load tests. See the [Jani and Ifinsta verification record](../testing/webops-resilience-jani-e2e-2026-11-22.md).

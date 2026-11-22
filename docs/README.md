@@ -18,6 +18,7 @@ Welcome to the comprehensive documentation for WebOps - the security-first hosti
 ### Deployment
 - [Deployment Guide](deployment/deployment-guide.md) - Deploy your applications with security
 - [LLM Deployment Guide](deployment/llm-deployment-guide.md) - Deploy Large Language Models via vLLM
+- [AI-assisted GitHub Deployments](deployment/ai-assisted-github-deployments.md) - One-command WebOps deploy with Jani and a self-hosted model
 - [Migration Guide](deployment/migration.md) - Migrate from other platforms securely
 
 ### Development
@@ -46,6 +47,8 @@ Welcome to the comprehensive documentation for WebOps - the security-first hosti
 - [User Guide](reference/webops-user-guide.md) - Complete user management and RBAC
 - [App Contract](reference/app-contract.md) - Application deployment with security isolation
 - [Changelog](reference/changelog.md) - Version history and updates
+- [CLI 100% Statement Coverage](testing/webops-cli-coverage-2026-11-22.md) - Reproducible test evidence and limitations
+- [Runpod/Jani E2E Verification](testing/webops-resilience-jani-e2e-2026-11-22.md) - Proven paths and outstanding staging acceptance
 
 ---
 

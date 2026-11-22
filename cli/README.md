@@ -4,29 +4,72 @@ Command-line interface for the WebOps hosting platform with enhanced terminal ex
 
 ## Installation
 
-```bash
-pip install webops-cli
-```
-
-Or install from source:
+Install the current repository version (a public package-index release has not
+been verified for these instructions):
 
 ```bash
-cd cli
-pip install -e .
+git clone https://github.com/DagiiM/webops.git
+cd webops
+python -m pip install -e ./cli
+webops --help
 ```
+
+Use Python 3.11 or later. Run `webops config` after the WebOps control panel is
+installed and reachable. The **platform installer** and **CLI installer** are
+different operations; see the [installation guide](../docs/getting-started/installation.md).
+
+For model-assisted planning and deployment, see the
+[Jani + self-hosted model guide](../docs/deployment/ai-assisted-github-deployments.md).
+
 
 ## Configuration
 
 ```bash
-webops config --url https://panel.yourdomain.com --token YOUR_API_TOKEN
+# Supply a least-privileged API token from your approved secret store.
+# Token arguments may be visible to other processes; use a trusted host.
+webops config --url https://panel.example.com --token "$WEBOPS_CLI_TOKEN" --role developer
 ```
 
 ## Basic Usage
 
 ### Deploy an application
 ```bash
-webops deploy --repo https://github.com/user/repo --name myapp --domain myapp.com
+# No-write validation
+webops deploy user/repo --name myapp --domain myapp.example.com --dry-run
+
+# Explicitly approved submission; --wait checks provider state, not HTTP health
+webops deploy user/repo --name myapp --domain myapp.example.com --approve --wait
 ```
+
+### Optional Jani-assisted deployment
+
+Jani provides an **advisory read-only review** of the exact GitHub checkout.
+Configure a self-hosted, OpenAI-compatible model and the installed Jani binary
+before running:
+
+```bash
+webops deploy user/repo --ai-assist \
+  --model qwen3:8b \
+  --model-endpoint https://your-private-model-gateway.example/v1 \
+  --dry-run
+
+# After verifying the plan and ensuring your deployment runtime can fetch the repo:
+webops deploy user/repo --ai-assist \
+  --model qwen3:8b \
+  --model-endpoint https://your-private-model-gateway.example/v1 \
+  --approve --wait
+```
+
+The model credential must be in `WEBOPS_MODEL_API_KEY` (or use
+`--model-key-env` to select the variable); never put it in the repository.
+For private repositories, provision an authorized short-lived read-only
+GitHub credential for the CLI's preflight **and** appropriate backend
+repository access. A successful `--wait` is **not** verified hosting: inspect
+`webops info`, logs, and the actual application HTTPS health endpoint.
+
+The complete setup, credential boundaries, Runpod development model adapter,
+and outstanding production gates are documented in the
+[AI-assisted deployment guide](../docs/deployment/ai-assisted-github-deployments.md).
 
 ### List deployments
 ```bash

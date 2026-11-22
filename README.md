@@ -97,9 +97,9 @@ make help
 #### Option 2: Using Quickstart Script
 
 ```bash
-cd control-panel
-./quickstart.sh  # Handles venv creation, dependencies, migrations, etc.
-./start_dev.sh   # Starts Django + Celery + Beat
+# Run from the repository root
+./provisioning/versions/v1.0.0/dev/quickstart.sh
+./provisioning/versions/v1.0.0/dev/start_dev.sh
 ```
 
 Then visit http://127.0.0.1:8000 (admin credentials shown during setup)
@@ -180,12 +180,13 @@ webops --help
 
 Configure:
 ```bash
-webops config --url https://panel.yourdomain.com --token YOUR_API_TOKEN --role admin
+webops config --url https://panel.example.com --token "$WEBOPS_CLI_TOKEN" --role developer
 ```
 
 Deploy an application:
 ```bash
-webops deploy --repo https://github.com/user/repo --name myapp --domain myapp.com
+webops deploy user/repo --name myapp --domain myapp.com --dry-run
+webops deploy user/repo --name myapp --domain myapp.com --approve --wait
 ```
 
 Enhanced CLI features:
@@ -194,7 +195,7 @@ Enhanced CLI features:
 webops deploy-wizard
 
 # Real-time deployment monitoring
-webops watch
+webops watch --all
 
 # Environment management
 webops env:generate myapp
@@ -212,7 +213,7 @@ webops interactive-logs myapp
 
 ## Infrastructure Platform
 
-WebOps includes a comprehensive enterprise infrastructure platform that transforms a fresh VPS into a production-ready hosting environment with enterprise-grade security and high availability features.
+WebOps provides an extensible self-hosting foundation with optional infrastructure addons. High availability, security hardening, and production readiness depend on the selected configuration and successful validation; they are not automatic guarantees. The private Ifinsta application deployment and sustained production-style resilience checks remain outstanding (see [E2E verification](docs/testing/webops-resilience-jani-e2e-2026-11-22.md)).
 
 ### Infrastructure Installation
 
@@ -463,7 +464,7 @@ Each deployment type includes security hardening, automated backups, and monitor
 ```bash
 # Generate environment files from templates
 webops env:generate myapp --debug --domain example.com
-webops env:generate myapp --set API_KEY=secret123 --set SMTP_HOST=smtp.gmail.com
+webops env:generate myapp --set APP_MODE=staging --set SMTP_HOST=smtp.example.org
 
 # Validate environment configuration
 webops env:validate myapp
@@ -508,7 +509,7 @@ webops interactive-logs myapp
 ```bash
 # Complete project setup workflow
 webops project:setup --repo https://github.com/user/repo.git
-webops project:setup --repo github.com/user/project --name myproject
+webops project:setup --repo https://github.com/user/project --name myproject
 
 # Validate project structure
 webops project:validate myapp
@@ -545,13 +546,13 @@ postgresql://username:password@localhost:5432/database_name
 ### Enhanced CLI Monitoring
 ```bash
 # View deployment logs with filtering
-webops logs myapp --tail 100 --level=error
+webops logs myapp --tail 100
 
 # Follow logs in real-time
 webops logs myapp --follow
 
 # Interactive status dashboard
-webops interactive-status --refresh-rate 2
+webops interactive-status
 
 # System health check
 webops system health
@@ -594,7 +595,7 @@ sudo ./cli/webops_cli/scripts/webops-security-check.sh
 sudo ./cli/webops_cli/scripts/webops-admin.sh sudo-audit
 
 # CLI security audit
-webops security audit
+make check-security
 ```
 
 ## Development
@@ -638,7 +639,7 @@ webops --help
 ```bash
 # Run all tests with coverage
 cd control-panel
-python manage.py test --coverage
+python manage.py test  # Use 'make test-coverage' from repository root for coverage
 
 # Run security-specific tests
 python manage.py test apps.core.security.tests
@@ -677,13 +678,13 @@ tail -f control-panel/logs/webops.log
 ### Deployment Issues
 ```bash
 # Check deployment logs with security context
-webops logs myapp --level=error
+webops logs myapp --tail 100
 
 # Verify systemd service status
 systemctl status myapp
 
 # Check Celery worker health
-webops system status
+webops system services
 ```
 
 ### CLI Issues
@@ -698,7 +699,7 @@ webops config
 webops troubleshoot
 
 # Validate system setup
-webops system validate
+webops system doctor
 ```
 
 ## Key Features
@@ -724,14 +725,15 @@ webops system validate
 ## Documentation
 
 **Getting Started:**
-- [Quick Start Guide](control-panel/CHANGELOG.md) - Latest updates and features
-- [CLI Documentation](cli/webops_cli/ui/README.md) - Interactive CLI features
+- [Quick Start Guide](docs/getting-started/quick-start-guide.md) - Installation and development setup
+- [CLI Documentation](cli/README.md) - One-command deployment and interactive CLI features
+- [AI-assisted GitHub Deployments](docs/deployment/ai-assisted-github-deployments.md) - Jani and self-hosted model setup
 - [Development Guide](docs/development/development.md) - Developer setup
 
 **API & Architecture:**
 - [API Reference](control-panel/apps/api/docs/) - Complete API documentation
 - [Core Architecture](docs/architecture/core.md) - Security-first design patterns
-- [Automation Guide](docs/automation/) - Workflow automation system
+- [Implementation Guide](docs/development/implementation-guide.md) - Automation and platform development
 
 **Operations:**
 - [Operations Guide](docs/operations/) - Production deployment
@@ -762,7 +764,7 @@ pip install -r control-panel/requirements.txt
 
 # Run comprehensive tests including security
 cd control-panel
-python manage.py test --with-security-tests
+python manage.py test
 
 # Run development server
 python manage.py runserver

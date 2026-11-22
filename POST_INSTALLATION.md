@@ -32,9 +32,9 @@ cat control-panel/.dev_admin_password
 
 ---
 
-### For Production Setup (install.sh)
+### For Production Setup (versioned platform installer)
 
-After running the production installer, services **ARE automatically started** and verified. The installation will **FAIL** if services don't start successfully.
+The versioned production installer is intended to enable, start and check critical services. A successful exit is not a continuing availability guarantee; check the running processes and HTTP/TLS endpoints independently.
 
 **What happens during installation:**
 - ✅ Services are enabled for auto-start on boot
@@ -44,7 +44,7 @@ After running the production installer, services **ARE automatically started** a
 - ✅ HTTP connectivity is tested
 - ❌ Installation **FAILS** if any critical service doesn't start
 
-**If installation completed successfully, your services ARE running.**
+**After installation, verify live service state, application HTTP health, and external TLS connectivity before accepting traffic.**
 
 #### Verify Services Are Running (Optional)
 
@@ -402,18 +402,18 @@ If services still won't start:
 
 **Development:**
 - ❌ Does NOT auto-start after `quickstart.sh`
-- ✅ Must manually run `./start_dev.sh` to access server
+- ✅ Must manually run `./provisioning/versions/v1.0.0/dev/start_dev.sh` to access server
 - 🌐 Access at: http://127.0.0.1:8000
 
 **Production (Updated Behavior):**
-- ✅✅ **GUARANTEED to auto-start** - installation fails if services don't start
+- **Auto-start configured** - verify boot persistence and service recovery on your own host
 - ✅ Up to 3 retry attempts per service with 5-second delays
-- ✅ Network accessibility verified (0.0.0.0 binding)
-- ✅ HTTP connectivity tested before completion
+- **Verify network accessibility** - check expected listening interfaces, firewall policies and HTTPS externally
+- **Verify HTTP and HTTPS externally** - include application health and TLS certificate checks
 - ✅ Services have `Restart=always` for automatic recovery after crashes
 - ✅ Services are enabled for boot auto-start
 - 🌐 **Access at:** http://YOUR_SERVER_IP:8000
-- 🌐 **Accessible from:** Server itself, LAN, and internet (if firewall allows)
+- 🌐 **Exposure:** Review ingress and firewall rules; do not assume public reachability or safe exposure
 
 **If installation completed successfully:**
 ```bash

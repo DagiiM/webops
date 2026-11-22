@@ -28,15 +28,11 @@ This guide covers:
 ### Quick Installation
 
 ```bash
-# Navigate to control panel
-cd $WEBOPS_DIR/control-panel
+# From the WebOps repository root, install and start development mode
+make install
+make dev
 
-# Run quick setup
-./quickstart.sh
-
-# Start development server
-source venv/bin/activate
-python manage.py runserver
+# Then open http://127.0.0.1:8000/admin/
 ```
 
 ### Access the Control Panel
@@ -44,9 +40,7 @@ python manage.py runserver
 - **Control Panel**: Start the development server and access at the default port
 - **Admin Interface**: Access the admin interface after starting the server
 
-**Login Credentials:**
-- Username: `admin`
-- Password: `admin123`
+**Development login:** The quickstart creates the `admin` account with a randomly generated password, stored in `control-panel/.dev_admin_password` (file mode 0600). Retrieve it privately from your own development host; do not share or commit it. Never use a fixed sample password for deployment.
 
 ### What's Included in MVP
 
@@ -73,7 +67,7 @@ python manage.py runserver
 ### Full Installation
 
 ```bash
-sudo ./setup.sh
+sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 ```
 
 This automatically:
@@ -385,10 +379,10 @@ The MVP is a working foundation. The following features are planned:
 
 ### For Development
 
-1. **Implement Deployment Service**: Add Git cloning and dependency installation
-2. **Add Celery Tasks**: Background deployment processing
-3. **Create System Templates**: Nginx and systemd configuration templates
-4. **Build Setup Script**: One-command VPS installation
+1. **Validate deployment service**: Check actual repository checkout, build output, application health, and rollback.
+2. **Verify background tasks**: Exercise Celery/Redis and recovery in the target environment.
+3. **Review system templates**: Verify Nginx/systemd permissions and isolation.
+4. **Test installation**: Use the versioned installer only on a disposable VPS before production rollout.
 
 ### For Production
 
@@ -401,11 +395,11 @@ The MVP is a working foundation. The following features are planned:
 
 ## Documentation
 
-- **[webops-user-guide.md](./webops-user-guide.md)** - Complete WebOps user guide
-- **[security-features.md](./security-features.md)** - Security architecture
-- **[deployment-guide.md](./deployment-guide.md)** - Deployment procedures
+- **[WebOps User Guide](../reference/webops-user-guide.md)** - Complete WebOps user guide
+- **[Security Features](../security/security-features.md)** - Security architecture
+- **[Deployment Guide](../deployment/deployment-guide.md)** - Deployment procedures
 - **[installation.md](./installation.md)** - Installation instructions
-- **[troubleshooting.md](./troubleshooting.md)** - Common issues and solutions
+- **[Troubleshooting](../operations/troubleshooting.md)** - Common issues and solutions
 
 ---
 

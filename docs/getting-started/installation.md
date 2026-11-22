@@ -32,13 +32,13 @@ This guide covers installing WebOps on Ubuntu/Debian servers for production use 
 ### Method 1: One-Command Installation (Recommended)
 
 ```bash
-# Download and run the installation script
-curl -sSL https://raw.githubusercontent.com/dagiim/webops/main/install.sh | bash
+# On a fresh, disposable Ubuntu/Debian VPS, inspect the installer first.
+git clone https://github.com/DagiiM/webops.git
+cd webops
+less provisioning/versions/v1.0.0/lifecycle/install.sh
 
-# Or for more control:
-wget https://raw.githubusercontent.com/dagiim/webops/main/install.sh
-chmod +x install.sh
-./install.sh
+# Run the versioned platform installer only after reviewing its effects.
+sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
 ```
 
 **The installer will:**
@@ -48,7 +48,7 @@ chmod +x install.sh
 - Set up SSL certificates with Let's Encrypt
 - Configure firewall and security settings
 - Initialize database and create admin user
-- Enable all enterprise security features
+- Configure supported platform features; optional addons and security controls require separate verification
 
 ### Method 2: Manual Installation
 
@@ -405,9 +405,9 @@ python manage.py create_user --username newuser --email user@domain.com
 ## 📞 **Getting Help**
 
 ### **Documentation**
-- [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
-- [Configuration Reference](configuration.md) - All configuration options
-- [API Documentation](api-reference.md) - REST API reference
+- [Troubleshooting Guide](../operations/troubleshooting.md) - Common issues and solutions
+- [Configuration Reference](../operations/configuration.md) - All configuration options
+- [API Documentation](../reference/api-reference.md) - REST API reference
 
 ### **Support Channels**
 - **Documentation**: Complete guides and references
@@ -420,13 +420,13 @@ python manage.py create_user --username newuser --email user@domain.com
 ## What's Next?
 
 After successful installation:
-1. **Deploy your first application** - [Deployment Guide](deployment-guide.md)
-2. **Set up monitoring** - [Monitoring Guide](monitoring.md)
-3. **Configure team access** - [User Management](./user-management.md)
-4. **Explore enterprise features** - [Enterprise Guide](enterprise.md)
+1. **Deploy your first application** - [Deployment Guide](../deployment/deployment-guide.md)
+2. **Set up monitoring** - [Monitoring Guide](../operations/monitoring.md)
+3. **Configure team access** - [User Guide](../reference/webops-user-guide.md)
+4. **Explore enterprise features** - [Enterprise Guide](../advanced/enterprise.md)
 
 ---
 
 **WebOps Production Installation Complete**
 
-Your enterprise-grade hosting platform is ready for production workloads.
+Installation completion is not a production-readiness guarantee. Verify actual HTTPS reachability, deployment execution, database migrations, job processing, security settings, persistence, backups, and rollback before serving production workloads. See the [deployment acceptance checklist](../deployment/ai-assisted-github-deployments.md).

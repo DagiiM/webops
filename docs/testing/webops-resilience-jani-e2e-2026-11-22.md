@@ -44,7 +44,7 @@ duration was 483 ms. An unauthenticated `/health` request returned HTTP 401.
 These are local short bursts, **not** multi-day soak or public-network SLO
 evidence.
 
-**Published code verification:** A fresh detached checkout of `main` at
+**Historical published code verification (before the 100% coverage programme):** A fresh detached checkout of `main` at
 `b2dd67f6eb21ba656240527dd1d6bcfb4e7a6ad2` passed all **2,042 CLI
 tests and 41 subtests** in 1.94 seconds.
 
@@ -56,6 +56,8 @@ deployment credential. Do not call this production-ready or a passing complete
 E2E proof.
 
 ## One command to deploy a GitHub project
+
+For a step-by-step, maintained installation and Jani walkthrough, see the [AI-assisted deployment guide](../deployment/ai-assisted-github-deployments.md).
 
 After installing WebOps (`make install` for a development instance or the
 documented production installer) and configuring the CLI once with a
@@ -70,7 +72,8 @@ webops deploy ifinsta/ifinsta --dry-run --json-output
 # Optional: a self-hosted, OpenAI-compatible model deployed by WebOps.
 # Access token stays local; do not commit the credential or print it.
 export WEBOPS_MODEL_API_KEY="$(cat /secure/path/to/model/access.key)"
-export GITHUB_TOKEN="$(credential-helper get ifinsta-read-only)"
+# Supply a short-lived, read-only GITHUB_TOKEN through your approved secret manager;
+# do not use an uninstalled example helper or embed the token in shell history.
 
 # One approved deployment command, with bounded read-only Jani review.
 webops deploy ifinsta/ifinsta --ai-assist \
@@ -101,18 +104,20 @@ rollback rehearsal before release.
 
 ```bash
 cd cli
-python -m pip install -r requirements.txt pytest pytest-cov
-python -m pytest -q -o addopts= \
-  tests/test_resilience_matrix.py \
-  tests/test_ai_deploy_flow.py \
-  tests/test_model_gateway_resilience.py
-python -m pytest -q -o addopts= tests/
+python -m pip install -e . pytest pytest-cov pytest-asyncio
+python -m pytest -q tests/
+python -m coverage report --fail-under=100
 ```
 
-These commands use `-o addopts=` to separate functional test results from
-the existing **80% total CLI coverage** release gate. The entire suite measured
-**32.15% coverage**, below the 80% threshold; this remains a release blocker,
-not a reason to lower the requirement.
+**Historical snapshot:** This guide originally recorded 2,042 CLI tests and
+32.15% statement coverage before the CLI coverage expansion. That is not
+the current release gate or current measurement. At commit
+[`4fddf82`](https://github.com/DagiiM/webops/commit/4fddf8230fd6a3151dfd76003966befe91c88300),
+the full CLI suite passed **3,173 tests and 41 subtests** with **100.00%
+statement coverage (5,083/5,083 statements)**. The CLI pytest and GitHub
+Actions gates require **100% statement coverage**. This does not establish
+100% branch coverage or production readiness. See the
+[CLI verification report](webops-cli-coverage-2026-11-22.md).
 
 ## Production acceptance criteria
 
@@ -126,6 +131,6 @@ not a reason to lower the requirement.
 - Execute sustained concurrency and failure-injection tests against
   running HTTP services; capture request rates, p95/p99, error rate,
   memory/cpu and recovery-time objectives.
-- Meet all required CI quality/security gates and 80% CLI coverage. Preserve
+- Verify that required CI quality/security gates and the 100% CLI statement coverage gate pass on the target commit. Preserve
   audit records, minimum privileges and explicit operator approval.
 
