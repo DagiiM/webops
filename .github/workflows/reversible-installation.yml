@@ -5,11 +5,15 @@ on:
     branches: [main]
     paths:
       - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/setup/base.sh'
+      - 'provisioning/versions/v1.0.0/bin/webops'
       - 'provisioning/versions/v1.0.0/tests/**'
       - '.github/workflows/reversible-installation.yml'
   pull_request:
     paths:
       - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/setup/base.sh'
+      - 'provisioning/versions/v1.0.0/bin/webops'
       - 'provisioning/versions/v1.0.0/tests/**'
 
 jobs:
@@ -26,6 +30,8 @@ jobs:
         run: |
           bash -n provisioning/versions/v1.0.0/lifecycle/install.sh
           bash -n provisioning/versions/v1.0.0/lifecycle/uninstall.sh
+          bash -n provisioning/versions/v1.0.0/bin/webops
+          bash -n provisioning/versions/v1.0.0/setup/base.sh
           python -m py_compile provisioning/versions/v1.0.0/lifecycle/installation_inventory.py
       - name: Run isolated rollback safety contracts
         run: |
