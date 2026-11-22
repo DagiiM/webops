@@ -208,7 +208,7 @@ class GitHubIntegrationService:
             GitHubConnection or None
         """
         try:
-            return GitHubConnection.objects.get(user=user)
+            return GitHubConnection.objects.get(user=user, is_deleted=False)
         except GitHubConnection.DoesNotExist:
             return None
 
