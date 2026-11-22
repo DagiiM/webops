@@ -39,7 +39,10 @@ def inspect(target: Path, state_dir: Path) -> dict:
         if Path(state["install_root"]) != root:
             return {"action": "manual", "reason": "Inventory belongs to another installation root"}
         if state["status"] == "sealed":
-            return {"action": "installed", "reason": "Previous installation completed"}
+            if not state.get("health_verified_at"):
+                return {"action": "repair", "reason": "Existing installation was sealed without recorded health verification"}
+            return {"action": "installed", "reason": "Previous installation completed and passed recorded health verification",
+                    "health_verified_at": state["health_verified_at"]}
         if state["status"] == "removed":
             return {"action": "manual", "reason": "Previously uninstalled root must be reviewed"}
         if state["status"] == "captured":
