@@ -39,10 +39,18 @@ def inspect(target: Path, state_dir: Path) -> dict:
         if Path(state["install_root"]) != root:
             return {"action": "manual", "reason": "Inventory belongs to another installation root"}
         if state["status"] == "sealed":
-            if not state.get("health_verified_at"):
-                return {"action": "repair", "reason": "Existing installation was sealed without recorded health verification"}
+            # A nonempty string is not evidence; malformed/naive timestamps
+            # must not let a corrupted journal declare success.
+            from datetime import datetime
+            timestamp = state.get("health_verified_at")
+            try:
+                checked = datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else None
+            except ValueError:
+                checked = None
+            if checked is None or checked.tzinfo is None or checked.utcoffset() is None:
+                return {"action": "repair", "reason": "Existing installation has no valid recorded health verification"}
             return {"action": "installed", "reason": "Previous installation completed and passed recorded health verification",
-                    "health_verified_at": state["health_verified_at"]}
+                    "health_verified_at": timestamp}
         if state["status"] == "removed":
             return {"action": "manual", "reason": "Previously uninstalled root must be reviewed"}
         if state["status"] == "captured":
