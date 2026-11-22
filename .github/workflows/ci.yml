@@ -154,7 +154,7 @@ jobs:
         cd cli
         python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-xdist
+        pip install pytest pytest-cov pytest-asyncio pytest-xdist
 
     - name: Run CLI tests with coverage
       run: |
