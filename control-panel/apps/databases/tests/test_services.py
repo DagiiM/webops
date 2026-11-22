@@ -292,8 +292,7 @@ class DatabaseServiceTest(TestCase):
         self.assertFalse(exists)
 
     @patch('apps.databases.services.psycopg2.connect')
-    @patch('apps.databases.services.psycopg2.sql')
-    def test_create_database_success(self, mock_connect, mock_sql):
+    def test_create_database_success(self, mock_connect):
         """Test successful database creation."""
         # Mock: database connection and cursor
         mock_conn = MagicMock()
@@ -310,9 +309,13 @@ class DatabaseServiceTest(TestCase):
         # Verify: connection was made with correct parameters
         mock_connect.assert_called_once_with(**self.db_service.connection_params)
         
-        # Verify SQL was composed correctly
-        mock_sql.SQL.assert_called_once_with("CREATE DATABASE %s")
-        
+        # Verify safely composed SQL and exact identifier/value parameters.
+        statement = mock_cursor.execute.call_args.args[0]
+        from psycopg2 import sql
+        self.assertIsInstance(statement, sql.Composable)
+        self.assertIn("Identifier('test_db')", repr(statement))
+        self.assertTrue(mock_conn.autocommit)
+
         # Verify success
         self.assertTrue(success)
         self.assertIn("created successfully", message)
@@ -338,8 +341,7 @@ class DatabaseServiceTest(TestCase):
         self.assertIn("Invalid database name", message)
 
     @patch('apps.databases.services.psycopg2.connect')
-    @patch('apps.databases.services.psycopg2.sql')
-    def test_create_user_success(self, mock_connect, mock_sql):
+    def test_create_user_success(self, mock_connect):
         """Test successful user creation."""
         # Mock: database connection and cursor
         mock_conn = MagicMock()
@@ -356,10 +358,13 @@ class DatabaseServiceTest(TestCase):
         # Verify: connection was made with correct parameters
         mock_connect.assert_called_once_with(**self.db_service.connection_params)
         
-        # Verify SQL was composed correctly
-        mock_sql.SQL.assert_called_once()
-        mock_sql.Identifier.assert_called_once_with("test_user")
-        
+        # Verify safely composed SQL and exact identifier/value parameters.
+        from psycopg2 import sql
+        query, params = mock_cursor.execute.call_args.args
+        self.assertIsInstance(query, sql.Composable)
+        self.assertIn("Identifier('test_user')", repr(query))
+        self.assertEqual(params, ('secure_password',))
+
         # Verify success
         self.assertTrue(success)
         self.assertIn("created successfully", message)
@@ -385,8 +390,7 @@ class DatabaseServiceTest(TestCase):
         self.assertIn("Invalid username", message)
 
     @patch('apps.databases.services.psycopg2.connect')
-    @patch('apps.databases.services.psycopg2.sql')
-    def test_grant_privileges_success(self, mock_connect, mock_sql):
+    def test_grant_privileges_success(self, mock_connect):
         """Test successful privilege granting."""
         # Mock: database connection and cursor
         mock_conn = MagicMock()
@@ -401,11 +405,13 @@ class DatabaseServiceTest(TestCase):
         # Verify: connection was made with correct parameters
         mock_connect.assert_called_once_with(**self.db_service.connection_params)
         
-        # Verify SQL was composed correctly
-        mock_sql.SQL.assert_called_once()
-        mock_sql.Identifier.assert_any_call()  # Called with database name
-        mock_sql.Identifier.assert_any_call()  # Called with username
-        
+        # Verify safely composed SQL and exact identifier/value parameters.
+        from psycopg2 import sql
+        statement = mock_cursor.execute.call_args.args[0]
+        self.assertIsInstance(statement, sql.Composable)
+        self.assertIn("Identifier('test_db')", repr(statement))
+        self.assertIn("Identifier('test_user')", repr(statement))
+
         # Verify success
         self.assertTrue(success)
         self.assertIn("granted successfully", message)
@@ -429,8 +435,7 @@ class DatabaseServiceTest(TestCase):
         self.assertIn("Invalid username", message)
 
     @patch('apps.databases.services.psycopg2.connect')
-    @patch('apps.databases.services.psycopg2.sql')
-    def test_delete_database_success(self, mock_connect, mock_sql):
+    def test_delete_database_success(self, mock_connect):
         """Test successful database deletion."""
         # Mock: database connection and cursor
         mock_conn = MagicMock()
@@ -447,10 +452,14 @@ class DatabaseServiceTest(TestCase):
         # Verify: connection was made with correct parameters
         mock_connect.assert_called()
         
-        # Verify SQL was composed correctly
-        mock_sql.SQL.assert_called_once_with("DROP DATABASE %s")
-        mock_sql.Identifier.assert_called_once_with("test_db")
-        
+        # Verify safely composed SQL and exact identifier/value parameters.
+        from psycopg2 import sql
+        self.assertEqual(mock_cursor.execute.call_count, 2)
+        statement = mock_cursor.execute.call_args.args[0]
+        self.assertIsInstance(statement, sql.Composable)
+        self.assertIn("Identifier('test_db')", repr(statement))
+        self.assertTrue(mock_conn.autocommit)
+
         # Verify success
         self.assertTrue(success)
         self.assertIn("deleted successfully", message)
@@ -476,8 +485,7 @@ class DatabaseServiceTest(TestCase):
         self.assertIn("Invalid database name", message)
 
     @patch('apps.databases.services.psycopg2.connect')
-    @patch('apps.databases.services.psycopg2.sql')
-    def test_delete_user_success(self, mock_connect, mock_sql):
+    def test_delete_user_success(self, mock_connect):
         """Test successful user deletion."""
         # Mock: database connection and cursor
         mock_conn = MagicMock()
@@ -494,10 +502,12 @@ class DatabaseServiceTest(TestCase):
         # Verify: connection was made with correct parameters
         mock_connect.assert_called()
         
-        # Verify SQL was composed correctly
-        mock_sql.SQL.assert_called_once_with("DROP USER %s")
-        mock_sql.Identifier.assert_called_once_with("test_user")
-        
+        # Verify safely composed SQL and exact identifier/value parameters.
+        from psycopg2 import sql
+        statement = mock_cursor.execute.call_args.args[0]
+        self.assertIsInstance(statement, sql.Composable)
+        self.assertIn("Identifier('test_user')", repr(statement))
+
         # Verify success
         self.assertTrue(success)
         self.assertIn("deleted successfully", message)
