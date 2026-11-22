@@ -85,32 +85,52 @@ class DatabaseService:
             logger.error(f"Failed to connect to PostgreSQL as superuser: {e}")
             raise
 
-    def execute_sql(self, statement: str, database: str = 'postgres',
-                    params: Optional[tuple] = None) -> tuple[bool,str]:
-        """Run real, parameterized admin SQL. Never simulate writes in DEBUG."""
-        if not self._validate_sql_query(statement):
-            return False,"Invalid SQL query detected"
-        conn=None
+    def execute_sql(self, statement, database: str = 'postgres',
+                    params: Optional[tuple] = None,
+                    autocommit: bool = False) -> tuple[bool, str]:
+        """Execute actual parameterized SQL, including psycopg2 Composable.
+
+        PostgreSQL DDL identifiers must use sql.Identifier, not %s values.
+        CREATE/DROP DATABASE require autocommit.
+        """
+        if isinstance(statement, str):
+            if not self._validate_sql_query(statement):
+                return False, "Invalid SQL query detected"
+        elif not isinstance(statement, sql.Composable):
+            return False, "Invalid SQL query detected"
+        conn = None
         try:
-            cp=dict(self.connection_params);cp['database']=database
-            conn=psycopg2.connect(**cp)
+            connection_params = dict(self.connection_params)
+            connection_params['database'] = database
+            conn = psycopg2.connect(**connection_params)
+            if autocommit:
+                conn.autocommit = True
             with conn.cursor() as cursor:
                 try:
-                    cursor.execute(statement,params) if params is not None else cursor.execute(statement)
-                    out=str(cursor.fetchall()) if cursor.description else f"Query executed successfully. Rows affected: {cursor.rowcount}"
-                    conn.commit()
-                finally:cursor.close()
-            return True,out
+                    if params is None:
+                        cursor.execute(statement)
+                    else:
+                        cursor.execute(statement, params)
+                    result = (str(cursor.fetchall()) if cursor.description
+                              else f"Query executed successfully. Rows affected: {cursor.rowcount}")
+                    if not autocommit:
+                        conn.commit()
+                finally:
+                    cursor.close()
+            return True, result
         except psycopg2.Error:
             logger.exception("Database operation failed")
-            if conn:conn.rollback()
-            return False,"Database operation failed"
+            if conn and not autocommit:
+                conn.rollback()
+            return False, "Database operation failed"
         except Exception:
-            logger.exception("Database unexpected operation failure")
-            if conn:conn.rollback()
-            return False,"Database operation failed"
+            logger.exception("Unexpected database operation failure")
+            if conn and not autocommit:
+                conn.rollback()
+            return False, "Database operation failed"
         finally:
-            if conn:conn.close()
+            if conn:
+                conn.close()
 
     def _record_exists(self, statement, value):
         conn=None
@@ -161,11 +181,11 @@ class DatabaseService:
             return False, f"Database {db_name} already exists"
 
         if owner:
-            sql = "CREATE DATABASE %s WITH OWNER %s"
-            success, output = self.execute_sql(sql, params=(db_name, owner))
+            statement = sql.SQL("CREATE DATABASE {} WITH OWNER {}").format(
+                sql.Identifier(db_name), sql.Identifier(owner))
         else:
-            sql = "CREATE DATABASE %s"
-            success, output = self.execute_sql(sql, params=(db_name,))
+            statement = sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
+        success, output = self.execute_sql(statement, autocommit=True)
 
         if success:
             logger.info(f"Created database: {db_name}")
@@ -202,7 +222,7 @@ class DatabaseService:
             sql.Identifier(username)
         )
         
-        success, output = self.execute_sql(query.as_string(None), params=(password,))
+        success, output = self.execute_sql(query, params=(password,))
         if success:
             logger.info(f"Created user: {username}")
             return True, f"User {username} created successfully"
@@ -238,7 +258,7 @@ class DatabaseService:
             sql.Identifier(username)
         )
         
-        success, output = self.execute_sql(query.as_string(None))
+        success, output = self.execute_sql(query)
         if success:
             logger.info(f"Granted privileges on {db_name} to {username}")
             return True, "Privileges granted successfully"
@@ -345,13 +365,16 @@ class DatabaseService:
         SELECT pg_terminate_backend(pg_stat_activity.pid)
         FROM pg_stat_activity
         WHERE pg_stat_activity.datname = %s
-          AND pid <> pg_backend_pid();
+          AND pid <> pg_backend_pid()
         """)
-        self.execute_sql(terminate_query.as_string(None), params=(db_name,))
+        terminated, termination_message = self.execute_sql(
+            terminate_query, params=(db_name,))
+        if not terminated:
+            return False, f"Failed to terminate database connections: {termination_message}"
 
         # Drop database using identifier for safety
         drop_query = sql.SQL("DROP DATABASE {}").format(sql.Identifier(db_name))
-        success, output = self.execute_sql(drop_query.as_string(None))
+        success, output = self.execute_sql(drop_query, autocommit=True)
 
         if success:
             logger.info(f"Deleted database: {db_name}")
@@ -379,7 +402,7 @@ class DatabaseService:
         # Using psycopg2.sql to safely compose the SQL with identifier parameters
         from psycopg2 import sql
         query = sql.SQL("DROP USER {}").format(sql.Identifier(username))
-        success, output = self.execute_sql(query.as_string(None))
+        success, output = self.execute_sql(query)
 
         if success:
             logger.info(f"Deleted user: {username}")
