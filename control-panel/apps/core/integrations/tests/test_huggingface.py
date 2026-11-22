@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
 from apps.core.integrations.models import HuggingFaceConnection
+from apps.core.common.utils.encryption import encrypt_value
 from apps.core.integrations.services.huggingface import HuggingFaceIntegrationService
 
 
@@ -102,7 +103,7 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         connection = HuggingFaceConnection.objects.create(
             user=self.user,
             username='testuser',
-            access_token='encrypted_token',
+            access_token=encrypt_value('test_token'),
             token_type='read'
         )
 
@@ -124,7 +125,7 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         HuggingFaceConnection.objects.create(
             user=self.user,
             username='testuser',
-            access_token='encrypted_token',
+            access_token=encrypt_value('test_token'),
             token_type='read'
         )
 
@@ -132,7 +133,8 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         success = self.service.disconnect(self.user)
         
         self.assertTrue(success)
-        self.assertFalse(HuggingFaceConnection.objects.filter(user=self.user).exists())
+        self.assertTrue(HuggingFaceConnection.objects.filter(user=self.user, is_deleted=True).exists())
+        self.assertIsNone(self.service.get_connection(self.user))
 
     def test_disconnect_none(self):
         """Test disconnecting non-existent connection."""
@@ -148,7 +150,7 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         HuggingFaceConnection.objects.create(
             user=self.user,
             username='testuser',
-            access_token='encrypted_token',
+            access_token=encrypt_value('test_token'),
             token_type='read'
         )
 
@@ -174,7 +176,7 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         HuggingFaceConnection.objects.create(
             user=self.user,
             username='testuser',
-            access_token='encrypted_token',
+            access_token=encrypt_value('test_token'),
             token_type='read'
         )
 
@@ -204,7 +206,7 @@ class HuggingFaceIntegrationServiceTests(TestCase):
         HuggingFaceConnection.objects.create(
             user=self.user,
             username='testuser',
-            access_token='encrypted_token',
+            access_token=encrypt_value('test_token'),
             token_type='read'
         )
 
