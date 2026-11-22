@@ -97,12 +97,30 @@ def signature(path: Path) -> str:
 
 
 def valid_install_root(raw: str) -> Path:
+    if not isinstance(raw, str) or not raw:
+        raise ValueError("Installation root must be a nonempty absolute path")
     path = Path(raw)
-    if not path.is_absolute() or str(path) in ("/", "/opt", "/var", "/home", "/usr"):
+    # Refuse directories managed by the operating system, including children:
+    # an ownership marker alone must not authorize deletion inside /etc, /proc, etc.
+    reserved = {"etc", "proc", "sys", "dev", "boot", "bin", "sbin", "lib",
+                "lib64", "usr", "var", "root", "run"}
+    if (not path.is_absolute() or len(path.parts) < 2 or
+            path.parts[1] in reserved or str(path) in
+            ("/", "/opt", "/var", "/home", "/usr", "/tmp", "/mnt")):
         raise ValueError("Unsafe installation root: " + raw)
     if path.is_symlink() or path.resolve() != path:
         raise ValueError("Installation root must not be a symlink or contain traversal")
     return path
+
+
+def valid_ownership_marker(root: Path) -> bool:
+    marker = root / MARKER
+    if not marker.is_file() or marker.is_symlink():
+        return False
+    try:
+        return marker.read_text(encoding="utf-8").strip() == "v1.0.0"
+    except (OSError, UnicodeError):
+        return False
 
 
 def state_path(state_dir: Path) -> Path:
@@ -123,17 +141,41 @@ def atomic_save(state_dir: Path, data: dict) -> None:
 def load(state_dir: Path) -> dict:
     with state_path(state_dir).open(encoding="utf-8") as inp:
         data = json.load(inp)
-    if data.get("version") != VERSION or data.get("status") not in ("captured", "sealed", "removed"):
-        raise ValueError("Invalid installation inventory")
-    valid_install_root(data["install_root"])
+    if not isinstance(data, dict):
+        raise ValueError("Invalid installation inventory document")
+    if type(data.get("version")) is not int or data["version"] != VERSION:
+        raise ValueError("Invalid installation inventory version")
+    if not isinstance(data.get("status"), str) or data["status"] not in ("captured", "sealed", "removed"):
+        raise ValueError("Invalid installation inventory status")
+    valid_install_root(data.get("install_root"))
+    if not isinstance(data.get("config"), dict):
+        raise ValueError("Invalid installation inventory configuration")
     if set(data["config"]) != set(CONFIG_PATHS + CONFIG_DIRS):
         raise ValueError("Inventory paths differ from the audited allowlist")
+    if type(data.get("owned_root")) is not bool:
+        raise ValueError("Invalid inventory ownership field")
+    if not isinstance(data.get("tracked_files"), dict):
+        raise ValueError("Invalid tracked-files mapping")
+    for index, name in enumerate(CONFIG_PATHS + CONFIG_DIRS):
+        record = data["config"][name]
+        if not isinstance(record, dict) or record.get("backup") != str(index):
+            raise ValueError("Invalid backup location for: " + name)
+        if not isinstance(record.get("before"), str):
+            raise ValueError("Invalid baseline signature: " + name)
+        if record.get("after") is not None and not isinstance(record["after"], str):
+            raise ValueError("Invalid installed signature: " + name)
     return data
 
 
 def system_path(path: str, system_root: Path) -> Path:
     """Optional filesystem root is for isolated tests, never user-supplied production paths."""
     return system_root / path.lstrip("/")
+
+
+def symlinked_system_ancestor(path: Path, system_root: Path) -> bool:
+    """Reject replaced /etc subdirectories; never follow links to third-party files."""
+    return any(p.is_symlink() for p in path.parents
+               if p == system_root or system_root in p.parents)
 
 
 def capture(state_dir: Path, install_root: Path, system_root: Path) -> dict:
@@ -163,7 +205,7 @@ def capture(state_dir: Path, install_root: Path, system_root: Path) -> dict:
     data = {
         "version": VERSION, "status": "captured", "phase": "baseline-captured",
         "install_root": str(install_root),
-        "owned_root": (install_root / MARKER).is_file(),
+        "owned_root": valid_ownership_marker(install_root),
         "config": config, "services": services,
         "packages_before": sorted(packages.splitlines()) if packages else [],
         "hostname_before": command("hostnamectl", "--static"),
@@ -213,8 +255,8 @@ def seal(state_dir: Path, system_root: Path) -> dict:
     data["hostname_after"] = command("hostnamectl", "--static")
     root = valid_install_root(data["install_root"])
     if data["owned_root"]:
-        if not (root / MARKER).is_file():
-            raise ValueError("Installation ownership marker disappeared")
+        if not valid_ownership_marker(root):
+            raise ValueError("Installation ownership marker disappeared or was modified")
         data["tracked_files"] = tree_inventory(root)
     # Only the installation entrypoint may call seal, after its health checks.
     # Older sealed inventories without this proof are treated as unverified.
@@ -247,15 +289,20 @@ def plan_or_uninstall(state_dir: Path, system_root: Path, apply: bool,
     report = {"restored": [], "removed": [], "preserved": [], "warnings": []}
     if not data["owned_root"]:
         report["warnings"].append("Root not proven WebOps-owned: preserve installation directory")
-    elif not (root / MARKER).is_file():
-        raise ValueError("WebOps ownership marker missing; refusing installation tree cleanup")
+    elif not valid_ownership_marker(root):
+        raise ValueError("WebOps ownership marker missing or invalid; refusing installation tree cleanup")
 
     # Preflight every required backup BEFORE changing anything; an incomplete
     # or corrupted backup must never cause a half-restored system.
     for name, record in data["config"].items():
+        target = system_path(name, system_root)
+        # Symlink substitutions belong to the administrator; do not follow
+        # them even when the target bytes match the recorded installed state.
+        if symlinked_system_ancestor(target, system_root):
+            continue
         if record["before"] == record["after"]:
             continue
-        if signature(system_path(name, system_root)) == record["after"] and record["before"] != "absent":
+        if signature(target) == record["after"] and record["before"] != "absent":
             saved = state_dir / "originals" / record["backup"]
             if signature(saved) != record["before"]:
                 raise ValueError("Original backup is missing or corrupted: " + name)
@@ -285,6 +332,9 @@ def plan_or_uninstall(state_dir: Path, system_root: Path, apply: bool,
     # Compare with the installed state; never overwrite subsequent user changes.
     for name, record in data["config"].items():
         path = system_path(name, system_root)
+        if symlinked_system_ancestor(path, system_root):
+            report["preserved"].append(name + " (symlinked parent directory)")
+            continue
         current = signature(path)
         if current != record["after"]:
             report["preserved"].append(name + " (changed since installation)")
@@ -336,6 +386,11 @@ def plan_or_uninstall(state_dir: Path, system_root: Path, apply: bool,
         if apply and root.exists():
             for parent, dirs, files in os.walk(root, topdown=False, followlinks=False):
                 path = Path(parent)
+                # Never delete protected data directories as a side effect
+                # of generic empty-directory cleanup. Data removal belongs
+                # exclusively to the confirmed --purge-data operation.
+                if is_protected(path.relative_to(root)):
+                    continue
                 if not path.is_symlink():
                     try:
                         path.rmdir()
@@ -411,6 +466,19 @@ def begin_system_changes(state_dir: Path) -> dict:
     return {"status": "captured", "phase": data["phase"]}
 
 
+def record_failure(state_dir: Path, reason: str) -> dict:
+    """Record any unsuccessful attempt without pretending the host was restored."""
+    data = load(state_dir)
+    if data["status"] != "captured":
+        raise ValueError("Only an incomplete install may record failure")
+    from datetime import datetime, timezone
+    data["failure_reason"] = str(reason)[:256]
+    data["failure_recorded_at"] = datetime.now(timezone.utc).isoformat()
+    atomic_save(state_dir, data)
+    return {"status": data["status"], "phase": data.get("phase"),
+            "failure_reason": data["failure_reason"]}
+
+
 def inspect_inventory(state_dir: Path) -> dict:
     if not state_path(state_dir).is_file():
         return {"status": "missing", "message": "No tracked installation inventory"}
@@ -434,16 +502,20 @@ def check_resume(state_dir: Path, install_root: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall", "inspect", "check-resume", "begin"))
+    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall", "inspect", "check-resume", "begin", "fail"))
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--install-root")
     parser.add_argument("--system-root", type=Path, default=Path("/"),
                         help=argparse.SUPPRESS)
     parser.add_argument("--purge-data", action="store_true")
+    parser.add_argument("--reason", default="Installation failed")
     args = parser.parse_args()
     try:
         if args.action == "begin":
             print(json.dumps(begin_system_changes(args.state_dir), indent=2))
+            return 0
+        if args.action == "fail":
+            print(json.dumps(record_failure(args.state_dir, args.reason), indent=2))
             return 0
         if args.action == "inspect":
             print(json.dumps(inspect_inventory(args.state_dir), indent=2))
