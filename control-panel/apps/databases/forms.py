@@ -10,26 +10,21 @@ from .models import Database
 from .adapters.base import DatabaseType
 from apps.addons.models import Addon
 
-# Define a validator for database identifiers (names, usernames)
-identifier_validator = RegexValidator(
-    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
-    message='Identifier must start with a letter, and contain only letters, numbers, and underscores.',
-    code='invalid_identifier'
-)
+# Strict reusable validators, including boundary checks for direct API callers.
+# Django validators return None for valid input and raise ValidationError otherwise.
+def _validate_sql_identifier(value, kind):
+    if not isinstance(value, str) or len(value) < 1 or len(value) > 63 or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", value):
+        raise ValidationError(f"{kind} must start with a letter, use only letters, digits and underscores, and be at most 63 characters.")
+    return None
 
-# Define a validator for database names with length restrictions
-database_name_validator = RegexValidator(
-    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
-    message='Database name must start with a letter, and contain only letters, numbers, and underscores (max 63 characters).',
-    code='invalid_database_name'
-)
+def identifier_validator(value):
+    return _validate_sql_identifier(value, "Identifier")
 
-# Define a validator for usernames with length restrictions
-username_validator = RegexValidator(
-    regex=r'^[a-zA-Z][a-zA-Z0-9_]*$',
-    message='Username must start with a letter, and contain only letters, numbers, and underscores (max 63 characters).',
-    code='invalid_username'
-)
+def database_name_validator(value):
+    return _validate_sql_identifier(value, "Database name")
+
+def username_validator(value):
+    return _validate_sql_identifier(value, "Username")
 
 # Define a validator for connection URIs to prevent injection
 connection_uri_validator = RegexValidator(
