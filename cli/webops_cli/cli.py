@@ -1183,5 +1183,10 @@ main.add_command(admin)
 main.add_command(system)
 
 
+# The unified, policy-checked deployment command supersedes the early API-only
+# command while preserving its --repo/--name/--branch/--domain parameters.
+from .one_deploy_command import one_deploy as _unified_one_deploy
+main.add_command(_unified_one_deploy, name="deploy")
+
 if __name__ == '__main__':
     main()

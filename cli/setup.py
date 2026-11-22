@@ -23,12 +23,13 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.13",
+    python_requires=">=3.11",
     install_requires=[
         "click>=8.1.0",
         "requests>=2.31.0",
         "rich>=13.0.0",
         "cryptography>=41.0.0",
+        "GitPython>=3.2.1",
     ],
     entry_points={
         "console_scripts": [

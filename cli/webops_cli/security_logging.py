@@ -6,6 +6,7 @@ with SOC 2 and ISO 27001 requirements.
 
 import json
 import logging
+import threading
 import os
 import sys
 from datetime import datetime, timezone
@@ -65,9 +66,12 @@ class SecurityLogger:
         self.security_logger.propagate = False
         self.audit_logger.propagate = False
         
-        # Clear existing handlers
-        self.security_logger.handlers.clear()
-        self.audit_logger.handlers.clear()
+        # Detach and close replaced file handlers so temporary workspaces
+        # do not leave open descriptors or write into deleted directories.
+        for log in (self.security_logger, self.audit_logger):
+            for handler in list(log.handlers):
+                log.removeHandler(handler)
+                handler.close()
         
         # Security log handler
         security_handler = logging.FileHandler(self.security_log_file)
@@ -430,18 +434,17 @@ class SecurityLogger:
 
 # Global security logger instance
 _security_logger = None
+_security_logger_lock = threading.Lock()
 
 
 def get_security_logger() -> SecurityLogger:
-    """Get the global security logger instance.
-    
-    Returns:
-        SecurityLogger instance
-    """
+    """Return a thread-safe logger bound to the current home directory."""
     global _security_logger
-    if _security_logger is None:
-        _security_logger = SecurityLogger()
-    return _security_logger
+    target = Path.home() / ".webops" / "logs"
+    with _security_logger_lock:
+        if _security_logger is None or _security_logger.log_dir != target:
+            _security_logger = SecurityLogger(log_dir=target)
+        return _security_logger
 
 
 def log_security_event(

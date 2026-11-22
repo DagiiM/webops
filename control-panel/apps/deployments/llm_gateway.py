@@ -8,6 +8,7 @@ from __future__ import annotations
 import hmac
 import json
 import os
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -21,6 +22,9 @@ KEY_FILE = Path(os.environ["WEBOPS_LLM_KEY_FILE"])
 UPSTREAM_PORT = int(os.environ.get("WEBOPS_LLM_UPSTREAM_PORT", "8002"))
 PROXY_PORT = int(os.environ.get("WEBOPS_LLM_PROXY_PORT", "8001"))
 BACKEND = os.environ.get("WEBOPS_LLM_BACKEND", "")
+# Bound expensive model inferences even when many clients connect.
+MAX_INFLIGHT = max(1, min(16, int(os.environ.get("WEBOPS_LLM_MAX_INFLIGHT", "2"))))
+INFERENCE_SLOTS = threading.BoundedSemaphore(MAX_INFLIGHT)
 ALLOWED_PATHS = ("/v1/models", "/v1/chat/completions", "/v1/completions",
                  "/v1/embeddings", "/health")
 
@@ -34,7 +38,8 @@ def normalized_tool_calls(calls):
             "type": "function",
             "function": {
                 "name": str(fn.get("name", "")),
-                "arguments": json.dumps(fn.get("arguments", {}), separators=(",", ":")),
+                "arguments": (fn.get("arguments", "{}") if isinstance(fn.get("arguments"), str)
+                              else json.dumps(fn.get("arguments", {}), separators=(",", ":"))),
             },
         })
     return result
@@ -60,7 +65,8 @@ def ollama_payload(data):
         if isinstance(val, (int, float)) and not isinstance(val, bool):
             options[target] = val
     if "num_predict" not in options:
-        options["num_predict"] = 384
+        # Tool-call JSON can need more tokens than ordinary chat text.
+        options["num_predict"] = 1024 if data.get("tools") else 384
     if options:
         request["options"] = options
     if isinstance(data.get("tools"), list):
@@ -99,7 +105,19 @@ class Handler(BaseHTTPRequestHandler):
         self._forward("GET")
 
     def do_POST(self):
-        self._forward("POST")
+        if urlsplit(self.path).path != "/v1/chat/completions":
+            return self._forward("POST")
+        # Reject unauthenticated callers before consuming scarce model slots.
+        actual = self.headers.get("Authorization", "")
+        expected = "Bearer " + KEY_FILE.read_text(encoding="utf-8").strip()
+        if not hmac.compare_digest(actual, expected):
+            return self._forward("POST")
+        if not INFERENCE_SLOTS.acquire(blocking=False):
+            return self._json(429, {"error": "model_capacity_exceeded"})
+        try:
+            return self._forward("POST")
+        finally:
+            INFERENCE_SLOTS.release()
 
     def _json(self, status, obj):
         data = json.dumps(obj, separators=(",", ":")).encode("utf-8")
@@ -129,6 +147,15 @@ class Handler(BaseHTTPRequestHandler):
         if size < 0 or size > MAX_BODY:
             return self._json(413, {"error": "request_too_large"})
         data = self.rfile.read(size) if method == "POST" else None
+        if BACKEND == "ollama" and path.path == "/health" and method == "GET":
+            try:
+                with urlopen(f"http://127.0.0.1:{UPSTREAM_PORT}/api/tags", timeout=4) as upstream:
+                    models = json.load(upstream).get("models", [])
+                if not models:
+                    return self._json(503, {"status": "model_loading"})
+                return self._json(200, {"status": "ready", "model_count": len(models)})
+            except (OSError, URLError, ValueError):
+                return self._json(503, {"status": "unavailable"})
         if BACKEND == "ollama" and path.path == "/v1/chat/completions" and method == "POST":
             return self._ollama_chat(data)
         uri = f"http://127.0.0.1:{UPSTREAM_PORT}{self.path}"
@@ -204,13 +231,31 @@ class Handler(BaseHTTPRequestHandler):
 
             try:
                 chunk({"role": "assistant"})
+                saw_tool_calls = False
                 for line in response:
                     parsed = json.loads(line)
                     message = parsed.get("message", {})
                     if message.get("content"):
                         chunk({"content": message["content"]})
+                    for index, call in enumerate(message.get("tool_calls", []) or []):
+                        if not isinstance(call, dict):
+                            continue
+                        fn = call.get("function", {})
+                        if not isinstance(fn, dict):
+                            continue
+                        args = fn.get("arguments", {})
+                        if not isinstance(args, str):
+                            args = json.dumps(args, separators=(",", ":"))
+                        saw_tool_calls = True
+                        chunk({"tool_calls": [{
+                            "index": index,
+                            "id": "call_" + uuid4().hex[:16],
+                            "type": "function",
+                            "function": {"name": str(fn.get("name", "")),
+                                         "arguments": args},
+                        }]})
                     if parsed.get("done"):
-                        chunk({}, finish="stop")
+                        chunk({}, finish="tool_calls" if saw_tool_calls else "stop")
                         break
                 self.wfile.write(b"data: [DONE]\n\n")
                 self.wfile.flush()

@@ -1,0 +1,50 @@
+name: Deployment resilience and AI-agent integration
+
+on:
+  push:
+    paths:
+      - 'cli/webops_cli/**'
+      - 'cli/tests/test_resilience_matrix.py'
+      - 'cli/tests/test_ai_deploy_flow.py'
+      - 'cli/tests/test_model_gateway_resilience.py'
+      - 'control-panel/apps/deployments/llm_gateway.py'
+      - '.github/workflows/resilience-ai.yml'
+  pull_request:
+    paths:
+      - 'cli/webops_cli/**'
+      - 'cli/tests/test_resilience_matrix.py'
+      - 'cli/tests/test_ai_deploy_flow.py'
+      - 'cli/tests/test_model_gateway_resilience.py'
+      - 'control-panel/apps/deployments/llm_gateway.py'
+      - '.github/workflows/resilience-ai.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resilience:
+    name: Resilience matrix and Jani deployment contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r cli/requirements.txt pytest pytest-cov
+      - name: Run all resilience and integration contract cases
+        working-directory: cli
+        run: |
+          python -m pytest -q -o addopts= \
+            tests/test_resilience_matrix.py \
+            tests/test_ai_deploy_flow.py \
+            tests/test_model_gateway_resilience.py
+      - name: Check Python files compile
+        run: |
+          python -m compileall -q cli/webops_cli control-panel/apps/deployments/llm_gateway.py
+
+# This does not replace the existing required global 80% CLI coverage gate.

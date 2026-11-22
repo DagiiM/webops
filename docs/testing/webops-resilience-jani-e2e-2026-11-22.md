@@ -1,0 +1,106 @@
+# One-command WebOps deployments and Jani proof — 2026-11-22
+
+## What was actually demonstrated
+
+Runpod CPU: **2,033 CLI tests passed**, including **1,415 resilience cases**,
+**536 AI deployment-contract cases** and **13 model-gateway tests**, plus
+the pre-existing CLI tests. A concurrent probe exercised 4,096 requests across
+64 workers. These are isolated, fast, deterministic workload and fault-injection
+tests rather than a sustained public-hosting load test.
+
+Runpod GPU: fresh WebOps installed with SQLite migrations, Redis, Python 3.11,
+an unprivileged `webops` operating-system account and WebOps administrator.
+Ollama 0.40.17 installed, and WebOps' Runpod development adapter deployed
+`qwen3:1.7b` as `jani-small` and `qwen3:8b` as `jani-agent`. Both
+model records reached `running`; the authenticated gateway listed the model
+and the 1.7B model answered a real Chat Completions request (HTTP 200).
+Jani 0.1.2 was built from `ifinsta/jani`, and `jani doctor` confirmed its
+model and default-deny read-only authority.
+
+**Unresolved live integration:** Jani `--print` requests to the original
+WebOps Ollama adapter returned upstream HTTP 400 while parsing generated tool
+call JSON, for both models. The adapter's streaming tool-call bridge is repaired
+in this change and requires repeat real-provider verification. No Jani agent
+review is claimed successful until that has occurred.
+
+**Not yet proven:** cloning and deploying the private `ifinsta/ifinsta`
+repository, a public site health check, application rollback/restore, or
+multi-day traffic soak. Private GitHub credentials were not supplied to the
+Runpod test environment; a connected GitHub repository reader is not a
+deployment credential. Do not call this production-ready or a passing complete
+E2E proof.
+
+## One command to deploy a GitHub project
+
+After installing WebOps (`make install` for a development instance or the
+documented production installer) and configuring the CLI once with a
+least-privileged WebOps token, run:
+
+```bash
+webops config --url https://panel.example.com --token "$WEBOPS_CLI_TOKEN" --role developer
+
+# Validate an exact deployment specification with no external changes.
+webops deploy ifinsta/ifinsta --dry-run --json-output
+
+# Optional: a self-hosted, OpenAI-compatible model deployed by WebOps.
+# Access token stays local; do not commit the credential or print it.
+export WEBOPS_MODEL_API_KEY="$(cat /secure/path/to/model/access.key)"
+export GITHUB_TOKEN="$(credential-helper get ifinsta-read-only)"
+
+# One approved deployment command, with bounded read-only Jani review.
+webops deploy ifinsta/ifinsta --ai-assist \
+  --model qwen3:8b \
+  --model-endpoint https://models.example.com/v1 \
+  --approve --wait --timeout 180
+```
+
+The same CLI supports `--repo`, `--name`, `--branch`, `--domain`,
+`--worktree`, `--model-key-env` and `--json-output`. If the repository
+is already checked out securely, use `--worktree /path/to/checkout`, avoiding
+a second clone and eliminating the need to hand Git credentials to this process.
+
+`--ai-assist` is **read-only**; Jani cannot execute arbitrary model-generated
+shell commands, widen its scopes, edit the repository or approve deployments.
+The operator must explicitly approve the WebOps API submission. The AI review
+is fail-closed if the model is missing, unauthorized, times out or cannot
+complete. GitHub credentials are not exported to Jani, and the model key
+must not be embedded in a repository. The checked-out repository is untrusted.
+
+WebOps `create_deployment` queues an application deployment in the
+background processor; it is **not** itself proof of a healthy live service.
+`--wait` only waits for the WebOps-reported `running` state and explicitly
+reports `http_health_verified=false`. Perform a real endpoint probe and
+rollback rehearsal before release.
+
+## Reproduce tests
+
+```bash
+cd cli
+python -m pip install -r requirements.txt pytest pytest-cov
+python -m pytest -q -o addopts= \
+  tests/test_resilience_matrix.py \
+  tests/test_ai_deploy_flow.py \
+  tests/test_model_gateway_resilience.py
+python -m pytest -q -o addopts= tests/
+```
+
+These commands use `-o addopts=` to separate functional test results from
+the existing **80% total CLI coverage** release gate. The entire suite measured
+**32.05% coverage**, below the 80% threshold; this remains a release blocker,
+not a reason to lower the requirement.
+
+## Production acceptance criteria
+
+- Resolve actual Jani tool-call interoperability and repeat read-only review
+  against the WebOps-managed authenticated model, including model restarts.
+- Provide an authorized short-lived GitHub token for private repository
+  checkout; avoid embedding it in command arguments or Git remote URLs.
+- Deploy `ifinsta/ifinsta` in an isolated staging environment with Docker,
+  its services, migrations and approved secrets, then verify a public health
+  endpoint, application logs, data persistence and rollback.
+- Execute sustained concurrency and failure-injection tests against
+  running HTTP services; capture request rates, p95/p99, error rate,
+  memory/cpu and recovery-time objectives.
+- Meet all required CI quality/security gates and 80% CLI coverage. Preserve
+  audit records, minimum privileges and explicit operator approval.
+

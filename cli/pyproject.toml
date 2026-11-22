@@ -38,6 +38,7 @@ dependencies = [
     "jinja2>=3.1.0",
     "python-decouple>=3.8",
     "cryptography>=41.0.0",
+    "GitPython>=3.2.1",
     "websockets>=11.0",
     "typing-extensions>=4.5.0",
 ]
