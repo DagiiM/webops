@@ -932,8 +932,9 @@ except Exception as e:
                 DeploymentLog.Level.WARNING
             )
 
-        # Add trust-remote-code for certain models
-        vllm_args.append("--trust-remote-code")
+        # Executing arbitrary Hugging Face model code requires explicit opt-in.
+        if deployment.enable_trust_remote_code:
+            vllm_args.append("--trust-remote-code")
 
         # Detect allocator library for better CPU performance (optional)
         def _find_allocator() -> Optional[str]:
