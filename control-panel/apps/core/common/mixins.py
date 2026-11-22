@@ -92,9 +92,15 @@ class Trashable(models.Model):
         if hasattr(self, 'get_trash_metadata'):
             metadata.update(self.get_trash_metadata())
 
+        # Trash service accepts fixed categories. Preserve exact model identity
+        # in metadata, with a stable resource path for restoration.
+        category = item_type if item_type in {
+            'deployment', 'database', 'file', 'directory', 'backup',
+            'configuration', 'log', 'template', 'script'} else 'other'
         TrashManager.move_to_trash(
-            item_type=item_type,
+            item_type=category,
             item_name=item_name,
+            original_path=f"/{self._meta.app_label}/{self._meta.model_name}/{self.pk}/",
             metadata=metadata,
             deleted_by=user
         )
@@ -126,7 +132,8 @@ class Trashable(models.Model):
 
         try:
             trash_item = TrashItem.objects.filter(
-                item_type=item_type,
+                item_type='other',
+                metadata__model=self._meta.label,
                 metadata__pk=self.pk,
                 is_restored=False
             ).first()
