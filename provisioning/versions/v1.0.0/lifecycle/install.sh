@@ -154,22 +154,20 @@ copy_to_install_location() {
     # Create parent directory if needed
     mkdir -p "$(dirname "$target_root")"
 
-    # Check if target already exists
-    if [[ -d "$target_root" ]]; then
-        log_warn "Target directory already exists: $target_root"
-        read -p "Remove existing installation and continue? (yes/no): " -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-            log_info "Installation cancelled by user"
-            exit 0
-        fi
-        log_info "Removing existing directory..."
-        rm -rf "$target_root"
+    # Never delete an existing installation or someone else's files.
+    # Upgrades must use their own state-aware, non-destructive path.
+    if [[ -e "$target_root" ]]; then
+        log_error "Target already exists: $target_root"
+        log_error "Refusing to overwrite it; use the documented upgrade process."
+        exit 1
     fi
 
     # Copy repository to target location
     log_info "Copying repository to $target_root..."
     cp -a "$current_root" "$target_root"
+    # Ownership evidence for a tree copied into a previously absent root.
+    printf '%s\n' "$WEBOPS_VERSION" > "${target_root}/.webops-install-origin"
+    chmod 600 "${target_root}/.webops-install-origin"
 
     # Verify copy succeeded
     if [[ ! -d "$target_root/${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}" ]]; then
@@ -226,29 +224,10 @@ validate_environment() {
     fi
 
     if [[ -n "$existing_config" ]]; then
-        log_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_warn "⚠️  WARNING: Existing WebOps installation detected"
-        log_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        log_warn ""
-        log_warn "Config file exists: ${existing_config}"
-        log_warn ""
-        log_warn "Running install again may:"
-        log_warn "  • Overwrite existing configuration"
-        log_warn "  • Reset SSH settings"
-        log_warn "  • Restart services (causing downtime)"
-        log_warn ""
-        log_warn "If you want to:"
-        log_warn "  • Update: Use '${WEBOPS_BIN} update' instead"
-        log_warn "  • Repair: Use './${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}/lifecycle/repair.sh' instead"
-        log_warn "  • Reinstall: Remove ${WEBOPS_PLATFORM_DIR}/config.env first"
-        log_warn ""
-        read -p "Continue anyway? (type 'yes' to proceed): " -r
-        echo ""
-        if [[ ! $REPLY == "yes" ]]; then
-            log_info "Installation cancelled by user"
-            exit 0
-        fi
-        log_warn "Proceeding with installation (may overwrite existing setup)..."
+        log_error "Existing WebOps configuration found: $existing_config"
+        log_error "Refusing reinstall that may overwrite data or invalidate ownership history."
+        log_error "Use the dedicated update or repair path instead."
+        exit 1
     fi
 
     log_info "Environment validation passed ✓"
@@ -869,17 +848,30 @@ main() {
     # Validate environment
     validate_environment
 
-    # Apply hostname configuration early
-    apply_hostname
-
-    # Create rollback snapshot before making changes
+    # Snapshot BEFORE hostname, SSH, firewall, packages, or shared services change.
     prepare_rollback_snapshot
+    python3 "${SCRIPT_DIR}/installation_inventory.py" capture \
+        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" \
+        --install-root "$(detect_install_root)" || {
+        log_error "Could not capture reversible installation inventory; aborting"
+        exit 1
+    }
+
+    # Apply selected system changes only after the audit baseline is safe.
+    apply_hostname
 
     # Create configuration with user choices
     create_default_config
 
     # Run installation
     if run_installation; then
+        if ! python3 "${SCRIPT_DIR}/installation_inventory.py" seal \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
+            log_error "Could not seal the installation inventory"
+            rollback_installation || true
+            exit 1
+        fi
+
         # Verify installation health (don't exit on verification warnings)
         verify_installation || true
 
