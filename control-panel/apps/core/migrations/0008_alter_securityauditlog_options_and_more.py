@@ -17,17 +17,9 @@ class Migration(migrations.Migration):
             name='securityauditlog',
             options={'ordering': ['-created_at', '-pk'], 'verbose_name': 'Security Audit Log', 'verbose_name_plural': 'Security Audit Logs'},
         ),
-        migrations.RemoveIndex(
-            model_name='webhook',
-            name='core_webhoo_secret_94f437_idx',
-        ),
         migrations.AlterField(
             model_name='securityauditlog',
             name='ip_address',
             field=models.GenericIPAddressField(default='0.0.0.0'),
-        ),
-        migrations.AddIndex(
-            model_name='webhook',
-            index=models.Index(fields=['_secret_encrypted'], name='core_webhoo_secret_94f437_idx'),
         ),
     ]

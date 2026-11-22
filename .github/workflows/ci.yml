@@ -260,6 +260,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Gitleaks must see the parent commits for PR scans
 
     - name: Run Trivy vulnerability scanner (FS)
       uses: aquasecurity/trivy-action@master

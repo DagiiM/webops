@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch, MagicMock
 from webops_cli.validators import InputValidator, ValidationError
 from webops_cli.encryption import SecureConfig, EncryptionError, PasswordManager
 from webops_cli.security_logging import SecurityLogger, SecurityEventType, get_security_logger
-from webops_cli.enhanced_api import EnhancedWebOpsAPIClient, RBACError, Role, Permission
+from webops_cli.enhanced_api import EnhancedWebOpsAPIClient, RBACError, Role, Permission, RBACManager
 from webops_cli.config import Config
 
 
@@ -286,7 +286,7 @@ class TestRBAC(unittest.TestCase):
         self.assertTrue(rbac.check_permission(Permission.DEPLOYMENT_CREATE))
         self.assertTrue(rbac.check_permission(Permission.DEPLOYMENT_READ))
         self.assertTrue(rbac.check_permission(Permission.DEPLOYMENT_UPDATE))
-        self.assertTrue(rbac.check_permission(Permission.DEPLOYMENT_DELETE))
+        self.assertFalse(rbac.check_permission(Permission.DEPLOYMENT_DELETE)) # Admin-only
         
         # Developer should not have system admin permissions
         self.assertFalse(rbac.check_permission(Permission.SYSTEM_ADMIN))
@@ -639,7 +639,7 @@ class TestSecurityIntegration(unittest.TestCase):
         
         # Verify log entry
         with open(security_logger.security_log_file, 'r') as f:
-            log_entry = json.loads(f.read().strip())
+            log_entry = json.loads(f.read().splitlines()[-1])
         
         self.assertEqual(log_entry['event_type'], 'security_violation')
         self.assertEqual(log_entry['severity'], 'HIGH')

@@ -168,7 +168,7 @@ jobs:
     - name: Run CLI tests with coverage
       run: |
         cd cli
-        coverage run --source='webops_cli' pytest tests/
+        coverage run --source='webops_cli' -m pytest tests/
         coverage report
         coverage xml
         coverage html

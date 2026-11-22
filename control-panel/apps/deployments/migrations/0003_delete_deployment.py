@@ -8,6 +8,8 @@ class Migration(migrations.Migration):
     dependencies = [
         ('deployments', '0002_remove_deployment_deployed_by'),
         ('services', '0002_alter_alert_deployment_alter_healthcheck_deployment_and_more'),
+        # Webhooks must move to BaseDeployment before the legacy Deployment is dropped.
+        ('core', '0002_remove_legacy_deployment'),
     ]
 
     operations = [

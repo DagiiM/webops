@@ -7,6 +7,7 @@ and enhanced admin/system commands.
 import os
 import subprocess
 import tempfile
+from pathlib import Path
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 from typing import Any, Dict
@@ -118,11 +119,11 @@ class TestProgressManager(unittest.TestCase):
     @patch('webops_cli.progress.console')
     def test_spinner_context_manager(self, mock_console: Mock) -> None:
         """Test spinner context manager."""
-        mock_status = Mock()
+        mock_status = MagicMock()
         mock_console.status.return_value = mock_status
         
         with self.progress_manager.spinner("Test message") as status:
-            self.assertEqual(status, mock_status)
+            self.assertEqual(status, mock_status.__enter__.return_value)
     
     def test_show_health_check_progress(self) -> None:
         """Test health check progress display."""
@@ -361,7 +362,7 @@ class TestCLICommands(unittest.TestCase):
         """Test system health command."""
         mock_monitor = Mock()
         mock_monitor.run_comprehensive_health_check.return_value = {
-            "checks": {"Database": True, "Celery": False},
+            "checks": {"Database": {"passed": True, "details": "OK"}, "Celery": {"passed": False, "details": "Unavailable"}},
             "health_score": 50.0,
             "status": "warning",
             "timestamp": 1640995200.0
@@ -375,49 +376,34 @@ class TestCLICommands(unittest.TestCase):
 class TestConfigurationValidation(unittest.TestCase):
     """Test cases for configuration validation."""
     
-    @patch('os.path.exists')
-    def test_validate_configuration_not_configured(self, mock_exists: Mock) -> None:
-        """Test configuration validation when not configured."""
-        mock_exists.return_value = False
-        
+    def test_validate_configuration_not_configured(self) -> None:
+        config = Mock()
+        config.is_configured.return_value = False
         with self.assertRaises(ConfigurationError):
-            validate_configuration()
-    
-    @patch('os.path.exists')
-    @patch('builtins.open', create=True)
-    def test_validate_configuration_invalid_url(self, mock_open: Mock, mock_exists: Mock) -> None:
-        """Test configuration validation with invalid URL."""
-        mock_exists.return_value = True
-        mock_file = Mock()
-        mock_file.read.return_value = '{"url": "invalid-url", "token": "valid-token-12345"}'
-        mock_open.return_value.__enter__.return_value = mock_file
-        
+            validate_configuration(config)
+
+    def test_validate_configuration_invalid_url(self) -> None:
+        config = Mock()
+        config.is_configured.return_value = True
+        config.get_url.return_value = 'invalid-url'
+        config.get_token.return_value = 'valid-token-12345'
         with self.assertRaises(ConfigurationError):
-            validate_configuration()
-    
-    @patch('os.path.exists')
-    @patch('builtins.open', create=True)
-    def test_validate_configuration_invalid_token(self, mock_open: Mock, mock_exists: Mock) -> None:
-        """Test configuration validation with invalid token."""
-        mock_exists.return_value = True
-        mock_file = Mock()
-        mock_file.read.return_value = '{"url": "https://webops.example.com", "token": "short"}'
-        mock_open.return_value.__enter__.return_value = mock_file
-        
+            validate_configuration(config)
+
+    def test_validate_configuration_invalid_token(self) -> None:
+        config = Mock()
+        config.is_configured.return_value = True
+        config.get_url.return_value = 'https://webops.example.com'
+        config.get_token.return_value = 'short'
         with self.assertRaises(ConfigurationError):
-            validate_configuration()
-    
-    @patch('os.path.exists')
-    @patch('builtins.open', create=True)
-    def test_validate_configuration_valid(self, mock_open: Mock, mock_exists: Mock) -> None:
-        """Test configuration validation with valid configuration."""
-        mock_exists.return_value = True
-        mock_file = Mock()
-        mock_file.read.return_value = '{"url": "https://webops.example.com", "token": "valid-token-12345"}'
-        mock_open.return_value.__enter__.return_value = mock_file
-        
-        # Should not raise any exception
-        validate_configuration()
+            validate_configuration(config)
+
+    def test_validate_configuration_valid(self) -> None:
+        config = Mock()
+        config.is_configured.return_value = True
+        config.get_url.return_value = 'https://webops.example.com'
+        config.get_token.return_value = 'valid-token-12345'
+        validate_configuration(config)
 
 
 class TestPrivilegeRequirement(unittest.TestCase):

@@ -48,7 +48,9 @@ class SecureConfig:
         env_key = os.environ.get('WEBOPS_ENCRYPTION_KEY')
         if env_key:
             try:
-                return base64.urlsafe_b64decode(env_key.encode())
+                encoded_key = env_key.encode('ascii')
+                Fernet(encoded_key)
+                return encoded_key
             except Exception as e:
                 raise EncryptionError(f"Invalid encryption key in environment: {e}")
         

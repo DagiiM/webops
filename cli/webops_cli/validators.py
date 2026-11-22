@@ -59,7 +59,7 @@ class InputValidator:
         if len(name) > cls.MAX_LENGTHS['deployment_name']:
             raise ValidationError(f"Deployment name cannot exceed {cls.MAX_LENGTHS['deployment_name']} characters")
         
-        if not cls.PATTERNS['deployment_name'].match(name):
+        if '--' in name or not cls.PATTERNS['deployment_name'].match(name):
             raise ValidationError(
                 "Deployment name must contain only alphanumeric characters and hyphens, "
                 "cannot start or end with a hyphen, and must be 3-64 characters long"
@@ -92,7 +92,11 @@ class InputValidator:
         
         # Parse URL to validate structure
         try:
+            if re.fullmatch(r'git@[A-Za-z0-9.-]+:[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+', url):
+                return url
             parsed = urlparse(url)
+            if not parsed.hostname or (parsed.username and parsed.scheme != 'ssh'):
+                raise ValidationError('Repository URL must contain a valid host')
             
             # Check for allowed schemes
             if parsed.scheme not in ['http', 'https', 'git', 'ssh']:
@@ -398,6 +402,8 @@ class InputValidator:
             
             key, value = env_var.split('=', 1)
             key = cls.validate_env_var_key(key.strip())
+            if not value.strip():
+                raise ValidationError(f'Environment variable {key} must not be empty')
             value = cls.validate_env_var_value(value.strip())
             
             result[key] = value

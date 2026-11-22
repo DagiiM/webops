@@ -39,10 +39,15 @@ class Migration(migrations.Migration):
             model_name="twofactorauth", name="_secret_encrypted",
             field=models.CharField(max_length=256, unique=True, db_column="secret", help_text="Encrypted TOTP secret"),
         ),
+        # Drop the old index before renaming a field it references (SQLite rebuild).
+        migrations.RemoveIndex(model_name="webhook", name="core_webhoo_secret_94f437_idx"),
         migrations.RenameField(model_name="webhook", old_name="secret", new_name="_secret_encrypted"),
         migrations.AlterField(
             model_name="webhook", name="_secret_encrypted",
             field=models.CharField(max_length=256, unique=True, db_column="secret", help_text="Encrypted webhook secret for request validation"),
         ),
+        migrations.AddIndex(model_name="webhook", index=models.Index(
+            fields=["_secret_encrypted"], name="core_webhoo_secret_94f437_idx"
+        )),
         migrations.RunPython(encrypt_legacy_secrets),
     ]
