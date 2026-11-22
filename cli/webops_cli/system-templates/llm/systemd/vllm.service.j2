@@ -9,9 +9,6 @@ WorkingDirectory={{ venv_path }}
 Environment="PATH={{ venv_path }}/bin"
 Environment="HF_HOME={{ model_cache_path }}"
 Environment="TRANSFORMERS_CACHE={{ model_cache_path }}"
-Environment="VLLM_TARGET_DEVICE=cpu"
-Environment="CMAKE_DISABLE_FIND_PACKAGE_CUDA=ON"
-Environment="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4:$LD_PRELOAD"
 Environment="VLLM_LOGGING_LEVEL={{ logging_level }}"
 
 # vLLM server command
