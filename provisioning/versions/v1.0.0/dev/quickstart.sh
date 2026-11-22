@@ -41,17 +41,12 @@ print_error() {
 
 # Cleanup function on failure
 cleanup_on_failure() {
-    echo -e "\n${RED}========================================${NC}"
-    echo -e "${RED}  Setup failed!${NC}"
-    echo -e "${RED}========================================${NC}"
-    echo -e "\n${YELLOW}To clean up and retry:${NC}"
-    echo "  cd ${CONTROL_PANEL_DIR}"
-    echo "  rm -rf venv"
-    echo "  cd ${PROJECT_ROOT}"
-    echo "  rm -f ${ENV_FILE}"
-    echo "  rm -f control-panel/db.sqlite3"
-    echo "  provisioning/versions/v1.0.0/dev/quickstart.sh"
-    exit 1
+    local code="$?"
+    echo -e "\n${RED}Development setup failed (exit ${code})${NC}"
+    echo "Existing .env, database and passwords were preserved."
+    echo "Review the error above, then retry: cd ${PROJECT_ROOT} && make install"
+    echo "Do NOT delete .env, control-panel/db.sqlite3 or deployments to fix pip."
+    exit "$code"
 }
 
 trap cleanup_on_failure ERR
@@ -72,6 +67,12 @@ cd "$CONTROL_PANEL_DIR" || {
 # Step 1: Pre-flight checks
 print_step "Running pre-flight checks..."
 
+# Check Python before invoking it, so an absent interpreter is explained.
+if ! command -v python3 >/dev/null 2>&1; then
+    print_error "Python 3.11+ is required. Install python3 and python3-venv."
+    exit 1
+fi
+
 # Check Python version (require 3.11+)
 PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
 PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
@@ -91,13 +92,18 @@ fi
 print_success "Python version compatible"
 
 # Check for required commands
-for cmd in python3 pip3 git; do
-    if ! command -v $cmd &> /dev/null; then
+for cmd in python3 git openssl; do
+    if ! command -v "$cmd" &> /dev/null; then
         print_error "Required command not found: $cmd"
         exit 1
     fi
 done
 
+# The development environment uses pip inside its own venv; a global pip3
+# executable is optional, and is not needed for installation.
+if ! command -v pip3 >/dev/null 2>&1; then
+    print_warning "System pip3 is absent; using project virtual-environment pip"
+fi
 print_success "Required commands available"
 
 # Check disk space (need ~1GB for venv + dependencies)
@@ -145,34 +151,51 @@ fi
 # Step 2: Create or verify virtual environment
 print_step "Setting up virtual environment..."
 
-# Check if virtual environment exists AND is valid (has activate script)
-if [ ! -f "venv/bin/activate" ]; then
-    if [ -d "venv" ]; then
-        print_warning "Virtual environment directory exists but is corrupted, recreating..."
-        rm -rf venv
+# A partial previous attempt may leave a broken venv. Back it up rather than
+# deleting files. Never follow a symlinked venv belonging to another project.
+if [ -e venv ] || [ -L venv ]; then
+    if [ -L venv ] || [ ! -f venv/bin/activate ] || [ ! -x venv/bin/python ]; then
+        PREVIOUS_VENV="venv.incomplete-$(date +%Y%m%d-%H%M%S)-$$"
+        mv -- venv "$PREVIOUS_VENV"
+        print_warning "Incomplete venv preserved as ${PREVIOUS_VENV}"
     fi
-    echo -e "${BLUE}Creating virtual environment (this may take a minute)...${NC}"
-    python3 -m venv venv || {
-        print_error "Failed to create virtual environment"
-        echo ""
-        echo "Please ensure python3-venv is installed:"
-        echo "  Ubuntu/Debian: sudo apt-get install python3-venv"
-        echo "  Rocky/Alma: sudo dnf install python3-virtualenv"
+fi
+
+if [ ! -f venv/bin/activate ] || [ ! -x venv/bin/python ]; then
+    echo -e "${BLUE}Creating virtual environment...${NC}"
+    if ! python3 -m venv venv; then
+        print_error "Could not create a Python virtual environment"
+        echo "Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y python3-venv"
+        echo "A custom Python version may need its matching venv package."
         exit 1
-    }
+    fi
     print_success "Virtual environment created"
 else
     print_success "Virtual environment exists"
 fi
 
-# Activate virtual environment
+# Global pip3 is unnecessary. Repair isolated pip if ensurepip is available.
+if ! venv/bin/python -m pip --version >/dev/null 2>&1; then
+    print_warning "Virtual environment pip is missing; attempting ensurepip repair"
+    if ! venv/bin/python -m ensurepip --upgrade >/dev/null 2>&1 ||
+       ! venv/bin/python -m pip --version >/dev/null 2>&1; then
+        print_error "Cannot initialize pip in the project virtual environment"
+        echo "Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y python3-venv"
+        echo "Then retry: cd ${PROJECT_ROOT} && make install"
+        exit 1
+    fi
+    print_success "Virtual environment pip repaired"
+fi
+
 source venv/bin/activate
 print_success "Virtual environment activated"
 
 # Step 3: Install dependencies
 print_step "Installing Python dependencies (this may take 2-3 minutes)..."
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt || {
+if ! python -m pip install --upgrade pip >/dev/null 2>&1; then
+    print_warning "pip upgrade unavailable; continuing with the installed venv pip"
+fi
+python -m pip install -r requirements.txt || {
     print_error "Failed to install dependencies"
     echo ""
     echo "This usually means missing system packages. Please install:"
