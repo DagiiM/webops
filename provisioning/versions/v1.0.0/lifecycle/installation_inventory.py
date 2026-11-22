@@ -216,6 +216,10 @@ def seal(state_dir: Path, system_root: Path) -> dict:
         if not (root / MARKER).is_file():
             raise ValueError("Installation ownership marker disappeared")
         data["tracked_files"] = tree_inventory(root)
+    # Only the installation entrypoint may call seal, after its health checks.
+    # Older sealed inventories without this proof are treated as unverified.
+    from datetime import datetime, timezone
+    data["health_verified_at"] = datetime.now(timezone.utc).isoformat()
     data["status"] = "sealed"
     atomic_save(state_dir, data)
     return data
