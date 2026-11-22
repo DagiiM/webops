@@ -14,7 +14,7 @@ import click
 
 from .deployment_flow import (
     DeploymentPlan, DeploymentPreflightError, read_only_jani_review,
-    safe_checkout, wait_for_deployment,
+    safe_checkout, wait_for_deployment, verify_worktree_matches_plan,
 )
 
 
@@ -61,6 +61,7 @@ def one_deploy(repository, repo_option, name, branch, domain, ai_assist, model,
                     "AI review requires model, endpoint and model key environment variable"
                 )
             if worktree:
+                verify_worktree_matches_plan(plan, worktree)
                 evidence = read_only_jani_review(
                     plan, worktree, selected_model, endpoint, key, jani_binary,
                     min(timeout, 600))

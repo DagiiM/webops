@@ -190,3 +190,25 @@ def wait_for_deployment(fetch: Callable[[], dict], timeout: float = 180,
             raise DeploymentPreflightError("Deployment did not reach RUNNING within timeout")
         sleep(min(poll, max(0.0, deadline - clock())))
 
+
+
+
+def verify_worktree_matches_plan(plan: DeploymentPlan, worktree: Path,
+                                 run: Callable = subprocess.run) -> None:
+    """Refuse to let a misleading --worktree review the wrong repository."""
+    try:
+        result = run(["git", "-C", str(worktree), "remote", "get-url", "origin"],
+                     text=True, capture_output=True, check=False, timeout=10)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise DeploymentPreflightError("Cannot verify checkout origin") from exc
+    if result.returncode != 0:
+        raise DeploymentPreflightError("Checkout origin is unavailable")
+    origin = result.stdout.strip()
+    if origin.startswith("git@github.com:"):
+        origin = "https://github.com/" + origin[len("git@github.com:"):]
+    try:
+        found = DeploymentPlan.from_input(origin)
+    except DeploymentPreflightError as exc:
+        raise DeploymentPreflightError("Checkout origin is not a supported GitHub repository") from exc
+    if found.repo_url.casefold() != plan.repo_url.casefold():
+        raise DeploymentPreflightError("Worktree origin differs from requested deployment repository")

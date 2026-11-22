@@ -192,3 +192,21 @@ def test_one_command_needs_approval_before_api_call(monkeypatch):
     assert called == [dict(name="ifinsta", repo_url="https://github.com/ifinsta/ifinsta.git",
                            branch="main", domain="")]
 
+
+
+
+def test_worktree_origin_must_match_deployment_plan(tmp_path):
+    plan = flow.DeploymentPlan.from_input("ifinsta/ifinsta")
+    def right(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 0,
+                                           "git@github.com:ifinsta/ifinsta.git\n", "")
+    flow.verify_worktree_matches_plan(plan, tmp_path, right)
+    def wrong(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 0,
+                                           "https://github.com/DagiiM/webops.git\n", "")
+    with pytest.raises(flow.DeploymentPreflightError, match="differs"):
+        flow.verify_worktree_matches_plan(plan, tmp_path, wrong)
+    def missing(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 1, "", "no remote")
+    with pytest.raises(flow.DeploymentPreflightError, match="unavailable"):
+        flow.verify_worktree_matches_plan(plan, tmp_path, missing)
