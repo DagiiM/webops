@@ -42,8 +42,9 @@ help: ## Show this help message
 # Installation & Setup
 #=============================================================================
 
-install: ## Install development environment (full setup)
-	@echo "$(BLUE)Installing WebOps development environment...$(NC)"
+install: ## Install development environment (NOT the production platform)
+	@echo "$(BLUE)Installing WebOps DEVELOPMENT environment (not production)...$(NC)"
+	@echo "$(YELLOW)Production uses 'make deploy-install' after platform preflight/recovery checks.$(NC)"
 	provisioning/versions/v1.0.0/dev/quickstart.sh
 	@echo "$(GREEN)✓ Development environment ready!$(NC)"
 
