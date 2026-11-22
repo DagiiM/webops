@@ -35,6 +35,8 @@ readonly ROLLBACK_BASE_DIR="/var/backups/webops-install"
 ROLLBACK_DIR=""
 ROLLBACK_PREPARED=false
 INSTALL_RESUME=false
+INSTALL_DOCTOR=false
+INSTALL_RECOVER_STAGED=false
 WEBOPS_NEW_INSTALL_COPY="${WEBOPS_NEW_INSTALL_COPY:-false}"
 
 # Initialize logging
@@ -139,12 +141,22 @@ copy_to_install_location() {
     target_root="${WEBOPS_INSTALL_ROOT:-/opt/webops}"
     current_root="$(dirname "$WEBOPS_PLATFORM_DIR")"
 
+    # A symlinked installation destination is never silently followed.
+    if [[ -L "$target_root" ]]; then
+        log_error "Refusing symlinked installation destination: $target_root"
+        exit 1
+    fi
+
     # Normalize paths for comparison
     target_root="$(readlink -f "$target_root" 2>/dev/null || echo "$target_root")"
     current_root="$(readlink -f "$current_root" 2>/dev/null || echo "$current_root")"
 
     # Check if we're already at the target location
     if [[ "$current_root" == "$target_root" ]]; then
+        if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
+            log_error "Run --recover-staged from the updated source checkout"
+            exit 1
+        fi
         log_info "Already running from installation directory: $target_root"
         return 0
     fi
@@ -156,11 +168,71 @@ copy_to_install_location() {
     # Create parent directory if needed
     mkdir -p "$(dirname "$target_root")"
 
-    # Never delete an existing installation or someone else's files.
-    # Upgrades must use their own state-aware, non-destructive path.
-    if [[ -e "$target_root" ]]; then
-        log_error "Target already exists: $target_root"
-        log_error "Refusing to overwrite it; use the documented upgrade process."
+    # Self-heal only when trusted installation history permits it.
+    if [[ -e "$target_root" || -L "$target_root" ]]; then
+        local decision_json action installed_script
+        decision_json="$(python3 "${SCRIPT_DIR}/installation_recovery.py" inspect \
+            --target "$target_root" --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory")" || {
+            log_error "Recovery inspection failed; no files were overwritten"
+            exit 1
+        }
+        action="$(printf '%s' "$decision_json" | python3 -c \
+            'import json,sys;print(json.load(sys.stdin)["action"])')" || exit 1
+        installed_script="$target_root/${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}/lifecycle/install.sh"
+        case "$action" in
+            staged)
+                log_info "Self-healing staged copy: no system modifications recorded"
+                export WEBOPS_ALREADY_RELOCATED=true WEBOPS_NEW_INSTALL_COPY=true
+                exec "$installed_script"
+                ;;
+            resume)
+                log_info "Resuming verified interrupted installation from original baseline"
+                export WEBOPS_ALREADY_RELOCATED=true
+                exec "$installed_script" --resume
+                ;;
+            installed)
+                log_info "WebOps already installed at $target_root; skipping duplicate setup"
+                return 0
+                ;;
+            manual)
+                if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
+                    python3 "${SCRIPT_DIR}/installation_recovery.py" legacy-check \
+                        --target "$target_root" \
+                        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" || {
+                        log_error "Host shows existing WebOps state; refuse adoption"
+                        exit 1
+                    }
+                    log_warn "Legacy staged copy has no original installation baseline."
+                    log_warn "Recovery assumes NO earlier installer changed host settings."
+                    log_warn "Only platform lifecycle scripts will be refreshed; backups saved."
+                    read -r -p "Type 'RECOVER PREFLIGHT COPY' only after verifying that: " answer
+                    if [[ "$answer" != "RECOVER PREFLIGHT COPY" ]]; then
+                        log_error "Recovery cancelled without modifying installed files"
+                        exit 1
+                    fi
+                    python3 "${SCRIPT_DIR}/installation_recovery.py" adopt \
+                        --target "$target_root" --source-dir "$SCRIPT_DIR" \
+                        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" || exit 1
+                    log_info "Staged copy recovered; continuing install from its existing root"
+                    export WEBOPS_ALREADY_RELOCATED=true WEBOPS_NEW_INSTALL_COPY=true
+                    exec "$installed_script"
+                fi
+                log_error "Legacy staged install has no trusted prior baseline"
+                log_error "Use install.sh --doctor; --recover-staged requires explicit verification"
+                exit 1
+                ;;
+            *)
+                log_error "Cannot safely auto-heal existing root: $target_root"
+                log_error "$decision_json"
+                log_error "Use install.sh --doctor for a read-only diagnosis"
+                log_error "Configuration and data were not overwritten"
+                exit 1
+                ;;
+        esac
+    fi
+
+    if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
+        log_error "No staged installation exists; use the normal install command"
         exit 1
     fi
 
@@ -170,6 +242,10 @@ copy_to_install_location() {
     # Ownership evidence for a tree copied into a previously absent root.
     printf '%s\n' "$WEBOPS_VERSION" > "${target_root}/.webops-install-origin"
     chmod 600 "${target_root}/.webops-install-origin"
+    python3 "${SCRIPT_DIR}/installation_recovery.py" stage --target "$target_root" || {
+        log_error "Could not record staged-copy state; refusing to continue"
+        exit 1
+    }
 
     # Verify copy succeeded
     if [[ ! -d "$target_root/${WEBOPS_PLATFORM_DIR_NAME}/versions/${WEBOPS_VERSION}" ]]; then
@@ -864,9 +940,19 @@ print_completion_message() {
 main() {
     if [[ "${1:-}" == "--resume" && $# -eq 1 ]]; then
         INSTALL_RESUME=true
+    elif [[ "${1:-}" == "--doctor" && $# -eq 1 ]]; then
+        INSTALL_DOCTOR=true
+    elif [[ "${1:-}" == "--recover-staged" && $# -eq 1 ]]; then
+        INSTALL_RECOVER_STAGED=true
     elif [[ $# -gt 0 ]]; then
-        log_error "Only --resume is supported as an installation option"
+        log_error "Supported options: --doctor, --resume, --recover-staged"
         exit 2
+    fi
+    if [[ "$INSTALL_DOCTOR" == "true" ]]; then
+        python3 "${SCRIPT_DIR}/installation_recovery.py" inspect \
+            --target "${WEBOPS_INSTALL_ROOT:-/opt/webops}" \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"
+        exit $?
     fi
     # Initialize logging
     init_logging
@@ -916,6 +1002,14 @@ main() {
         --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
         log_error "Cannot advance the installation inventory; refusing system changes"
         exit 1
+    fi
+    # The existing staged copy must never look preflight-safe once host work starts.
+    if [[ -f "$(detect_install_root)/.webops-install-stage.json" ]]; then
+        python3 "${SCRIPT_DIR}/installation_recovery.py" advance \
+            --target "$(detect_install_root)" || {
+            log_error "Could not advance stage marker; refusing host changes"
+            exit 1
+        }
     fi
     if [[ "$INSTALL_RESUME" != "true" ]]; then
         apply_hostname
