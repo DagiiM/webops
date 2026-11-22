@@ -45,7 +45,7 @@ class SecurityAuditLog(BaseModel):
     )
     event_type = models.CharField(max_length=50, choices=EventType.choices)
     severity = models.CharField(max_length=20, choices=Severity.choices, default=Severity.INFO)
-    ip_address = models.GenericIPAddressField()
+    ip_address = models.GenericIPAddressField(default="0.0.0.0")
     user_agent = models.TextField(blank=True)
     description = models.TextField()
     metadata = models.JSONField(default=dict, blank=True)
@@ -54,6 +54,7 @@ class SecurityAuditLog(BaseModel):
         db_table = 'core_security_audit_log'
         verbose_name = 'Security Audit Log'
         verbose_name_plural = 'Security Audit Logs'
+        ordering = ['-created_at', '-pk']
         indexes = [
             models.Index(fields=['-created_at']),
             models.Index(fields=['event_type']),
@@ -62,4 +63,4 @@ class SecurityAuditLog(BaseModel):
 
     def __str__(self) -> str:
         user_str = self.user.username if self.user else "Anonymous"
-        return f"[{self.severity.upper()}] {user_str} - {self.event_type}"
+        return f"[{self.severity.upper()}] {user_str} - {self.event_type.upper()}"
