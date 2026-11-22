@@ -12,8 +12,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 
-from .services import EncryptionService, SecurityAuditService
-from .models import SecurityAuditLog
+from ..services import EncryptionService, SecurityAuditService
+from ..models import SecurityAuditLog
 
 
 class EncryptionServiceTests(TestCase):
