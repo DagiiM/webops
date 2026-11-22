@@ -5,6 +5,7 @@ Database models for WebOps.
 """
 
 from django.db import models
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from apps.core.common.models import BaseModel
 from apps.deployments.models import BaseDeployment
@@ -55,6 +56,11 @@ class Database(BaseModel):
         related_name='databases',
         null=True,
         blank=True
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        related_name='standalone_databases', null=True, blank=True
     )
 
     # Dependency Info (JSON field for storing install commands, etc.)
