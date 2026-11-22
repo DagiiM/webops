@@ -124,6 +124,62 @@ class InstallerResumeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "different installation root"):
             mod.check_resume(self.state, str(other))
 
+    def run_fake_main(self, health=0, setup=0):
+        source = INSTALL.read_text().replace(
+            'readonly ROLLBACK_BASE_DIR="/var/backups/webops-install"',
+            'readonly ROLLBACK_BASE_DIR="' + str(self.backup) + '"')
+        source = source[:source.rindex('main "$@"')]
+        source += """
+init_logging() { :; }
+copy_to_install_location() { :; }
+show_welcome() { :; }
+validate_environment() { :; }
+run_installation() { echo setup >> "$EVENT_LOG"; return "$SETUP_EXIT"; }
+verify_installation() { echo health >> "$EVENT_LOG"; return "$HEALTH_EXIT"; }
+rollback_installation() { echo rollback >> "$EVENT_LOG"; }
+print_completion_message() { echo complete >> "$EVENT_LOG"; }
+log_info() { :; }
+log_error() { echo "$*" >&2; }
+main --resume
+"""
+        script = self.lifecycle / "main-harness.sh"
+        script.write_text(source)
+        events = Path(self.tmp.name) / "events.log"
+        env = os.environ.copy()
+        env.update(WEBOPS_INSTALL_ROOT=str(self.root), HEALTH_EXIT=str(health),
+                   SETUP_EXIT=str(setup), EVENT_LOG=str(events))
+        result = subprocess.run(["bash", str(script)], env=env, text=True,
+                                capture_output=True, timeout=20)
+        return result, events.read_text().splitlines() if events.exists() else []
+
+    def test_main_seals_only_after_health_pass(self):
+        self.capture()
+        result, events = self.run_fake_main()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(events, ["setup", "health", "complete"])
+        data = mod.load(self.state)
+        self.assertEqual(data["status"], "sealed")
+        self.assertTrue(data.get("health_verified_at"))
+
+    def test_main_health_failure_remains_incomplete_on_retry(self):
+        self.capture()
+        result, events = self.run_fake_main(health=1)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(events, ["setup", "health"])
+        data = mod.load(self.state)
+        self.assertEqual((data["status"], data["phase"]),
+                         ("captured", "system-changes-started"))
+        retry = self.run_validation()
+        self.assertNotEqual(retry.returncode, 0)
+        self.assertIn("Existing installation inventory", retry.stderr)
+
+    def test_main_setup_failure_is_not_sealed(self):
+        self.capture()
+        result, events = self.run_fake_main(setup=1)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(events, ["setup"])
+        self.assertEqual(mod.load(self.state)["status"], "captured")
+
     def test_inventory_inspection_is_non_destructive(self):
         self.assertEqual(mod.inspect_inventory(self.state)["status"], "missing")
         self.capture()
