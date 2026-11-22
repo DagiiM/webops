@@ -153,8 +153,8 @@ class NotificationService:
             return True
 
         except Exception as e:
-            logger.error(f"Email send error: {e}")
-            return False
+            logger.error("Email send error: %s", type(e).__name__)
+            raise
 
     def _send_webhook(
         self,
@@ -219,8 +219,8 @@ class NotificationService:
             return True
 
         except Exception as e:
-            logger.error(f"SMTP send error: {e}")
-            return False
+            logger.error("SMTP send error: %s", type(e).__name__)
+            raise
 
     def notify_deployment_event(
         self, user: User, deployment_name: str, event_type: str, status: str, details: str = ""
@@ -236,7 +236,7 @@ class NotificationService:
             details: Additional details
         """
         # Get all active channels for user
-        channels = NotificationChannel.objects.filter(user=user, is_active=True)
+        channels = NotificationChannel.objects.filter(user=user, is_active=True, is_deleted=False)
 
         for channel in channels:
             # Check event filters
@@ -272,7 +272,7 @@ class NotificationService:
 
     def list_user_channels(self, user: User) -> list:
         """List all notification channels for a user."""
-        channels = NotificationChannel.objects.filter(user=user)
+        channels = NotificationChannel.objects.filter(user=user, is_deleted=False)
 
         return [
             {
