@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from .authentication import api_authentication_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -114,98 +115,98 @@ from apps.deployments.api.deployments import (
 )
 
 # Wrapper functions for deployment API views with the expected names
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_list(request):
     """Wrapper for list_deployments"""
     return list_deployments(request)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_create(request):
     """Wrapper for create_deployment"""
     return create_deployment(request)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_detail(request, name):
     """Wrapper for get_deployment"""
     return get_deployment(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_start(request, name):
     """Wrapper for start_deployment_api"""
     return start_deployment_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_stop(request, name):
     """Wrapper for stop_deployment_api"""
     return stop_deployment_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_restart(request, name):
     """Wrapper for restart_deployment_api"""
     return restart_deployment_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["DELETE"])
 def deployment_delete(request, name):
     """Wrapper for delete_deployment_api"""
     return delete_deployment_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_logs(request, name):
     """Wrapper for get_deployment_logs"""
     return get_deployment_logs(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_env_generate(request, name):
     """Wrapper for generate_env_api"""
     return generate_env_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_project_validate(request, name):
     """Wrapper for validate_project_api"""
     return validate_project_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_env_validate(request, name):
     """Wrapper for validate_env_api"""
     return validate_env_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def deployment_env_vars(request, name):
     """Wrapper for get_env_vars_api"""
     return get_env_vars_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 def deployment_env_set(request, name):
     """Wrapper for set_env_var_api"""
     return set_env_var_api(request, name)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["DELETE", "POST"])
 def deployment_env_unset(request, name):
     """Wrapper for unset_env_var_api"""
@@ -213,7 +214,7 @@ def deployment_env_unset(request, name):
 
 
 # File Editor API Views
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 @api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_files_tree(request, deployment_id):
@@ -280,7 +281,7 @@ def deployment_files_tree(request, deployment_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 @api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_file_read(request, deployment_id):
@@ -341,7 +342,7 @@ def deployment_file_read(request, deployment_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["POST"])
 @api_require_ownership(ApplicationDeployment, ownership_field='deployed_by', lookup_field='deployment_id')
 def deployment_file_write(request, deployment_id):
@@ -410,7 +411,7 @@ def deployment_file_write(request, deployment_id):
 
 
 # Database API Views
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def database_list(request):
     """
@@ -461,7 +462,7 @@ def database_list(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@login_required
+@api_authentication_required
 @require_http_methods(["GET"])
 def database_detail(request, name):
     """
