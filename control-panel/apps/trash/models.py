@@ -120,7 +120,7 @@ class TrashItem(BaseModel):
     def save(self, *args, **kwargs):
         # Set auto-delete timestamp if not set
         if not self.auto_delete_at:
-            self.auto_delete_at = self.deleted_at + timezone.timedelta(days=self.retention_days)
+            self.auto_delete_at = (self.deleted_at or timezone.now()) + timezone.timedelta(days=self.retention_days)
 
         super().save(*args, **kwargs)
 
