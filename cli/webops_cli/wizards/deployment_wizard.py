@@ -562,7 +562,7 @@ class DeploymentWizard(InteractiveWizard):
     
     def _validate_domain(self: Self, domain: str) -> bool:
         """Validate domain name."""
-        pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$'
+        pattern = r'^(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}$'
         return re.match(pattern, domain) is not None
     
     def _validate_env_var_name(self: Self, name: str) -> bool:

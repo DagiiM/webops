@@ -30,6 +30,7 @@ setup(
         "rich>=13.0.0",
         "cryptography>=41.0.0",
         "GitPython>=3.2.1",
+        "psutil>=5.9",
     ],
     entry_points={
         "console_scripts": [

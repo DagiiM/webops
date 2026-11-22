@@ -7,3 +7,6 @@ cryptography>=41.0.0
 
 # GitHub checkout and project inspection for one-command deployments
 GitPython>=3.2.1
+
+# System diagnostics used by the troubleshooting wizard
+psutil>=5.9

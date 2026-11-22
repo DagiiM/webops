@@ -162,7 +162,18 @@ class Config:
                 reverse=True
             )
             
-            max_backups = self.get('backup_count', 5)
+            # Do not call self.get(): this method also runs while rescuing a
+            # corrupted configuration, and get() -> load() -> restore() would
+            # recurse indefinitely. Read only the unencrypted numeric setting.
+            max_backups = self.CONFIG_SCHEMA['backup_count']['default']
+            try:
+                if self.config_file.exists():
+                    with self.config_file.open(encoding='utf-8') as handle:
+                        configured = json.load(handle).get('backup_count')
+                    if type(configured) is int and 1 <= configured <= 50:
+                        max_backups = configured
+            except (OSError, ValueError, TypeError, AttributeError):
+                pass
             for old_backup in backup_files[max_backups:]:
                 old_backup.unlink()
                 

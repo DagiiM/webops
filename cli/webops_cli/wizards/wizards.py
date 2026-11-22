@@ -120,7 +120,7 @@ class SetupWizard(InteractiveWizard):
             ("Ubuntu/Debian Linux", self._check_os()),
             ("Root/sudo access", self._check_sudo()),
             ("Internet connection", self._check_internet()),
-            ("Python 3.13+", self._check_python()),
+            ("Python 3.11+", self._check_python()),
             ("Git", self._check_git())
         ]
         
@@ -394,7 +394,7 @@ class SetupWizard(InteractiveWizard):
             if result.returncode == 0:
                 version = result.stdout.strip().split()[-1]
                 major, minor = map(int, version.split('.')[:2])
-                return major >= 3 and minor >= 13
+                return (major, minor) >= (3, 11)
             return False
         except:
             return False
