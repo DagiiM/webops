@@ -16,7 +16,7 @@ class BrandingServiceColorTests(TestCase):
         """Test HSL to hex conversion for blue."""
         # HSL(217, 91%, 60%) = #3b82f6 (Tailwind blue-500)
         result = BrandingService.hsl_to_hex(217, 91, 60)
-        self.assertEqual(result.lower(), '#3b82f6')
+        self.assertEqual(result.lower(), '#3c83f6')  # exact HSL, unlike approximate Tailwind hex
 
     def test_hsl_to_hex_red(self):
         """Test HSL to hex conversion for red."""
@@ -56,8 +56,8 @@ class BrandingServiceScaleTests(TestCase):
         """Test generating a color scale."""
         scale = BrandingService.generate_color_scale(217, 91, 60)
 
-        # Should return 9 shades
-        self.assertEqual(len(scale), 9)
+        # Standard scale 50, 100..900 contains ten distinct keys.
+        self.assertEqual(len(scale), 10)
 
         # Should have keys 50-900
         expected_keys = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']
@@ -113,7 +113,7 @@ class BrandingServicePaletteTests(TestCase):
 
         # Each color should have a full scale
         for color_name in ['primary', 'secondary', 'accent']:
-            self.assertEqual(len(palette[color_name]), 9)
+            self.assertEqual(len(palette[color_name]), 10)
 
     def test_generate_complementary_palette(self):
         """Test complementary color harmony."""
