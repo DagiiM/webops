@@ -130,7 +130,7 @@ class GoogleIntegrationService:
             return None
 
     def get_connection(self, user: User) -> Optional[GoogleConnection]:
-        return getattr(user, "google_connection", None)
+        return GoogleConnection.objects.filter(user=user, is_deleted=False).first()
 
     def disconnect(self, user: User) -> bool:
         connection = self.get_connection(user)
