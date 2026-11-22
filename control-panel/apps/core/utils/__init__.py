@@ -1,6 +1,9 @@
 """Core utilities for WebOps."""
 
-from .encryption import generate_password, encrypt_password, decrypt_password
+from .encryption import generate_password
+from ..common.utils.encryption import encrypt_value, decrypt_value
+encrypt_password = encrypt_value
+decrypt_password = decrypt_value
 from .generators import generate_secret_key, generate_port
 from .validators import validate_repo_url, validate_domain, sanitize_deployment_name
 from ..common.utils.encryption import encrypt_value, decrypt_value
