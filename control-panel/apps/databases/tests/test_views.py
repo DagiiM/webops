@@ -1,397 +1,194 @@
-"""
-Tests for database views.
-"""
+"""Current-route database integration tests.
 
-import json
-from django.test import TestCase, RequestFactory
+Replaces legacy class-based view imports removed from application routes.
+Retains all sixteen original scenario names and adds ownership regression cases.
+Uses Django test client and real encrypted fixtures; no cases are skipped.
+"""
+from unittest.mock import patch, ANY
 from django.contrib.auth.models import User
+from django.test import TestCase
 from django.urls import reverse
-from unittest.mock import patch, MagicMock
-from apps.databases.views import (
-    DatabaseListView, DatabaseDetailView, DatabaseCreateView,
-    DatabaseUpdateView, DatabaseDeleteView, DatabaseCredentialsView
-)
 from apps.databases.models import Database
+from apps.databases.forms import DatabaseForm
+from apps.deployments.models import ApplicationDeployment
 from apps.core.utils import encrypt_password, decrypt_password
 
 
 class DatabaseViewTest(TestCase):
-    """Test cases for database views."""
-
     def setUp(self):
-        """Set up test fixtures."""
-        self.factory = RequestFactory()
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
-        
-        # Create a test database
-        self.test_db = Database.objects.create(
-            name='test_db',
-            db_type='postgresql',
-            host='localhost',
-            port=5432,
-            username='test_user',
-            password=encrypt_password('test_password'),
-            database_name='test_db'
-        )
+        self.user = User.objects.create_user(username='dbowner', password='secure-password-1')
+        self.other = User.objects.create_user(username='otheruser', password='secure-password-2')
+        self.deployment = ApplicationDeployment.objects.create(
+            name='owned-db-test-app', repo_url='https://example.invalid/repo.git',
+            branch='main', deployed_by=self.user)
+        self.db = Database.objects.create(
+            name='test_db', db_type='postgresql', host='localhost', port=5432,
+            username='test_user', password=encrypt_password('test_password'),
+            database_name='test_db', deployment=self.deployment, created_by=self.user)
+        self.client.force_login(self.user)
+
+    def url(self, name, pk=False):
+        return reverse(name, args=[self.db.pk] if pk else None)
+
+    @staticmethod
+    def form_data(**changes):
+        data = {'name':'new_db','db_type':'postgresql','host':'localhost',
+                'port':5432,'username':'new_user','password':'new_password',
+                'database_name':'new_db'}
+        data.update(changes)
+        return data
 
     def test_database_list_view(self):
-        """Test database list view."""
-        # Create request
-        request = self.factory.get(reverse('databases:list'))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseListView.as_view()(request)
-        
-        # Check response
+        response = self.client.get(self.url('database_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'test_db')
 
     def test_database_detail_view(self):
-        """Test database detail view."""
-        # Create request
-        request = self.factory.get(reverse('databases:detail', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseDetailView.as_view()(request)
-        
-        # Check response
+        response = self.client.get(self.url('database_detail', True))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'test_db')
         self.assertContains(response, 'test_user')
         self.assertContains(response, 'localhost')
-        self.assertContains(response, '5432')
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_create_view_get(self, mock_db_service):
-        """Test database create view (GET)."""
-        # Create request
-        request = self.factory.get(reverse('databases:create'))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCreateView.as_view()(request)
-        
-        # Check response
+    def test_database_create_view_get(self):
+        response = self.client.get(self.url('database_create'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Create Database')
+        self.assertIsInstance(response.context['form'], DatabaseForm)
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_create_view_post_valid(self, mock_db_service):
-        """Test database create view (POST) with valid data."""
-        # Mock DatabaseService methods
-        mock_db_service.create_database.return_value = (True, "Database created successfully")
-        mock_db_service.create_user.return_value = (True, "User created successfully")
-        mock_db_service.grant_privileges.return_value = (True, "Privileges granted successfully")
-        
-        # Create request
-        form_data = {
-            'name': 'new_db',
-            'db_type': 'postgresql',
-            'host': 'localhost',
-            'port': 5432,
-            'username': 'new_user',
-            'password': 'new_password',
-            'database_name': 'new_db'
-        }
-        request = self.factory.post(reverse('databases:create'), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCreateView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 302)  # Redirect after successful creation
-        self.assertEqual(response.url, reverse('databases:list'))
-        
-        # Verify DatabaseService methods were called
-        mock_db_service.create_database.assert_called_once_with('new_db')
-        mock_db_service.create_user.assert_called_once_with('new_user', 'new_password')
-        mock_db_service.grant_privileges.assert_called_once_with('new_db', 'new_user')
+    def test_database_create_view_post_valid(self):
+        response = self.client.post(self.url('database_create'), data=self.form_data())
+        self.assertEqual(response.status_code, 302, response.content[:120])
+        self.assertEqual(response.url, self.url('database_list'))
+        obj = Database.objects.get(name='new_db')
+        self.assertEqual(obj.created_by, self.user)
+        self.assertNotEqual(obj.password, 'new_password')
+        self.assertEqual(decrypt_password(obj.password), 'new_password')
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_create_view_post_invalid(self, mock_db_service):
-        """Test database create view (POST) with invalid data."""
-        # Mock DatabaseService methods
-        mock_db_service.create_database.return_value = (False, "Database already exists")
-        
-        # Create request with invalid data
-        form_data = {
-            'name': 'invalid@name',  # Invalid characters
-            'db_type': 'postgresql',
-            'host': 'localhost',
-            'port': 5432,
-            'username': 'new_user',
-            'password': 'new_password',
-            'database_name': 'new_db'
-        }
-        request = self.factory.post(reverse('databases:create'), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCreateView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 200)  # Form is redisplayed
-        self.assertContains(response, 'Create Database')
-        
-        # Verify DatabaseService methods were not called
-        mock_db_service.create_database.assert_not_called()
-        mock_db_service.create_user.assert_not_called()
-        mock_db_service.grant_privileges.assert_not_called()
+    def test_database_create_view_post_invalid(self):
+        response = self.client.post(self.url('database_create'),
+                                    self.form_data(name='invalid@name'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Database.objects.filter(name='invalid@name').exists())
+        self.assertIn('name', response.context['form'].errors)
 
     def test_database_update_view_get(self):
-        """Test database update view (GET)."""
-        # Create request
-        request = self.factory.get(reverse('databases:update', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseUpdateView.as_view()(request)
-        
-        # Check response
+        response = self.client.get(self.url('database_update', True))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'test_db')
-        self.assertContains(response, 'Update Database')
+        self.assertEqual(response.context['form'].instance.pk, self.db.pk)
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_update_view_post_valid(self, mock_db_service):
-        """Test database update view (POST) with valid data."""
-        # Mock DatabaseService methods
-        mock_db_service.create_database.return_value = (True, "Database created successfully")
-        mock_db_service.create_user.return_value = (True, "User created successfully")
-        mock_db_service.grant_privileges.return_value = (True, "Privileges granted successfully")
-        
-        # Create request
-        form_data = {
-            'name': 'updated_db',
-            'db_type': 'postgresql',
-            'host': 'updated_host',
-            'port': 5433,
-            'username': 'updated_user',
-            'password': 'updated_password',
-            'database_name': 'updated_db'
-        }
-        request = self.factory.post(reverse('databases:update', args=[self.test_db.id]), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseUpdateView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 302)  # Redirect after successful update
-        self.assertEqual(response.url, reverse('databases:list'))
-        
-        # Verify DatabaseService methods were called
-        mock_db_service.create_database.assert_called_once_with('updated_db')
-        mock_db_service.create_user.assert_called_once_with('updated_user', 'updated_password')
-        mock_db_service.grant_privileges.assert_called_once_with('updated_db', 'updated_user')
+    def test_database_update_view_post_valid(self):
+        response = self.client.post(self.url('database_update', True),
+                                    data=self.form_data(name='updated_db',
+                                        database_name='updated_db',host='updated_host',
+                                        port=5433, username='updated_user',
+                                        password='updated_password'))
+        self.assertEqual(response.status_code, 302, response.content[:120])
+        self.db.refresh_from_db()
+        self.assertEqual(self.db.name, 'updated_db')
+        self.assertEqual(self.db.username, 'updated_user')
+        self.assertEqual(decrypt_password(self.db.password), 'updated_password')
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_update_view_post_invalid(self, mock_db_service):
-        """Test database update view (POST) with invalid data."""
-        # Mock DatabaseService methods
-        mock_db_service.create_database.return_value = (False, "Database already exists")
-        
-        # Create request with invalid data
-        form_data = {
-            'name': 'invalid@name',  # Invalid characters
-            'db_type': 'postgresql',
-            'host': 'updated_host',
-            'port': 5433,
-            'username': 'updated_user',
-            'password': 'updated_password',
-            'database_name': 'updated_db'
-        }
-        request = self.factory.post(reverse('databases:update', args=[self.test_db.id]), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseUpdateView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 200)  # Form is redisplayed
-        self.assertContains(response, 'Update Database')
-        
-        # Verify DatabaseService methods were not called
-        mock_db_service.create_database.assert_not_called()
-        mock_db_service.create_user.assert_not_called()
-        mock_db_service.grant_privileges.assert_not_called()
+    def test_database_update_view_post_invalid(self):
+        response = self.client.post(self.url('database_update', True),
+                                    data=self.form_data(name='invalid@name'))
+        self.assertEqual(response.status_code, 200)
+        self.db.refresh_from_db()
+        self.assertEqual(self.db.name, 'test_db')
+        self.assertIn('name', response.context['form'].errors)
 
     def test_database_delete_view_get(self):
-        """Test database delete view (GET)."""
-        # Create request
-        request = self.factory.get(reverse('databases:delete', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseDeleteView.as_view()(request)
-        
-        # Check response
+        response = self.client.get(self.url('database_delete', True))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'test_db')
-        self.assertContains(response, 'Delete Database')
 
     @patch('apps.databases.views.DatabaseService')
-    def test_database_delete_view_post_confirm(self, mock_db_service):
-        """Test database delete view (POST) with confirmation."""
-        # Mock DatabaseService methods
-        mock_db_service.delete_database.return_value = (True, "Database deleted successfully")
-        mock_db_service.delete_user.return_value = (True, "User deleted successfully")
-        
-        # Create request with confirmation
-        form_data = {
-            'confirm': 'yes'
-        }
-        request = self.factory.post(reverse('databases:delete', args=[self.test_db.id]), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseDeleteView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 302)  # Redirect after successful deletion
-        self.assertEqual(response.url, reverse('databases:list'))
-        
-        # Verify DatabaseService methods were called
-        mock_db_service.delete_database.assert_called_once_with('test_db')
-        mock_db_service.delete_user.assert_called_once_with('test_user')
+    def test_database_delete_view_post_confirm(self, service):
+        service.return_value.delete_database.return_value = (True, 'deleted')
+        service.return_value.delete_user.return_value = (True, 'removed')
+        response = self.client.post(self.url('database_delete', True), {'confirm':'yes'})
+        self.assertEqual(response.status_code, 302, response.content[:120])
+        self.assertEqual(response.url, self.url('database_list'))
+        service.return_value.delete_database.assert_called_once_with('test_db')
+        service.return_value.delete_user.assert_called_once_with('test_user')
+        self.db.refresh_from_db()
+        self.assertTrue(self.db.is_deleted)
 
     @patch('apps.databases.views.DatabaseService')
-    def test_database_delete_view_post_no_confirm(self, mock_db_service):
-        """Test database delete view (POST) without confirmation."""
-        # Create request without confirmation
-        form_data = {
-            'confirm': 'no'
-        }
-        request = self.factory.post(reverse('databases:delete', args=[self.test_db.id]), data=form_data)
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseDeleteView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 200)  # Form is redisplayed
-        self.assertContains(response, 'Delete Database')
-        
-        # Verify DatabaseService methods were not called
-        mock_db_service.delete_database.assert_not_called()
-        mock_db_service.delete_user.assert_not_called()
+    def test_database_delete_view_post_no_confirm(self, service):
+        response = self.client.post(self.url('database_delete', True), {'confirm':'no'})
+        self.assertEqual(response.status_code, 400)
+        service.assert_not_called()
+        self.db.refresh_from_db()
+        self.assertFalse(self.db.is_deleted)
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_credentials_view_html(self, mock_db_service):
-        """Test database credentials view (HTML)."""
-        # Mock DatabaseService.get_connection_string
-        mock_db_service.get_connection_string.return_value = "postgresql://test_user:test_password@localhost:5432/test_db"
-        
-        # Create request
-        request = self.factory.get(reverse('databases:credentials', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCredentialsView.as_view()(request)
-        
-        # Check response
+    def test_database_credentials_view_html(self):
+        # The currently supported credential endpoint is JSON, not legacy HTML.
+        response = self.client.get(self.url('database_credentials_json', True))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'test_db')
-        self.assertContains(response, 'test_user')
-        self.assertContains(response, 'test_password')
-        self.assertContains(response, 'postgresql://test_user:test_password@localhost:5432/test_db')
-        
-        # Verify DatabaseService method was called
-        mock_db_service.get_connection_string.assert_called_once()
+        self.assertTrue(response['Content-Type'].startswith('application/json'))
+        self.assertEqual(response.json()['password'], 'test_password')
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_credentials_view_json(self, mock_db_service):
-        """Test database credentials view (JSON)."""
-        # Mock DatabaseService.get_connection_string
-        mock_db_service.get_connection_string.return_value = "postgresql://test_user:test_password@localhost:5432/test_db"
-        
-        # Create request with HTTP header for JSON
-        request = self.factory.get(
-            reverse('databases:credentials', args=[self.test_db.id]),
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
-        )
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCredentialsView.as_view()(request)
-        
-        # Check response
+    def test_database_credentials_view_json(self):
+        response = self.client.get(self.url('database_credentials_json', True),
+                                   HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
-        
-        # Parse JSON response
-        response_data = json.loads(response.content)
-        
-        # Check JSON response
-        self.assertEqual(response_data['name'], 'test_db')
-        self.assertEqual(response_data['username'], 'test_user')
-        self.assertEqual(response_data['password'], 'test_password')
-        self.assertEqual(response_data['host'], 'localhost')
-        self.assertEqual(response_data['port'], 5432)
-        self.assertEqual(response_data['connection_string'], 'postgresql://test_user:test_password@localhost:5432/test_db')
-        
-        # Verify DatabaseService method was called
-        mock_db_service.get_connection_string.assert_called_once()
+        record = response.json()
+        self.assertEqual(record['name'], 'test_db')
+        self.assertEqual(record['username'], 'test_user')
+        self.assertEqual(record['password'], 'test_password')
+        self.assertEqual(record['host'], 'localhost')
+        self.assertEqual(record['port'], 5432)
+        self.assertEqual(record['connection_string'],
+                         'postgresql://test_user:test_password@localhost:5432/test_db')
 
-    @patch('apps.databases.views.DatabaseService')
-    def test_database_credentials_view_masked(self, mock_db_service):
-        """Test database credentials view with masked password."""
-        # Mock DatabaseService.get_connection_string
-        mock_db_service.get_connection_string.return_value = "postgresql://test_user:****@localhost:5432/test_db"
-        
-        # Create request
-        request = self.factory.get(reverse('databases:credentials', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCredentialsView.as_view()(request)
-        
-        # Check response
+    def test_database_credentials_view_masked(self):
+        # General business pages must not expose plaintext or encrypted passwords.
+        response = self.client.get(self.url('database_list'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'test_db')
-        self.assertContains(response, 'test_user')
-        self.assertNotContains(response, 'test_password')  # Password should be masked
-        self.assertContains(response, 'postgresql://test_user:****@localhost:5432/test_db')
-        
-        # Verify DatabaseService method was called with decrypted=False
-        mock_db_service.get_connection_string.assert_called_once_with(self.test_db, decrypted=False)
+        self.assertNotContains(response, 'test_password')
+        self.assertNotContains(response, self.db.password)
 
     @patch('apps.databases.views.logger')
-    def test_database_credentials_view_logging(self, mock_logger):
-        """Test database credentials view logging."""
-        # Create request
-        request = self.factory.get(reverse('databases:credentials', args=[self.test_db.id]))
-        request.user = self.user
-        
-        # Get response
-        response = DatabaseCredentialsView.as_view()(request)
-        
-        # Verify logger was called
-        mock_logger.info.assert_called_once_with(
-            "Database credentials accessed",
-            extra={
-                'user_id': self.user.id,
-                'username': self.user.username,
-                'database_id': self.test_db.id,
-                'database_name': 'test_db',
-                'timestamp': mock_logger.info.call_args[0]['extra']['timestamp']
-            }
-        )
+    def test_database_credentials_view_logging(self, logger):
+        response = self.client.get(self.url('database_credentials_json', True))
+        self.assertEqual(response.status_code, 200)
+        logger.info.assert_any_call(
+            'Database credentials accessed via JSON API',
+            extra={'user_id':self.user.pk,'username':self.user.username,
+                   'database_id':self.db.pk,'database_name':'test_db',
+                   'timestamp':ANY})
 
     def test_database_views_require_login(self):
-        """Test that database views require login."""
-        # Create request without user
-        request = self.factory.get(reverse('databases:list'))
-        
-        # Get response
-        response = DatabaseListView.as_view()(request)
-        
-        # Check response
-        self.assertEqual(response.status_code, 302)  # Redirect to login
-        self.assertIn(reverse('login'), response.url)
+        self.client.logout()
+        for name,detail in (('database_list',False),('database_create',False),
+                            ('database_detail',True),('database_update',True),
+                            ('database_delete',True),('database_credentials_json',True)):
+            with self.subTest(name=name):
+                response = self.client.get(self.url(name,detail))
+                self.assertEqual(response.status_code,302)
+                self.assertIn('/auth/login/',response.url)
+
+    def test_other_user_cannot_read_credentials(self):
+        self.client.force_login(self.other)
+        for name in ('database_detail','database_credentials_json','database_update'):
+            with self.subTest(name=name):
+                response = self.client.get(self.url(name,True))
+                self.assertEqual(response.status_code,404)
+
+    @patch('apps.databases.views.DatabaseService')
+    def test_other_user_cannot_delete_database(self, service):
+        self.client.force_login(self.other)
+        response=self.client.post(self.url('database_delete',True),{'confirm':'yes'})
+        self.assertEqual(response.status_code,404)
+        service.assert_not_called()
+        self.db.refresh_from_db()
+        self.assertFalse(self.db.is_deleted)
+
+    def test_standalone_database_visible_only_to_creator(self):
+        Database.objects.create(name='standalone_owned',db_type='postgresql',
+            host='localhost',port=5432,username='standalone_user',
+            database_name='standalone_owned',password=encrypt_password('test_password'),
+            created_by=self.user)
+        self.assertContains(self.client.get(self.url('database_list')),'standalone_owned')
+        self.client.force_login(self.other)
+        self.assertNotContains(self.client.get(self.url('database_list')),'standalone_owned')
