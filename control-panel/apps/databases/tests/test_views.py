@@ -7,6 +7,7 @@ Uses Django test client and real encrypted fixtures; no cases are skipped.
 from unittest.mock import patch, ANY
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.core.cache import cache
 from django.urls import reverse
 from apps.databases.models import Database
 from apps.databases.forms import DatabaseForm
@@ -16,6 +17,7 @@ from apps.core.utils import encrypt_password, decrypt_password
 
 class DatabaseViewTest(TestCase):
     def setUp(self):
+        cache.clear()  # Isolate counters between independent test cases.
         self.user = User.objects.create_user(username='dbowner', password='secure-password-1')
         self.other = User.objects.create_user(username='otheruser', password='secure-password-2')
         self.deployment = ApplicationDeployment.objects.create(
@@ -79,13 +81,14 @@ class DatabaseViewTest(TestCase):
     def test_database_update_view_post_valid(self):
         response = self.client.post(self.url('database_update', True),
                                     data=self.form_data(name='updated_db',
-                                        database_name='updated_db',host='updated_host',
+                                        database_name='updated_db',host='updated-host',
                                         port=5433, username='updated_user',
                                         password='updated_password'))
         self.assertEqual(response.status_code, 302, response.content[:120])
         self.db.refresh_from_db()
         self.assertEqual(self.db.name, 'updated_db')
         self.assertEqual(self.db.username, 'updated_user')
+        self.assertEqual(self.db.host, 'updated-host')
         self.assertEqual(decrypt_password(self.db.password), 'updated_password')
 
     def test_database_update_view_post_invalid(self):
