@@ -5,7 +5,7 @@ import time
 
 from django.contrib.auth.models import User
 from apps.api.models import APIToken
-from apps.deployments.models import BaseDeployment
+from apps.deployments.models import BaseDeployment, ApplicationDeployment
 from apps.services.background.memory_adapter import InMemoryBackgroundProcessor
 
 
@@ -25,10 +25,10 @@ class APIDeploymentAdapterTests(TestCase):
             return {'success': True, 'deployment_id': deployment_id}
 
         adapter = InMemoryBackgroundProcessor(
-            registry={'apps.deployments.tasks.deploy_application': deploy_stub}
+            registry={'apps.deployments.tasks.application.deploy_application': deploy_stub}
         )
 
-        with mock.patch('apps.api.views.get_background_processor', return_value=adapter), \
+        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), \
              mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             payload = {
                 'name': 'api-test-app',
@@ -60,7 +60,7 @@ class APIDeploymentAdapterTests(TestCase):
             return {'success': True, 'deployment_id': deployment_id}
 
         adapter = InMemoryBackgroundProcessor(
-            registry={'apps.deployments.tasks.delete_deployment': delete_stub}
+            registry={'apps.deployments.tasks.application.delete_deployment': delete_stub}
         )
 
         # Create a deployment owned by the API user
@@ -74,7 +74,7 @@ class APIDeploymentAdapterTests(TestCase):
             status=ApplicationDeployment.Status.PENDING,
         )
 
-        with mock.patch('apps.api.views.get_background_processor', return_value=adapter), \
+        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), \
              mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             resp = self.client.delete(
                 reverse('api_deployment_delete', kwargs={'name': dep.name}),
