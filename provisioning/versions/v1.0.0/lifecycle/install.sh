@@ -726,79 +726,15 @@ prepare_rollback_snapshot() {
 }
 
 rollback_installation() {
-    if [[ "$ROLLBACK_PREPARED" != "true" || -z "${ROLLBACK_DIR}" || ! -d "${ROLLBACK_DIR}" ]]; then
-        log_warn "Rollback snapshot unavailable, skipping automatic rollback"
-        return 1
-    fi
-
-    log_warn "Installation failed, attempting automatic rollback..."
-
-    local install_root
-    install_root="$(cat "${ROLLBACK_DIR}/install_root.txt" 2>/dev/null || true)"
-    if [[ -z "$install_root" ]]; then
-        install_root="$(detect_install_root)"
-    fi
-
-    # Stop webops services before restoring files.
-    local services=("webops-web" "webops-worker" "webops-beat" "webops-channels")
-    for service in "${services[@]}"; do
-        systemctl stop "$service" 2>/dev/null || true
-    done
-
-    # Restore installation tree snapshot if available.
-    if [[ -f "${ROLLBACK_DIR}/install-root.tar.gz" && -n "$install_root" ]]; then
-        local install_parent install_name
-        install_parent="$(dirname "$install_root")"
-        install_name="$(basename "$install_root")"
-        rm -rf "$install_root"
-        mkdir -p "$install_parent"
-        tar xzf "${ROLLBACK_DIR}/install-root.tar.gz" -C "$install_parent"
-        log_info "Restored installation tree: ${install_root}"
-    fi
-
-    # Restore SSH config.
-    if [[ -f "${ROLLBACK_DIR}/sshd_config.bak" ]]; then
-        cp -a "${ROLLBACK_DIR}/sshd_config.bak" "/etc/ssh/sshd_config"
-        systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null || true
-    fi
-
-    # Restore systemd unit files.
-    local unit_files=(
-        "webops-web.service"
-        "webops-worker.service"
-        "webops-beat.service"
-        "webops-channels.service"
-    )
-    for unit in "${unit_files[@]}"; do
-        local backup_unit="${ROLLBACK_DIR}/${unit}.bak"
-        if [[ -f "$backup_unit" ]]; then
-            cp -a "$backup_unit" "/etc/systemd/system/${unit}"
-        fi
-    done
-    systemctl daemon-reload || true
-
-    # Restore previous service enable/active state.
-    local state_file="${ROLLBACK_DIR}/services.state"
-    if [[ -f "$state_file" ]]; then
-        while IFS='|' read -r service active_state enabled_state; do
-            if systemctl list-unit-files | grep -q "^${service}\.service"; then
-                if [[ "$enabled_state" == "enabled" ]]; then
-                    systemctl enable "$service" 2>/dev/null || true
-                elif [[ "$enabled_state" == "disabled" ]]; then
-                    systemctl disable "$service" 2>/dev/null || true
-                fi
-
-                if [[ "$active_state" == "active" ]]; then
-                    systemctl start "$service" 2>/dev/null || true
-                elif [[ "$active_state" == "inactive" || "$active_state" == "failed" ]]; then
-                    systemctl stop "$service" 2>/dev/null || true
-                fi
-            fi
-        done < "$state_file"
-    fi
-
-    log_success "Automatic rollback completed ✓"
-    return 0
+    # Restoring a historical whole-tree archive with rm -rf would destroy
+    # database/uploads/deployments created after the snapshot. Configuration,
+    # service and package changes are not a full atomic transaction either.
+    # Fail closed: keep all data and independent snapshots for manual repair.
+    log_warn "Partial installation detected; automatic destructive rollback disabled."
+    log_warn "Preserving application data, installation inventory and rollback evidence."
+    log_warn "Review snapshots under: $ROLLBACK_BASE_DIR"
+    log_warn "Run install.sh --doctor before any further installation attempt."
+    return 1
 }
 
 run_installation() {
@@ -1026,6 +962,18 @@ main() {
         }
         create_default_config
     fi
+
+    # Unexpected command failures must also leave a diagnosable failure journal.
+    # EXIT trap is registered only after baseline inventory was established.
+    record_installation_exit() {
+        local result="$1"
+        if [[ "$result" -ne 0 ]]; then
+            python3 "${SCRIPT_DIR}/installation_inventory.py" fail \
+                --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" \
+                --reason "Installer stopped with exit status $result" >/dev/null 2>&1 || true
+        fi
+    }
+    trap 'record_installation_exit "$?"' EXIT
 
     # Mark the last safe automatic-resume point before any host changes.
     if ! python3 "${SCRIPT_DIR}/installation_inventory.py" begin \
