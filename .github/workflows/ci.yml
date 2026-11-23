@@ -106,14 +106,9 @@ jobs:
     - name: Run tests with coverage
       run: |
         cd control-panel
-        if [ "${{ matrix.coverage }}" = "true" ]; then
-          coverage run --source='apps' manage.py test --parallel auto
-          coverage combine
-          coverage report --show-missing
-          coverage xml
-        else
-          python manage.py test --parallel auto
-        fi
+        coverage run --source='apps' manage.py test
+        coverage report --show-missing
+        coverage xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

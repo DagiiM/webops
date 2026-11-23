@@ -252,7 +252,7 @@ jobs:
 
     - name: Create Pull Request
       if: github.event.inputs.type != 'security'
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v7
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: |
@@ -288,8 +288,7 @@ jobs:
           *This PR was created automatically by the dependency update workflow.*
         branch: "dependabot/updates/${{ matrix.component }}-${{ matrix.python-version }}"
         delete-branch: true
-        reviewers:
-          - dagiim
+        reviewers: dagiim
         labels: |
           dependencies
           python

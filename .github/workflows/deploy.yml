@@ -211,7 +211,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ${{ matrix.component == 'control-panel' && '.' || matrix.component }}
-        file: ${{ matrix.component == 'control-panel' && 'Dockerfile' || matrix.component + '/Dockerfile' }}
+        file: ${{ matrix.component == 'control-panel' && 'Dockerfile' || format('{0}/Dockerfile', matrix.component) }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
