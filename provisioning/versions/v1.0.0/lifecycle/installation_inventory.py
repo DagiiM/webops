@@ -263,6 +263,8 @@ def seal(state_dir: Path, system_root: Path) -> dict:
     from datetime import datetime, timezone
     data["health_verified_at"] = datetime.now(timezone.utc).isoformat()
     data["status"] = "sealed"
+    data.pop("failure_reason", None)
+    data.pop("failure_recorded_at", None)
     atomic_save(state_dir, data)
     return data
 
@@ -466,6 +468,32 @@ def begin_system_changes(state_dir: Path) -> dict:
     return {"status": "captured", "phase": data["phase"]}
 
 
+def mark_setup_completed(state_dir: Path) -> dict:
+    """Durable checkpoint written only after the platform setup command exits 0.
+
+    A restart after this checkpoint needs only fresh health verification,
+    not a potentially destructive replay of package/configuration changes.
+    """
+    data = load(state_dir)
+    if data["status"] != "captured" or data.get("phase") != "system-changes-started":
+        raise ValueError("Cannot complete setup unless host installation started")
+    data["phase"] = "setup-completed"
+    atomic_save(state_dir, data)
+    return {"status": "captured", "phase": data["phase"]}
+
+
+def check_finalize(state_dir: Path, install_root: str) -> dict:
+    data = load(state_dir)
+    root = valid_install_root(install_root)
+    if data["status"] != "captured" or data.get("phase") != "setup-completed":
+        raise ValueError("Cannot finalize: setup completion checkpoint not recorded")
+    if valid_install_root(data["install_root"]) != root:
+        raise ValueError("Finalization inventory belongs to another installation root")
+    if not data["owned_root"] or not valid_ownership_marker(root):
+        raise ValueError("Finalization requires a proven WebOps-owned install root")
+    return {"status": "captured", "phase": data["phase"], "install_root": str(root)}
+
+
 def record_failure(state_dir: Path, reason: str) -> dict:
     """Record any unsuccessful attempt without pretending the host was restored."""
     data = load(state_dir)
@@ -484,7 +512,8 @@ def inspect_inventory(state_dir: Path) -> dict:
         return {"status": "missing", "message": "No tracked installation inventory"}
     data = load(state_dir)
     return {"status": data["status"], "install_root": data["install_root"],
-            "owned_root": data["owned_root"], "phase": data.get("phase", "unknown")}
+            "owned_root": data["owned_root"], "phase": data.get("phase", "unknown"),
+            "failure_reason": data.get("failure_reason")}
 
 
 def check_resume(state_dir: Path, install_root: str) -> dict:
@@ -502,7 +531,7 @@ def check_resume(state_dir: Path, install_root: str) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall", "inspect", "check-resume", "begin", "fail"))
+    parser.add_argument("action", choices=("capture", "seal", "plan", "uninstall", "inspect", "check-resume", "begin", "complete", "check-finalize", "fail"))
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--install-root")
     parser.add_argument("--system-root", type=Path, default=Path("/"),
@@ -516,6 +545,14 @@ def main() -> int:
             return 0
         if args.action == "fail":
             print(json.dumps(record_failure(args.state_dir, args.reason), indent=2))
+            return 0
+        if args.action == "complete":
+            print(json.dumps(mark_setup_completed(args.state_dir), indent=2))
+            return 0
+        if args.action == "check-finalize":
+            if not args.install_root:
+                raise ValueError("--install-root is required for finalization")
+            print(json.dumps(check_finalize(args.state_dir, args.install_root), indent=2))
             return 0
         if args.action == "inspect":
             print(json.dumps(inspect_inventory(args.state_dir), indent=2))
