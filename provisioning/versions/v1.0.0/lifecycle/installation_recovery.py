@@ -165,6 +165,66 @@ def legacy_preflight_check(target: Path, state_dir: Path, system_root: Path = Pa
                 raise ValueError("Existing WebOps service is running: " + service)
 
 
+def refresh_trusted_stage(target: Path, state_dir: Path, source_dir: Path) -> dict:
+    """Refresh copied lifecycle code only while no host changes were made."""
+    root = valid_install_root(str(target))
+    status = inspect(root, state_dir)
+    if status["action"] != "staged":
+        raise ValueError("Cannot refresh untrusted or host-modified state: " + status["reason"])
+    # A staged copy may contain stale monitoring, CLI and preflight code.
+    # Only replace a strictly audited source-file allowlist, not custom data.
+    source_dir = source_dir.resolve()
+    source_root = source_dir.parents[3]
+    relative_names = (
+        "provisioning/versions/v1.0.0/lifecycle/install.sh",
+        "provisioning/versions/v1.0.0/lifecycle/installation_inventory.py",
+        "provisioning/versions/v1.0.0/lifecycle/installation_recovery.py",
+        "provisioning/versions/v1.0.0/bin/webops",
+        "provisioning/versions/v1.0.0/addons/monitoring.sh",
+        "provisioning/versions/v1.0.0/lib/common.sh",
+        "provisioning/versions/v1.0.0/setup/validate.sh",
+    )
+    for relative in relative_names:
+        src, dst = source_root / relative, root / relative
+        if (not src.is_file() or src.is_symlink() or
+                not dst.is_file() or dst.is_symlink() or
+                any(parent.is_symlink() for parent in dst.parents
+                    if root in parent.parents)):
+            raise ValueError("Unsafe staged platform file: " + relative)
+
+    state_dir.parent.mkdir(parents=True, exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix="staged-refresh-", dir=state_dir.parent))
+    backup.chmod(0o700)
+    for relative in relative_names:
+        src, dst = source_root / relative, root / relative
+        saved = backup / relative
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(dst, saved, follow_symlinks=False)
+        fd, temp_name = tempfile.mkstemp(prefix=dst.name + ".refresh-", dir=dst.parent)
+        temp = Path(temp_name)
+        try:
+            with src.open("rb") as stream, os.fdopen(fd, "wb") as out:
+                shutil.copyfileobj(stream, out)
+            temp.chmod(0o755 if src.stat().st_mode & 0o111 else 0o644)
+            os.replace(temp, dst)
+        finally:
+            temp.unlink(missing_ok=True)
+
+    # Remove only the exact unchanged, Git-tracked sample configuration.
+    # Never remove custom settings or data.
+    config = root / "config.env"
+    if config.is_file() and not config.is_symlink():
+        try:
+            bundled = subprocess.run(
+                ["git", "-C", str(source_dir.parents[3]), "show", "HEAD:config.env"],
+                capture_output=True, check=False, timeout=10)
+            if bundled.returncode == 0 and bundled.stdout == config.read_bytes():
+                config.unlink()
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    return {"status": "staged", "backup": str(backup), "root": str(root)}
+
+
 def adopt_staged(target: Path, state_dir: Path, source_dir: Path,
                  system_root: Path = Path("/")) -> dict:
     """Opt-in recovery of a preflight-only copy; never overwrite user data."""
@@ -202,7 +262,7 @@ def adopt_staged(target: Path, state_dir: Path, source_dir: Path,
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("inspect", "stage", "advance", "legacy-check", "adopt"))
+    parser.add_argument("command", choices=("inspect", "stage", "advance", "legacy-check", "adopt", "refresh-staged"))
     parser.add_argument("--target", required=True, type=Path)
     parser.add_argument("--source-dir", type=Path)
     parser.add_argument("--system-root", type=Path, default=Path("/"),
@@ -217,6 +277,12 @@ def main() -> int:
         if args.command == "legacy-check":
             legacy_preflight_check(args.target, args.state_dir, args.system_root)
             print(json.dumps({"eligible": True, "requires_confirmation": True}))
+            return 0
+        if args.command == "refresh-staged":
+            if not args.source_dir:
+                raise ValueError("Source directory required to refresh staged lifecycle")
+            print(json.dumps(refresh_trusted_stage(args.target, args.state_dir,
+                                                   args.source_dir)))
             return 0
         if args.command == "adopt":
             if not args.source_dir:
