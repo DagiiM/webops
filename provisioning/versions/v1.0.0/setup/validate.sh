@@ -94,12 +94,21 @@ validate_systemd() {
         return 1
     fi
 
-    if ! systemctl --version &>/dev/null; then
-        log_error "systemd is not functioning properly"
+    # systemctl --version succeeds in ordinary containers even when there
+    # is no booted systemd manager. Refuse before modifying the host.
+    local init_name
+    init_name="$(cat /proc/1/comm 2>/dev/null || true)"
+    if [[ "$init_name" != "systemd" || ! -d /run/systemd/system ]]; then
+        log_error "This environment is not booted with systemd (PID 1: $init_name)"
+        log_error "WebOps production installation requires a systemd-based VPS/VM"
+        return 1
+    fi
+    if ! systemctl list-units --all --no-pager >/dev/null 2>&1; then
+        log_error "systemd manager is not responding"
         return 1
     fi
 
-    log_success "systemd check passed ✓"
+    log_success "Booted systemd manager verified ✓"
 }
 
 validate_ports() {
@@ -132,7 +141,11 @@ validate_disk_io() {
     # Test disk I/O performance
     log_step "Testing disk I/O performance..."
 
-    local test_file="/tmp/webops_io_test"
+    local test_file
+    test_file="$(mktemp /tmp/webops_io_test.XXXXXX)" || {
+        log_warn "Could not allocate unique disk I/O test file"
+        return 0
+    }
     local min_speed=50  # MB/s
 
     # Write test
