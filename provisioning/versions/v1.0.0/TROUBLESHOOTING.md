@@ -91,11 +91,9 @@ chmod -R 755 /home/douglas/webops/.webops/
 
 ### Locked Out After Installation (If SSH Was Hardened)
 
-**⚠️  Note:** As of the latest version, WebOps **does NOT lock out root or disable password authentication by default**. This issue only occurs if you explicitly configured SSH hardening before installation.
+**Current behavior:** Normal WebOps installation preserves provider SSH settings by default. Older releases may have changed SSH authentication; inspect with your VPS recovery console.
 
-**Default Settings (No Lockout):**
-- Root login: **Enabled** (PERMIT_ROOT_LOGIN=yes)
-- Password authentication: **Enabled** (SSH_PASSWORD_AUTH=yes)
+**Default Settings:** ENABLE_SSH_HARDENING=false and SSH_ACCESS_CHANGE_CONFIRMED=false. These flags preserve whichever SSH policy existed before installation.
 
 **This Issue Only Applies If You Configured:**
 ```bash
@@ -115,7 +113,7 @@ SSH_PASSWORD_AUTH=no
 # 2. Login with root password via console
 
 # 3. Restore original SSH configuration using WebOps CLI
-/opt/webops/provisioning/versions/v1.0.0/bin/webops restore-ssh
+# There is no restore-ssh subcommand: inspect and restore from provider console
 
 # 4. Or manually restore from backup
 cp /etc/ssh/sshd_config.webops-backup* /etc/ssh/sshd_config
@@ -141,23 +139,26 @@ sudo systemctl status webops-web
 ```bash
 # 1. Access via console or webops user
 
-# 2. Edit SSH config
-sudo nano /etc/ssh/sshd_config
+# 2. Inspect the actual effective policy and installed drop-ins
+sudo sshd -T | grep -E '^(permitrootlogin|passwordauthentication) '
+sudo ls -la /etc/ssh/sshd_config.d
 
-# 3. Change these lines:
-PermitRootLogin yes                # Allow root login
-PasswordAuthentication yes         # Allow password authentication
+# 3. Restore a known-good WebOps SSH drop-in backup from the
+# same directory, if one exists, using the provider recovery console.
+# Avoid blindly editing sshd_config when a drop-in overrides it.
 
-# 4. Restart SSH
-sudo systemctl restart sshd
+# 4. Validate syntax before reloading or restarting SSH
+sudo sshd -t
 
-# 5. Test SSH connection (keep console open until verified!)
+# 5. Keep the console open until a second SSH login succeeds.
 ```
 
 **Hardening SSH (Optional, For Production):**
 If you want to harden SSH after installation:
 ```bash
-# Edit config before installation
+# Only after confirming a second successful SSH-key session and console access:
+ENABLE_SSH_HARDENING=true
+SSH_ACCESS_CHANGE_CONFIRMED=true
 PERMIT_ROOT_LOGIN=prohibit-password  # Require SSH keys for root
 SSH_PASSWORD_AUTH=no                 # Disable password authentication
 

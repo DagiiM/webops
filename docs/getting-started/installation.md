@@ -281,9 +281,9 @@ python manage.py test_deployment --url https://github.com/django/django-sample
 ### **1. System Security**
 
 ```bash
-# Update SSH configuration
-sudo nano /etc/ssh/sshd_config
-# Set: PermitRootLogin no, PasswordAuthentication no
+# Normal installation preserves the SSH configuration.
+# Review effective settings, and confirm alternative access before any manual hardening.
+sudo sshd -T | grep -E '^(permitrootlogin|passwordauthentication) '
 
 # Configure automatic updates
 sudo apt install unattended-upgrades

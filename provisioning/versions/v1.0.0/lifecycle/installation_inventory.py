@@ -20,6 +20,7 @@ VERSION = 1
 MARKER = ".webops-install-origin"
 CONFIG_PATHS = (
     "/etc/ssh/sshd_config",
+    "/etc/ssh/sshd_config.d/99-webops.conf",
     "/etc/hostname",
     "/etc/hosts",
     "/etc/timezone",

@@ -112,29 +112,25 @@ validate_systemd() {
 }
 
 validate_ports() {
-    # Check if required ports are available
     log_step "Checking port availability..."
-
-    local required_ports=(80 443 22)
-    local failed=0
-
-    for port in "${required_ports[@]}"; do
-        if ss -tuln | grep -q ":${port} "; then
-            log_warn "Port $port is already in use"
-            # Don't fail for port 22 (SSH)
-            if [[ "$port" != "22" ]]; then
-                failed=1
-            fi
+    if ! command -v ss >/dev/null 2>&1; then
+        log_error "Cannot inspect ports: ss is unavailable (install iproute2)"
+        return 1
+    fi
+    local listening
+    if ! listening="$(ss -tuln 2>/dev/null)"; then
+        log_error "Cannot inspect ports: ss failed"
+        return 1
+    fi
+    local port
+    for port in 80 443 22; do
+        if grep -Eq ":$port[[:space:]]" <<< "$listening"; then
+            log_warn "Port $port is in use; verify ownership before configuring services"
         else
             log_info "Port $port is available ✓"
         fi
     done
-
-    if (( failed == 1 )); then
-        log_warn "Some required ports are in use (may need manual configuration)"
-    fi
-
-    return 0  # Don't fail validation for port conflicts
+    return 0
 }
 
 validate_disk_io() {
@@ -204,7 +200,7 @@ run_all_validations() {
     validate_systemd || failed=1
     validate_resources || failed=1
     validate_network || failed=1
-    validate_ports || true  # Don't fail on port conflicts
+    validate_ports || failed=1  # Unknown port state is an error; occupied ports warn
     validate_disk_io || true  # Don't fail on I/O performance
     validate_existing_installation || true
 

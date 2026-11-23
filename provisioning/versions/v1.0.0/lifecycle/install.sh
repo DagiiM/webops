@@ -517,11 +517,11 @@ configure_ssh_security() {
     echo ""
     echo -e "  ${BLUE}Choose your SSH security level:${NC}"
     echo ""
-    echo -e "  ${GREEN}[1] Easy Access${NC} ${BLUE}(Development/Testing)${NC}"
-    echo -e "      • Root login with password: ${GREEN}Enabled${NC}"
-    echo -e "      • Password authentication: ${GREEN}Enabled${NC}"
+    echo -e "  ${GREEN}[1] Preserve Existing SSH${NC} ${BLUE}(Development/Testing)${NC}"
+    echo -e "      • Root login/password: ${GREEN}Not changed${NC}"
+    echo -e "      • SSH daemon configuration: ${GREEN}Preserved${NC}"
     echo -e "      • Best for: Quick setup, testing, learning"
-    echo -e "      • Security: ⚠️  Lower (convenient but less secure)"
+    echo -e "      • Security: existing administrator policy retained"
     echo ""
     echo -e "  ${YELLOW}[2] Hardened${NC} ${BLUE}(Production)${NC}"
     echo -e "      • Root login: ${YELLOW}SSH keys only${NC}"
@@ -539,21 +539,25 @@ configure_ssh_security() {
 
         case "$SSH_CHOICE" in
             1)
-                SSH_SECURITY_LEVEL="easy"
+                SSH_SECURITY_LEVEL="preserve"
+                ENABLE_SSH_HARDENING="false"
+                SSH_ACCESS_CHANGE_CONFIRMED="false"
                 PERMIT_ROOT_LOGIN="yes"
                 SSH_PASSWORD_AUTH="yes"
                 echo ""
-                echo -e "  ${GREEN}✓${NC} Selected: ${GREEN}Easy Access${NC}"
-                echo -e "  Root login and password authentication will be enabled"
+                echo -e "  ${GREEN}✓${NC} Selected: ${GREEN}Preserve Existing SSH${NC}"
+                echo -e "  Existing SSH settings will be kept unchanged"
                 break
                 ;;
             2)
                 SSH_SECURITY_LEVEL="hardened"
+                ENABLE_SSH_HARDENING="true"
+                SSH_ACCESS_CHANGE_CONFIRMED="false"
                 PERMIT_ROOT_LOGIN="prohibit-password"
                 SSH_PASSWORD_AUTH="no"
                 echo ""
                 echo -e "  ${YELLOW}✓${NC} Selected: ${YELLOW}Hardened${NC}"
-                echo -e "  SSH keys will be required for root login"
+                echo -e "  SSH keys will be required for root login after explicit opt-in"
                 echo ""
                 echo -e "  ${RED}⚠️  IMPORTANT: Make sure you have SSH keys configured!${NC}"
                 echo -e "  ${YELLOW}If you get locked out, use your VPS console access${NC}"
@@ -561,11 +565,14 @@ configure_ssh_security() {
                 read -p "  Continue with hardened SSH? (yes/no): " -r CONFIRM
                 echo ""
                 if [[ $CONFIRM =~ ^[Yy][Ee][Ss]$ ]]; then
+                    SSH_ACCESS_CHANGE_CONFIRMED="true"
                     break
                 else
                     echo -e "  ${YELLOW}→${NC} Switching to Easy Access mode..."
                     echo ""
-                    SSH_SECURITY_LEVEL="easy"
+                    SSH_SECURITY_LEVEL="preserve"
+                    ENABLE_SSH_HARDENING="false"
+                    SSH_ACCESS_CHANGE_CONFIRMED="false"
                     PERMIT_ROOT_LOGIN="yes"
                     SSH_PASSWORD_AUTH="yes"
                     break
@@ -664,6 +671,8 @@ create_default_config() {
     # Use collected configuration values
     local permit_root="${PERMIT_ROOT_LOGIN:-yes}"
     local ssh_pass_auth="${SSH_PASSWORD_AUTH:-yes}"
+    local ssh_hardening="${ENABLE_SSH_HARDENING:-false}"
+    local ssh_confirm="${SSH_ACCESS_CHANGE_CONFIRMED:-false}"
 
     # Create default configuration
     cat > "$config_file" <<EOF
@@ -706,7 +715,9 @@ ENABLE_AUTO_UPDATES=false
 
 # SSH Security Configuration
 # Set ENABLE_SSH_HARDENING=false to skip SSH hardening entirely
-ENABLE_SSH_HARDENING=true
+ENABLE_SSH_HARDENING=$ssh_hardening
+# Explicit informed operator consent required for any SSH change
+SSH_ACCESS_CHANGE_CONFIRMED=$ssh_confirm
 # Root login options: no, yes, prohibit-password, forced-commands-only
 PERMIT_ROOT_LOGIN=${permit_root}
 # Password authentication (set to no to require SSH keys only)
@@ -800,6 +811,40 @@ rollback_installation() {
 
 run_installation_preflight() {
     log_step "Checking VPS prerequisites before changing system services..."
+    # Reject unsafe SSH policies BEFORE the inventory begins host changes.
+    # A copied config alone is never informed consent.
+    local ssh_config policy confirmed
+    ssh_config="$(resolve_config_file_for_read)"
+    if [[ -f "$ssh_config" ]]; then
+        policy="$(grep '^ENABLE_SSH_HARDENING=' "$ssh_config" | tail -n 1 | cut -d= -f2- || true)"
+        confirmed="$(grep '^SSH_ACCESS_CHANGE_CONFIRMED=' "$ssh_config" | tail -n 1 | cut -d= -f2- || true)"
+        if [[ "$policy" == "true" && "$confirmed" != "true" ]]; then
+            log_error "SSH policy changes require explicit SSH_ACCESS_CHANGE_CONFIRMED=true"
+            return 1
+        fi
+        if [[ "$policy" == "true" ]]; then
+            local ssh_root_choice ssh_password_choice
+            ssh_root_choice="$(grep '^PERMIT_ROOT_LOGIN=' "$ssh_config" | tail -n 1 | cut -d= -f2- || true)"
+            ssh_password_choice="$(grep '^SSH_PASSWORD_AUTH=' "$ssh_config" | tail -n 1 | cut -d= -f2- || true)"
+            case "$ssh_root_choice:$ssh_password_choice" in
+                yes:yes|prohibit-password:no) ;;
+                *) log_error "Unsupported SSH hardening profile; refuse before host changes"; return 1 ;;
+            esac
+            if grep -Eq '^SSH_PASSWORD_AUTH=no$' "$ssh_config" &&
+               [[ ! -s /root/.ssh/authorized_keys ]]; then
+                log_error "Key-only SSH requires a root authorized key before installing"
+                return 1
+            fi
+            if [[ ! -f /etc/ssh/sshd_config ||
+                  ! -d /etc/ssh/sshd_config.d ]] ||
+               ! grep -Eq '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config.d/\*\.conf([[:space:]]|$)' /etc/ssh/sshd_config ||
+               ! command -v sshd >/dev/null 2>&1 ||
+               ! sshd -t; then
+                log_error "SSH hardening requires a working, drop-in-compatible sshd"
+                return 1
+            fi
+        fi
+    fi
     if WEBOPS_ROOT="$(detect_install_root)" "$SCRIPT_DIR/../setup/validate.sh"; then
         log_success "VPS preflight passed before system changes"
         return 0

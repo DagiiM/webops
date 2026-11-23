@@ -48,15 +48,13 @@ sudo systemctl disable dovecot
 sudo systemctl disable squid
 sudo systemctl disable snmpd
 
-# SSH Server Hardening
-sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-sudo sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-sudo sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/' /etc/ssh/sshd_config
-sudo sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 300/' /etc/ssh/sshd_config
-sudo sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/' /etc/ssh/sshd_config
-
-sudo systemctl restart sshd
+# SSH hardening must be reviewed separately, with provider-console access.
+# A normal WebOps installation preserves existing SSH authentication.
+# Do not apply blind sed replacements against sshd_config.
+# Verify a second key-only login BEFORE changing the server policy.
+sudo sshd -t
+sudo sshd -T | grep -E '^(passwordauthentication|permitrootlogin|maxauthtries) '
+# See provisioning/versions/v1.0.0/README.md for the opt-in process.
 ```
 
 ### Docker Security Hardening

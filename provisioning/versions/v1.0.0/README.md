@@ -435,43 +435,35 @@ Old installs without a trusted inventory refuse automatic removal.
 
 The installation automatically applies:
 
-1. **SSH Hardening** (Configurable)
-   - Control root login via PERMIT_ROOT_LOGIN setting
-   - Configure password authentication
-   - Limit max auth tries
-   - Enable public key authentication
+1. **SSH preservation (default)**
 
-   **Default Configuration (Prioritizes Accessibility):**
-   - Root login: **Enabled** (PERMIT_ROOT_LOGIN=yes)
-   - Password authentication: **Enabled** (SSH_PASSWORD_AUTH=yes)
+   Normal `make install` keeps existing SSH authentication settings unchanged,
+   including provider directives, root login, passwords, authorized keys and port.
 
-   **⚠️  For production, consider hardening SSH:**
+   To intentionally harden SSH, first establish a second, successful key-only
+   SSH session and retain recovery console access. Then explicitly configure:
+
    ```bash
-   # Disable SSH hardening entirely
-   ENABLE_SSH_HARDENING=false
-
-   # Allow root login with SSH keys only (RECOMMENDED for production)
+   ENABLE_SSH_HARDENING=true
+   SSH_ACCESS_CHANGE_CONFIRMED=true
    PERMIT_ROOT_LOGIN=prohibit-password
    SSH_PASSWORD_AUTH=no
-
-   # Disable root login entirely (most secure, but can lock you out)
-   PERMIT_ROOT_LOGIN=no
-   SSH_PASSWORD_AUTH=no
-
-   # Keep defaults (less secure, better for development/testing)
-   PERMIT_ROOT_LOGIN=yes
-   SSH_PASSWORD_AUTH=yes
+   SSH_MAX_AUTH_TRIES=3
    ```
 
-   **Emergency Recovery:**
-   ```bash
-   # Restore original SSH configuration
-   sudo /home/douglas/webops/.webops/versions/v1.0.0/bin/webops restore-ssh
-   ```
+   Opted-in hardening validates a root authorized key, effective `sshd -T`
+   settings, and the SSH daemon configuration. It writes only
+   `/etc/ssh/sshd_config.d/99-webops.conf`, leaving provider sshd_config intact.
+   A failing validation or restart restores the prior drop-in.
+
+   For recovery, use the provider console to inspect the SSH drop-in and
+   restore an existing backup if needed. The previously documented
+   `webops restore-ssh` command is not implemented.
 
 2. **Firewall Configuration**
    - Default deny incoming
-   - Allow SSH, HTTP, HTTPS
+   - Allow detected SSH listener ports before enabling a new firewall, plus HTTP/HTTPS
+   - Preserve administrator-managed active firewall rules
    - UFW (Ubuntu/Debian) or firewalld (RHEL-based)
 
 3. **Kernel Hardening**

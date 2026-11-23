@@ -248,7 +248,7 @@ CONTROL_PANEL_DIR=/opt/webops/control-panel
 DEPLOYMENTS_DIR=/opt/webops/deployments
 POSTGRES_ENABLED=true
 CONTROL_PANEL_ENABLED=true
-ENABLE_SSH_HARDENING=true
+ENABLE_SSH_HARDENING=false
 ENABLE_FIREWALL=true
 ```
 
@@ -272,10 +272,9 @@ Installs and configures:
 
 Applies security configurations:
 - **SSH Hardening** (if enabled, configurable):
-  - Default: `PermitRootLogin yes` (allows root login)
-  - Default: `PasswordAuthentication yes` (allows password authentication)
-  - Sets `MaxAuthTries 3`
-  - **Note:** Defaults prioritize accessibility over security. See configuration section to harden SSH.
+  - Default: existing SSH settings are preserved unchanged.
+  - Explicit SSH changes require both ENABLE_SSH_HARDENING=true and SSH_ACCESS_CHANGE_CONFIRMED=true, plus a verified alternate login and recovery console.
+  - The main sshd_config is never replaced; WebOps uses a validated drop-in.
 - **Firewall Configuration**:
   - Allows SSH (22), HTTP (80), HTTPS (443)
   - Allows control panel port (default: 8000)
@@ -449,8 +448,9 @@ CONTROL_PANEL_HOST=0.0.0.0
 # Firewall
 ENABLE_FIREWALL=true
 
-# SSH Hardening (Defaults allow root and password login)
-ENABLE_SSH_HARDENING=true
+# SSH hardening off by default; preserve SSH authentication
+ENABLE_SSH_HARDENING=false
+SSH_ACCESS_CHANGE_CONFIRMED=false
 PERMIT_ROOT_LOGIN=yes                 # Options: no, yes, prohibit-password
 SSH_PASSWORD_AUTH=yes                 # Options: yes, no
 SSH_MAX_AUTH_TRIES=3
@@ -873,7 +873,7 @@ sudo systemctl restart sshd
 **Option 2: Use SSH recovery script**
 ```bash
 # From console/VNC
-sudo /opt/webops/.webops/versions/v1.0.0/bin/webops restore-ssh
+# Recovery requires provider console and a known-good SSH config backup; see TROUBLESHOOTING.md
 
 # This restores SSH to defaults
 ```
@@ -1278,7 +1278,7 @@ sudo /opt/webops/.webops/versions/v1.0.0/lifecycle/repair.sh      # Repair insta
 sudo /opt/webops/.webops/versions/v1.0.0/lifecycle/uninstall.sh   # Uninstall
 
 # SSH recovery
-sudo /opt/webops/.webops/versions/v1.0.0/bin/webops restore-ssh   # Restore SSH config
+# Recovery requires provider console and a known-good SSH config backup; see TROUBLESHOOTING.md   # Restore SSH config
 ```
 
 ---
