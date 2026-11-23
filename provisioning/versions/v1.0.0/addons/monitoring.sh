@@ -70,6 +70,9 @@ if [[ -z "${ALERTMANAGER_DATA_DIR:-}" ]]; then
     readonly ALERTMANAGER_DATA_DIR="/var/lib/alertmanager"
 fi
 
+# True only when WebOps installed Grafana for the first time in this run.
+GRAFANA_FRESH_PACKAGE="${GRAFANA_FRESH_PACKAGE:-false}"
+
 # Ports
 # Only set readonly variables if they're not already set
 if [[ -z "${PROMETHEUS_PORT:-}" ]]; then
@@ -92,8 +95,14 @@ fi
 install_monitoring_packages() {
     log_step "Installing monitoring packages..."
 
-    # Stop monitoring services before replacing binaries for idempotent re-runs.
-    systemctl stop prometheus node-exporter alertmanager grafana-server 2>/dev/null || true
+    # Never stop existing administrator-owned monitoring services during a
+    # first WebOps installation. Existing WebOps monitoring can be restarted
+    # when its recorded component ownership is established.
+    if is_component_installed "$ADDON_NAME"; then
+        systemctl stop prometheus node-exporter alertmanager grafana-server 2>/dev/null || true
+    else
+        log_info "No existing WebOps monitoring ownership; preserving shared services"
+    fi
     
     # Install required packages
     pkg_install wget curl tar jq
@@ -155,19 +164,52 @@ install_monitoring_packages() {
     cd /tmp
     rm -rf "alertmanager-${ALERTMANAGER_VERSION}.linux-amd64"*
     
-    # Install Grafana
-    log_info "Installing Grafana..."
-    case "$OS_ID" in
-        ubuntu|debian)
-            # Add Grafana APT repository
-            wget -q -O - https://apt.grafana.com/gpg.key | apt-key add -
-            echo "deb https://apt.grafana.com stable main" > /etc/apt/sources.list.d/grafana.list
-            apt-get update
-            pkg_install grafana
-            ;;
-        rocky|almalinux)
-            # Add Grafana YUM repository
-            cat > /etc/yum.repos.d/grafana.repo <<EOF
+    # Install Grafana without trusting a remote APT key system-wide.
+    # Reusing a previously installed Grafana never rewrites its repository.
+    log_info "Checking Grafana package..."
+    if command -v grafana-server >/dev/null 2>&1; then
+        log_info "Existing Grafana installation detected; preserving package"
+    else
+        GRAFANA_FRESH_PACKAGE=true
+        case "$OS_ID" in
+            ubuntu|debian)
+                pkg_install ca-certificates gnupg
+                install -d -m 755 /etc/apt/keyrings
+                if [[ ! -s /etc/apt/keyrings/grafana.asc ]]; then
+                    local key_tmp
+                    key_tmp="$(mktemp /etc/apt/keyrings/.grafana-key.XXXXXX)"
+                    if ! curl --fail --location --silent --show-error --retry 3 \
+                        --max-time 60 https://apt.grafana.com/gpg-full.key -o "$key_tmp"; then
+                        rm -f "$key_tmp"
+                        log_error "Could not download the Grafana signing key"
+                        return 1
+                    fi
+                    chmod 644 "$key_tmp"
+                    mv "$key_tmp" /etc/apt/keyrings/grafana.asc
+                fi
+                local apt_repo
+                apt_repo="deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main"
+                if [[ -s /etc/apt/sources.list.d/grafana.list ]] &&
+                   ! grep -Fxq "$apt_repo" /etc/apt/sources.list.d/grafana.list; then
+                    # The older WebOps installer used the legacy unsigned line.
+                    # Back it up; refuse any other administrator-managed source.
+                    if grep -Fxq 'deb https://apt.grafana.com stable main' /etc/apt/sources.list.d/grafana.list &&
+                       [[ "$(wc -l </etc/apt/sources.list.d/grafana.list)" -eq 1 ]]; then
+                        cp -p /etc/apt/sources.list.d/grafana.list \
+                            /etc/apt/sources.list.d/grafana.list.webops-legacy-backup
+                    else
+                        log_error "Existing Grafana APT source differs from the WebOps-managed repository"
+                        log_error "Refusing to overwrite administrator-managed APT sources"
+                        return 1
+                    fi
+                fi
+                printf '%s\n' "$apt_repo" > /etc/apt/sources.list.d/grafana.list
+                apt-get update
+                pkg_install grafana
+                ;;
+            rocky|almalinux)
+                if [[ ! -e /etc/yum.repos.d/grafana.repo ]]; then
+                    cat > /etc/yum.repos.d/grafana.repo <<'EOF'
 [grafana]
 name=grafana
 baseurl=https://rpm.grafana.com
@@ -178,10 +220,16 @@ gpgkey=https://rpm.grafana.com/gpg.key
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 EOF
-            pkg_install grafana
-            ;;
-    esac
-    
+                fi
+                pkg_install grafana
+                ;;
+            *)
+                log_error "Grafana package installation unsupported on $OS_ID"
+                return 1
+                ;;
+        esac
+    fi
+
     # Create Grafana directories
     ensure_directory "$GRAFANA_DATA_DIR" "$GRAFANA_USER:$GRAFANA_USER" "755"
     
@@ -499,8 +547,28 @@ EOF
 configure_grafana() {
     log_step "Configuring Grafana..."
     
-    # Create Grafana configuration
-    cat > /etc/grafana/grafana.ini <<EOF
+    # Never regenerate Grafana admin credentials on retry or replace
+    # configuration owned by another administrator/application.
+    local grafana_ini="/etc/grafana/grafana.ini"
+    local managed_grafana_config=false
+    if [[ -s "$grafana_ini" ]] &&
+       grep -Fqx '# WebOps Grafana Configuration' "$grafana_ini"; then
+        managed_grafana_config=true
+        log_info "Existing WebOps Grafana config detected; preserving credentials"
+    elif [[ -s "$grafana_ini" && "$GRAFANA_FRESH_PACKAGE" != "true" ]]; then
+        log_warn "Preserving pre-existing Grafana configuration and credentials"
+        log_warn "Verify its configured port matches WebOps GRAFANA_PORT=$GRAFANA_PORT"
+    else
+        if [[ -e "$grafana_ini" ]]; then
+            local grafana_backup="${grafana_ini}.webops-package-original"
+            if [[ ! -e "$grafana_backup" ]]; then
+                cp -p "$grafana_ini" "$grafana_backup"
+            fi
+        fi
+        # Only the freshly installed Grafana package receives WebOps defaults.
+        # Keep the config readable by the grafana service group, not world.
+        umask 027
+        cat > "$grafana_ini" <<EOF
 # WebOps Grafana Configuration
 # Generated by WebOps addons/monitoring.sh
 
@@ -544,13 +612,19 @@ provisioning = /etc/grafana/provisioning
 [api]
 enable_api = true
 EOF
-    
+        chown "root:$GRAFANA_USER" "$grafana_ini"
+        chmod 640 "$grafana_ini"
+        managed_grafana_config=true
+    fi
+
     # Create provisioning directories
     ensure_directory "/etc/grafana/provisioning/datasources" "root:root" "755"
     ensure_directory "/etc/grafana/provisioning/dashboards" "root:root" "755"
     
-    # Create Prometheus datasource
-    cat > /etc/grafana/provisioning/datasources/prometheus.yml <<EOF
+    # Do not overwrite another application's Grafana datasource.
+    if [[ ! -e /etc/grafana/provisioning/datasources/prometheus.yml ]] ||
+       grep -Fqx '# WebOps Grafana Datasources' /etc/grafana/provisioning/datasources/prometheus.yml; then
+        cat > /etc/grafana/provisioning/datasources/prometheus.yml <<EOF
 # WebOps Grafana Datasources
 # Generated by WebOps addons/monitoring.sh
 
@@ -564,9 +638,14 @@ datasources:
     isDefault: true
     editable: true
 EOF
-    
-    # Create dashboard provisioning
-    cat > /etc/grafana/provisioning/dashboards/webops.yml <<EOF
+    else
+        log_warn "Existing Prometheus datasource is not WebOps-managed; preserving it"
+    fi
+
+    # Keep a user-edited dashboard provisioning file intact.
+    if [[ ! -e /etc/grafana/provisioning/dashboards/webops.yml ]] ||
+       grep -Fqx '# WebOps Grafana Dashboards' /etc/grafana/provisioning/dashboards/webops.yml; then
+        cat > /etc/grafana/provisioning/dashboards/webops.yml <<EOF
 # WebOps Grafana Dashboards
 # Generated by WebOps addons/monitoring.sh
 
@@ -583,12 +662,16 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
 EOF
-    
+    else
+        log_warn "Existing dashboards provisioning file is not WebOps-managed; preserving it"
+    fi
+
     # Create dashboards directory
     ensure_directory "/var/lib/grafana/dashboards/webops" "$GRAFANA_USER:$GRAFANA_USER" "755"
     
-    # Create WebOps dashboard
-    cat > /var/lib/grafana/dashboards/webops/overview.json <<EOF
+    # A user-customized overview dashboard must never be overwritten on retry.
+    if [[ ! -e /var/lib/grafana/dashboards/webops/overview.json ]]; then
+        cat > /var/lib/grafana/dashboards/webops/overview.json <<EOF
 {
   "dashboard": {
     "id": null,
@@ -686,10 +769,17 @@ EOF
   }
 }
 EOF
-    
-    # Set ownership and permissions
+    else
+        log_info "Existing WebOps dashboard preserved"
+    fi
+
+    # Limit permission changes to the WebOps-owned data directory.
+    # Do not alter administrator-managed Grafana configuration permissions.
     chown -R "$GRAFANA_USER:$GRAFANA_USER" "$GRAFANA_DATA_DIR"
-    chmod 640 /etc/grafana/grafana.ini
+    if [[ "$managed_grafana_config" == "true" ]]; then
+        chown "root:$GRAFANA_USER" "$grafana_ini"
+        chmod 640 "$grafana_ini"
+    fi
     
     log_success "Grafana configured ✓"
 }
@@ -805,61 +895,200 @@ EOF
     log_success "Monitoring systemd services created ✓"
 }
 
+grafana_health_ready() {
+    local body
+    # Bypass proxy environment variables, enforce short timeouts and require
+    # Grafana's own database health instead of accepting any HTTP 200 response.
+    body="$(curl --silent --show-error --fail --noproxy '*' \
+        --connect-timeout 2 --max-time 5 \
+        "http://127.0.0.1:$GRAFANA_PORT/api/health" 2>/dev/null)" || return 1
+    if command -v jq >/dev/null 2>&1; then
+        printf '%s\n' "$body" | jq -e '.database == "ok"' >/dev/null 2>&1
+    else
+        printf '%s\n' "$body" | grep -Eq '"database"[[:space:]]*:[[:space:]]*"ok"'
+    fi
+}
+
+report_grafana_startup_failure() {
+    local dir="${WEBOPS_MONITORING_LOG_DIR:-/var/log/webops}"
+    local report=""
+    log_error "Grafana is not healthy at 127.0.0.1:$GRAFANA_PORT/api/health"
+    if systemctl is-failed --quiet grafana-server 2>/dev/null; then
+        log_error "grafana-server.service entered FAILED state"
+    elif systemctl is-active --quiet grafana-server 2>/dev/null; then
+        log_error "Grafana service is active but HTTP/database health is not ready"
+    else
+        log_error "Grafana service is not active"
+    fi
+
+    # Capture raw journals in a root-only file, not the general install log.
+    # Journals may contain private information; operators should redact first.
+    if [[ ! -d "$dir" ]]; then
+        install -d -m 700 "$dir" 2>/dev/null || true
+    fi
+    if [[ -d "$dir" ]]; then
+        report="$dir/grafana-startup-$(date +%Y%m%d-%H%M%S)-$$.log"
+        (
+            umask 077
+            {
+                printf 'WebOps Grafana startup diagnostics (private)\n'
+                date -u
+                printf '\nGrafana systemd status:\n'
+                systemctl status grafana-server --no-pager --full --lines=35 || true
+                printf '\nGrafana journal (recent):\n'
+                journalctl -u grafana-server -b -n 80 --no-pager || true
+                printf '\nGrafana application log (recent):\n'
+                if [[ -r /var/log/grafana/grafana.log ]]; then
+                    tail -n 60 /var/log/grafana/grafana.log
+                elif [[ -r "$GRAFANA_DATA_DIR/grafana.log" ]]; then
+                    tail -n 60 "$GRAFANA_DATA_DIR/grafana.log"
+                fi
+                printf '\nListeners and filesystem state:\n'
+                ss -lntp 2>/dev/null | grep -E ":$GRAFANA_PORT[[:space:]]" || true
+                df -h "$GRAFANA_DATA_DIR" /etc/grafana 2>/dev/null || true
+                stat -c '%U:%G %a %n' \
+                    /etc/grafana/grafana.ini "$GRAFANA_DATA_DIR" \
+                    /var/log/grafana 2>/dev/null || true
+            } > "$report" 2>&1
+        ) || true
+        if [[ -f "$report" ]]; then
+            chmod 600 "$report" 2>/dev/null || true
+            log_error "Detailed Grafana diagnostics: $report"
+            log_warn "Report may contain private information; redact before sharing"
+        fi
+    fi
+    log_error "Inspect: systemctl status grafana-server --no-pager -l"
+    log_error "Inspect: journalctl -u grafana-server -b -n 100 --no-pager"
+}
+
+diagnose_monitoring_readonly() {
+    log_step "Checking monitoring service status without modifying configuration"
+    local service failures=0
+    for service in prometheus node-exporter alertmanager grafana-server; do
+        if systemctl is-active --quiet "$service" 2>/dev/null; then
+            log_success "$service is active"
+        else
+            log_warn "$service is not active"
+            failures=$((failures + 1))
+        fi
+    done
+    if grafana_health_ready; then
+        log_success "Grafana HTTP/database health is good"
+    else
+        log_error "Grafana HTTP/database health failed on port $GRAFANA_PORT"
+        failures=$((failures + 1))
+    fi
+    if ((failures > 0)); then
+        log_error "$failures monitoring checks did not pass"
+        return 1
+    fi
+}
+
+repair_grafana_only() {
+    log_step "Safely repairing Grafana service readiness (no package reinstall)"
+    if grafana_health_ready; then
+        log_success "Grafana already healthy; no changes necessary"
+        return 0
+    fi
+    if ! command -v systemctl >/dev/null 2>&1; then
+        log_error "systemctl unavailable; cannot start Grafana in this environment"
+        return 1
+    fi
+    if ! systemctl start grafana-server; then
+        log_error "grafana-server could not be started"
+        report_grafana_startup_failure
+        return 1
+    fi
+    local max_attempts="${MONITORING_GRAFANA_MAX_ATTEMPTS:-40}"
+    local poll_seconds="${MONITORING_GRAFANA_POLL_SECONDS:-3}"
+    if ! [[ "$max_attempts" =~ ^[0-9]+$ ]] ||
+       ((max_attempts < 1 || max_attempts > 60)) ||
+       ! [[ "$poll_seconds" =~ ^[0-9]+$ ]] ||
+       ((poll_seconds > 10)); then
+        log_error "Invalid Grafana readiness retry settings"
+        return 1
+    fi
+    local attempt
+    for ((attempt=1; attempt<=max_attempts; attempt++)); do
+        if grafana_health_ready; then
+            log_success "Grafana recovered; no other services or data were changed"
+            return 0
+        fi
+        if systemctl is-failed --quiet grafana-server 2>/dev/null; then
+            break
+        fi
+        if ((attempt < max_attempts)); then
+            sleep "$poll_seconds"
+        fi
+    done
+    report_grafana_startup_failure
+    return 1
+}
+
 setup_monitoring_services() {
     log_step "Starting monitoring services..."
-    
-    # Start Node Exporter first
-    systemctl start node-exporter
-    
-    # Start AlertManager
-    systemctl start alertmanager
-    
-    # Start Prometheus
-    systemctl start prometheus
-    
-    # Start Grafana
-    systemctl start grafana-server
-    
-    # Wait for services to start
-    local max_attempts=10
-    local attempt=1
-    
-    # Check Prometheus
-    while (( attempt <= max_attempts )); do
-        if curl -f -s "http://localhost:$PROMETHEUS_PORT/-/healthy" >/dev/null; then
+
+    local service
+    for service in node-exporter alertmanager prometheus grafana-server; do
+        if ! systemctl start "$service"; then
+            log_error "Could not start systemd service: $service"
+            if [[ "$service" == "grafana-server" ]]; then
+                report_grafana_startup_failure
+            else
+                systemctl status "$service" --no-pager --lines=25 || true
+            fi
+            return 1
+        fi
+    done
+
+    local attempt
+    for ((attempt=1; attempt<=10; attempt++)); do
+        if curl --silent --fail --noproxy '*' --connect-timeout 2 --max-time 4 \
+            "http://127.0.0.1:$PROMETHEUS_PORT/-/healthy" >/dev/null 2>&1; then
             log_success "Prometheus is running ✓"
             break
         fi
-        
-        log_info "Waiting for Prometheus to start (attempt $attempt/$max_attempts)..."
-        sleep 2
-        ((attempt++))
-        
-        if (( attempt > max_attempts )); then
-            log_error "Prometheus failed to start"
+        if ((attempt == 10)); then
+            log_error "Prometheus did not become healthy after 10 attempts"
             return 1
         fi
-    done
-    
-    # Check Grafana
-    attempt=1
-    while (( attempt <= max_attempts )); do
-        if curl -f -s "http://localhost:$GRAFANA_PORT/api/health" >/dev/null; then
-            log_success "Grafana is running ✓"
-            break
-        fi
-        
-        log_info "Waiting for Grafana to start (attempt $attempt/$max_attempts)..."
         sleep 2
-        ((attempt++))
-        
-        if (( attempt > max_attempts )); then
-            log_error "Grafana failed to start"
+    done
+
+    # Grafana database migrations can require more than the old 20-second window.
+    local max_attempts="${MONITORING_GRAFANA_MAX_ATTEMPTS:-40}"
+    local poll_seconds="${MONITORING_GRAFANA_POLL_SECONDS:-3}"
+    if ! [[ "$max_attempts" =~ ^[0-9]+$ ]] ||
+       ((max_attempts < 1 || max_attempts > 60)); then
+        log_error "MONITORING_GRAFANA_MAX_ATTEMPTS must be 1-60"
+        return 1
+    fi
+    if ! [[ "$poll_seconds" =~ ^[0-9]+$ ]] ||
+       ((poll_seconds > 10)); then
+        log_error "MONITORING_GRAFANA_POLL_SECONDS must be 0-10"
+        return 1
+    fi
+
+    for ((attempt=1; attempt<=max_attempts; attempt++)); do
+        if grafana_health_ready; then
+            log_success "Grafana HTTP and database health verified ✓"
+            log_success "All monitoring services started ✓"
+            return 0
+        fi
+        if systemctl is-failed --quiet grafana-server 2>/dev/null; then
+            log_error "Grafana entered failed state during startup"
+            report_grafana_startup_failure
             return 1
         fi
+        log_info "Waiting for Grafana readiness ($attempt/$max_attempts)..."
+        if ((attempt < max_attempts)); then
+            sleep "$poll_seconds"
+        fi
     done
-    
-    log_success "All monitoring services started ✓"
+
+    log_error "Grafana did not become healthy after $max_attempts checks"
+    report_grafana_startup_failure
+    return 1
 }
 
 #=============================================================================
@@ -906,8 +1135,9 @@ check_monitoring_health() {
         return 1
     fi
     
-    if ! curl -f -s "http://localhost:$GRAFANA_PORT/api/health" >/dev/null; then
-        log_error "Grafana health check failed"
+    if ! grafana_health_ready; then
+        log_error "Grafana health check failed (HTTP endpoint or database)"
+        report_grafana_startup_failure
         return 1
     fi
     
@@ -1292,9 +1522,15 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         health)
             check_monitoring_health
             ;;
+        doctor)
+            diagnose_monitoring_readonly
+            ;;
+        repair)
+            repair_grafana_only
+            ;;
         *)
             log_error "Unknown action: $action"
-            echo "Usage: $0 {install|uninstall [--purge]|status|version|health}"
+            echo "Usage: $0 {install|uninstall [--purge]|status|version|health|doctor|repair}"
             exit 1
             ;;
     esac
