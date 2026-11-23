@@ -125,12 +125,17 @@ cmd_install() {
     # Load configuration
     load_config
     
-    # Run pre-flight validation
-    if ! "${SCRIPT_DIR}/../setup/validate.sh"; then
-        log_error "Pre-flight validation failed"
-        return 1
+    # The lifecycle installer has validated prerequisites BEFORE its
+    # system-changes phase; direct CLI invocations still run preflight.
+    if [[ "${WEBOPS_PREFLIGHT_VERIFIED:-false}" != "true" ]]; then
+        if ! "$SCRIPT_DIR/../setup/validate.sh"; then
+            log_error "Pre-flight validation failed"
+            return 1
+        fi
+    else
+        log_info "Preflight already verified before host changes"
     fi
-    
+
     # Install base system
     if ! "${SCRIPT_DIR}/../setup/base.sh"; then
         log_error "Base system installation failed"
