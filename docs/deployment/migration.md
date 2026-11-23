@@ -1537,9 +1537,9 @@ class Command(BaseCommand):
 
 For assistance with WebOps migrations, contact:
 
-- **Documentation**: [WebOps Migration Guide](https://webops.example.com/docs/migration)
+- **Documentation**: [WebOps Migration Guide](https://github.com/DagiiM/webops/blob/main/docs/deployment/migration.md)
 - **Support Team**: support@webops.example.com
-- **Community Forum**: [WebOps Community](https://community.webops.example.com)
+- **Community Forum**: [WebOps Community](https://github.com/DagiiM/webops/issues)
 - **Emergency Support**: +1-555-MIGRATE (644-7283)
 
 ---

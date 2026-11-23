@@ -303,14 +303,11 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install ESLint
-      run: npm install -g eslint @eslint/js
+    - name: Install locked ESLint dependencies
+      run: npm ci --prefix control-panel/static/js --no-audit --no-fund
 
     - name: Run ESLint on JavaScript files
-      run: |
-        cd control-panel/static/js
-        eslint *.js --format=json --output-file=eslint-report.json || true
-        eslint *.js --env browser,es6 --parser-options ecmaVersion:2020
+      run: npm run --prefix control-panel/static/js lint
 
     - name: Check for console.log statements
       run: |

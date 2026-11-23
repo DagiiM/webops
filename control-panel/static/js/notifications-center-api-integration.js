@@ -15,11 +15,6 @@
     }
 
     // Store original methods
-    const originalInit = NotificationsCenter.prototype.init;
-    const originalAddNotification = NotificationsCenter.prototype.addNotification;
-    const originalMarkAsRead = NotificationsCenter.prototype.markAsRead;
-    const originalMarkAllAsRead = NotificationsCenter.prototype.markAllAsRead;
-    const originalClearAll = NotificationsCenter.prototype.clearAll;
 
     /**
      * Override init method to load from API instead of localStorage
@@ -268,7 +263,7 @@
             audio.play().catch(() => {
                 // Ignore errors (browser may block autoplay)
             });
-        } catch (error) {
+        } catch {
             // Silently fail - not critical
         }
     };

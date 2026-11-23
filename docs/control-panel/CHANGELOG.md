@@ -116,7 +116,7 @@ hex_color = BrandingService.hsl_to_hex(hue, saturation, lightness)
 
 ### Migrating to v2.0.0 (Future)
 
-See [MIGRATION_GUIDE_V2.md](docs/MIGRATION_GUIDE_V2.md) for detailed migration instructions.
+See [MIGRATION_GUIDE_V2.md](MIGRATION_GUIDE_V2.md) for detailed migration instructions.
 
 ---
 
@@ -130,8 +130,8 @@ See [MIGRATION_GUIDE_V2.md](docs/MIGRATION_GUIDE_V2.md) for detailed migration i
 
 ## Links
 
-- [Legacy Code Cleanup Report](LEGACY_CLEANUP_FINAL_REPORT.md)
+- Legacy code cleanup report (not present in this checkout)
 - [TODO Tracking](TODO_TRACKING.md)
 - [Quick Start Refactoring Guide](QUICK_START_REFACTORING.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
+- [Contributing Guidelines](https://github.com/DagiiM/webops/blob/main/CONTRIBUTING.md)
 - [README](../README.md)

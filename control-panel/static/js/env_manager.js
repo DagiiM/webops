@@ -6,7 +6,6 @@
 'use strict';
 
 // State
-let currentEditingKey = null;
 let wizardData = null;
 
 // DOM Elements
@@ -78,7 +77,6 @@ document.addEventListener('click', (e) => {
  * Open modal for adding new variable
  */
 function openAddModal() {
-    currentEditingKey = null;
     modalTitle.textContent = 'Add Variable';
     varKeyInput.value = '';
     varValueInput.value = '';
@@ -91,7 +89,6 @@ function openAddModal() {
  * Open modal for editing existing variable
  */
 function openEditModal(key) {
-    currentEditingKey = key;
     modalTitle.textContent = 'Edit Variable';
     varKeyInput.value = key;
     varKeyInput.disabled = true;
@@ -117,7 +114,6 @@ function openEditModal(key) {
  */
 function closeVariableModal() {
     variableModal.classList.remove('active');
-    currentEditingKey = null;
     variableForm.reset();
 }
 

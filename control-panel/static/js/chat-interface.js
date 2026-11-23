@@ -36,7 +36,6 @@ class WebOpsChatInterface {
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
         const attachButton = document.getElementById('attachButton');
-        const quickActions = document.getElementById('quickActions');
         const sidebarClose = document.getElementById('sidebarClose');
         
         // Input events
@@ -50,6 +49,7 @@ class WebOpsChatInterface {
         sidebarClose.addEventListener('click', () => this.toggleSidebar());
         
         // Quick actions
+        const quickActions = document.getElementById('quickActions');
         quickActions.addEventListener('click', (e) => {
             if (e.target.classList.contains('webops-chat-quick-action')) {
                 this.handleQuickAction(e.target.dataset.action);
@@ -468,7 +468,7 @@ class WebOpsChatInterface {
     /**
      * Handle WebSocket close
      */
-    handleWebSocketClose(event) {
+    handleWebSocketClose() {
         this.isConnected = false;
         this.updateConnectionStatus('disconnected');
         this.hideTypingIndicator();
@@ -575,7 +575,7 @@ class WebOpsChatInterface {
             try {
                 const content = await this.readFileContent(file);
                 this.addMessage('user', `📎 Attached: ${file.name}\n\`\`\`\n${content}\n\`\`\``);
-            } catch (error) {
+            } catch {
                 this.addSystemMessage(`Failed to read file: ${file.name}`, 'error');
             }
         }
@@ -597,7 +597,6 @@ class WebOpsChatInterface {
      * Show suggestions
      */
     showSuggestions(suggestions) {
-        const quickActions = document.getElementById('quickActions');
         // Update quick actions with suggestions
         console.log('Suggestions received:', suggestions);
     }
@@ -750,13 +749,6 @@ class WebOpsChatInterface {
      * Setup focus management for accessibility
      */
     setupFocusManagement() {
-        const chatInput = document.getElementById('chatInput');
-        let lastFocusedElement = null;
-        
-        chatInput.addEventListener('focus', () => {
-            lastFocusedElement = document.activeElement;
-        });
-        
         // Trap focus in modal when needed
         document.addEventListener('focus', (e) => {
             if (document.querySelector('.webops-chat-sidebar.open')) {

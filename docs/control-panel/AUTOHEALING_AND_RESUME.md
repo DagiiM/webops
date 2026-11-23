@@ -364,8 +364,8 @@ Planned improvements to the autohealing system:
 
 - [LLM Prerequisites](./LLM_PREREQUISITES.md) - System dependencies
 - [Progress Tracking](./LLM_PROGRESS_TRACKING.md) - Download progress
-- [Deployment Service](../apps/deployments/services/llm.py) - Source code
-- [Autohealing Module](../apps/deployments/services/autohealing.py) - Autohealing implementation
+- [Deployment Service](https://github.com/DagiiM/webops/blob/main/control-panel/apps/deployments/services/llm.py) - Source code
+- [Autohealing Module](https://github.com/DagiiM/webops/blob/main/control-panel/apps/deployments/services/autohealing.py) - Autohealing implementation
 
 ## Support
 

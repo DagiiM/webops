@@ -149,5 +149,5 @@ Potential improvements to consider:
 ## Related Documentation
 
 - [LLM Prerequisites](./LLM_PREREQUISITES.md) - System dependencies
-- [LLM Deployment Guide](../CLAUDE.md#llm-deployment-prerequisites) - Quick setup
-- [Deployment Service](../apps/deployments/services/llm.py) - Source code
+- [LLM Deployment Guide](LLM_PREREQUISITES.md) - Quick setup
+- [Deployment Service](https://github.com/DagiiM/webops/blob/main/control-panel/apps/deployments/services/llm.py) - Source code

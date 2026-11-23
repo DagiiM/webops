@@ -319,4 +319,4 @@ This documentation template is part of WebOps and follows the same license.
 
 **Built with ❤️ for developers**
 
-Need help? Check out the [main documentation](https://docs.webops.dev) or [open an issue](https://github.com/webops/webops/issues).
+Need help? Check out the [main documentation](https://github.com/DagiiM/webops/tree/main/docs) or [open an issue](https://github.com/DagiiM/webops/issues).

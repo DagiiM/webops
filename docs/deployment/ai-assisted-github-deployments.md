@@ -17,7 +17,7 @@ make dev-install
 make dev
 ```
 
-`make dev-install` runs the [versioned development quickstart](../../provisioning/versions/v1.0.0/dev/quickstart.sh). It initializes the control panel, database and a local developer admin account. The development password is randomly generated and stored with restricted permissions in `control-panel/.dev_admin_password`. Never reuse development credentials in staging or production.
+`make dev-install` runs the [versioned development quickstart](https://github.com/DagiiM/webops/blob/main/provisioning/versions/v1.0.0/dev/quickstart.sh). It initializes the control panel, database and a local developer admin account. The development password is randomly generated and stored with restricted permissions in `control-panel/.dev_admin_password`. Never reuse development credentials in staging or production.
 
 **VPS platform installation**, after reviewing the script and its privileges:
 
@@ -28,7 +28,7 @@ less provisioning/versions/v1.0.0/lifecycle/install.sh
 make install
 ```
 
-The versioned installer modifies host services and configuration. Final health verification is required before installation success is recorded. Unverified partial system changes are never blindly replayed. See the [installation guide](../getting-started/installation.md) and [post-installation checks](../../POST_INSTALLATION.md).
+The versioned installer modifies host services and configuration. Final health verification is required before installation success is recorded. Unverified partial system changes are never blindly replayed. See the [installation guide](../getting-started/installation.md) and [post-installation checks](https://github.com/DagiiM/webops/blob/main/POST_INSTALLATION.md).
 
 Install the CLI with Python 3.11 or later from the checked-out repository:
 

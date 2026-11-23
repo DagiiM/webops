@@ -1,0 +1,10 @@
+{
+  "name": "webops-static-js-lint",
+  "private": true,
+  "scripts": {"lint": "eslint --max-warnings 0 '*.js'"},
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "globals": "15.15.0"
+  }
+}

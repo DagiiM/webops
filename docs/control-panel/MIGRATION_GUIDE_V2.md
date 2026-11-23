@@ -256,10 +256,10 @@ python manage.py migrate app_name previous_migration_name
 ## Getting Help
 
 ### Resources
-- [Changelog](../CHANGELOG.md)
+- [Changelog](CHANGELOG.md)
 - [Documentation](../README.md)
-- [GitHub Issues](https://github.com/yourorg/webops/issues)
-- [Community Forum](https://forum.yourproject.com)
+- [GitHub Issues](https://github.com/DagiiM/webops/issues)
+- [Community Forum](https://github.com/DagiiM/webops/issues)
 
 ### Support Channels
 - **Email:** support@yourproject.com

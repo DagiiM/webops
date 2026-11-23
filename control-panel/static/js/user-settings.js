@@ -36,7 +36,6 @@ function initializeToggleSwitches() {
     toggleContainers.forEach(container => {
         const input = container.querySelector('input[type="checkbox"], input[type="radio"]');
         const slider = container.querySelector('.webops-toggle__slider');
-        const label = container.querySelector('.webops-toggle__label');
         
         if (!input || !slider) return;
         

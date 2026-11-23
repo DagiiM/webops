@@ -323,7 +323,7 @@ class WebOpsModelBrowser {
     clearCacheForFilters() {
         // Clear cache entries that don't match current filters
         const currentFilterKey = this.getCacheKey();
-        for (const [key, value] of this.webopsCache.entries()) {
+        for (const key of this.webopsCache.keys()) {
             if (!key.startsWith(currentFilterKey.split('-').slice(0, -1).join('-'))) {
                 this.webopsCache.delete(key);
             }
@@ -826,7 +826,7 @@ class WebOpsModelBrowser {
         const modelsData = [];
         selectedModels.forEach(modelId => {
             // Find in current cache
-            for (const [key, models] of this.webopsCache.entries()) {
+            for (const models of this.webopsCache.values()) {
                 const model = models.find(m => m.modelId === modelId);
                 if (model) {
                     modelsData.push(model);

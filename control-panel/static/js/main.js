@@ -4,6 +4,7 @@
  */
 
 'use strict';
+/* exported restartAllServices, showLoader, hideLoader */
 
 class GraphBackground {
     constructor() {
@@ -237,7 +238,6 @@ class ErrorBoundary {
     }
 
     static handleError(error) {
-        const message = error.message || 'An unexpected error occurred';
 
         // Show user-friendly error toast
         if (window.WebOps && window.WebOps.Toast) {
@@ -250,13 +250,7 @@ class ErrorBoundary {
 
     static logErrorToServer(error) {
         // Optional: Send error to server for logging
-        const errorData = {
-            message: error.message,
-            stack: error.stack,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-        };
+        void error; // Reserved future reporting hook; no data is sent
 
         // Could implement server-side error logging endpoint
         // fetch('/api/errors/log/', {
@@ -518,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSameOrigin = dest.origin === current.origin;
             const onlyHashChange = isSameOrigin && dest.pathname === current.pathname && dest.search === current.search && dest.hash && dest.hash !== current.hash;
             if (!isSameOrigin || onlyHashChange) return;
-        } catch (err) {
+        } catch {
             // If URL parsing fails, be conservative and do nothing
             return;
         }
@@ -600,7 +594,7 @@ async function restartAllServices() {
             let data;
             try {
                 data = await response.json();
-            } catch (e) {
+            } catch {
                 data = { success: false, message: 'Invalid response from server' };
             }
             

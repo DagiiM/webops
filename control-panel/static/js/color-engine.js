@@ -150,10 +150,11 @@ class WebOpsColorEngine {
 
         // Add harmony colors based on scheme
         switch (harmonyScheme) {
-            case 'complementary':
+            case 'complementary': {
                 const compHue = (baseHue + 180) % 360;
                 palette.complementary = this.generateColorScale(compHue, baseSaturation, baseLightness);
                 break;
+            }
                 
             case 'triadic':
                 palette.triadic_1 = this.generateColorScale((baseHue + 120) % 360, baseSaturation, baseLightness);

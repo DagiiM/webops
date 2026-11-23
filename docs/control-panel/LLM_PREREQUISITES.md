@@ -202,6 +202,6 @@ If you encounter issues with prerequisites:
 ## References
 
 - [vLLM Documentation](https://docs.vllm.ai/)
-- [NUMA on Linux](https://www.kernel.org/doc/html/latest/vm/numa.html)
-- [Ubuntu Package Management](https://help.ubuntu.com/community/AptGet/Howto)
+- [NUMA on Linux](https://www.kernel.org/doc/html/latest/admin-guide/mm/numa_memory_policy.html)
+- [Ubuntu Package Management](https://ubuntu.com/server/docs/how-to/software/package-management/)
 - [Sudo Configuration](https://www.sudo.ws/docs/man/sudoers.man/)

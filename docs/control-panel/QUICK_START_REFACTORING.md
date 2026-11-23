@@ -1,6 +1,6 @@
 # Quick Start: Legacy Code Refactoring
 
-This is a condensed action plan for immediately addressing critical legacy code. For the full report, see [LEGACY_CODE_REPORT.md](./LEGACY_CODE_REPORT.md).
+This is a condensed action plan for immediately addressing critical legacy code. For the full report, see LEGACY_CODE_REPORT.md (not present in this checkout).
 
 ---
 
@@ -445,10 +445,10 @@ cat logs/webops.log
 
 ## 📚 Additional Resources
 
-- [Full Legacy Code Report](./LEGACY_CODE_REPORT.md)
+- Full legacy code report (not present in current checkout)
 - [Django Logging Documentation](https://docs.djangoproject.com/en/5.0/topics/logging/)
-- [WebOps AGENTS.md](../AGENTS.md)
-- [WebOps CONTRIBUTING.md](../CONTRIBUTING.md)
+- [WebOps AGENTS.md](https://github.com/DagiiM/webops/blob/main/AGENTS.md)
+- [WebOps CONTRIBUTING.md](https://github.com/DagiiM/webops/blob/main/CONTRIBUTING.md)
 
 ---
 

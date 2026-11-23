@@ -25,7 +25,7 @@
 
             // Hide preview if empty
             if (!modelName) {
-                hideDetectionPreview();
+                window.hideDetectionPreview();
                 return;
             }
 

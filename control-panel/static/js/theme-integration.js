@@ -62,8 +62,6 @@ class WebOpsThemeIntegration {
         }
         
         // Override the original switcher's theme methods to use dynamic loader
-        const originalCycleTheme = this.originalSwitcher.cycleTheme.bind(this.originalSwitcher);
-        const originalApplyTheme = this.originalSwitcher.applyTheme.bind(this.originalSwitcher);
         
         // Override cycleTheme
         this.originalSwitcher.cycleTheme = () => {

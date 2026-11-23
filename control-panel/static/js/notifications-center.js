@@ -329,8 +329,6 @@ class NotificationsCenter {
     updateCounts() {
         const totalCount = this.notifications.length;
         const unreadCount = this.notifications.filter(n => !n.read).length;
-        const successCount = this.notifications.filter(n => n.type === 'success').length;
-        const errorCount = this.notifications.filter(n => n.type === 'error').length;
         
         // Update header badge
         const notificationCount = document.getElementById('notificationCount');
@@ -598,7 +596,7 @@ class NotificationsCenter {
                     {
                         id: 'view',
                         text: 'View',
-                        handler: (id) => {
+                        handler: () => {
                             if (window.WebOpsToast) {
                                 window.WebOpsToast.info('Viewing deployment details...');
                             }

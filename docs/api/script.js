@@ -385,5 +385,5 @@ console.log(
     'font-size: 12px; color: #6b7280;'
 );
 console.log('');
-console.log('Found a bug? Report it: https://github.com/webops/webops/issues');
-console.log('Need help? Visit: https://docs.webops.dev');
+console.log('Found a bug? Report it: https://github.com/DagiiM/webops/issues');
+console.log('Need help? Visit: https://github.com/DagiiM/webops/tree/main/docs');

@@ -822,7 +822,6 @@ class WorkflowCanvas {
     }
 
     showPropertiesPanel(node) {
-        const panel = document.getElementById('properties-panel');
         const title = document.getElementById('properties-title');
         const body = document.getElementById('properties-body');
 
@@ -1002,182 +1001,15 @@ class WorkflowCanvas {
         }
     }
     
-    exportWorkflow() {
-        const data = {
-            name: document.getElementById('workflow-name').value,
-            nodes: this.nodes.map(node => ({
-                id: node.id,
-                type: node.type,
-                label: node.label,
-                position: { x: node.x, y: node.y },
-                config: node.config,
-                enabled: node.enabled
-            })),
-            connections: this.connections.map(conn => ({
-                source: conn.source.id,
-                target: conn.target.id,
-                sourceHandle: conn.sourceHandle,
-                targetHandle: conn.targetHandle
-            }))
-        };
-        
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${data.name.replace(/\s+/g, '_')}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        this.showNotification('Workflow exported successfully', 'success');
-        this.toggleToolbarDropdown();
-    }
     
-    importWorkflow() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        
-        input.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    
-                    // Clear existing workflow
-                    this.nodes = [];
-                    this.connections = [];
-                    this.selectedNode = null;
-                    
-                    // Load imported data
-                    data.nodes.forEach(nodeData => {
-                        this.nodes.push({
-                            id: nodeData.id,
-                            type: nodeData.type,
-                            label: nodeData.label,
-                            x: nodeData.position.x,
-                            y: nodeData.position.y,
-                            config: nodeData.config || {},
-                            enabled: nodeData.enabled !== false,
-                            width: 180,
-                            height: 60
-                        });
-                    });
-                    
-                    data.connections.forEach(connData => {
-                        const source = this.nodes.find(n => n.id === connData.source);
-                        const target = this.nodes.find(n => n.id === connData.target);
-                        if (source && target) {
-                            this.connections.push({
-                                source: source,
-                                target: target,
-                                sourceHandle: connData.sourceHandle || 'output',
-                                targetHandle: connData.targetHandle || 'input'
-                            });
-                        }
-                    });
-                    
-                    // Update workflow name
-                    document.getElementById('workflow-name').value = data.name;
-                    
-                    this.saveHistory();
-                    this.updateMinimapVisibility();
-                    this.render();
-                    
-                    this.showNotification('Workflow imported successfully', 'success');
-                } catch (error) {
-                    this.showNotification('Failed to import workflow: ' + error.message, 'error');
-                }
-            };
-            
-            reader.readAsText(file);
-        });
-        
-        input.click();
-        this.toggleToolbarDropdown();
-    }
-    
-    duplicateWorkflow() {
-        // Create a copy of all nodes with new IDs
-        const oldToNewId = {};
-        const newNodes = [];
-        
-        this.nodes.forEach(node => {
-            const newId = `node-${this.nodeIdCounter++}`;
-            oldToNewId[node.id] = newId;
-            
-            newNodes.push({
-                id: newId,
-                type: node.type,
-                label: node.label,
-                x: node.x + 20, // Offset slightly
-                y: node.y + 20,
-                config: JSON.parse(JSON.stringify(node.config)), // Deep copy
-                enabled: node.enabled,
-                width: node.width,
-                height: node.height
-            });
-        });
-        
-        // Create connections between duplicated nodes
-        const newConnections = [];
-        this.connections.forEach(conn => {
-            const newSourceId = oldToNewId[conn.source.id];
-            const newTargetId = oldToNewId[conn.target.id];
-            
-            if (newSourceId && newTargetId) {
-                const source = newNodes.find(n => n.id === newSourceId);
-                const target = newNodes.find(n => n.id === newTargetId);
-                
-                if (source && target) {
-                    newConnections.push({
-                        source: source,
-                        target: target,
-                        sourceHandle: conn.sourceHandle,
-                        targetHandle: conn.targetHandle
-                    });
-                }
-            }
-        });
-        
-        // Add duplicated nodes and connections
-        this.nodes.push(...newNodes);
-        this.connections.push(...newConnections);
-        
-        this.saveHistory();
-        this.updateMinimapVisibility();
-        this.render();
-        
-        this.showNotification('Workflow duplicated successfully', 'success');
-        this.toggleToolbarDropdown();
-    }
-    
-    clearCanvas() {
-        if (confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
-            this.nodes = [];
-            this.connections = [];
-            this.selectedNode = null;
-            this.history = [];
-            this.historyIndex = -1;
-            
-            this.updateMinimapVisibility();
-            this.render();
-            
-            this.showNotification('Canvas cleared', 'info');
-            this.toggleToolbarDropdown();
-        }
-    }
-    
-    openSettings() {
-        // Placeholder for settings functionality
-        this.showNotification('Settings panel coming soon', 'info');
-        this.toggleToolbarDropdown();
-    }
+
+
+
+
+
+
+
+
 
     generatePropertiesForm(node) {
         let html = `
