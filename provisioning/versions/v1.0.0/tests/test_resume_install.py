@@ -168,7 +168,7 @@ main --resume
         self.assertEqual(events, ["setup", "health"])
         data = mod.load(self.state)
         self.assertEqual((data["status"], data["phase"]),
-                         ("captured", "system-changes-started"))
+                         ("captured", "setup-completed"))
         retry = self.run_validation()
         self.assertNotEqual(retry.returncode, 0)
         self.assertIn("Existing installation inventory", retry.stderr)
