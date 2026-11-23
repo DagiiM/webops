@@ -606,3 +606,27 @@ python manage.py capacity_planning --update-projections
 ---
 
 **WebOps Monitoring provides enterprise-grade observability for your hosting platform, ensuring optimal performance and proactive issue resolution.**
+
+## Troubleshooting Grafana startup during WebOps installation
+
+The monitoring addon checks Grafana's local HTTP health API and requires a healthy database response. Database migrations may take longer on small VPSes; the updated installer allows a bounded startup window (40 checks at three-second intervals by default). It also distinguishes a crashed service from an active service whose API is not ready.
+
+Do not delete your pre-install inventory or rerun the entire system installer to fix a monitoring-only error. From an updated trusted source checkout:
+
+    cd /root/webops
+    git pull --ff-only origin main
+    make monitoring-doctor
+    make monitoring-repair
+
+The doctor checks status and health without modifying host files. The repair action attempts to start only grafana-server and wait for readiness; it does not reinstall Grafana, replace configs, or restart shared PostgreSQL/Redis services.
+
+A failed startup writes a private mode-0600 diagnostic file under /var/log/webops/grafana-startup-*.log. It contains systemctl status, the journal, application logs, port listeners, and disk/permission state. Such a file may contain private information; redact it before sharing.
+
+Manual inspection:
+
+    sudo systemctl status grafana-server --no-pager -l
+    sudo journalctl -u grafana-server -b -n 100 --no-pager
+    sudo ss -lntp | grep ':3000 '
+    curl --noproxy '*' -fsS http://127.0.0.1:3000/api/health
+
+Pre-existing Grafana passwords, service account ownership and administrator-managed configuration are preserved on retries. A partially applied system installation must never replay system package/configuration operations without a trusted baseline. For verified real Grafana and limited Runpod production-entrypoint test evidence, consult docs/testing/grafana-installation-real-service-2026-11-23.md. The disposable container did not run systemd as PID 1 and therefore does not prove successful deployment of the full production platform.
