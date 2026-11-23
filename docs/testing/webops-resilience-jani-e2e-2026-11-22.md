@@ -59,7 +59,7 @@ E2E proof.
 
 For a step-by-step, maintained installation and Jani walkthrough, see the [AI-assisted deployment guide](../deployment/ai-assisted-github-deployments.md).
 
-After installing WebOps (`make install` for a development instance or the
+After installing WebOps (`make dev-install` for a development instance or the
 documented production installer) and configuring the CLI once with a
 least-privileged WebOps token, run:
 
