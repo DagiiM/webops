@@ -13,11 +13,11 @@ Choose a development machine or a disposable staging VPS before production. Do n
 ```bash
 git clone https://github.com/DagiiM/webops.git
 cd webops
-make install
+make dev-install
 make dev
 ```
 
-`make install` runs the [versioned development quickstart](../../provisioning/versions/v1.0.0/dev/quickstart.sh). It initializes the control panel, database and a local developer admin account. The development password is randomly generated and stored with restricted permissions in `control-panel/.dev_admin_password`. Never reuse development credentials in staging or production.
+`make dev-install` runs the [versioned development quickstart](../../provisioning/versions/v1.0.0/dev/quickstart.sh). It initializes the control panel, database and a local developer admin account. The development password is randomly generated and stored with restricted permissions in `control-panel/.dev_admin_password`. Never reuse development credentials in staging or production.
 
 **VPS platform installation**, after reviewing the script and its privileges:
 
@@ -25,10 +25,10 @@ make dev
 git clone https://github.com/DagiiM/webops.git
 cd webops
 less provisioning/versions/v1.0.0/lifecycle/install.sh
-sudo ./provisioning/versions/v1.0.0/lifecycle/install.sh
+make install
 ```
 
-The versioned installer modifies host services and configuration. It treats final health verification as advisory, so **a successful installer exit is not evidence of healthy hosting**. See the [installation guide](../getting-started/installation.md) and [post-installation checks](../../POST_INSTALLATION.md).
+The versioned installer modifies host services and configuration. Final health verification is required before installation success is recorded. Unverified partial system changes are never blindly replayed. See the [installation guide](../getting-started/installation.md) and [post-installation checks](../../POST_INSTALLATION.md).
 
 Install the CLI with Python 3.11 or later from the checked-out repository:
 
