@@ -28,8 +28,8 @@ This guide covers:
 ### Quick Installation
 
 ```bash
-# From the WebOps repository root, install and start development mode
-make install
+# From the WebOps repository root, install and start LOCAL development mode
+make dev-install
 make dev
 
 # Then open http://127.0.0.1:8000/admin/
