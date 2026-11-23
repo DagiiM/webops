@@ -128,7 +128,7 @@ class SmartInstallTests(unittest.TestCase):
         self.capture(status="sealed")
         result = self.direct_installed_root_reentry()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("already installed", result.stdout)
+        self.assertIn("verifying current service health", result.stdout)
         self.assertEqual(inventory.load(self.state)["status"], "sealed")
 
     def test_direct_rerun_of_partial_install_requires_repair(self):
@@ -160,6 +160,39 @@ class SmartInstallTests(unittest.TestCase):
         result = self.execute_handoff()
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn("DELEGATED", result.stdout)
+
+    def test_completed_setup_checkpoint_is_safe_to_finalize(self):
+        self.make_root(stage=True)
+        self.capture(phase="system-changes-started")
+        inventory.mark_setup_completed(self.state)
+        self.assertEqual(self.inspect(), "finalize")
+        self.assertEqual(inventory.load(self.state)["status"], "captured")
+        result = self.execute_handoff()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Previous setup completed; finalizing", result.stdout)
+        self.assertNotIn("DELEGATED", result.stdout)
+
+    def test_missing_install_root_with_existing_inventory_is_not_fresh(self):
+        self.make_root()
+        self.capture(phase="system-changes-started")
+        shutil.rmtree(self.root)
+        status = recovery.inspect(self.root, self.state)
+        self.assertEqual(status["action"], "repair")
+        self.assertIn("missing", status["reason"])
+
+    def test_setup_completion_checkpoint_rejects_failed_setup(self):
+        self.make_root()
+        self.capture()
+        with self.assertRaisesRegex(ValueError, "unless host installation started"):
+            inventory.mark_setup_completed(self.state)
+
+    def test_finalize_must_use_exact_original_install_root(self):
+        self.make_root()
+        self.capture(phase="system-changes-started")
+        inventory.mark_setup_completed(self.state)
+        other = Path(self.tmp.name) / "different"
+        with self.assertRaisesRegex(ValueError, "another installation root"):
+            inventory.check_finalize(self.state, str(other))
 
     def test_inventory_sealed_means_skip_duplicate_install(self):
         self.make_root()
@@ -259,8 +292,8 @@ class SmartInstallTests(unittest.TestCase):
         self.capture(status="sealed")
         result = self.execute_handoff()
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Previous installation verified; checking current health", result.stdout)
         self.assertNotIn("DELEGATED", result.stdout)
-        self.assertIn("already installed", result.stdout)
 
     def test_old_untracked_stage_does_not_overwrite(self):
         self.make_root()
