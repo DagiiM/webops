@@ -2,7 +2,7 @@
 # This Makefile is for DEVELOPMENT tasks only
 # For production deployment, use: provisioning/versions/v1.0.0/bin/webops
 
-.PHONY: help install dev test lint clean format check-security docs validate
+.PHONY: help install dev-install install-dev dev test lint clean format check-security docs validate
 
 # Default target
 .DEFAULT_GOAL := help
@@ -42,11 +42,16 @@ help: ## Show this help message
 # Installation & Setup
 #=============================================================================
 
-install: ## Install development environment (NOT the production platform)
-	@echo "$(BLUE)Installing WebOps DEVELOPMENT environment (not production)...$(NC)"
-	@echo "$(YELLOW)Production uses 'make deploy-install' after platform preflight/recovery checks.$(NC)"
+install: ## Smart production install (automatically recover safe interrupted attempts)
+	@echo "$(BLUE)Installing or safely recovering the WebOps production platform...$(NC)"
+	@$(MAKE) --no-print-directory deploy-install
+
+dev-install: ## Install the local DEVELOPMENT environment (no VPS changes)
+	@echo "$(BLUE)Installing WebOps development environment...$(NC)"
 	provisioning/versions/v1.0.0/dev/quickstart.sh
 	@echo "$(GREEN)✓ Development environment ready!$(NC)"
+
+install-dev: dev-install ## Alias for local development setup
 
 install-deps: $(VENV) ## Install Python dependencies only
 	@echo "$(BLUE)Installing Python dependencies...$(NC)"
@@ -245,10 +250,22 @@ clean-all: clean ## Clean everything including venv
 # Deployment (Production)
 #=============================================================================
 
-deploy-install: ## Install WebOps platform (production)
-	@echo "$(BLUE)Installing WebOps platform...$(NC)"
-	@echo "$(YELLOW)⚠️  This will run the production installer$(NC)"
-	sudo provisioning/versions/v1.0.0/lifecycle/install.sh
+deploy-install: ## Alias for smart production install
+	@echo "$(BLUE)Checking existing WebOps installation and recovery state...$(NC)"
+	@if ! command -v flock >/dev/null 2>&1; then \
+	  echo "Install locking requires flock (Ubuntu/Debian: sudo apt-get install util-linux)"; \
+	  exit 1; \
+	fi; \
+	result=0; \
+	if [ "$$(id -u)" -eq 0 ]; then \
+	  flock -E 75 -n /var/lock/webops-install.lock env WEBOPS_SMART_INSTALL=true provisioning/versions/v1.0.0/lifecycle/install.sh || result=$$?; \
+	else \
+	  sudo flock -E 75 -n /var/lock/webops-install.lock env WEBOPS_SMART_INSTALL=true provisioning/versions/v1.0.0/lifecycle/install.sh || result=$$?; \
+	fi; \
+	if [ "$$result" -eq 75 ]; then \
+	  echo "Another WebOps installation is already running. No changes made."; \
+	fi; \
+	exit "$$result"
 
 deploy-validate: ## Validate production deployment
 	@echo "$(BLUE)Validating deployment...$(NC)"
@@ -317,7 +334,7 @@ info: ## Show environment information
 
 .PHONY: quick-start quick-test quick-lint
 
-quick-start: install dev ## Quick start: install and run dev server
+quick-start: dev-install dev ## Quick start: install and run dev server
 	@echo "$(GREEN)✓ WebOps is running!$(NC)"
 
 quick-test: ## Quick test: run fast tests
