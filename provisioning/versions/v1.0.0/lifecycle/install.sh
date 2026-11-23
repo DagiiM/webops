@@ -37,6 +37,9 @@ ROLLBACK_PREPARED=false
 INSTALL_RESUME=false
 INSTALL_DOCTOR=false
 INSTALL_RECOVER_STAGED=false
+INSTALL_FINALIZE=false
+INSTALL_VERIFY=false
+INSTALL_VERIFY_REPAIR=false
 WEBOPS_NEW_INSTALL_COPY="${WEBOPS_NEW_INSTALL_COPY:-false}"
 
 # Initialize logging
@@ -171,9 +174,16 @@ copy_to_install_location() {
                 'import json,sys;print(json.load(sys.stdin)["action"])')" || exit 1
             case "$action" in
                 installed)
-                    log_info "WebOps already installed and previously passed health verification"
-                    log_info "No installation changes made; use --doctor for a recorded-state report"
-                    exit 0 ;;
+                    log_info "Existing installation found; verifying current service health"
+                    INSTALL_VERIFY=true
+                    if [[ "${WEBOPS_SMART_INSTALL:-false}" == "true" ]]; then
+                        INSTALL_VERIFY_REPAIR=true
+                    fi
+                    return 0 ;;
+                finalize)
+                    log_info "Completing interrupted successful setup without replaying changes"
+                    INSTALL_FINALIZE=true
+                    return 0 ;;
                 resume)
                     log_info "Detected safely resumable pre-system-change installation"
                     INSTALL_RESUME=true ;;
@@ -220,12 +230,25 @@ copy_to_install_location() {
                 exec "$installed_script" --resume
                 ;;
             installed)
-                log_info "WebOps already installed and previously passed installation verification at $target_root"
-                log_info "Skipping duplicate setup; use --doctor or the health dashboard for current health"
-                exit 0
+                log_info "Previous installation verified; checking current health"
+                # Use current source health code; older installed copies may
+                # not support --verify. Do not overwrite their files.
+                export WEBOPS_INSTALL_ROOT="$target_root"
+                INSTALL_VERIFY=true
+                if [[ "${WEBOPS_SMART_INSTALL:-false}" == "true" ]]; then
+                    INSTALL_VERIFY_REPAIR=true
+                fi
+                return 0
+                ;;
+            finalize)
+                log_info "Previous setup completed; finalizing after a fresh health check"
+                export WEBOPS_INSTALL_ROOT="$target_root"
+                INSTALL_FINALIZE=true
+                return 0
                 ;;
             manual)
-                if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
+                if [[ "$INSTALL_RECOVER_STAGED" == "true" ||
+                      "${WEBOPS_SMART_INSTALL:-false}" == "true" ]]; then
                     python3 "${SCRIPT_DIR}/installation_recovery.py" legacy-check \
                         --target "$target_root" \
                         --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" || {
@@ -245,6 +268,7 @@ copy_to_install_location() {
                         --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" || exit 1
                     log_info "Staged copy recovered; continuing install from its existing root"
                     export WEBOPS_ALREADY_RELOCATED=true WEBOPS_NEW_INSTALL_COPY=true
+                    export WEBOPS_RECOVERY_CONFIRMED=true
                     exec "$installed_script"
                 fi
                 log_error "Legacy staged install has no trusted prior baseline"
@@ -263,6 +287,14 @@ copy_to_install_location() {
 
     if [[ "$INSTALL_RECOVER_STAGED" == "true" ]]; then
         log_error "No staged installation exists; use the normal install command"
+        exit 1
+    fi
+
+    # A missing target is NOT fresh when a previous installer has already
+    # changed host state. Do not recreate a root over an existing inventory.
+    if [[ -f "${ROLLBACK_BASE_DIR}/installation-inventory/inventory.json" ]]; then
+        log_error "Previous installation inventory exists but target directory is missing"
+        log_error "Cannot safely recreate the installation root without reconciling host changes"
         exit 1
     fi
 
@@ -821,6 +853,53 @@ verify_installation() {
     fi
 }
 
+recover_managed_service_health() {
+    # Conservative repair: only start WebOps-owned systemd units.
+    # Never change shared PostgreSQL/Redis/SSH/firewall settings on retry.
+    local service
+    for service in webops-web webops-worker webops-beat webops-channels; do
+        if ! systemctl is-active --quiet "$service" 2>/dev/null; then
+            if systemctl cat "$service.service" >/dev/null 2>&1; then
+                log_warn "Starting inactive WebOps service: $service"
+                systemctl start "$service" || log_warn "Could not start $service"
+            fi
+        fi
+    done
+}
+
+verify_or_repair_services() {
+    if verify_installation; then
+        return 0
+    fi
+    if [[ "$INSTALL_VERIFY_REPAIR" != "true" && "$INSTALL_FINALIZE" != "true" ]]; then
+        return 1
+    fi
+    log_warn "Attempting limited self-repair of WebOps-managed services"
+    recover_managed_service_health
+    verify_installation
+}
+
+finalize_verified_installation() {
+    local root
+    root="${WEBOPS_INSTALL_ROOT:-$(detect_install_root)}"
+    if ! python3 "${SCRIPT_DIR}/installation_inventory.py" check-finalize \
+        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" \
+        --install-root "$root"; then
+        log_error "Recovery checkpoint is missing or untrusted; no setup replay attempted"
+        return 1
+    fi
+    if ! verify_or_repair_services; then
+        log_error "Setup completed but services remain unhealthy; preserving checkpoint"
+        return 1
+    fi
+    if ! python3 "${SCRIPT_DIR}/installation_inventory.py" seal \
+        --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
+        log_error "Health passed but saving verified state failed; retry make install"
+        return 1
+    fi
+    log_success "Interrupted installation finalized without rerunning setup"
+}
+
 print_completion_message() {
     local server_ip=$(hostname -I | awk '{print $1}')
     local server_hostname=$(hostname)
@@ -908,10 +987,17 @@ main() {
         INSTALL_RESUME=true
     elif [[ "${1:-}" == "--doctor" && $# -eq 1 ]]; then
         INSTALL_DOCTOR=true
+    elif [[ "${1:-}" == "--verify" && $# -eq 1 ]]; then
+        INSTALL_VERIFY=true
+    elif [[ "${1:-}" == "--verify-repair" && $# -eq 1 ]]; then
+        INSTALL_VERIFY=true
+        INSTALL_VERIFY_REPAIR=true
+    elif [[ "${1:-}" == "--finalize" && $# -eq 1 ]]; then
+        INSTALL_FINALIZE=true
     elif [[ "${1:-}" == "--recover-staged" && $# -eq 1 ]]; then
         INSTALL_RECOVER_STAGED=true
     elif [[ $# -gt 0 ]]; then
-        log_error "Supported options: --doctor, --resume, --recover-staged"
+        log_error "Supported options: --doctor, --resume, --recover-staged, --verify"
         exit 2
     fi
     if [[ "$INSTALL_DOCTOR" == "true" ]]; then
@@ -928,6 +1014,71 @@ main() {
         copy_to_install_location "$@"
     fi
 
+    # The copied installer may have been re-executed from an old interrupted
+    # session with WEBOPS_ALREADY_RELOCATED=true. Reconcile existing inventory
+    # BEFORE preconfigured source prompts or environment validation.
+    if [[ "$INSTALL_RESUME" != "true" && "$INSTALL_FINALIZE" != "true" &&
+          "$INSTALL_VERIFY" != "true" &&
+          -f "${ROLLBACK_BASE_DIR}/installation-inventory/inventory.json" ]]; then
+        local prior_action
+        prior_action="$(python3 "${SCRIPT_DIR}/installation_recovery.py" inspect \
+            --target "$(detect_install_root)" \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" |
+            python3 -c 'import json,sys;print(json.load(sys.stdin)["action"])')" || {
+            log_error "Cannot classify prior installation; no changes made"
+            exit 1
+        }
+        case "$prior_action" in
+            resume)
+                INSTALL_RESUME=true
+                log_info "Safely resuming previously captured pre-install baseline"
+                ;;
+            finalize)
+                INSTALL_FINALIZE=true
+                log_info "Finishing verification without replaying setup"
+                ;;
+            installed)
+                INSTALL_VERIFY=true
+                if [[ "${WEBOPS_SMART_INSTALL:-false}" == "true" ]]; then
+                    INSTALL_VERIFY_REPAIR=true
+                fi
+                ;;
+            staged)
+                # Normal fresh staging has no captured baseline yet.
+                ;;
+            *)
+                log_error "Existing installation requires protected recovery: $prior_action"
+                log_error "No installation data or system settings were overwritten"
+                exit 1
+                ;;
+        esac
+    fi
+
+    # Retry paths run BEFORE the wizard and before any hostname/SSH questions.
+    if [[ "$INSTALL_FINALIZE" == "true" ]]; then
+        finalize_verified_installation
+        exit $?
+    fi
+    if [[ "$INSTALL_VERIFY" == "true" ]]; then
+        # A previously completed install is not necessarily healthy today.
+        local current_action
+        current_action="$(python3 "${SCRIPT_DIR}/installation_recovery.py" inspect \
+            --target "${WEBOPS_INSTALL_ROOT:-$(detect_install_root)}" \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory" |
+            python3 -c 'import json,sys;print(json.load(sys.stdin)["action"])')" || exit 1
+        if [[ "$current_action" != "installed" ]]; then
+            log_error "No verified completed installation found; cannot claim success"
+            exit 1
+        fi
+        if verify_or_repair_services; then
+            log_success "Existing WebOps installation is healthy; no reinstall needed"
+            exit 0
+        fi
+        log_error "Existing install is unhealthy and safe service recovery was insufficient"
+        log_error "Original services, data and installation state have not been overwritten"
+        exit 1
+    fi
+
     # Show welcome message
     show_welcome
 
@@ -941,10 +1092,14 @@ main() {
             # Existing user config is authoritative. Do not ask for choices
             # that would silently be ignored by the preconfigured installer.
             log_warn "Using a preconfigured source config; interactive SSH/hostname choices are skipped."
-            read -r -p "Preserve the copied settings and install? (yes/no): " answer
-            if [[ "$answer" != "yes" ]]; then
-                log_info "Installation cancelled without modifying system configuration"
-                exit 0
+            if [[ "${WEBOPS_RECOVERY_CONFIRMED:-false}" == "true" ]]; then
+                log_info "Prior guarded recovery confirmation accepted; preserving existing config"
+            else
+                read -r -p "Preserve the copied settings and install? (yes/no): " answer
+                if [[ "$answer" != "yes" ]]; then
+                    log_info "Installation cancelled without modifying system configuration"
+                    exit 0
+                fi
             fi
             NEW_HOSTNAME=""
         else
@@ -996,6 +1151,13 @@ main() {
     # A successful setup command is not proof of a working installation.
     # Never seal installation history until service and network checks pass.
     if run_installation; then
+        # Durable checkpoint: if power drops after setup but before health
+        # verification, next make install can finalize WITHOUT replaying setup.
+        if ! python3 "${SCRIPT_DIR}/installation_inventory.py" complete \
+            --state-dir "${ROLLBACK_BASE_DIR}/installation-inventory"; then
+            log_error "Could not save setup-completed checkpoint; preserving state"
+            exit 1
+        fi
         if ! verify_installation; then
             log_error "Installation health verification failed; status remains incomplete."
             log_error "A later install attempt must diagnose or repair this installation."
