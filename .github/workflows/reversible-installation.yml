@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/addons/monitoring.sh'
+      - 'provisioning/versions/v1.0.0/lib/common.sh'
+      - 'provisioning/versions/v1.0.0/setup/validate.sh'
       - 'provisioning/versions/v1.0.0/dev/quickstart.sh'
       - 'Makefile'
       - 'provisioning/versions/v1.0.0/setup/base.sh'
@@ -14,6 +17,9 @@ on:
   pull_request:
     paths:
       - 'provisioning/versions/v1.0.0/lifecycle/**'
+      - 'provisioning/versions/v1.0.0/addons/monitoring.sh'
+      - 'provisioning/versions/v1.0.0/lib/common.sh'
+      - 'provisioning/versions/v1.0.0/setup/validate.sh'
       - 'provisioning/versions/v1.0.0/dev/quickstart.sh'
       - 'Makefile'
       - 'provisioning/versions/v1.0.0/setup/base.sh'
@@ -33,6 +39,7 @@ jobs:
       - name: Validate lifecycle script syntax
         run: |
           bash -n provisioning/versions/v1.0.0/lifecycle/install.sh
+          bash -n provisioning/versions/v1.0.0/addons/monitoring.sh
           bash -n provisioning/versions/v1.0.0/dev/quickstart.sh
           bash -n provisioning/versions/v1.0.0/lifecycle/uninstall.sh
           bash -n provisioning/versions/v1.0.0/bin/webops
