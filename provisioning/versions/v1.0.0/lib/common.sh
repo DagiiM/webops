@@ -97,23 +97,46 @@ check_root() {
 }
 
 check_internet() {
-    # Check internet connectivity
-    if ! ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
-        log_error "No internet connectivity"
+    # ICMP echo is frequently blocked on VPS/cloud networks. Validate the
+    # actual HTTPS connectivity needed to download packages instead.
+    local url
+    if command -v curl >/dev/null 2>&1; then
+        for url in https://github.com https://apt.grafana.com/gpg-full.key; do
+            if curl --fail --silent --show-error --head --location \
+                --connect-timeout 4 --max-time 10 "$url" >/dev/null 2>&1; then
+                log_info "HTTPS connectivity verified ✓"
+                return 0
+            fi
+        done
+    elif command -v wget >/dev/null 2>&1; then
+        for url in https://github.com https://apt.grafana.com/gpg-full.key; do
+            if wget --spider --quiet --timeout=10 "$url" >/dev/null 2>&1; then
+                log_info "HTTPS connectivity verified ✓"
+                return 0
+            fi
+        done
+    else
+        log_error "curl or wget is required to verify HTTPS connectivity"
         return 1
     fi
-    log_info "Internet connectivity ✓"
-    return 0
+    log_error "Cannot reach the required HTTPS package/download endpoints"
+    return 1
 }
 
 check_dns() {
-    # Check DNS resolution
-    if ! nslookup google.com &>/dev/null; then
-        log_error "DNS resolution failed"
-        return 1
+    # getent is available on minimal Ubuntu images even when nslookup is not.
+    if command -v getent >/dev/null 2>&1 &&
+       getent ahostsv4 github.com >/dev/null 2>&1; then
+        log_info "DNS resolution verified ✓"
+        return 0
     fi
-    log_info "DNS resolution ✓"
-    return 0
+    if command -v nslookup >/dev/null 2>&1 &&
+       nslookup github.com >/dev/null 2>&1; then
+        log_info "DNS resolution verified ✓"
+        return 0
+    fi
+    log_error "DNS resolution failed for github.com"
+    return 1
 }
 
 #=============================================================================
