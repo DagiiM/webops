@@ -80,8 +80,8 @@ WebOps has **TWO distinct setup paths** - choose the one appropriate for your us
 #### Option 1: Using Makefile (Recommended)
 
 ```bash
-# One command to setup everything
-make install
+# One command to set up the LOCAL development environment
+make dev-install
 
 # Start development server
 make dev
@@ -378,7 +378,8 @@ make help
 
 ```bash
 # Setup and Installation
-make install              # Complete development setup
+make install              # Production VPS: install, verify or safely recover
+make dev-install          # Complete LOCAL development setup
 make install-deps         # Install Python dependencies only
 
 # Development Server
