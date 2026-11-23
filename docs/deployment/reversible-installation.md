@@ -230,3 +230,29 @@ These tests use isolated temporary fake system roots and command shims.
 They test real file operations and lifecycle logic but intentionally never
 change the Runpod host's SSH/firewall/packages. A disposable systemd
 virtual machine test remains required for evidence of real service recovery.
+
+
+## One-command installation and recovery
+
+From a checked-out repository on a VPS, make install is the supported
+production entry point. It holds an exclusive installation lock, classifies
+previous installation state before wizard prompts and follows safe paths:
+
+- No prior install: run the normal installer with inventory capture.
+- Copied but not started: continue staged setup without overwriting data.
+- Baseline captured, no host changes: reuse original inventory and resume.
+- Setup completed, verification interrupted: re-verify and seal WITHOUT
+  replaying system configuration or package installation.
+- Previously verified: recheck current service health; start only stopped
+  WebOps-owned units when needed, never shared database/SSH/firewall services.
+- Older staged copy: perform conservative preflight, then offer one explicit
+  recovery confirmation only when no evidence of host modifications is found.
+- Changes started but setup not completed, damaged/missing inventory,
+  unsafe paths or foreign files: refuse destructive replay and preserve data.
+
+These automatic paths deliberately do not pretend to recover arbitrary
+host modifications whose original state is unknown. Such cases need
+operator-guided repair.
+
+For local development use make dev-install (or make install-dev), not
+the production make install command.
