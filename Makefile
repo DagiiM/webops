@@ -1,8 +1,8 @@
-# WebOps Development Makefile
-# This Makefile is for DEVELOPMENT tasks only
+# WebOps Makefile (production and development)
+# make install: production; make dev-install: local development
 # For production deployment, use: provisioning/versions/v1.0.0/bin/webops
 
-.PHONY: help install dev-install install-dev dev test lint clean format check-security docs validate
+.PHONY: help install dev-install install-dev dev test lint clean format check-security docs validate monitoring-doctor monitoring-repair
 
 # Default target
 .DEFAULT_GOAL := help
@@ -266,6 +266,22 @@ deploy-install: ## Alias for smart production install
 	  echo "Another WebOps installation is already running. No changes made."; \
 	fi; \
 	exit "$$result"
+
+monitoring-doctor: ## Read-only Grafana and monitoring diagnostics
+	@echo "Checking monitoring health without reinstalling..."
+	@if [ "$$(id -u)" -eq 0 ]; then \
+	  bash provisioning/versions/v1.0.0/addons/monitoring.sh doctor; \
+	else \
+	  sudo bash provisioning/versions/v1.0.0/addons/monitoring.sh doctor; \
+	fi
+
+monitoring-repair: ## Start/check Grafana only; preserve packages and config
+	@echo "Repairing Grafana only; packages and data remain untouched..."
+	@if [ "$$(id -u)" -eq 0 ]; then \
+	  bash provisioning/versions/v1.0.0/addons/monitoring.sh repair; \
+	else \
+	  sudo bash provisioning/versions/v1.0.0/addons/monitoring.sh repair; \
+	fi
 
 deploy-validate: ## Validate production deployment
 	@echo "$(BLUE)Validating deployment...$(NC)"
