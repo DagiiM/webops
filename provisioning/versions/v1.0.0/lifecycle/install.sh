@@ -221,6 +221,14 @@ copy_to_install_location() {
         case "$action" in
             staged)
                 log_info "Self-healing staged copy: no system modifications recorded"
+                # Refresh only lifecycle code from the updated source checkout.
+                # Prior scripts are backed up before replacement.
+                python3 "$SCRIPT_DIR/installation_recovery.py" refresh-staged \
+                    --target "$target_root" --source-dir "$SCRIPT_DIR" \
+                    --state-dir "$ROLLBACK_BASE_DIR/installation-inventory" || {
+                    log_error "Could not safely refresh the old staged installer"
+                    exit 1
+                }
                 export WEBOPS_ALREADY_RELOCATED=true WEBOPS_NEW_INSTALL_COPY=true
                 exec "$installed_script"
                 ;;
@@ -301,6 +309,21 @@ copy_to_install_location() {
     # Copy repository to target location
     log_info "Copying repository to $target_root..."
     cp -a "$current_root" "$target_root"
+
+    # The repository historically tracks a generated config.env whose
+    # WEBOPS_ROOT points to /webops, not the destination /opt/webops.
+    # If the source file is byte-for-byte identical to the committed bundled
+    # copy, it is not operator configuration: don't let it break fresh setup.
+    # A locally customized config is ALWAYS preserved.
+    if [[ -f "$target_root/config.env" && ! -L "$target_root/config.env" ]] &&
+       git -C "$current_root" ls-files --error-unmatch config.env >/dev/null 2>&1 &&
+       git -C "$current_root" show HEAD:config.env 2>/dev/null |
+           cmp -s - "$target_root/config.env"; then
+        rm -f -- "$target_root/config.env"
+        log_info "Ignored unchanged bundled config.env; fresh host settings will be generated"
+        log_info "Original repository config.env remains untouched"
+    fi
+
     # Ownership evidence for a tree copied into a previously absent root.
     printf '%s\n' "$WEBOPS_VERSION" > "${target_root}/.webops-install-origin"
     chmod 600 "${target_root}/.webops-install-origin"
@@ -387,6 +410,12 @@ validate_environment() {
             log_info "Fresh installation with existing source config; preserving: $existing_config"
         else
             log_error "Existing WebOps configuration found: $existing_config"
+            local configured_root
+            configured_root="$(grep '^WEBOPS_ROOT=' "$existing_config" | tail -n 1 | cut -d= -f2- || true)"
+            if [[ -n "$configured_root" && "$configured_root" != "$root" ]]; then
+                log_error "Configured WEBOPS_ROOT=$configured_root differs from install target $root"
+                log_error "Review the custom config; WebOps will not silently change your paths"
+            fi
             log_error "Refusing untracked reinstall; inspect the existing installation state"
             exit 1
         fi
@@ -769,6 +798,17 @@ rollback_installation() {
     return 1
 }
 
+run_installation_preflight() {
+    log_step "Checking VPS prerequisites before changing system services..."
+    if WEBOPS_ROOT="$(detect_install_root)" "$SCRIPT_DIR/../setup/validate.sh"; then
+        log_success "VPS preflight passed before system changes"
+        return 0
+    fi
+    log_error "VPS prerequisites failed; system changes have not started"
+    log_error "Correct the prerequisite and rerun make install"
+    return 1
+}
+
 run_installation() {
     log_step "Starting WebOps platform installation..."
 
@@ -782,7 +822,7 @@ run_installation() {
 
     log_info "Executing: WEBOPS_ROOT=${install_root} ${WEBOPS_BIN} install"
 
-    if WEBOPS_ROOT="${install_root}" "${WEBOPS_BIN}" install; then
+    if WEBOPS_ROOT="${install_root}" WEBOPS_PREFLIGHT_VERIFIED=true "${WEBOPS_BIN}" install; then
         log_success "WebOps platform installation completed successfully ✓"
         return 0
     else
@@ -1129,6 +1169,11 @@ main() {
         fi
     }
     trap 'record_installation_exit "$?"' EXIT
+
+    # An environment failure must not poison a safe pre-change inventory.
+    if ! run_installation_preflight; then
+        exit 1
+    fi
 
     # Mark the last safe automatic-resume point before any host changes.
     if ! python3 "${SCRIPT_DIR}/installation_inventory.py" begin \
