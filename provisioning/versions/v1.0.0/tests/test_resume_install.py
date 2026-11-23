@@ -134,6 +134,7 @@ init_logging() { :; }
 copy_to_install_location() { :; }
 show_welcome() { :; }
 validate_environment() { :; }
+run_installation_preflight() { :; }
 run_installation() { echo setup >> "$EVENT_LOG"; return "$SETUP_EXIT"; }
 verify_installation() { echo health >> "$EVENT_LOG"; return "$HEALTH_EXIT"; }
 rollback_installation() { echo rollback >> "$EVENT_LOG"; }
