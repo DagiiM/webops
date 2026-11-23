@@ -271,13 +271,16 @@ class SmartInstallTests(unittest.TestCase):
         return subprocess.run(["bash", str(harness)], env=env,
                               input=answer, capture_output=True, text=True)
 
-    def test_staged_retry_delegates_without_overwrite(self):
+    def test_staged_retry_missing_inventory_library_fails_closed(self):
+        # A staged copy missing required lifecycle scripts is not safe to
+        # refresh or execute; it must preserve all user configuration.
         self.make_root(stage=True)
         keep = self.root / "config.env"
         keep.write_text("KEEP=secret\n")
         result = self.execute_handoff()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DELEGATED:", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Could not safely refresh", result.stderr)
+        self.assertNotIn("DELEGATED:", result.stdout)
         self.assertEqual(keep.read_text(), "KEEP=secret\n")
 
     def test_verified_resume_delegates_to_installed_script(self):
