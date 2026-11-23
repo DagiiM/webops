@@ -44,7 +44,7 @@ cleanup_on_failure() {
     local code="$?"
     echo -e "\n${RED}Development setup failed (exit ${code})${NC}"
     echo "Existing .env, database and passwords were preserved."
-    echo "Review the error above, then retry: cd ${PROJECT_ROOT} && make install"
+    echo "Review the error above, then retry: cd ${PROJECT_ROOT} && make dev-install"
     echo "Do NOT delete .env, control-panel/db.sqlite3 or deployments to fix pip."
     exit "$code"
 }
@@ -181,7 +181,7 @@ if ! venv/bin/python -m pip --version >/dev/null 2>&1; then
        ! venv/bin/python -m pip --version >/dev/null 2>&1; then
         print_error "Cannot initialize pip in the project virtual environment"
         echo "Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y python3-venv"
-        echo "Then retry: cd ${PROJECT_ROOT} && make install"
+        echo "Then retry: cd ${PROJECT_ROOT} && make dev-install"
         exit 1
     fi
     print_success "Virtual environment pip repaired"
