@@ -87,6 +87,7 @@ init_logging() { :; }
 copy_to_install_location() { :; }
 show_welcome() { echo WIZARD; }
 validate_environment() { echo VALID; }
+run_installation_preflight() { :; }
 run_installation() { echo EXECUTED_SETUP; return 0; }
 verify_installation() { echo CHECK_HEALTH; return "${FAKE_HEALTH:-0}"; }
 print_completion_message() { :; }
