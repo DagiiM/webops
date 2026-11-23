@@ -22,7 +22,13 @@ def inspect(target: Path, state_dir: Path) -> dict:
     if root.is_symlink():
         return {"action": "unsafe", "reason": "Installation root is a symlink"}
     if not root.exists():
-        return {"action": "fresh", "reason": "No install root exists"}
+        # A missing installation directory does NOT mean a fresh server when
+        # inventory still records previous host/package/service changes.
+        if (state_dir / "inventory.json").exists():
+            return {"action": "repair",
+                    "reason": "Install root is missing but previous installation history exists; "
+                              "cannot safely start fresh or overwrite the original baseline"}
+        return {"action": "fresh", "reason": "No install root or prior inventory exists"}
     if not root.is_dir():
         return {"action": "unsafe", "reason": "Install root is not a directory"}
     script = root / "provisioning/versions/v1.0.0/lifecycle/install.sh"
@@ -56,7 +62,12 @@ def inspect(target: Path, state_dir: Path) -> dict:
         if state["status"] == "captured":
             if state.get("phase") == "baseline-captured":
                 return {"action": "resume", "reason": "Verified baseline; no host modifications started"}
-            return {"action": "repair", "reason": "Host modifications began; automatic replay unsafe"}
+            if state.get("phase") == "setup-completed":
+                return {"action": "finalize",
+                        "reason": "Platform setup finished; verify health and seal without rerunning setup"}
+            return {"action": "repair",
+                    "reason": "Host modifications may be partial; unsafe to replay package/configuration operations",
+                    "failure_reason": state.get("failure_reason")}
         return {"action": "manual", "reason": "Unrecognized inventory state"}
     stage = root / STAGE
     if stage.is_file() and not stage.is_symlink():
