@@ -100,8 +100,12 @@ cookies.txt
 # =============================================================================
 
 # WebOps runtime directories (note: provisioning/ contains infrastructure setup code and should be tracked)
-deployments/
-llm-deployments/
+# Anchored: the unanchored 'deployments/' also hid new files under apps/deployments, templates/deployments
+# and docs/deployments from git.
+/deployments/
+/llm-deployments/
+/control-panel/deployments/
+/control-panel/llm-deployments/
 system-templates/compiled/
 ssl-certs/
 nginx-configs/
