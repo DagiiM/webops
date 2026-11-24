@@ -245,13 +245,11 @@ def _port_open(port):
 
 
 def _pg_status(db, directory):
+    """Running means the port accepts connections. pg_ctl is not trusted for this: after a hard kill it can
+    keep reporting a dead postmaster (a zombie that nothing reaps) as running."""
     if not (directory / "data").is_dir():
         return "missing"
-    ctl = _pg_bin("pg_ctl")
-    if not ctl:
-        return "stopped"
-    done = _run([ctl, "-D", str(directory / "data"), "status"], directory, 10)
-    return "running" if done.returncode == 0 else "stopped"
+    return "running" if _port_open(db.port) else "stopped"
 
 
 # ───────────────────────────── Redis ─────────────────────────────
