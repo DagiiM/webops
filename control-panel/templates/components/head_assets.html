@@ -1,0 +1,14 @@
+{% load static %}
+{# Shared <head> assets: theme boot first (sets data-theme and data-density before first paint), then tokens, foundation, legacy generic CSS, branding seed, and the design layer. #}
+<script src="{% static 'js/theme-boot.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/variables.css' %}">
+<link rel="stylesheet" href="{% static 'css/themes.css' %}">
+<link rel="stylesheet" href="{% static 'css/ui-foundation.css' %}">
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
+<link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
+<link rel="stylesheet" href="{% static 'css/webops-layout.css' %}">
+<link rel="stylesheet" href="{% url 'branding_css' %}">
+<link rel="stylesheet" href="{% static 'css/ui-components.css' %}">
+<link rel="stylesheet" href="{% static 'css/ui-shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/ui-motion.css' %}">

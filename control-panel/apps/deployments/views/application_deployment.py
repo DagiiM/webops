@@ -350,16 +350,33 @@ def dashboard(request):
     from django.db.models import Count
     from django.utils import timezone
 
-    owned_deployments = BaseDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
-    deployments = owned_deployments.order_by('-created_at')[:10]
+    from django.db.models import Case, IntegerField, When
 
-    # Deployment stats
+    owned_deployments = BaseDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
+
+    # Rows that need a person first, then what is running, then what is stopped.
+    status_rank = Case(
+        When(status='failed', then=0),
+        When(status='requested', then=1),
+        When(status__in=['pending', 'building'], then=2),
+        When(status='running', then=3),
+        When(status='stopped', then=4),
+        default=5,
+        output_field=IntegerField(),
+    )
+    deployments = (
+        owned_deployments.select_related('applicationdeployment', 'llmdeployment')
+        .annotate(rank=status_rank)
+        .order_by('rank', 'name')[:10]
+    )
+
+    # Deployment stats ("pending" and "building" are both a build in progress)
     deployment_stats = {
         'total': owned_deployments.count(),
         'running': owned_deployments.filter(status='running').count(),
         'stopped': owned_deployments.filter(status='stopped').count(),
         'failed': owned_deployments.filter(status='failed').count(),
-        'pending': owned_deployments.filter(status='pending').count(),
+        'pending': owned_deployments.filter(status__in=['pending', 'building']).count(),
     }
 
     # Database stats
@@ -389,7 +406,32 @@ def dashboard(request):
         created_at__gte=seven_days_ago
     ).count()
 
+    # What is waiting on a person: failed deployments, review requests (staff), tokens about to expire
+    now = timezone.now()
+    failed_deployments = list(
+        owned_deployments.select_related('applicationdeployment', 'llmdeployment')
+        .filter(status='failed').order_by('-updated_at')[:5]
+    )
+    review_requests = (
+        list(ApplicationDeployment.objects.filter(status='requested', is_deleted=False)[:5])
+        if request.user.is_staff else []
+    )
+    expiring_tokens = list(
+        tokens.filter(is_active=True, expires_at__gte=now, expires_at__lte=now + timezone.timedelta(days=7))
+        .order_by('expires_at')[:5]
+    )
+    waiting_count = len(failed_deployments) + len(review_requests) + len(expiring_tokens)
+
+    # Plain-language recent changes, newest first
+    recent_changes = owned_deployments.order_by('-updated_at')[:8]
+
     return render(request, 'dashboard.html', {
+        'failed_deployments': failed_deployments,
+        'review_requests': review_requests,
+        'restricted_workloads': restricted(),
+        'expiring_tokens': expiring_tokens,
+        'waiting_count': waiting_count,
+        'recent_changes': recent_changes,
         'deployments': deployments,
         'deployment_stats': deployment_stats,
         'database_stats': database_stats,

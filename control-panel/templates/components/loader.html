@@ -1,0 +1,11 @@
+{# Loader: a stroke-drawn mark and a hairline progress line. Shown only while something takes longer than ~250 ms. #}
+<div class="ui-progress" id="uiProgress" aria-hidden="true"><span class="ui-progress__bar"></span></div>
+<div class="webops-loader-overlay" id="webopsLoader" aria-hidden="true">
+    <div class="webops-loader" role="status" aria-live="polite">
+        <svg class="webops-loader__mark" viewBox="0 0 48 48" width="60" height="60" aria-hidden="true" focusable="false">
+            <path class="webops-loader__trace" pathLength="100" d="M8 14 L16 34 L24 18 L32 34 L40 14"/>
+            <path class="webops-loader__base" pathLength="100" d="M8 14 L16 34 L24 18 L32 34 L40 14"/>
+        </svg>
+        <span class="webops-loader-text">Loading</span>
+    </div>
+</div>

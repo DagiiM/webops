@@ -1,25 +1,21 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" data-density="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>{% block error_title %}Error{% endblock %} - {{ branding.site_name }}</title>
 
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="{% static 'icons/favicon.svg' %}" type="image/svg+xml">
     {% endif %}
 
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-
-    <!-- Dynamic branding variables -->
-    <link rel="stylesheet" href="{% url 'branding_css' %}">
+    {% include 'components/head_assets.html' %}
 
     <link rel="stylesheet" href="{% static 'css/pages/errors-base_error.css' %}">
-    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
     <link rel="stylesheet" href="{% static 'css/webops-icons.css' %}">
     <link rel="stylesheet" href="{% static 'css/webops-states.css' %}">
     <link rel="stylesheet" href="{% static 'css/inline-extracted.css' %}">
@@ -30,7 +26,6 @@
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to main content</a>
-    <div class="app-background"></div>
 
     <main class="error-container" id="main" tabindex="-1">
         <div class="error-card">

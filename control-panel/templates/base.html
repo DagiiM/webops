@@ -1,58 +1,30 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-density="compact">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <meta name="description" content="WebOps - Self-hosted VPS platform for deploying and managing web applications">
-    <meta name="theme-color" content="#0a0a0a">
-    
-    <!-- Performance & Security -->
-    
+    <meta name="description" content="{{ branding.site_name }}: self-hosted VPS platform for deploying and managing web applications">
+    <meta name="color-scheme" content="dark light">
+
     <title>{% block title %}{{ branding.site_name }} Control Panel{% endblock %}</title>
-    
+
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="{% static 'icons/favicon.svg' %}" type="image/svg+xml">
     {% endif %}
-    
-    <!-- Web App Manifest for PWA -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    
-    
-    <!-- Core CSS Variables (Custom Properties) -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    
-    <!-- Base Styles (Typography, Reset) -->
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    
-    <!-- Theme System -->
-    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-transitions.css' %}">
-    
-    <!-- Component Library -->
-    <link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-layout.css' %}">
-    
-    <!-- Feature-Specific Styles -->
+
+    {% include 'components/head_assets.html' %}
+
     <link rel="stylesheet" href="{% static 'css/toast.css' %}">
     <link rel="stylesheet" href="{% static 'css/notifications-center.css' %}">
     <link rel="stylesheet" href="{% static 'css/workflow-toolbar.css' %}">
-    
-    <!-- Dynamic branding variables -->
-    <link rel="stylesheet" href="{% url 'branding_css' %}">
-    
-    <!-- Page-specific CSS (via extra_css_first block) -->
+
     {% block extra_css_first %}{% endblock %}
-    
-    <!-- Legacy layout styles (to be moved to webops-layout.css) -->
-    <link rel="stylesheet" href="{% static 'css/pages/base.css' %}">
-  
-    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
+    {% block extra_css %}{% endblock %}
+
     <link rel="stylesheet" href="{% static 'css/webops-icons.css' %}">
     <link rel="stylesheet" href="{% static 'css/webops-states.css' %}">
     <link rel="stylesheet" href="{% static 'css/inline-extracted.css' %}">
@@ -63,52 +35,26 @@
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to main content</a>
-    <div class="webops-app-background"></div>
 
-    <!-- Ultra-Sleek Loader -->
-    <div class="webops-loader-overlay" id="webopsLoader" aria-hidden="true" aria-live="polite" role="status">
-        <div class="webops-loader" aria-label="Loading content" aria-hidden="false">
-            <div class="webops-loader-ring"></div>
-            <div class="webops-loader-ring"></div>
-            <div class="webops-loader-ring"></div>
-            <div class="webops-loader-core"></div>
-            <div class="webops-loader-particles" aria-hidden="true">
-                <div class="webops-loader-particle"></div>
-                <div class="webops-loader-particle"></div>
-                <div class="webops-loader-particle"></div>
-                <div class="webops-loader-particle"></div>
-            </div>
-        </div>
-        <div class="webops-loader-text">Loading</div>
-    </div>
+    {% include 'components/loader.html' %}
 
     <div class="webops-app-layout">
-
         {% block aside %}
             {% include 'components/aside.html' %}
         {% endblock aside %}
 
-        <!-- Mobile Sidebar Overlay -->
         <div class="webops-sidebar-overlay" id="sidebar-overlay"></div>
 
-
-
-        <!-- Main Content -->
         <div class="webops-main-content">
-             
-            <!-- Header -->
             {% block header %}
                 {% include 'components/header.html' %}
-            {% endblock header %}   
+            {% endblock header %}
 
-            <!-- Content -->
             <main class="webops-container" id="main" tabindex="-1">
                 {% if messages %}
-                <div class="webops-messages" role="alert" aria-live="polite">
+                <div class="webops-messages" role="status" aria-live="polite">
                     {% for message in messages %}
-                    <div class="webops-alert webops-alert-{{ message.tags }}" role="alert">
-                        {{ message }}
-                    </div>
+                    <div class="webops-alert webops-alert-{{ message.tags }}">{{ message }}</div>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -116,61 +62,13 @@
                 {% block content %}{% endblock %}
             </main>
 
-            <!-- Footer -->
             <footer class="webops-footer">
-                <p>&copy; 2025 {{ branding.site_name }} - Self-Hosted VPS Platform</p>
+                <p>{{ branding.site_name }} · self-hosted VPS platform</p>
             </footer>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="webops-modal-overlay" id="settingsModal">
-        <div class="webops-modal">
-            <div class="webops-modal__header">
-                <h2 class="webops-modal__title">Settings</h2>
-                <button aria-label="Close settings" type="button" class="webops-modal__close" id="closeSettings">
-                    <span class="webops-icon webops-icon--small">close</span>
-                </button>
-            </div>
-            <div class="webops-modal__body">
-                <div class="webops-setting-item">
-                    <div class="webops-setting-item__info">
-                        <h4 class="webops-setting-item__title">Dark Mode</h4>
-                        <p class="webops-setting-item__description">Switch between dark and light theme</p>
-                    </div>
-                    <label class="webops-toggle-switch">
-                        <input type="checkbox" class="webops-toggle-switch__input" id="darkModeToggle">
-                        <span class="webops-toggle-switch__slider"></span>
-                    </label>
-                </div>
-
-                <div class="webops-setting-item">
-                    <div class="webops-setting-item__info">
-                        <h4 class="webops-setting-item__title">Animations</h4>
-                        <p class="webops-setting-item__description">Enable or disable UI animations</p>
-                    </div>
-                    <label class="webops-toggle-switch">
-                        <input type="checkbox" class="webops-toggle-switch__input" id="animationsToggle" checked>
-                        <span class="webops-toggle-switch__slider"></span>
-                    </label>
-                </div>
-
-                <div class="webops-setting-item">
-                    <div class="webops-setting-item__info">
-                        <h4 class="webops-setting-item__title">Compact View</h4>
-                        <p class="webops-setting-item__description">Reduce spacing for more content</p>
-                    </div>
-                    <label class="webops-toggle-switch">
-                        <input type="checkbox" class="webops-toggle-switch__input" id="compactToggle">
-                        <span class="webops-toggle-switch__slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>
     <script src="{% static 'js/responsive-tables.js' %}"></script>
     <script src="{% static 'js/toast.js' %}"></script>
     <script src="{% static 'js/notifications-center.js' %}"></script>
@@ -178,11 +76,9 @@
     <script src="{% static 'js/notifications-center-api-integration.js' %}"></script>
     <script src="{% static 'js/notifications-websocket.js' %}"></script>
     <script src="{% static 'js/notifications-websocket-integration.js' %}"></script>
-    <script src="{% static 'js/pages/base.js' %}"></script>
-    <script src="{% static 'js/theme-switcher.js' %}"></script>
-    <script src="{% static 'js/theme-integration.js' %}"></script>
-    <script src="{% static 'js/header.js' %}"></script>
-    <script src="{% static 'js/sidebar-toggle.js' %}"></script>
+    <script src="{% static 'js/ui-shell.js' %}"></script>
+    <script src="{% static 'js/ui-motion.js' %}"></script>
     {% block extra_js %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

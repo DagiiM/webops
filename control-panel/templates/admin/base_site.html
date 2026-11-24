@@ -15,7 +15,10 @@
 {% endblock %}
 
 {% block extrastyle %}
-<link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
+    <script src="{% static 'js/theme-boot.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
+    <link rel="stylesheet" href="{% url 'branding_css' %}">
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/webops-admin.css' %}">
 {% endblock %}

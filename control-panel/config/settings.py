@@ -92,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.common.context_processors.branding',
+                'apps.core.common.context_processors.navigation',
                 'apps.addons.context_processors.enabled_addons',
             ],
         },

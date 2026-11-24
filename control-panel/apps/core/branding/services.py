@@ -321,15 +321,17 @@ class BrandingService:
         settings = ThemeValues()
         css_vars = []
 
-        # Core theme parameters
-        css_vars.extend([
-            f"  --webops-hue-primary: {settings.primary_hue};",
-            f"  --webops-sat-primary: {settings.primary_saturation}%;",
-        ])
-        # A neutral (0% saturation) palette leaves lightness to the active
-        # theme (light ink on dark, dark ink on light) so contrast holds in both.
-        if settings.primary_saturation > 0:
-            css_vars.append(f"  --webops-light-primary: {settings.primary_lightness}%;")
+        # Core theme parameters.
+        # An untouched brand (hue 0, saturation 0) means "no brand chosen": the stylesheet's
+        # default seed applies. Any other hue with 0% saturation is a deliberate graphite brand.
+        # Accent lightness is owned by each theme (static/css/themes.css) so contrast holds for
+        # every seed; it is not emitted here.
+        unbranded = settings.primary_hue == 0 and settings.primary_saturation == 0
+        if not unbranded:
+            css_vars.extend([
+                f"  --webops-hue-primary: {settings.primary_hue};",
+                f"  --webops-sat-primary: {settings.primary_saturation}%;",
+            ])
 
         # Primary color system
         primary_variants = BrandingService.generate_color_scale(
@@ -510,6 +512,42 @@ class BrandingService:
     --webops-active-scale: 1;
   }
 }"""
+
+        # The redesigned panel owns its type, spacing, shape, motion and layout scale
+        # (static/css/variables.css). Each group below is emitted only when an administrator has
+        # changed it from the model defaults, so a customised brand keeps working while an
+        # untouched one gets the design system's scale instead of legacy defaults.
+        def customised(fields):
+            return any(getattr(settings, f) != getattr(defaults, f) for f in fields)
+
+        animation_fields = ('animation_duration_fast', 'animation_duration_normal',
+                            'animation_duration_slow', 'animation_easing')
+        groups = (
+            (('--webops-font-', '--webops-line-height-'),
+             ('font_family_primary', 'font_family_mono', 'font_size_base', 'font_weight_normal',
+              'font_weight_medium', 'font_weight_bold', 'line_height_tight', 'line_height_normal',
+              'line_height_relaxed')),
+            (('--webops-spacing-', '--webops-container-padding-', '--webops-component-spacing-'),
+             ('spacing_base_unit', 'container_padding_desktop', 'container_padding_mobile',
+              'component_spacing_compact', 'component_spacing_normal', 'component_spacing_relaxed')),
+            (('--webops-radius-',), ('border_radius_small', 'border_radius_medium', 'border_radius_large')),
+            (('--webops-shadow-',), ('shadow_intensity', 'shadow_blur_small', 'shadow_blur_medium',
+                                     'shadow_blur_large', 'enable_themed_shadows')),
+            (('--webops-duration-', '--webops-easing'), animation_fields),
+            (('--webops-header-height-', '--webops-sidebar-width-', '--webops-content-max-width'),
+             ('header_height_desktop', 'header_height_mobile', 'sidebar_width_desktop',
+              'sidebar_width_collapsed', 'content_max_width')),
+            (('--webops-input-height-', '--webops-button-height-'),
+             ('input_height_small', 'input_height_medium', 'input_height_large',
+              'button_height_small', 'button_height_medium', 'button_height_large')),
+            (('--webops-hover-', '--webops-active-', '--webops-focus-ring-'),
+             ('hover_opacity', 'hover_scale', 'focus_ring_width', 'focus_ring_offset', 'active_scale')),
+        )
+        dropped = tuple(prefix for prefixes, fields in groups if not customised(fields) for prefix in prefixes)
+        if dropped:
+            css_vars = [v for v in css_vars if not v.strip().startswith(dropped)]
+        if not customised(animation_fields):
+            reduced_motion_css = ""
 
         # Combine all CSS variables
         css_content = f""":root {{

@@ -1,0 +1,24 @@
+/* Overview: summary strip, then the work, then what is waiting on you. */
+.ui-ov { display: grid; gap: var(--ui-gap); grid-template-columns: minmax(0, 1fr); grid-template-areas: "wait" "dep" "act"; }
+.ui-ov > * { min-width: 0; }
+.ui-ov__dep { grid-area: dep; }
+.ui-ov__wait { grid-area: wait; }
+.ui-ov__act { grid-area: act; }
+@media (min-width: 72rem) {
+  .ui-ov { grid-template-columns: minmax(0, 1fr) minmax(19rem, 24rem); grid-template-areas: "dep wait" "dep act"; align-items: start; }
+}
+
+.ui-need { display: grid; gap: var(--webops-space-2); }
+.ui-need__top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--webops-space-1) var(--webops-space-3); }
+.ui-need__tag { font-size: var(--webops-font-size-xs); color: var(--ui-text-2); }
+.ui-need__age { margin-inline-start: auto; font: var(--webops-font-size-xs) var(--webops-font-family-mono); color: var(--ui-text-2); }
+.ui-need__title { font-size: var(--webops-font-size-base); font-weight: var(--webops-font-weight-bold); line-height: 1.35; }
+.ui-need__body { color: var(--ui-text); }
+.ui-need__body code { font-size: var(--webops-font-size-xs); }
+.ui-need__acts { display: flex; flex-wrap: wrap; gap: var(--webops-space-2); margin-top: var(--webops-space-1); }
+.ui-need__acts form { display: inline; }
+
+.ui-log { list-style: none; }
+.ui-log > li { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: var(--webops-space-3); padding: var(--webops-space-1-5) var(--ui-pad); border-top: 1px solid var(--ui-line); }
+.ui-log > li:first-child { border-top: 0; }
+.ui-log time { font: var(--webops-font-size-xs) var(--webops-font-family-mono); color: var(--ui-text-2); padding-top: 2px; }

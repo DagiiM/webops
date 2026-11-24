@@ -48,10 +48,31 @@ class BrandingSettingsTests(TestCase):
 
     def test_css_variable_generation(self):
         """Test CSS variable generation."""
+        # An untouched brand (hue 0, saturation 0) leaves the stylesheet's default seed and the
+        # design system's type scale alone, but still emits the generated primary scale.
         css_vars = BrandingService.generate_css_variables(self.settings)
-        self.assertIn('--webops-hue-primary:', css_vars)
+        self.assertNotIn('--webops-hue-primary:', css_vars)
+        self.assertNotIn('--webops-font-family-primary:', css_vars)
         self.assertIn('--webops-primary-400:', css_vars)
+
+    def test_css_variable_generation_for_customised_brand(self):
+        """A chosen brand emits its seed; customised typography is still honoured."""
+        self.settings.primary_hue = 142
+        self.settings.primary_saturation = 71
+        self.settings.font_size_base = 1.125
+        css_vars = BrandingService.generate_css_variables(self.settings)
+        self.assertIn('--webops-hue-primary: 142;', css_vars)
+        self.assertIn('--webops-sat-primary: 71%;', css_vars)
         self.assertIn('--webops-font-family-primary:', css_vars)
+        self.assertIn('--webops-font-size-base: 1.125rem;', css_vars)
+        self.assertNotIn('--webops-light-primary', css_vars)  # accent lightness is owned by each theme
+
+    def test_graphite_brand_is_a_choice(self):
+        """Zero saturation with a non-zero hue is a deliberate graphite brand and is emitted."""
+        self.settings.primary_hue = 220
+        self.settings.primary_saturation = 0
+        css_vars = BrandingService.generate_css_variables(self.settings)
+        self.assertIn('--webops-sat-primary: 0%;', css_vars)
 
     def test_theme_presets(self):
         """Test theme preset application."""

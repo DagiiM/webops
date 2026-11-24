@@ -5,36 +5,12 @@
 
 'use strict';
 
-class GraphBackground {
-    constructor() {
-        this.nodes = [];
-        this.nodeCount = 0;
-        this.init();
-    }
-
-    init() {
-        const bg = document.querySelector('.app-background');
-        if (!bg) return;
-
-        const container = document.createElement('div');
-        container.className = 'graph-nodes';
-        bg.appendChild(container);
-
-        for (let i = 0; i < this.nodeCount; i++) {
-            const node = document.createElement('div');
-            node.className = 'graph-node';
-            node.style.left = Math.random() * 100 + '%';
-            node.style.top = Math.random() * 100 + '%';
-            node.style.animationDelay = Math.random() * 20 + 's';
-            container.appendChild(node);
-        }
-    }
-}
-
 class Loader {
     static timeout = null;
     static maxDuration = 30000; // 30 seconds max
     static activeCount = 0; // reference count for concurrent operations
+    static showDelay = 250; // ms of work before the overlay appears
+    static showTimer = null;
 
     static show(message = 'Loading') {
         const loader = document.getElementById('webopsLoader');
@@ -45,9 +21,19 @@ class Loader {
 
         if (loader) {
             if (text) text.textContent = message;
-            loader.classList.add('active');
-            loader.setAttribute('aria-hidden', 'false');
             document.body.setAttribute('aria-busy', 'true');
+
+            // Only show the overlay if the work takes longer than a moment, so fast
+            // operations never flash it.
+            if (!loader.classList.contains('active') && !this.showTimer) {
+                this.showTimer = setTimeout(() => {
+                    this.showTimer = null;
+                    if (this.activeCount > 0) {
+                        loader.classList.add('active');
+                        loader.setAttribute('aria-hidden', 'false');
+                    }
+                }, this.showDelay);
+            }
 
             // Auto-hide after max duration to prevent stuck loaders
             if (this.timeout) clearTimeout(this.timeout);
@@ -64,6 +50,7 @@ class Loader {
 
         if (this.activeCount > 0) return;
 
+        if (this.showTimer) { clearTimeout(this.showTimer); this.showTimer = null; }
         const loader = document.getElementById('webopsLoader');
         if (loader) {
             loader.classList.remove('active');
@@ -81,6 +68,7 @@ class Loader {
     static forceHide() {
         // Immediately reset and hide, useful for timeouts or hard resets
         this.activeCount = 0;
+        if (this.showTimer) { clearTimeout(this.showTimer); this.showTimer = null; }
         const loader = document.getElementById('webopsLoader');
         if (loader) {
             loader.classList.remove('active');
@@ -260,173 +248,6 @@ class ErrorBoundary {
 }
 
 
-class SidebarManager {
-    constructor() {
-        this.sidebar = null;
-        this.toggle = null;
-        this.overlay = null;
-        this.isOpen = false;
-        this.initialized = false;
-        
-        // Bind methods to maintain context
-        this.toggleHandler = this.toggleSidebar.bind(this);
-        this.overlayHandler = this.closeSidebar.bind(this);
-        this.keydownHandler = this.handleKeydown.bind(this);
-        this.resizeHandler = this.handleResize.bind(this);
-        this.navLinkHandler = this.handleNavLinkClick.bind(this);
-        
-        // Use DOMContentLoaded or defer init if DOM might not be ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
-        } else {
-            this.init();
-        }
-    }
-
-init() {
-    this.sidebar = document.querySelector('.webops-sidebar');
-    this.toggle = document.querySelector('.webops-sidebar-toggle');
-    this.overlay = document.querySelector('.webops-sidebar-overlay');
-
-    if (!this.sidebar || !this.toggle || !this.overlay) {
-        console.warn('Sidebar elements not found');
-        return;
-    }
-
-    // Initialize sidebar state based on current visibility
-    this.isOpen = this.sidebar.classList.contains('active');
-    
-    this.bindEvents();
-    this.handleResize();
-}
-
-    createOverlay() {
-        this.overlay = document.createElement('div');
-        this.overlay.className = 'webops-sidebar-overlay';
-        document.body.appendChild(this.overlay);
-    }
-
-    bindEvents() {
-        // Toggle button click
-        this.toggle.addEventListener('click', this.toggleHandler);
-
-        // Overlay click to close
-        if (this.overlay) {
-            this.overlay.addEventListener('click', this.overlayHandler);
-        }
-
-        // Escape key to close
-        document.addEventListener('keydown', this.keydownHandler);
-
-        // Handle window resize
-        window.addEventListener('resize', this.resizeHandler);
-
-        // Close sidebar when clicking nav links on mobile
-        if (this.sidebar) {
-            const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
-            navLinks.forEach(link => {
-                link.addEventListener('click', this.navLinkHandler);
-            });
-        }
-    }
-
-    handleKeydown(e) {
-        if (e.key === 'Escape' && this.isOpen) {
-            this.closeSidebar();
-        }
-    }
-
-    handleNavLinkClick() {
-        if (window.innerWidth <= 768) {
-            this.closeSidebar();
-        }
-    }
-
-    toggleSidebar() {
-        if (this.isOpen) {
-            this.closeSidebar();
-        } else {
-            this.openSidebar();
-        }
-    }
-
-    openSidebar() {
-        if (!this.sidebar) return;
-        
-        this.sidebar.classList.add('active');
-        if (this.overlay) {
-            this.overlay.classList.add('active');
-        }
-        this.isOpen = true;
-        document.body.style.overflow = 'hidden';
-        
-        // Update toggle button state if it has aria attributes
-        if (this.toggle && this.toggle.hasAttribute('aria-expanded')) {
-            this.toggle.setAttribute('aria-expanded', 'true');
-        }
-    }
-
-    closeSidebar() {
-        if (!this.sidebar) return;
-        
-        this.sidebar.classList.remove('active');
-        if (this.overlay) {
-            this.overlay.classList.remove('active');
-        }
-        this.isOpen = false;
-        document.body.style.overflow = '';
-        
-        // Update toggle button state if it has aria attributes
-        if (this.toggle && this.toggle.hasAttribute('aria-expanded')) {
-            this.toggle.setAttribute('aria-expanded', 'false');
-        }
-    }
-
-    handleResize() {
-        // Auto-close sidebar on desktop resize
-        if (window.innerWidth > 768 && this.isOpen) {
-            this.closeSidebar();
-        }
-    }
-
-    // Public methods to control sidebar externally
-    open() {
-        this.openSidebar();
-    }
-
-    close() {
-        this.closeSidebar();
-    }
-
-    // Cleanup method to remove event listeners
-    destroy() {
-        if (this.toggle) {
-            this.toggle.removeEventListener('click', this.toggleHandler);
-        }
-        if (this.overlay) {
-            this.overlay.removeEventListener('click', this.overlayHandler);
-        }
-        
-        document.removeEventListener('keydown', this.keydownHandler);
-        window.removeEventListener('resize', this.resizeHandler);
-        
-        if (this.sidebar) {
-            const navLinks = this.sidebar.querySelectorAll('.webops-nav-item');
-            navLinks.forEach(link => {
-                link.removeEventListener('click', this.navLinkHandler);
-            });
-        }
-        
-        // Clean up overlay if it was created by this instance
-        if (this.overlay && this.overlay.parentNode) {
-            this.overlay.parentNode.removeChild(this.overlay);
-        }
-        
-        this.initialized = false;
-    }
-}
-
-
 // Retry mechanism for failed requests
 class RetryManager {
     static async withRetry(fn, maxRetries = 3, delay = 1000) {
@@ -455,8 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize components
     try {
-        new GraphBackground();
-        const sidebarManager = new SidebarManager();
         
         window.WebOps = {
             API: new APIClient(),
@@ -464,7 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
             Toast,
             ErrorBoundary,
             RetryManager,
-            Sidebar: sidebarManager
         };
         console.log('%cWebOps', 'color: #888888; font-size: 24px; font-weight: bold;');
     } catch (error) {
@@ -492,56 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Global navigation loader hooks
-    document.addEventListener('click', (e) => {
-        const link = e.target.closest('a');
-        if (!link) return;
-        if (e.defaultPrevented) return;
-
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#')) return;
-        if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
-        if (link.hasAttribute('download') || link.target) return;
-
-        // Same-origin navigation and not just a hash change
-        try {
-            const dest = new URL(href, document.baseURI);
-            const current = new URL(window.location.href);
-            const isSameOrigin = dest.origin === current.origin;
-            const onlyHashChange = isSameOrigin && dest.pathname === current.pathname && dest.search === current.search && dest.hash && dest.hash !== current.hash;
-            if (!isSameOrigin || onlyHashChange) return;
-        } catch (err) {
-            // If URL parsing fails, be conservative and do nothing
-            return;
-        }
-
-        // Don't show loader if explicitly disabled
-        if (link.dataset.noLoader !== undefined) return;
-
-        Loader.show('Navigating...');
-        // Safety timeout: hide if navigation is intercepted (SPA behavior)
-        setTimeout(() => {
-            if (document.visibilityState === 'visible') {
-                Loader.hide();
-            }
-        }, 2000);
-    });
-
-    document.addEventListener('submit', (e) => {
-        const form = e.target;
-        if (form && form.dataset && form.dataset.noLoader !== undefined) return;
-        Loader.show('Submitting...');
-        // Safety timeout: hide if submission is intercepted by JS and the page doesn't navigate
-        setTimeout(() => {
-            if (document.visibilityState === 'visible') {
-                Loader.hide();
-            }
-        }, 2000);
-    });
-
-    window.addEventListener('beforeunload', () => {
-        Loader.show('Loading page...');
-    });
+    // Navigation progress and the loader on slow navigation live in ui-motion.js.
 });
 
 // Service Management Functions

@@ -6,41 +6,31 @@ This style guide establishes the design system standards for the WebOps Control 
 
 ## CSS Architecture
 
+The design system is described in `docs/frontend/design-system.md`. In short: tokens first, then a
+foundation, then the legacy generic stylesheets, then the design layer, then page stylesheets.
+
 ### File Organization
 
 ```
 control-panel/static/css/
-├── variables.css          # CSS custom properties (variables)
-├── main.css              # Base styles and typography
-├── themes.css           # Theme-specific styles
-├── theme-switcher.css   # Theme switching functionality
-├── webops-components.css # Reusable component styles (TO BE CREATED)
-├── webops-utilities.css  # Utility classes (TO BE CREATED)
-├── webops-layout.css     # Layout-specific styles (TO BE CREATED)
-├── notifications-center.css
-├── toast.css
-├── workflow-toolbar.css
-└── addon-detail.css
+├── variables.css         # non-colour tokens: type, space, radius, motion, layers, density
+├── themes.css            # colour tokens: dark (default), light, high-contrast; one block each
+├── ui-foundation.css     # reset, base type, focus, scrollbars, reduced motion
+├── main.css, webops-components.css, webops-utilities.css, webops-layout.css   # legacy generic rules
+├── ui-components.css     # buttons, badges, cards, forms, tables, alerts, modals (owns these classes)
+├── ui-shell.css          # sidebar, header, menus, footer
+├── ui-motion.css         # loader, navigation progress, page enter, view transitions
+└── pages/*.css           # page-specific rules; loaded after the design layer
 ```
 
 ### CSS Loading Order
 
-Templates must load CSS files in this specific order:
+Every full-page template includes `components/head_assets.html`, which loads the boot script and the
+stylesheets above in the right order. Add page stylesheets in `{% block extra_css_first %}`.
 
 ```html
-<!-- Core CSS -->
-<link rel="stylesheet" href="{% static 'css/variables.css' %}">
-<link rel="stylesheet" href="{% static 'css/main.css' %}">
-<link rel="stylesheet" href="{% static 'css/themes.css' %}">
-
-<!-- Component CSS -->
-<link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
-<link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
-<link rel="stylesheet" href="{% static 'css/webops-layout.css' %}">
-
-<!-- Feature-specific CSS -->
-<link rel="stylesheet" href="{% static 'css/notifications-center.css' %}">
-<link rel="stylesheet" href="{% static 'css/toast.css' %}">
+{% include 'components/head_assets.html' %}
+{% block extra_css_first %}<link rel="stylesheet" href="{% static 'css/pages/my-page.css' %}">{% endblock %}
 ```
 
 ## CSS Class Naming Conventions

@@ -1,0 +1,95 @@
+/**
+ * WebOps foundation: reset, base type, focus, scrollbars, reduced motion.
+ * Loaded straight after variables.css and themes.css. Replaces flat-ui.css.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scrollbar-gutter: stable;
+  background: var(--ui-bg);
+}
+
+body {
+  font-family: var(--webops-font-family-primary);
+  font-size: var(--webops-font-size-base);
+  line-height: var(--webops-line-height-normal);
+  color: var(--ui-text);
+  background: var(--ui-bg);
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; letter-spacing: var(--webops-letter-spacing-tight); }
+p { text-wrap: pretty; }
+img, svg, video { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+code, kbd, pre, samp { font-family: var(--webops-font-family-mono); }
+[hidden] { display: none !important; }
+
+a { color: var(--ui-accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+
+::selection { background: var(--ui-accent-tint); color: var(--ui-text); }
+
+/* Focus: always visible, never removed. One ring, one colour. */
+:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: -64px;
+  z-index: var(--webops-z-loader);
+  padding: 8px 14px;
+  border-radius: var(--webops-radius-md);
+  background: var(--ui-accent);
+  color: var(--ui-on-accent);
+  font-weight: var(--webops-font-weight-semibold);
+  text-decoration: none;
+  transition: transform var(--webops-duration-base) var(--webops-ease-out);
+}
+.skip-link:focus { transform: translateY(76px); }
+
+/* Scrollbars: quiet, tokenised */
+* { scrollbar-width: thin; scrollbar-color: var(--ui-line-strong) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--ui-line-strong);
+  border: 2px solid var(--ui-bg);
+  border-radius: var(--webops-radius-md);
+}
+
+/* Screen-reader only */
+.webops-sr-only, .sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Reduced motion keeps meaning and drops travel. */
+@media (prefers-reduced-motion: reduce) {
+  html, html *, html *::before, html *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* The same switch from Settings > Animations */
+html.webops-no-animations, html.webops-no-animations *, html.webops-no-animations *::before, html.webops-no-animations *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+}

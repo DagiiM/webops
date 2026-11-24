@@ -1,44 +1,50 @@
 {% extends 'base.html' %}
 
 {% load static %}
-{% block title %}Deployments - WebOps{% endblock %}
+{% block title %}Deployments - {{ branding.site_name }}{% endblock %}
 {% block header_title %}Deployments{% endblock %}
+{% block extra_css_first %}<link rel="stylesheet" href="{% static 'css/pages/deployments-list.css' %}">{% endblock %}
 
 {% block content %}
-{% if user.is_staff and review_requests %}
-<section class="webops-card webops-mb-lg">
-<div class="webops-card-header"><h3>Deployment requests awaiting review</h3></div>
-<div class="webops-card-body">
-<p>{% if restricted_workloads %}Executable builds are blocked until a separate isolated worker is available. Requests are preserved.{% else %}Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.{% endif %}</p>
-{% for item in review_requests %}
-<div class="webops-flex webops-gap-sm webops-mb-md webops-s-eed9692">
-<strong>{{ item.name }}</strong> · {{ item.deployed_by.username }} · <code>{{ item.repo_url }}</code> · Branch: {{ item.branch }}
-{% if restricted_workloads and not item.static_only %}<span>Awaiting isolated worker</span>{% else %}<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>{% endif %}
-</div>
-{% endfor %}
-</div></section>
-{% endif %}
 <div class="webops-page-header">
     <div>
         <h2 class="webops-page-title">Deployments</h2>
-        <p class="webops-text-muted">Manage your application deployments</p>
+        <p class="webops-text-muted">{{ deployments|length }} application deployment{{ deployments|length|pluralize }}</p>
     </div>
-    <div class="webops-s-f2cdaea">
+    <div class="webops-header-actions">
+        <a href="{% url 'deployments:llm_list' %}" class="webops-btn">
+            <span class="material-icons">smart_toy</span>
+            LLM deployments
+        </a>
         <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
             <span class="material-icons">add</span>
-            New Deployment
-        </a>
-        <a href="{% url 'deployments:llm_list' %}" class="webops-btn webops-btn-secondary">
-            <span class="material-icons">smart_toy</span>
-            LLM Deployments
+            New deployment
         </a>
     </div>
 </div>
 
-<div class="webops-card">
-    <div class="webops-card-header">
-        <h3 class="webops-h3">My Deployments</h3>
-        <input type="text" id="search" aria-label="Search deployments..." placeholder="Search deployments..." class="webops-input webops-s-c26114f">
+{% if user.is_staff and review_requests %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="review-h">
+    <div class="ui-panel__head">
+        <h3 class="ui-panel__title" id="review-h">Waiting for your review</h3>
+        <span class="ui-panel__meta">{{ review_requests|length }} open</span>
+    </div>
+    <p class="ui-empty ui-empty--flush">{% if restricted_workloads %}Executable builds are blocked until a separate isolated worker is available. Requests are kept.{% else %}Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.{% endif %}</p>
+    <ul class="ui-rows">
+        {% for item in review_requests %}
+        <li class="ui-need ui-need--row">
+            <span class="ui-need__main"><strong>{{ item.name }}</strong> · {{ item.deployed_by.username }} · <code>{{ item.repo_url }}</code> · branch {{ item.branch }}</span>
+            {% if restricted_workloads and not item.static_only %}<span class="webops-badge webops-badge-warning">Awaiting isolated worker</span>{% else %}<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+<section class="ui-panel" aria-labelledby="mine-h">
+    <div class="ui-panel__head">
+        <h3 class="ui-panel__title" id="mine-h">My deployments</h3>
+        <input type="search" id="search" aria-label="Search deployments" placeholder="Search name, domain or repository" class="webops-input ui-panel__search" autocomplete="off">
     </div>
 
     {% if deployments %}
@@ -46,20 +52,19 @@
         <table class="webops-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Type</th>
-                    <th>Repository</th>
-                    <th>Domain</th>
-                    <th>Port</th>
-                    <th>Created</th>
-                    <th>Actions</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="webops-col-ter">Type</th>
+                    <th scope="col" class="webops-col-sec">Domain</th>
+                    <th scope="col" class="webops-col-opt">Repository</th>
+                    <th scope="col" class="webops-col-opt">Port</th>
+                    <th scope="col" class="webops-col-sec">Created</th>
                 </tr>
             </thead>
             <tbody>
                 {% for deployment in deployments %}
                 <tr>
-                    <td><strong>{{ deployment.name }}</strong></td>
+                    <td class="webops-cell-name"><a class="webops-link-quiet" href="{% url 'deployments:deployment_detail' deployment.pk %}">{{ deployment.name }}</a></td>
                     <td>
                         {% if deployment.status == 'running' %}
                             <span class="webops-badge webops-badge-success">Running</span>
@@ -67,7 +72,7 @@
                             <span class="webops-badge webops-badge-info">Stopped</span>
                         {% elif deployment.status == 'requested' %}
                             <span class="webops-badge webops-badge-warning">Awaiting approval</span>
-                        {% elif deployment.status == 'pending' %}
+                        {% elif deployment.status == 'pending' or deployment.status == 'building' %}
                             <span class="webops-badge webops-badge-warning">Building</span>
                         {% elif deployment.status == 'failed' %}
                             <span class="webops-badge webops-badge-danger">Failed</span>
@@ -75,28 +80,17 @@
                             <span class="webops-badge webops-badge-info">{{ deployment.get_status_display }}</span>
                         {% endif %}
                     </td>
-                    <td>{{ deployment.get_project_type_display }}</td>
-                    <td><code class="webops-text-sm">{{ deployment.repo_url|truncatechars:50 }}</code></td>
-                    <td>
+                    <td class="webops-col-ter">{{ deployment.get_project_type_display }}</td>
+                    <td class="webops-col-sec webops-cell-id">
                         {% if deployment.domain %}
-                            <a href="http://{{ deployment.domain }}" target="_blank" rel="noopener noreferrer" class="webops-text-primary">
-                                {{ deployment.domain }}
-                            </a>
+                            <a href="http://{{ deployment.domain }}" target="_blank" rel="noopener noreferrer" class="webops-link-quiet">{{ deployment.domain }}</a>
                         {% else %}
                             <span class="webops-text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% if deployment.port %}
-                            <code class="webops-text-sm">:{{ deployment.port }}</code>
-                        {% else %}
-                            <span class="webops-text-muted">—</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ deployment.created_at|date:"Y-m-d H:i" }}</td>
-                    <td>
-                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm webops-btn-primary">View</a>
-                    </td>
+                    <td class="webops-col-opt webops-cell-id" title="{{ deployment.repo_url }}">{{ deployment.repo_url|cut:"https://github.com/"|truncatechars:38 }}</td>
+                    <td class="webops-col-opt webops-cell-id">{% if deployment.port %}:{{ deployment.port }}{% else %}<span class="webops-text-muted">—</span>{% endif %}</td>
+                    <td class="webops-col-sec webops-time"><time datetime="{{ deployment.created_at|date:'c' }}">{{ deployment.created_at|date:"M j, H:i" }}</time></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -104,22 +98,22 @@
     </div>
     {% else %}
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">rocket_launch</span>
+        <span class="material-icons webops-empty-state-icon">rocket_launch</span>
         <h3 class="webops-empty-state-title">No deployments yet</h3>
-        <p class="webops-empty-state-description">Create your first deployment to get started</p>
-        <div class="webops-s-f2cdaea">
+        <p class="webops-empty-state-description">Create your first deployment to get started.</p>
+        <div class="webops-empty-state-actions">
             <a href="{% url 'deployments:deployment_create' %}" class="webops-btn webops-btn-primary">
                 <span class="material-icons">add</span>
-                Create Deployment
+                Create deployment
             </a>
-            <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-secondary">
+            <a href="{% url 'deployments:llm_create' %}" class="webops-btn">
                 <span class="material-icons">smart_toy</span>
-                Deploy LLM Model
+                Deploy LLM model
             </a>
         </div>
     </div>
     {% endif %}
-</div>
+</section>
 
 <script src="{% static 'js/pages/deployments-list.js' %}"></script>
 {% endblock %}

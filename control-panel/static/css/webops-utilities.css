@@ -27,13 +27,13 @@
 .webops-font-bold { font-weight: var(--webops-font-weight-bold) !important; }
 .webops-font-extrabold { font-weight: var(--webops-font-weight-extrabold) !important; }
 
-.webops-text-primary { color: var(--webops-color-text-primary) !important; }
-.webops-text-secondary { color: var(--webops-color-text-secondary) !important; }
-.webops-text-tertiary { color: var(--webops-color-text-tertiary) !important; }
-.webops-text-success { color: var(--webops-color-success) !important; }
-.webops-text-error { color: var(--webops-color-error) !important; }
-.webops-text-warning { color: var(--webops-color-warning) !important; }
-.webops-text-info { color: var(--webops-color-info) !important; }
+
+
+
+
+
+
+
 
 .webops-text-center { text-align: center !important; }
 .webops-text-left { text-align: left !important; }
@@ -209,7 +209,7 @@
 .webops-gap-6 { gap: var(--webops-space-6) !important; }
 .webops-gap-8 { gap: var(--webops-space-8) !important; }
 
-.webops-grid { display: grid !important; }
+
 .webops-grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
 .webops-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .webops-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
@@ -225,7 +225,7 @@
 .webops-col-span-6 { grid-column: span 6 / span 6 !important; }
 .webops-col-span-full { grid-column: 1 / -1 !important; }
 
-.webops-w-full { width: 100% !important; }
+
 .webops-w-auto { width: auto !important; }
 .webops-w-fit { width: fit-content !important; }
 .webops-h-full { height: 100% !important; }
@@ -302,7 +302,7 @@
 .webops-inline { display: inline !important; }
 .webops-flex { display: flex !important; }
 .webops-inline-flex { display: inline-flex !important; }
-.webops-grid { display: grid !important; }
+
 .webops-inline-grid { display: inline-grid !important; }
 
 .webops-visible { visibility: visible !important; }
@@ -641,9 +641,7 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .webops-text-secondary {
-    color: var(--webops-color-text-primary) !important;
-  }
+  
   
   .webops-bg-secondary {
     background-color: var(--webops-color-bg-primary) !important;

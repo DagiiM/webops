@@ -12,27 +12,9 @@
    APP LAYOUT STRUCTURE
    ════════════════════════════════════════════════════════════════════════════════ */
 
-.webops-app-layout {
-  display: flex;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
 
-.webops-sidebar {
-  width: var(--webops-sidebar-width);
-  background: var(--webops-color-bg-tertiary);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid var(--webops-color-primary-alpha-15);
-  padding: var(--webops-space-6);
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-  transition: none;
-  z-index: var(--webops-z-fixed);
-}
+
+
 
 /* Minimized sidebar state */
 .webops-sidebar.minimized {
@@ -41,81 +23,25 @@
 }
 
 /* Navigation sections */
-.webops-nav-section {
-  margin-bottom: var(--webops-space-6);
-}
 
-.webops-nav-section-title {
-  font-size: var(--webops-font-size-xs);
-  font-weight: var(--webops-font-weight-semibold);
-  color: var(--webops-color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--webops-space-3);
-  padding-left: var(--webops-space-4);
-  transition: none;
-}
+
+
 
 /* Sidebar Toggle Button */
-.webops-sidebar-toggle {
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--webops-color-primary-alpha-10);
-  border: 1px solid var(--webops-color-primary-alpha-20);
-  border-radius: var(--webops-radius-md);
-  color: var(--webops-color-primary);
-  cursor: pointer;
-  transition: none;
-  margin: 0;
-  padding: 0;
-}
 
-.webops-sidebar-toggle:hover {
-  background: var(--webops-color-primary-alpha-20);
-  border-color: var(--webops-color-primary-alpha-30);
-  box-shadow: none;
-  transform: none;
-}
 
-.webops-sidebar-toggle:active {
-  transform: none;
-}
 
-.webops-sidebar-toggle .material-icons {
-  font-size: 20px;
-  transition: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.webops-sidebar-toggle:hover .material-icons {
-  transform: none;
-}
+
+
+
+
+
 
 /* Navigation items */
-.webops-nav-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--webops-space-3);
-  padding: var(--webops-space-3) var(--webops-space-4);
-  color: var(--webops-color-text-secondary);
-  text-decoration: none;
-  border-radius: var(--webops-radius-md);
-  font-size: var(--webops-font-size-sm);
-  transition: none;
-  white-space: nowrap;
-  min-height: 44px;
-  position: relative;
-}
 
-.webops-nav-item:hover {
-  background: var(--webops-color-primary-alpha-10);
-  color: var(--webops-color-primary);
-}
+
+
 
 .webops-nav-item.active {
   background: var(--webops-color-primary-alpha-15);
@@ -123,30 +49,9 @@
   font-weight: var(--webops-font-weight-medium);
 }
 
-.webops-nav-item__icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 20px;
-  line-height: 1;
-  margin: 0;
-  padding: 0;
-}
 
-.webops-nav-item__text {
-  transition: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  font-weight: inherit;
-  margin: 0;
-  padding: 0;
-  height: 20px;
-}
+
+
 
 /* Minimized state navigation adjustments */
 .webops-sidebar.minimized .webops-nav-item {
@@ -184,102 +89,28 @@
   padding: 0;
 }
 
-.webops-sidebar-header {
-   position: relative;
-   margin-bottom: var(--webops-space-6);
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   min-height: 44px;
-   padding: 0;
-}
 
-.webops-sidebar-brand {
-   display: flex;
-   align-items: center;
-   justify-content: flex-start;
-   gap: var(--webops-space-3);
-   font-size: var(--webops-font-size-xl);
-   font-weight: var(--webops-font-weight-bold);
-   color: var(--webops-color-primary);
-   text-decoration: none;
-   min-height: 44px;
-   flex: 1;
-   margin: 0;
-   padding: 0;
-}
 
-.webops-sidebar-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border-radius: var(--webops-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-}
 
-.webops-main-content {
-  margin-left: var(--webops-sidebar-width);
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  transition: none;
-}
+
+
+
+
 
 /* Expanded main content when sidebar is minimized */
 .webops-main-content.expanded {
   margin-left: 60px;
 }
 
-.webops-header {
-  background: var(--webops-color-bg-primary);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--webops-color-primary-alpha-15);
-  padding: var(--webops-space-4) var(--webops-space-6);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: var(--webops-z-sticky);
-  height: var(--webops-header-height);
-}
 
-.webops-header__title {
-  font-size: var(--webops-font-size-2xl);
-  font-weight: var(--webops-font-weight-bold);
-    color: var(--webops-color-primary);
-margin: 0;
-}
 
-.webops-header__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--webops-space-3);
-}
 
-.webops-container {
-  flex: 1;
-  padding: var(--webops-space-6);
-  max-width: var(--webops-content-max-width);
-  margin: 0 auto;
-  width: 100%;
-}
 
-.webops-footer {
-  padding: var(--webops-space-6);
-  border-top: 1px solid var(--webops-color-primary-alpha-15);
-  color: var(--webops-color-text-tertiary);
-  text-align: center;
-  font-size: var(--webops-font-size-sm);
-  background: var(--webops-color-bg-secondary);
-  margin-top: auto;
-}
+
+
+
+
+
 
 /* ════════════════════════════════════════════════════════════════════════════════
    PAGE LAYOUT PATTERNS
@@ -330,10 +161,7 @@ margin: 0;
    GRID LAYOUTS
    ════════════════════════════════════════════════════════════════════════════════ */
 
-.webops-grid {
-  display: grid;
-  gap: var(--webops-space-6);
-}
+
 
 .webops-grid--1 { grid-template-columns: minmax(0, 1fr); }
 .webops-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -372,11 +200,7 @@ margin: 0;
   max-width: 400px;
 }
 
-.webops-form-row {
-  display: flex;
-  gap: var(--webops-space-4);
-  margin-bottom: var(--webops-space-4);
-}
+
 
 .webops-form-row--2 {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -388,14 +212,7 @@ margin: 0;
   display: grid;
 }
 
-.webops-form-actions {
-  display: flex;
-  gap: var(--webops-space-3);
-  justify-content: flex-end;
-  margin-top: var(--webops-space-8);
-  padding-top: var(--webops-space-6);
-  border-top: 1px solid var(--webops-color-primary-alpha-15);
-}
+
 
 .webops-form-actions--center {
   justify-content: center;
@@ -515,31 +332,19 @@ margin: 0;
    ════════════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 767px) {
-  .webops-sidebar {
-    transform: translateX(-100%);
-    width: var(--webops-sidebar-width-mobile);
-  }
+  
 
   .webops-sidebar.active {
     transform: translateX(0);
   }
 
-  .webops-main-content {
-    margin-left: 0;
-  }
+  
 
-  .webops-header {
-    padding: var(--webops-space-4);
-    height: var(--webops-header-height-mobile);
-  }
+  
 
-  .webops-header__title {
-    font-size: var(--webops-font-size-lg);
-  }
+  
 
-  .webops-container {
-    padding: var(--webops-space-4);
-  }
+  
 
   .webops-content-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -566,29 +371,20 @@ margin: 0;
     flex-wrap: wrap;
   }
 
-  .webops-form-row {
-    flex-direction: column;
-    gap: var(--webops-space-4);
-  }
+  
 
   .webops-form-row--2,
   .webops-form-row--3 {
     display: block;
   }
 
-  .webops-form-actions {
-    flex-direction: column;
-  }
+  
 
   .webops-form-actions--full-width {
     display: block;
   }
 
-  .webops-page-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--webops-space-4);
-  }
+  
 
   .webops-page-section__header {
     flex-direction: column;
@@ -601,69 +397,22 @@ margin: 0;
    SIDEBAR LAYOUT
    ════════════════════════════════════════════════════════════════════════════════ */
 
-.webops-sidebar-header .webops-sidebar-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--webops-color-modal-backdrop);
-  z-index: calc(var(--webops-z-modal-backdrop) - 10);
-  opacity: 0;
-  transition: none;
-}
 
-.webops-sidebar-header .webops-sidebar-overlay.active {
-  display: block;
-  opacity: 1;
-}
 
-.webops-sidebar-header .webops-sidebar-toggle {
-   background: var(--webops-color-bg-elevated);
-   border: 1px solid var(--webops-color-primary-alpha-15);
-   border-radius: var(--webops-radius-lg);
-   padding: var(--webops-space-2);
-   cursor: pointer;
-   transition: none;
-   z-index: 1;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   width: 32px;
-   height: 32px;
-   position: static;
-   transform: none;
-}
 
-.webops-sidebar-header .webops-sidebar-toggle:hover {
-   background: var(--webops-color-primary-alpha-5);
-   border-color: var(--webops-color-primary-alpha-35);
-   transform: none;
-   box-shadow: none;
-}
 
-.webops-sidebar-header .webops-sidebar-toggle:active {
-   transform: none;
-}
+
+
+
+
+
 
 /* Toggle button icon transitions */
-.webops-sidebar-header .webops-sidebar-toggle .material-icons {
-  font-size: 20px;
-  color: var(--webops-color-text-secondary);
-  transition: none;
-}
 
-.webops-sidebar-header .webops-sidebar-toggle:hover .material-icons {
-  color: var(--webops-color-primary);
-  transform: none;
-}
 
-@media (max-width: 767px) {
-  .webops-sidebar-header .webops-sidebar-toggle {
-    display: flex;
-  }
-}
+
+
+
 
 /* ════════════════════════════════════════════════════════════════════════════════
    TABLE LAYOUTS
@@ -1005,41 +754,23 @@ line-height: 1;
    ════════════════════════════════════════════════════════════════════════════════ */
 
 @media print {
-  .webops-sidebar,
-  .webops-sidebar-toggle,
-  .webops-sidebar-overlay,
-  .webops-header__actions,
-  .webops-btn {
-    display: none !important;
-  }
+  
 
-  .webops-main-content {
-    margin-left: 0 !important;
-  }
+  
 
-  .webops-container {
-    padding: 0 !important;
-    max-width: none !important;
-  }
+  
 
-  .webops-card,
   .webops-page-section {
     break-inside: avoid;
     box-shadow: none !important;
     border: 1px solid #ccc !important;
   }
 
-  .webops-page-header {
-    border-bottom: 2px solid #000 !important;
-  }
+  
 
-  .webops-grid {
-    display: block !important;
-  }
+  
 
-  .webops-grid > * {
-    margin-bottom: var(--webops-space-4) !important;
-  }
+  
 }
 
 /* ════════════════════════════════════════════════════════════════════════════════

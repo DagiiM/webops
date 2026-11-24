@@ -1,129 +1,368 @@
 /**
- * WebOps Theme System - HSL-Based Dynamic Theming
- * Multiple theme variants using the sophisticated HSL color system
+ * WebOps themes: dark (default), light and high-contrast in one stylesheet.
+ *
+ * The active theme is the data-theme attribute on <html>, set before first paint by
+ * js/theme-boot.js, so there is no flash and no extra request. Every colour is written once
+ * per theme; components read tokens and never a literal.
+ *
+ * Brand seed: Branding settings write --webops-hue-primary and --webops-sat-primary
+ * (branding.css). Accent lightness is chosen per theme here so contrast holds for any seed.
+ * A saturation of 0% is a graphite (monochrome) brand.
+ *
+ * New code reads --ui-* tokens. The --webops-* names below are kept as aliases so every
+ * existing stylesheet follows the new palette until it is migrated.
  */
 
-/* Default Theme (Dark) - Uses the HSL system from variables.css */
-:root {
-    /* Theme variables are inherited from variables.css and use the HSL system */
-    --webops-hue-primary: 0;         /* Neutral ink on dark */
-    --webops-sat-primary: 0%;
-    --webops-light-primary: 93%;
-    --webops-color-on-primary: hsl(0 0% 4%);
+:root, [data-theme="dark"] {
+  color-scheme: dark;
+  --webops-light-primary: 72%;
+  --webops-color-on-primary: hsl(220 30% 8%);
+
+  /* ui tokens (new semantic names) */
+  --ui-bg: hsl(220 20% 7%);
+  --ui-surface: hsl(220 18% 10%);
+  --ui-surface-2: hsl(220 16% 13%);
+  --ui-surface-3: hsl(220 15% 17%);
+  --ui-line: hsl(220 14% 19%);
+  --ui-line-strong: hsl(220 9% 46%);
+  --ui-text: hsl(220 20% 93%);
+  --ui-text-2: hsl(220 11% 71%);
+  --ui-text-3: hsl(220 9% 61%);
+  --ui-text-off: hsl(220 8% 42%);
+  --ui-accent: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72%);
+  --ui-accent-tint: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 18%);
+  --ui-on-accent: hsl(220 30% 8%);
+  --ui-focus: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% );
+  --ui-ok: hsl(150 50% 62%);      --ui-ok-tint: hsl(150 35% 15%);
+  --ui-warn: hsl(38 90% 64%);  --ui-warn-tint: hsl(36 45% 15%);
+  --ui-bad: hsl(4 90% 74%);    --ui-bad-tint: hsl(4 40% 17%);
+  --ui-info: hsl(205 75% 68%);  --ui-info-tint: hsl(205 40% 16%);
+  --ui-idle: hsl(220 10% 74%);  --ui-idle-tint: hsl(220 10% 20%);
+  --ui-overlay-shadow: 0 12px 32px hsl(220 40% 2% / 55%);
+  --ui-scrim: hsl(220 30% 4% / 70%);
+
+  /* legacy names: every existing stylesheet re-skins through these */
+  --webops-color-primary: var(--ui-accent);
+  --webops-color-primary-hover: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 78%);
+  --webops-color-primary-dark: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 62%);
+  --webops-color-primary-darker: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 52%);
+  --webops-color-primary-light: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 80%);
+  --webops-color-primary-glow: transparent;
+  --webops-color-primary-alpha-03: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 3%);
+  --webops-color-primary-alpha-05: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 5%);
+  --webops-color-primary-alpha-10: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 10%);
+  --webops-color-primary-alpha-15: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 15%);
+  --webops-color-primary-alpha-20: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 20%);
+  --webops-color-primary-alpha-30: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 30%);
+  --webops-color-primary-alpha-35: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 35%);
+  --webops-color-primary-alpha-50: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 50%);
+  --webops-color-accent: var(--ui-accent);
+
+  --webops-color-success: var(--ui-ok);
+  --webops-color-success-light: hsl(150 55% 70%);
+  --webops-color-success-dark: hsl(150 45% 50%);
+  --webops-color-success-alpha-10: hsl(150 50% 62% / 10%);
+  --webops-color-success-alpha-30: hsl(150 50% 62% / 30%);
+  --webops-color-warning: var(--ui-warn);
+  --webops-color-warning-light: hsl(38 92% 72%);
+  --webops-color-warning-dark: hsl(38 85% 52%);
+  --webops-color-warning-alpha-10: hsl(38 90% 64% / 10%);
+  --webops-color-warning-alpha-30: hsl(38 90% 64% / 30%);
+  --webops-color-error: var(--ui-bad);
+  --webops-color-error-light: hsl(4 95% 80%);
+  --webops-color-error-dark: hsl(4 80% 62%);
+  --webops-color-error-alpha-10: hsl(4 90% 74% / 10%);
+  --webops-color-error-alpha-30: hsl(4 90% 74% / 30%);
+  --webops-color-info: var(--ui-info);
+  --webops-color-info-light: hsl(205 80% 76%);
+  --webops-color-info-dark: hsl(205 70% 58%);
+  --webops-color-info-alpha-10: hsl(205 75% 68% / 10%);
+  --webops-color-info-alpha-30: hsl(205 75% 68% / 30%);
+  --webops-color-neutral-alpha-10: hsl(220 10% 70% / 10%);
+
+  --webops-gray-950: hsl(220 20% 7%);
+  --webops-gray-900: hsl(220 18% 10%);
+  --webops-gray-850: hsl(220 16% 13%);
+  --webops-gray-825: hsl(220 16% 14%);
+  --webops-gray-800: hsl(220 15% 17%);
+  --webops-gray-750: hsl(220 14% 19%);
+  --webops-gray-600: hsl(220 8% 42%);
+  --webops-gray-500: hsl(220 9% 61%);
+  --webops-gray-400: hsl(220 11% 71%);
+  --webops-gray-200: hsl(220 20% 93%);
+
+  --webops-color-bg-primary: var(--ui-bg);
+  --webops-color-bg-secondary: var(--ui-surface);
+  --webops-color-bg-tertiary: var(--ui-surface-2);
+  --webops-color-bg-elevated: var(--ui-surface);
+  --webops-color-bg-card: var(--ui-surface);
+  --webops-color-bg-card-mobile: var(--ui-surface);
+  --webops-color-bg-highlight: var(--ui-accent-tint);
+  --webops-color-surface: var(--ui-surface);
+  --webops-color-surface-hover: var(--ui-surface-2);
+  --webops-color-surface-active: var(--ui-surface-3);
+  --webops-color-modal-backdrop: var(--ui-scrim);
+  --webops-color-modal-shadow: transparent;
+  --webops-color-border: var(--ui-line);
+  --webops-color-border-strong: var(--ui-line-strong);
+  --webops-color-text-primary: var(--ui-text);
+  --webops-color-text-secondary: var(--ui-text-2);
+  --webops-color-text-tertiary: var(--ui-text-3);
+  --webops-color-text-disabled: var(--ui-text-off);
+  --webops-color-graph-node: var(--ui-accent);
+  --webops-color-graph-edge: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 25%);
+  --webops-color-graph-grid: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 6%);
+
+  /* flat: decorative elevation is gone; only floating layers carry a shadow */
+  --webops-shadow-xs: none;
+  --webops-shadow-sm: none;
+  --webops-shadow-base: none;
+  --webops-shadow-md: none;
+  --webops-shadow-inner: none;
+  --webops-shadow-primary-sm: none;
+  --webops-shadow-primary: none;
+  --webops-shadow-primary-lg: none;
+  --webops-shadow-success: none;
+  --webops-shadow-glow: none;
+  --webops-shadow-lg: var(--ui-overlay-shadow);
+  --webops-shadow-xl: var(--ui-overlay-shadow);
+  --webops-shadow-2xl: var(--ui-overlay-shadow);
 }
 
-/* Light Theme - Clean and modern light theme */
+/* Follow the OS when nobody has chosen: boot script leaves data-theme unset only if it cannot read storage. */
 [data-theme="light"] {
-    /* Light theme uses teal primary color */
-    --webops-hue-primary: 0;         /* Neutral ink on light */
-    --webops-sat-primary: 0%;
-    --webops-light-primary: 12%;
-    --webops-color-on-primary: #ffffff;
+  color-scheme: light;
+  --webops-light-primary: 30%;
+  --webops-color-on-primary: hsl(0 0% 100%);
 
-    /* Light theme specific overrides */
-    --webops-color-bg-primary: #ffffff;
-    --webops-color-bg-secondary: #f8fafb;
-    --webops-color-bg-tertiary: #f1f5f3;
-    --webops-color-bg-elevated: #ffffff;
+  /* ui tokens (new semantic names) */
+  --ui-bg: hsl(220 18% 96%);
+  --ui-surface: hsl(220 30% 99%);
+  --ui-surface-2: hsl(220 16% 94%);
+  --ui-surface-3: hsl(220 14% 90%);
+  --ui-line: hsl(220 14% 87%);
+  --ui-line-strong: hsl(220 10% 52%);
+  --ui-text: hsl(220 28% 11%);
+  --ui-text-2: hsl(220 10% 33%);
+  --ui-text-3: hsl(220 8% 41%);
+  --ui-text-off: hsl(220 8% 62%);
+  --ui-accent: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30%);
+  --ui-accent-tint: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 93%);
+  --ui-on-accent: hsl(0 0% 100%);
+  --ui-focus: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 42% );
+  --ui-ok: hsl(150 60% 22%);      --ui-ok-tint: hsl(150 45% 89%);
+  --ui-warn: hsl(30 90% 24%);  --ui-warn-tint: hsl(40 90% 87%);
+  --ui-bad: hsl(4 70% 35%);    --ui-bad-tint: hsl(4 80% 93%);
+  --ui-info: hsl(210 70% 32%);  --ui-info-tint: hsl(210 70% 92%);
+  --ui-idle: hsl(220 8% 33%);  --ui-idle-tint: hsl(220 12% 89%);
+  --ui-overlay-shadow: 0 12px 32px hsl(220 30% 10% / 18%);
+  --ui-scrim: hsl(220 30% 10% / 45%);
 
-    --webops-color-surface: #ffffff;
-    --webops-color-surface-hover: #f8fafb;
-    --webops-color-surface-active: #f1f5f3;
+  /* legacy names: every existing stylesheet re-skins through these */
+  --webops-color-primary: var(--ui-accent);
+  --webops-color-primary-hover: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 24%);
+  --webops-color-primary-dark: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 24%);
+  --webops-color-primary-darker: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 18%);
+  --webops-color-primary-light: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 38%);
+  --webops-color-primary-glow: transparent;
+  --webops-color-primary-alpha-03: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 3%);
+  --webops-color-primary-alpha-05: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 5%);
+  --webops-color-primary-alpha-10: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 10%);
+  --webops-color-primary-alpha-15: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 15%);
+  --webops-color-primary-alpha-20: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 20%);
+  --webops-color-primary-alpha-30: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 30%);
+  --webops-color-primary-alpha-35: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 35%);
+  --webops-color-primary-alpha-50: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 50%);
+  --webops-color-accent: var(--ui-accent);
 
-    --webops-color-text-primary: #1a1a1a;
-    --webops-color-text-secondary: #4a5568;
-    --webops-color-text-tertiary: #4b5563;
-    --webops-color-text-disabled: #a0aec0;
+  --webops-color-success: var(--ui-ok);
+  --webops-color-success-light: hsl(150 55% 30%);
+  --webops-color-success-dark: hsl(150 65% 16%);
+  --webops-color-success-alpha-10: hsl(150 60% 22% / 10%);
+  --webops-color-success-alpha-30: hsl(150 60% 22% / 30%);
+  --webops-color-warning: var(--ui-warn);
+  --webops-color-warning-light: hsl(30 85% 32%);
+  --webops-color-warning-dark: hsl(30 90% 18%);
+  --webops-color-warning-alpha-10: hsl(30 90% 24% / 10%);
+  --webops-color-warning-alpha-30: hsl(30 90% 24% / 30%);
+  --webops-color-error: var(--ui-bad);
+  --webops-color-error-light: hsl(4 70% 44%);
+  --webops-color-error-dark: hsl(4 75% 28%);
+  --webops-color-error-alpha-10: hsl(4 70% 35% / 10%);
+  --webops-color-error-alpha-30: hsl(4 70% 35% / 30%);
+  --webops-color-info: var(--ui-info);
+  --webops-color-info-light: hsl(210 65% 40%);
+  --webops-color-info-dark: hsl(210 75% 24%);
+  --webops-color-info-alpha-10: hsl(210 70% 32% / 10%);
+  --webops-color-info-alpha-30: hsl(210 70% 32% / 30%);
+  --webops-color-neutral-alpha-10: hsl(220 10% 40% / 10%);
 
-    /* Status colors remain independent for accessibility */
-    --webops-color-success: hsl(0 0% 12%);    /* Neutral success */
-    --webops-color-warning: #ed8936;
-    --webops-color-error: #e53e3e;
-    --webops-color-info: #374151;
+  --webops-gray-950: hsl(220 28% 11%);
+  --webops-gray-900: hsl(220 14% 90%);
+  --webops-gray-850: hsl(220 16% 94%);
+  --webops-gray-825: hsl(220 18% 96%);
+  --webops-gray-800: hsl(220 14% 87%);
+  --webops-gray-750: hsl(220 14% 84%);
+  --webops-gray-600: hsl(220 8% 62%);
+  --webops-gray-500: hsl(220 8% 41%);
+  --webops-gray-400: hsl(220 10% 33%);
+  --webops-gray-200: hsl(220 30% 99%);
 
-    /* Graph colors use primary theme color */
-    --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
-    --webops-color-graph-edge: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 15%);
-    --webops-color-graph-grid: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 5%);
+  --webops-color-bg-primary: var(--ui-bg);
+  --webops-color-bg-secondary: var(--ui-surface);
+  --webops-color-bg-tertiary: var(--ui-surface-2);
+  --webops-color-bg-elevated: var(--ui-surface);
+  --webops-color-bg-card: var(--ui-surface);
+  --webops-color-bg-card-mobile: var(--ui-surface);
+  --webops-color-bg-highlight: var(--ui-accent-tint);
+  --webops-color-surface: var(--ui-surface);
+  --webops-color-surface-hover: var(--ui-surface-2);
+  --webops-color-surface-active: var(--ui-surface-3);
+  --webops-color-modal-backdrop: var(--ui-scrim);
+  --webops-color-modal-shadow: transparent;
+  --webops-color-border: var(--ui-line);
+  --webops-color-border-strong: var(--ui-line-strong);
+  --webops-color-text-primary: var(--ui-text);
+  --webops-color-text-secondary: var(--ui-text-2);
+  --webops-color-text-tertiary: var(--ui-text-3);
+  --webops-color-text-disabled: var(--ui-text-off);
+  --webops-color-graph-node: var(--ui-accent);
+  --webops-color-graph-edge: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 25%);
+  --webops-color-graph-grid: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 30% / 6%);
 
-    /* Light theme shadows */
-    --webops-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --webops-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
-    --webops-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
-    --webops-shadow-glow: 0 0 24px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
+  /* flat: decorative elevation is gone; only floating layers carry a shadow */
+  --webops-shadow-xs: none;
+  --webops-shadow-sm: none;
+  --webops-shadow-base: none;
+  --webops-shadow-md: none;
+  --webops-shadow-inner: none;
+  --webops-shadow-primary-sm: none;
+  --webops-shadow-primary: none;
+  --webops-shadow-primary-lg: none;
+  --webops-shadow-success: none;
+  --webops-shadow-glow: none;
+  --webops-shadow-lg: var(--ui-overlay-shadow);
+  --webops-shadow-xl: var(--ui-overlay-shadow);
+  --webops-shadow-2xl: var(--ui-overlay-shadow);
 }
 
-/* High Contrast Theme (Accessibility) - WCAG AA compliant */
 [data-theme="high-contrast"] {
-    /* Cyan theme for high contrast */
-    --webops-hue-primary: 0;         /* Neutral primary */
-    --webops-sat-primary: 0%;
-    --webops-light-primary: 100%;
-    --webops-color-on-primary: #000000;
+  color-scheme: dark;
+  --webops-light-primary: 72%;
+  --webops-color-on-primary: hsl(0 0% 0%);
 
-    /* High contrast backgrounds */
-    --webops-color-bg-primary: #000000;
-    --webops-color-bg-secondary: #111111;
-    --webops-color-bg-tertiary: #222222;
-    --webops-color-bg-elevated: #333333;
+  /* ui tokens (new semantic names) */
+  --ui-bg: hsl(0 0% 0%);
+  --ui-surface: hsl(0 0% 6%);
+  --ui-surface-2: hsl(0 0% 12%);
+  --ui-surface-3: hsl(0 0% 18%);
+  --ui-line: hsl(0 0% 60%);
+  --ui-line-strong: hsl(0 0% 100%);
+  --ui-text: hsl(0 0% 100%);
+  --ui-text-2: hsl(0 0% 88%);
+  --ui-text-3: hsl(0 0% 78%);
+  --ui-text-off: hsl(0 0% 58%);
+  --ui-accent: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72%);
+  --ui-accent-tint: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 14%);
+  --ui-on-accent: hsl(0 0% 0%);
+  --ui-focus: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 75% );
+  --ui-ok: hsl(140 100% 70%);      --ui-ok-tint: hsl(140 60% 12%);
+  --ui-warn: hsl(50 100% 62%);  --ui-warn-tint: hsl(50 60% 12%);
+  --ui-bad: hsl(0 100% 74%);    --ui-bad-tint: hsl(0 60% 14%);
+  --ui-info: hsl(200 100% 74%);  --ui-info-tint: hsl(200 60% 14%);
+  --ui-idle: hsl(0 0% 85%);  --ui-idle-tint: hsl(0 0% 16%);
+  --ui-overlay-shadow: 0 0 0 2px hsl(0 0% 100%);
+  --ui-scrim: hsl(0 0% 0% / 85%);
 
-    --webops-color-surface: #111111;
-    --webops-color-surface-hover: #222222;
-    --webops-color-surface-active: #333333;
+  /* legacy names: every existing stylesheet re-skins through these */
+  --webops-color-primary: var(--ui-accent);
+  --webops-color-primary-hover: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 78%);
+  --webops-color-primary-dark: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 62%);
+  --webops-color-primary-darker: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 52%);
+  --webops-color-primary-light: hsl(var(--webops-hue-primary) var(--webops-sat-primary) 80%);
+  --webops-color-primary-glow: transparent;
+  --webops-color-primary-alpha-03: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 3%);
+  --webops-color-primary-alpha-05: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 5%);
+  --webops-color-primary-alpha-10: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 10%);
+  --webops-color-primary-alpha-15: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 15%);
+  --webops-color-primary-alpha-20: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 20%);
+  --webops-color-primary-alpha-30: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 30%);
+  --webops-color-primary-alpha-35: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 35%);
+  --webops-color-primary-alpha-50: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 50%);
+  --webops-color-accent: var(--ui-accent);
 
-    --webops-color-text-primary: #ffffff;
-    --webops-color-text-secondary: #cccccc;
-    --webops-color-text-tertiary: #999999;
-    --webops-color-text-disabled: #666666;
+  --webops-color-success: var(--ui-ok);
+  --webops-color-success-light: hsl(150 55% 70%);
+  --webops-color-success-dark: hsl(150 45% 50%);
+  --webops-color-success-alpha-10: hsl(150 50% 62% / 10%);
+  --webops-color-success-alpha-30: hsl(150 50% 62% / 30%);
+  --webops-color-warning: var(--ui-warn);
+  --webops-color-warning-light: hsl(38 92% 72%);
+  --webops-color-warning-dark: hsl(38 85% 52%);
+  --webops-color-warning-alpha-10: hsl(38 90% 64% / 10%);
+  --webops-color-warning-alpha-30: hsl(38 90% 64% / 30%);
+  --webops-color-error: var(--ui-bad);
+  --webops-color-error-light: hsl(4 95% 80%);
+  --webops-color-error-dark: hsl(4 80% 62%);
+  --webops-color-error-alpha-10: hsl(4 90% 74% / 10%);
+  --webops-color-error-alpha-30: hsl(4 90% 74% / 30%);
+  --webops-color-info: var(--ui-info);
+  --webops-color-info-light: hsl(205 80% 76%);
+  --webops-color-info-dark: hsl(205 70% 58%);
+  --webops-color-info-alpha-10: hsl(205 75% 68% / 10%);
+  --webops-color-info-alpha-30: hsl(205 75% 68% / 30%);
+  --webops-color-neutral-alpha-10: hsl(220 10% 70% / 10%);
 
-    /* High contrast status colors */
-    --webops-color-success: #ffffff;
-    --webops-color-warning: #ffff00;
-    --webops-color-error: #ff0000;
-    --webops-color-info: #ffffff;
+  --webops-gray-950: hsl(0 0% 0%);
+  --webops-gray-900: hsl(0 0% 6%);
+  --webops-gray-850: hsl(0 0% 12%);
+  --webops-gray-825: hsl(0 0% 14%);
+  --webops-gray-800: hsl(0 0% 18%);
+  --webops-gray-750: hsl(0 0% 24%);
+  --webops-gray-600: hsl(0 0% 58%);
+  --webops-gray-500: hsl(0 0% 78%);
+  --webops-gray-400: hsl(0 0% 88%);
+  --webops-gray-200: hsl(0 0% 100%);
 
-    /* Graph colors use primary theme color */
-    --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
-    --webops-color-graph-edge: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
-    --webops-color-graph-grid: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 10%);
+  --webops-color-bg-primary: var(--ui-bg);
+  --webops-color-bg-secondary: var(--ui-surface);
+  --webops-color-bg-tertiary: var(--ui-surface-2);
+  --webops-color-bg-elevated: var(--ui-surface);
+  --webops-color-bg-card: var(--ui-surface);
+  --webops-color-bg-card-mobile: var(--ui-surface);
+  --webops-color-bg-highlight: var(--ui-accent-tint);
+  --webops-color-surface: var(--ui-surface);
+  --webops-color-surface-hover: var(--ui-surface-2);
+  --webops-color-surface-active: var(--ui-surface-3);
+  --webops-color-modal-backdrop: var(--ui-scrim);
+  --webops-color-modal-shadow: transparent;
+  --webops-color-border: var(--ui-line);
+  --webops-color-border-strong: var(--ui-line-strong);
+  --webops-color-text-primary: var(--ui-text);
+  --webops-color-text-secondary: var(--ui-text-2);
+  --webops-color-text-tertiary: var(--ui-text-3);
+  --webops-color-text-disabled: var(--ui-text-off);
+  --webops-color-graph-node: var(--ui-accent);
+  --webops-color-graph-edge: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 25%);
+  --webops-color-graph-grid: hsl(var(--webops-hue-primary) calc(var(--webops-sat-primary) * 1) 72% / 6%);
 
-    /* High contrast shadows */
-    --webops-shadow-sm: 0 2px 8px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
-    --webops-shadow-md: 0 4px 16px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 40%);
-    --webops-shadow-lg: 0 8px 32px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 50%);
-    --webops-shadow-glow: 0 0 24px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 50%);
+  /* flat: decorative elevation is gone; only floating layers carry a shadow */
+  --webops-shadow-xs: none;
+  --webops-shadow-sm: none;
+  --webops-shadow-base: none;
+  --webops-shadow-md: none;
+  --webops-shadow-inner: none;
+  --webops-shadow-primary-sm: none;
+  --webops-shadow-primary: none;
+  --webops-shadow-primary-lg: none;
+  --webops-shadow-success: none;
+  --webops-shadow-glow: none;
+  --webops-shadow-lg: var(--ui-overlay-shadow);
+  --webops-shadow-xl: var(--ui-overlay-shadow);
+  --webops-shadow-2xl: var(--ui-overlay-shadow);
 }
 
-/* Theme transition animations */
-[data-theme] {
-    transition: none;
-}
-
-/* Scrollbar theming */
-[data-theme="light"] ::-webkit-scrollbar-track {
-    background: var(--webops-color-bg-secondary);
-    border-left: 1px solid rgba(0, 204, 106, 0.1);
-}
-
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-    background: rgba(0, 204, 106, 0.2);
-    border: 2px solid var(--webops-color-bg-secondary);
-}
-
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 204, 106, 0.35);
-}
-
-[data-theme="high-contrast"] ::-webkit-scrollbar-track {
-    background: var(--webops-color-bg-secondary);
-    border-left: 1px solid rgba(0, 255, 255, 0.3);
-}
-
-[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.4);
-    border: 2px solid var(--webops-color-bg-secondary);
-}
-
-[data-theme="high-contrast"] ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 255, 0.6);
+/* Forced colours: let the system palette win for text and borders. */
+@media (forced-colors: active) {
+  :root { --ui-line: CanvasText; --ui-line-strong: CanvasText; --ui-accent: Highlight; }
 }

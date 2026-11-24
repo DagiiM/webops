@@ -239,19 +239,23 @@ function initializeThemeSwitching() {
  * Apply theme to the page
  */
 function applyTheme(theme) {
-    const root = document.documentElement;
-    
-    // Remove existing theme classes
-    root.removeAttribute('data-theme');
-    
-    // Apply new theme
-    if (theme !== 'system') {
-        root.setAttribute('data-theme', theme);
+    // One owner for theme: ui-shell.js sets data-theme-pref and the resolved data-theme
+    // ("system" follows the OS) and persists the choice.
+    if (window.WebOpsShell && window.WebOpsShell.setTheme) {
+        window.WebOpsShell.setTheme(theme);
     }
-    
-    // Update theme toggle icon
     updateThemeIcon(theme);
 }
+
+// Compact spacing applies live as well as being saved with the form.
+document.addEventListener('DOMContentLoaded', function () {
+    const compact = document.getElementById('compact_view');
+    if (compact && window.WebOpsShell && window.WebOpsShell.setDensity) {
+        compact.addEventListener('change', function () {
+            window.WebOpsShell.setDensity(compact.checked ? 'compact' : 'default');
+        });
+    }
+});
 
 /**
  * Update theme toggle icon

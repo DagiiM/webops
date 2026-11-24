@@ -1,0 +1,129 @@
+/**
+ * WebOps motion: loader, navigation progress, page enter, view transitions, theme fade.
+ *
+ * Rules: transform and opacity only, under 300 ms for anything a person triggers, nothing that
+ * loops past a few seconds without a way out, and reduced motion keeps meaning but drops travel
+ * (the blanket rule in ui-foundation.css collapses every duration).
+ */
+
+:root {
+  --ui-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ui-enter: 240ms;
+}
+
+/* ───────── Minimal loader ─────────
+   A faint WebOps mark with one bright stroke travelling along it. It appears only when something
+   takes longer than a moment, so a fast page never flashes it. */
+.webops-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--webops-z-loader);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ui-bg) 82%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--webops-duration-medium) var(--ui-ease), visibility 0s linear var(--webops-duration-medium);
+}
+.webops-loader-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.webops-loader { display: grid; justify-items: center; gap: var(--webops-space-2); }
+.webops-loader__mark { overflow: visible; }
+.webops-loader__base,
+.webops-loader__trace {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.webops-loader__base { stroke: var(--ui-line-strong); opacity: 0.45; }
+.webops-loader__trace {
+  stroke: var(--ui-accent);
+  stroke-dasharray: 26 74;
+  stroke-dashoffset: 26;
+  animation: webops-trace 1.15s var(--webops-ease-in-out) infinite;
+}
+@keyframes webops-trace { to { stroke-dashoffset: -74; } }
+.webops-loader-text {
+  font: var(--webops-font-weight-medium) 0.6875rem/1 var(--webops-font-family-mono);
+  letter-spacing: var(--webops-letter-spacing-wider);
+  text-transform: uppercase;
+  color: var(--ui-text-2);
+}
+
+/* First paint: if the page is still booting after ~0.4 s, the loader fades in; ui-motion.js adds
+   .ui-ready when the page is interactive. The second animation is a safety net if scripts never run. */
+html:not(.ui-ready) .webops-loader-overlay {
+  visibility: visible;
+  animation: ui-loader-in var(--webops-duration-medium) var(--ui-ease) 0.4s forwards,
+             ui-loader-out var(--webops-duration-medium) var(--ui-ease) 6s forwards;
+}
+@keyframes ui-loader-in { to { opacity: 1; } }
+@keyframes ui-loader-out { to { opacity: 0; visibility: hidden; } }
+
+/* ───────── Navigation progress: a hairline at the very top ───────── */
+.ui-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: calc(var(--webops-z-loader) + 1);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--webops-duration-base) var(--ui-ease);
+}
+.ui-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--ui-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+html.ui-navigating .ui-progress { opacity: 1; }
+html.ui-navigating .ui-progress__bar {
+  transform: scaleX(0.86);
+  transition: transform 6s cubic-bezier(0.08, 0.7, 0.2, 1);
+}
+/* While leaving, the content steps back a little so the click feels acknowledged */
+.webops-main-content > .webops-container { transition: opacity var(--webops-duration-base) var(--ui-ease); }
+html.ui-navigating .webops-main-content > .webops-container { opacity: 0.55; }
+
+/* ───────── Page enter (browsers without cross-document view transitions) ───────── */
+@keyframes ui-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+html:not(.ui-vt) .webops-container > * {
+  animation: ui-enter var(--ui-enter) var(--ui-ease) both;
+}
+html:not(.ui-vt) .webops-container > *:nth-child(2) { animation-delay: 30ms; }
+html:not(.ui-vt) .webops-container > *:nth-child(3) { animation-delay: 60ms; }
+html:not(.ui-vt) .webops-container > *:nth-child(4) { animation-delay: 90ms; }
+html:not(.ui-vt) .webops-container > *:nth-child(n+5) { animation-delay: 120ms; }
+
+/* ───────── Cross-document view transitions: content crossfades, chrome stays put ───────── */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: var(--ui-ease);
+}
+::view-transition-old(ui-sidebar), ::view-transition-old(ui-header) { display: none; }
+::view-transition-new(ui-sidebar), ::view-transition-new(ui-header) { animation: none; }
+::view-transition-group(ui-sidebar), ::view-transition-group(ui-header) { animation-duration: 0s; }
+
+/* ───────── Theme change: a quick fade of colour, applied only while switching ───────── */
+html.ui-theme-fade, html.ui-theme-fade *, html.ui-theme-fade *::before, html.ui-theme-fade *::after {
+  transition: background-color 260ms var(--ui-ease), border-color 260ms var(--ui-ease),
+              color 260ms var(--ui-ease), fill 260ms var(--ui-ease), stroke 260ms var(--ui-ease) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .webops-loader__trace { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+  html.ui-navigating .webops-main-content > .webops-container { opacity: 1; }
+  html:not(.ui-vt) .webops-container > * { animation: none; }
+}

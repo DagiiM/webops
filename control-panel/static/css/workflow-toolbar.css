@@ -171,95 +171,32 @@
    Toolbar Buttons (Consistent with existing button styles)
    ========================================================================== */
 
-.webops-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--webops-space-1);
-    padding: var(--webops-space-2) var(--webops-space-3);
-    border: 1px solid transparent;
-    border-radius: var(--webops-radius-md);
-    font-size: var(--webops-font-size-sm);
-    font-weight: var(--webops-font-weight-medium);
-    text-decoration: none;
-    cursor: pointer;
-    transition: none;
-    backdrop-filter: blur(10px);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
 
-.webops-btn-sm {
-    padding: var(--webops-space-1-5) var(--webops-space-2);
-    font-size: var(--webops-font-size-xs);
-}
 
-.webops-btn-secondary {
-    background: var(--webops-color-surface);
-    border-color: var(--webops-color-primary-alpha-20);
-    color: var(--webops-color-text-primary);
-    box-shadow: none;
-}
 
-.webops-btn-secondary:hover {
-    background: var(--webops-color-surface-hover);
-    border-color: var(--webops-color-primary-alpha-30);
-    transform: none;
-    box-shadow: none;
-}
 
-.webops-btn-secondary:active {
-    transform: none;
-    box-shadow: none;
-}
 
-.webops-btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
 
-.webops-btn-primary {
-    background: var(--webops-color-primary);
-    border-color: var(--webops-color-primary);
-    color: var(--webops-color-bg-primary);
-    box-shadow: none;
-}
 
-.webops-btn-primary:hover {
-    background: var(--webops-color-primary-light);
-    box-shadow: none;
-    transform: none;
-}
 
-.webops-btn-primary:active {
-    transform: none;
-    box-shadow: none;
-}
 
-.webops-btn-success {
-    background: var(--webops-color-success);
-    border-color: var(--webops-color-success);
-    color: var(--webops-color-bg-primary);
-    box-shadow: none;
-}
 
-.webops-btn-success:hover {
-    background: var(--webops-color-success-light, #595959);
-    box-shadow: none;
-    transform: none;
-}
 
-.webops-btn-success:active {
-    transform: none;
-    box-shadow: none;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Button icons */
-.webops-btn .material-icons {
-    font-size: var(--webops-icon-size-sm);
-}
+
 
 /* Hide text on very small screens */
 @media (max-width: 480px) {
@@ -267,11 +204,7 @@
         display: none;
     }
     
-    .webops-btn {
-        padding: var(--webops-space-2);
-        min-width: 36px;
-        justify-content: center;
-    }
+    
 }
 
 /* ==========================================================================
@@ -384,17 +317,7 @@
    Status Badges
    ========================================================================== */
 
-.webops-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--webops-space-1) var(--webops-space-2);
-    border-radius: var(--webops-radius-full);
-    font-size: var(--webops-font-size-xs);
-    font-weight: var(--webops-font-weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    flex-shrink: 0;
-}
+
 
 .webops-badge-draft {
     background: var(--webops-color-warning-alpha-10);
@@ -442,9 +365,7 @@
         border-width: 2px;
     }
     
-    .webops-btn {
-        border-width: 2px;
-    }
+    
     
     .webops-workflow-name-input {
         border-width: 2px;
@@ -453,7 +374,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .webops-workflow-toolbar,
-    .webops-btn,
     .webops-workflow-name-input,
     .webops-toolbar-dropdown {
         transition: none;

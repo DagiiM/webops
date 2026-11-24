@@ -1,33 +1,20 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-density="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>{% block title %}{{ branding.site_name }}{% endblock %}</title>
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="{% static 'icons/favicon.svg' %}" type="image/svg+xml">
     {% endif %}
 
-
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/themes.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-switcher.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme-transitions.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/webops-utilities.css' %}">
+    {% include 'components/head_assets.html' %}
     <link rel="stylesheet" href="{% static 'css/toast.css' %}">
-
-    <!-- Dynamic branding variables -->
-    <link rel="stylesheet" href="{% url 'branding_css' %}">
-
     <link rel="stylesheet" href="{% static 'css/pages/auth-auth_base.css' %}">
     {% block extra_css %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
     <link rel="stylesheet" href="{% static 'css/webops-icons.css' %}">
     <link rel="stylesheet" href="{% static 'css/webops-states.css' %}">
     <link rel="stylesheet" href="{% static 'css/inline-extracted.css' %}">
@@ -38,60 +25,44 @@
 </head>
 <body class="auth-page">
     <a class="skip-link" href="#main">Skip to main content</a>
-    <!-- Theme Switcher -->
-    <div class="webops-theme-switcher">
-        <div class="theme-switcher-container">
-            <button type="button" class="theme-switcher-toggle" id="theme-switcher-toggle" aria-label="Switch theme">
-                <span class="theme-switcher-icon material-icons">brightness_6</span>
-            </button>
-            <div class="theme-switcher-dropdown" id="theme-switcher-dropdown">
-                <div class="theme-switcher-header">
-                    <span class="theme-switcher-title">Theme</span>
-                    <button aria-label="Close theme switcher" type="button" class="theme-switcher-close" id="theme-switcher-close">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
-                <div class="theme-switcher-options">
-                    <div class="theme-option" data-theme="dark">
-                        <div class="theme-preview dark-preview"></div>
-                        <span class="theme-name">Dark</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                    <div class="theme-option" data-theme="light">
-                        <div class="theme-preview light-preview"></div>
-                        <span class="theme-name">Light</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                    <div class="theme-option" data-theme="high-contrast">
-                        <div class="theme-preview high-contrast-preview"></div>
-                        <span class="theme-name">High Contrast</span>
-                        <span class="theme-check material-icons">check</span>
-                    </div>
-                </div>
+    {% include 'components/loader.html' %}
+
+    <div class="auth-tools ui-menu" data-ui-menu>
+        <button type="button" class="ui-iconbtn" id="appearanceTrigger" aria-haspopup="true" aria-expanded="false" aria-controls="appearanceMenu" aria-label="Appearance">
+            <span class="material-icons">palette</span>
+        </button>
+        <div class="ui-menu__panel ui-menu__panel--wide" id="appearanceMenu" role="group" aria-label="Appearance">
+            <p class="ui-menu__label" id="lblTheme">Theme</p>
+            <div class="ui-seg" role="group" aria-labelledby="lblTheme">
+                <button type="button" data-pref="theme" data-val="system" aria-pressed="false">System</button>
+                <button type="button" data-pref="theme" data-val="light" aria-pressed="false">Light</button>
+                <button type="button" data-pref="theme" data-val="dark" aria-pressed="false">Dark</button>
+                <button type="button" data-pref="theme" data-val="high-contrast" aria-pressed="false">High contrast</button>
             </div>
         </div>
     </div>
 
-    <div class="webops-app-background"></div>
     <main class="auth-container" id="main" tabindex="-1">
+        <div class="auth-brand">
+            {% if branding.logo %}
+                <img src="{{ branding.logo.url }}" alt="" class="webops-sidebar-logo">
+            {% else %}
+                <svg class="auth-brand__mark" viewBox="0 0 48 48" width="28" height="28" aria-hidden="true" focusable="false"><path d="M8 14 L16 34 L24 18 L32 34 L40 14" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            {% endif %}
+            <span class="auth-brand__name">{{ branding.site_name }}</span>
+        </div>
         <div class="webops-card webops-auth-card {% block card_width_class %}{% endblock %}">
             <div class="webops-card-body">
-                <h1 class="webops-h1 webops-s-f71b564">{{ branding.site_name }}</h1>
-                <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">{% block page_title %}{% endblock %}</h2>
+                <h1 class="auth-title">{% block page_title %}{% endblock %}</h1>
 
                 {% block content %}{% endblock %}
             </div>
         </div>
     </main>
 
-    <!-- Theme JavaScript -->
-    <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>
-    <script src="{% static 'js/theme-switcher.js' %}"></script>
-    <script src="{% static 'js/theme-integration.js' %}"></script>
-
-    <!-- Toast Notifications -->
     <script src="{% static 'js/toast.js' %}"></script>
-
+    <script src="{% static 'js/ui-shell.js' %}"></script>
+    <script src="{% static 'js/ui-motion.js' %}"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
