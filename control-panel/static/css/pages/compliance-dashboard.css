@@ -15,10 +15,7 @@
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
     color: var(--webops-color-text-primary);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
+    color: var(--webops-color-primary);
 }
 
 .webops-header-actions {
@@ -299,7 +296,7 @@
 
 .webops-btn-primary {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     border-color: var(--webops-color-primary);
 }
 
@@ -338,7 +335,7 @@
 
 .webops-btn-success {
     background: var(--webops-color-success);
-    color: white;
+    color: var(--webops-color-on-primary);
     border-color: var(--webops-color-success);
 }
 

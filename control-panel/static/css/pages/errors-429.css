@@ -130,11 +130,8 @@
     font-weight: var(--webops-font-weight-bold);
     text-align: center;
     margin-bottom: var(--webops-space-4);
-    background: var(--webops-color-warning);
-
-    -webkit-text-fill-color: currentColor;
-
-    animation: none;
+    color: var(--webops-color-warning);
+animation: none;
 }
 
 @keyframes titleSlide {

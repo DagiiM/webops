@@ -95,10 +95,7 @@
 .webops-header-title {
     font-size: var(--webops-font-size-2xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
+    color: var(--webops-color-primary);
 }
 
 .webops-user-menu {

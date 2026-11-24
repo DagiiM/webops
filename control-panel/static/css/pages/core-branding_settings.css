@@ -30,7 +30,7 @@
 .webops-form-section {
     margin-bottom: var(--webops-space-4);
     padding-bottom: var(--webops-space-4);
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .webops-form-section:last-of-type {
@@ -77,8 +77,8 @@
 .webops-input {
     width: 100%;
     padding: var(--webops-space-1-5) var(--webops-space-3);
-    background: rgba(0, 255, 136, 0.05);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
@@ -91,13 +91,13 @@
 }
 
 .webops-input[readonly] {
-    background: rgba(0, 255, 136, 0.02);
+    background: var(--webops-color-primary-alpha-03);
     cursor: not-allowed;
 }
 
 .webops-input:focus {
     border-color: var(--webops-color-primary);
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
 }
 
 .webops-hue-slider,
@@ -171,7 +171,7 @@
     gap: var(--webops-space-3);
     margin-top: var(--webops-space-4);
     padding-top: var(--webops-space-4);
-    border-top: 1px solid rgba(0, 255, 136, 0.1);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .webops-btn {
@@ -203,13 +203,13 @@
 }
 
 .webops-btn-secondary {
-    background: rgba(0, 255, 136, 0.1);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     color: var(--webops-color-primary);
 }
 
 .webops-btn-secondary:hover {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
 }
 
 /* Preview Panel Styles */
@@ -226,7 +226,7 @@
 .webops-ui-preview {
     margin-bottom: var(--webops-space-4);
     padding-bottom: var(--webops-space-4);
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .webops-palette-preview:last-child,
@@ -271,7 +271,7 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--webops-space-2);
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-radius: var(--webops-radius-sm);
     font-size: var(--webops-font-size-sm);
 }
@@ -288,8 +288,8 @@
 }
 
 .webops-contrast-grade.aaa {
-    background: #10b981;
-    color: white;
+    background: var(--webops-color-primary);
+    color: var(--webops-color-on-primary);
 }
 
 .webops-contrast-grade.aa {
@@ -338,7 +338,7 @@
 }
 
 .webops-preview-interface {
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     overflow: hidden;
     background: var(--webops-color-bg-primary);
@@ -381,8 +381,8 @@
 }
 
 .webops-preview-card {
-    background: rgba(0, 255, 136, 0.05);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
 }
@@ -411,11 +411,11 @@
 
 .webops-preview-btn:not(.secondary) {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
 }
 
 .webops-preview-btn.secondary {
-    background: rgba(0, 255, 136, 0.1);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     color: var(--webops-color-primary);
 }

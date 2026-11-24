@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
             RetryManager,
             Sidebar: sidebarManager
         };
-        console.log('%cWebOps', 'color: #00ff88; font-size: 24px; font-weight: bold;');
+        console.log('%cWebOps', 'color: #888888; font-size: 24px; font-weight: bold;');
     } catch (error) {
         console.error('Failed to initialize WebOps:', error);
         ErrorBoundary.handleError(error);

@@ -91,11 +91,8 @@ body {
 .webops-h1 {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    margin-bottom: var(--webops-space-3);
+    color: var(--webops-color-primary);
+margin-bottom: var(--webops-space-3);
 }
 
 .webops-h2 {
@@ -383,10 +380,7 @@ select:focus {
     margin: 0 0 var(--webops-space-2) 0;
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-text-primary);
-
-    -webkit-text-fill-color: currentColor;
-
+    color: var(--webops-color-text-primary);
 }
 
 .webops-text-muted {
@@ -514,11 +508,8 @@ select:focus {
 .webops-oauth-config__title {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    margin-bottom: var(--webops-space-1);
+    color: var(--webops-color-primary);
+margin-bottom: var(--webops-space-1);
     animation: none;
 }
 
@@ -1007,11 +998,8 @@ select:focus {
 .login-page .webops-h1 {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    text-align: center;
+    color: var(--webops-color-primary);
+text-align: center;
     margin-bottom: var(--webops-space-1);
 }
 
@@ -2273,7 +2261,7 @@ input:-internal-autofill-selected{
 
 .webops-notification-success {
     background: var(--webops-color-success);
-    color: white;
+    color: var(--webops-color-on-primary);
 }
 
 .webops-notification-error {
@@ -4013,11 +4001,8 @@ input:-internal-autofill-selected{
 .login-page .webops-h1 {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    text-align: center;
+    color: var(--webops-color-primary);
+text-align: center;
     margin-bottom: var(--webops-space-1);
 }
 
@@ -4275,7 +4260,7 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-sm);
     border: 1px solid var(--webops-color-primary);
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     cursor: pointer;
     transition: none;
     display: flex;

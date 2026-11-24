@@ -1448,3 +1448,9 @@ canvas { height: auto; }
   html .webops-btn { max-width: 100%; white-space: normal; }
   html .webops-h3 { overflow-wrap: anywhere; }
 }
+
+/* Plain link-buttons must not fall back to the browser's default link blue. */
+a.webops-btn:not([class*="webops-btn-"]):not([class*="btn-outline"]) {
+  color: var(--webops-color-text-primary);
+  text-decoration: none;
+}

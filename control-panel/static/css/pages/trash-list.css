@@ -35,11 +35,8 @@
 .webops-trash-title {
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-extrabold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    margin-bottom: var(--webops-space-2);
+    color: var(--webops-color-primary);
+margin-bottom: var(--webops-space-2);
     display: flex;
     align-items: center;
     gap: var(--webops-space-3);

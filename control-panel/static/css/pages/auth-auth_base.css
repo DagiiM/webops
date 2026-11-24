@@ -39,7 +39,7 @@
     padding: var(--webops-space-3);
     padding-right: var(--webops-space-6);
     background: var(--webops-color-surface);
-    border: 2px solid rgba(0, 255, 136, 0.2);
+    border: 2px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-base);
@@ -165,9 +165,9 @@
 .password-requirements {
     margin-top: var(--webops-space-2);
     padding: var(--webops-space-3);
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-radius: var(--webops-radius-md);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .password-requirement {
@@ -216,7 +216,7 @@
 
 .password-toggle:hover {
     color: var(--webops-color-primary);
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
 }
 
 .password-toggle .material-icons {
@@ -277,7 +277,7 @@
 }
 
 .auth-alert-success {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-left: 4px solid var(--webops-color-success);
     color: var(--webops-color-success);
 }

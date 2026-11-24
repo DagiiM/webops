@@ -292,7 +292,7 @@
     padding: var(--webops-space-1);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     position: relative;
 }
 
@@ -703,7 +703,7 @@
     padding: var(--webops-space-1);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
 }
 
 .webops-properties-header h3 {

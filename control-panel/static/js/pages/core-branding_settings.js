@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             primary_lightness: 65,
             color_harmony: 'monochromatic',
             supports_dark_mode: true,
-            accent_color: '#10B981',
+            accent_color: '#374151',
             header_bg_color: '#111827',
         },
         'premium': {

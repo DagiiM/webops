@@ -54,7 +54,7 @@ function selectRepository(repoUrl, fullName, defaultBranch, repoName) {
     const cards = document.querySelectorAll('.webops-card');
     const lastCard = cards[cards.length - 1];
     if (lastCard) {
-        lastCard.style.boxShadow = '0 0 0 3px rgba(0, 255, 136, 0.3)';
+        lastCard.style.boxShadow = '0 0 0 3px var(--webops-color-primary-alpha-30)';
         setTimeout(() => {
             lastCard.style.boxShadow = '';
         }, 2000);

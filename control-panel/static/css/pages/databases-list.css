@@ -19,7 +19,7 @@
 
 .dependency-item.installed {
     border-color: var(--webops-color-success-alpha-20);
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
 }
 
 .dependency-item.missing {
@@ -56,7 +56,7 @@
 
 .dependency-icon.installed {
     color: var(--webops-color-success);
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
 }
 
 .dependency-icon.missing {
@@ -124,14 +124,14 @@
 
 .dependency-install-btn.installed {
     background: var(--webops-color-success);
-    color: white;
+    color: var(--webops-color-on-primary);
     border-color: var(--webops-color-success);
     cursor: not-allowed;
 }
 
 .dependency-install-btn.missing {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     border-color: var(--webops-color-primary);
 }
 
@@ -142,7 +142,7 @@
 
 .dependency-install-btn.installing {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     border-color: var(--webops-color-primary);
     cursor: wait;
 }

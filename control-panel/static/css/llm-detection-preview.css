@@ -127,7 +127,7 @@
 
 .webops-badge-info {
     background: rgba(0, 170, 255, 0.1);
-    color: var(--webops-color-info, #00aaff);
+    color: var(--webops-color-info, #595959);
 }
 
 .webops-badge-danger {
@@ -193,7 +193,7 @@
 }
 
 .webops-text-info {
-    color: var(--webops-color-info, #00aaff);
+    color: var(--webops-color-info, #595959);
 }
 
 .webops-text-danger {

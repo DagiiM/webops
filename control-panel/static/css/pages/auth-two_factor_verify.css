@@ -28,7 +28,7 @@
 
 .auth-details summary:hover {
     color: var(--webops-color-primary);
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
 }
 
 .auth-details[open] summary {

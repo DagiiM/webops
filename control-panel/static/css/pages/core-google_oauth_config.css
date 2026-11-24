@@ -10,7 +10,7 @@
 }
 
 .webops-oauth-config__status-box--success {
-    border-color: var(--success-color, #10b981);
+    border-color: var(--success-color, #595959);
     background: var(--success-background, #f0fdf4);
 }
 
@@ -20,7 +20,7 @@
 }
 
 .webops-oauth-config__status-box--info {
-    border-color: var(--info-color, #3b82f6);
+    border-color: var(--info-color, #595959);
     background: var(--info-background, #eff6ff);
 }
 
@@ -85,7 +85,7 @@
     display: inline-block;
     margin-left: 0.5rem;
     font-size: 0.75rem;
-    color: var(--success-color, #10b981);
+    color: var(--success-color, #595959);
     font-weight: 500;
 }
 

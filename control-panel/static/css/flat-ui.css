@@ -17,4 +17,4 @@ html, html *, html *::before, html *::after {
     transform: none !important;
 }
 .app-background, .graph-nodes, .graph-node { display: none !important; }
-:focus-visible { outline: 2px solid var(--webops-color-primary, #2563eb) !important; outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--webops-color-primary, #595959) !important; outline-offset: 2px; }

@@ -101,7 +101,7 @@
 }
 
 .webops-timeline__item--success .webops-timeline__marker {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-success);
     border: 2px solid var(--webops-color-success);
 }

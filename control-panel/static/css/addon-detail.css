@@ -116,10 +116,7 @@
     margin: 0 0 var(--webops-space-2) 0;
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-text-primary);
-
-    -webkit-text-fill-color: currentColor;
-
+    color: var(--webops-color-text-primary);
 }
 
 .webops-addon-detail__meta {

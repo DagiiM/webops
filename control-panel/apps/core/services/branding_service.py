@@ -317,9 +317,9 @@ class BrandingService:
             "  --webops-error: #ef4444;",
             "  --webops-error-light: #f87171;",
             "  --webops-error-dark: #dc2626;",
-            "  --webops-info: #3b82f6;",
-            "  --webops-info-light: #60a5fa;",
-            "  --webops-info-dark: #2563eb;",
+            "  --webops-info: #374151;",
+            "  --webops-info-light: #6b7280;",
+            "  --webops-info-dark: #1f2937;",
             f"  --webops-accent: {settings.accent_color};",
         ])
 

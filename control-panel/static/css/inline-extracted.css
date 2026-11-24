@@ -56,7 +56,7 @@ html .webops-s-0522b49.webops-s-0522b49 {
 
 html .webops-s-05d6575.webops-s-05d6575 {
     background: var(--webops-color-success);
-    color: white;
+    color: var(--webops-color-on-primary);
     padding: 2px var(--webops-space-0-5);
     border-radius: var(--webops-radius-sm);
     font-size: var(--webops-font-size-sm);
@@ -84,7 +84,7 @@ html .webops-s-0c1db65.webops-s-0c1db65 {
 
 html .webops-s-0d1d87a.webops-s-0d1d87a {
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
 }
@@ -129,7 +129,7 @@ html .webops-s-1192af9.webops-s-1192af9 {
     width: 100%;
     padding: var(--webops-space-1-5);
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-sm);
     color: var(--webops-color-text-primary);
     font-family: 'Courier New', monospace;
@@ -140,7 +140,7 @@ html .webops-s-11fcdc5.webops-s-11fcdc5 {
 }
 
 html .webops-s-12d475c.webops-s-12d475c {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-success);
     padding: var(--webops-space-0-5) var(--webops-space-3);
     border-radius: var(--webops-radius-sm);
@@ -293,7 +293,7 @@ html .webops-s-2b548ae.webops-s-2b548ae {
 
 html .webops-s-2cbe4cc.webops-s-2cbe4cc {
     background: transparent;
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     color: var(--webops-color-text-secondary);
     padding: var(--webops-space-0-5) var(--webops-space-1-5);
     border-radius: var(--webops-radius-sm);
@@ -313,7 +313,7 @@ html .webops-s-2d11e92.webops-s-2d11e92 {
 
 html .webops-s-2dd555c.webops-s-2dd555c {
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
     transition: none;
@@ -410,7 +410,7 @@ html .webops-s-3a2fc3e.webops-s-3a2fc3e {
 }
 
 html .webops-s-3b11233.webops-s-3b11233 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-success);
 }
 
@@ -548,7 +548,7 @@ html .webops-s-4ccf529.webops-s-4ccf529 {
 
 html .webops-s-4cdeb7a.webops-s-4cdeb7a {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     border: none;
     padding: var(--webops-space-3) var(--webops-space-3);
     border-radius: var(--webops-radius-lg);
@@ -576,7 +576,7 @@ html .webops-s-4d6af1f.webops-s-4d6af1f {
 html .webops-s-4e9010c.webops-s-4e9010c {
     font-size: 12px;
     padding: 8px;
-    background: rgba(0,255,136,0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-text-primary);
     min-width: 80px;
     display: flex;
@@ -584,7 +584,7 @@ html .webops-s-4e9010c.webops-s-4e9010c {
 }
 
 html .webops-s-4ea3d90.webops-s-4ea3d90 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-sm);
     text-align: center;
 }
@@ -749,7 +749,7 @@ html .webops-s-66682c1.webops-s-66682c1 {
 
 html .webops-s-66c0dd6.webops-s-66c0dd6 {
     background: var(--webops-color-bg-primary);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
 }
@@ -778,8 +778,8 @@ html .webops-s-67abd0a.webops-s-67abd0a {
 }
 
 html .webops-s-67e2c9c.webops-s-67e2c9c {
-    background: rgba(0, 255, 136, 0.05);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);
@@ -970,7 +970,7 @@ html .webops-s-7634ea0.webops-s-7634ea0 {
     display: none;
     margin-top: var(--webops-space-3);
     padding-top: var(--webops-space-3);
-    border-top: 1px solid rgba(0, 255, 136, 0.1);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 html .webops-s-76fac43.webops-s-76fac43 {
@@ -992,7 +992,7 @@ html .webops-s-773ba08.webops-s-773ba08 {
 
 html .webops-s-78d7a77.webops-s-78d7a77 {
     background: var(--webops-color-primary);
-    color: white;
+    color: var(--webops-color-on-primary);
     border: none;
     padding: var(--webops-space-1-5) var(--webops-space-3);
     border-radius: var(--webops-radius-sm);
@@ -1000,7 +1000,7 @@ html .webops-s-78d7a77.webops-s-78d7a77 {
 }
 
 html .webops-s-7b10280.webops-s-7b10280 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     padding: 2px 6px;
     border-radius: 4px;
 }
@@ -1011,7 +1011,7 @@ html .webops-s-7bfd575.webops-s-7bfd575 {
 }
 
 html .webops-s-7ca1808.webops-s-7ca1808 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     padding: var(--webops-space-0-5) var(--webops-space-1-5);
     border-radius: var(--webops-radius-sm);
     color: var(--webops-color-primary);
@@ -1079,7 +1079,7 @@ html .webops-s-80680cb.webops-s-80680cb {
     width: 100%;
     padding: var(--webops-space-3);
     background: var(--webops-color-bg-primary);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
 }
@@ -1188,7 +1188,7 @@ html .webops-s-8d6285b.webops-s-8d6285b {
 }
 
 html .webops-s-8ef9d40.webops-s-8ef9d40 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--webops-color-success);
 }
@@ -1238,7 +1238,7 @@ html .webops-s-94b01b5.webops-s-94b01b5 {
 
 html .webops-s-9536ffe.webops-s-9536ffe {
     background: var(--webops-color-bg-primary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
 }
@@ -1294,7 +1294,7 @@ html .webops-s-9aef6f2.webops-s-9aef6f2 {
 
 html .webops-s-9c18321.webops-s-9c18321 {
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);
@@ -1338,7 +1338,7 @@ html .webops-s-9fff9d8.webops-s-9fff9d8 {
 }
 
 html .webops-s-a022a9c.webops-s-a022a9c {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-left: 4px solid var(--webops-color-success);
     border-radius: var(--webops-radius-md);
 }
@@ -1351,7 +1351,7 @@ html .webops-s-a040d50.webops-s-a040d50 {
 }
 
 html .webops-s-a122bed.webops-s-a122bed {
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-left: 3px solid var(--webops-color-success);
     border-radius: var(--webops-radius-md);
 }
@@ -1384,8 +1384,8 @@ html .webops-s-a21eb76.webops-s-a21eb76 {
 html .webops-s-a557fb9.webops-s-a557fb9 {
     margin-top: var(--webops-space-3);
     padding: var(--webops-space-3);
-    background: rgba(0, 255, 136, 0.05);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
 }
 
@@ -1474,9 +1474,9 @@ html .webops-s-b08cf9f.webops-s-b08cf9f {
     align-items: center;
     margin-bottom: var(--webops-space-3);
     padding: var(--webops-space-3);
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-radius: var(--webops-radius-md);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
 }
 
 html .webops-s-b0bd679.webops-s-b0bd679 {
@@ -1530,7 +1530,7 @@ html .webops-s-b3dc67e.webops-s-b3dc67e {
     width: 100%;
     padding: var(--webops-space-1-5);
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-sm);
     color: var(--webops-color-text-primary);
 }
@@ -1547,7 +1547,7 @@ html .webops-s-b52efeb.webops-s-b52efeb {
 html .webops-s-b566004.webops-s-b566004 {
     margin-top: var(--webops-space-3xl);
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
 }
@@ -1558,7 +1558,7 @@ html .webops-s-b654217.webops-s-b654217 {
     padding: var(--webops-space-3);
     background: var(--webops-color-bg-secondary);
     border-radius: var(--webops-radius-md);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
 }
 
 html .webops-s-b768872.webops-s-b768872 {
@@ -1597,7 +1597,7 @@ html .webops-s-bbb03a0.webops-s-bbb03a0 {
 }
 
 html .webops-s-bbc5102.webops-s-bbc5102 {
-    background: #3B82F6;
+    background: var(--webops-color-primary);
 }
 
 html .webops-s-bc8b5b1.webops-s-bc8b5b1 {
@@ -1668,9 +1668,7 @@ html .webops-s-c6b8126.webops-s-c6b8126 {
     color: var(--webops-gray-600);
 }
 
-html .webops-s-c7e9fcd.webops-s-c7e9fcd {
-    background: #667eea;
-    -webkit-text-fill-color: currentColor;
+html .webops-s-c7e9fcd.webops-s-c7e9fcd {    color: var(--webops-color-text-primary);
 }
 
 html .webops-s-cab13eb.webops-s-cab13eb {
@@ -1742,7 +1740,7 @@ html .webops-s-d0963fe.webops-s-d0963fe {
 }
 
 html .webops-s-d1187f1.webops-s-d1187f1 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
 }
 
@@ -1760,7 +1758,7 @@ html .webops-s-d20af97.webops-s-d20af97 {
 }
 
 html .webops-s-d253699.webops-s-d253699 {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
 }
 
@@ -1785,7 +1783,7 @@ html .webops-s-d46f84d.webops-s-d46f84d {
 
 html .webops-s-d50a3b7.webops-s-d50a3b7 {
     flex: 1;
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
     border: 1px solid var(--webops-color-primary);
     padding: var(--webops-space-1-5) var(--webops-space-3);
@@ -1827,7 +1825,7 @@ html .webops-s-da0f944.webops-s-da0f944 {
 }
 
 html .webops-s-da25434.webops-s-da25434 {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-success);
     font-size: 11px;
 }
@@ -1836,7 +1834,7 @@ html .webops-s-da604c8.webops-s-da604c8 {
     width: 100%;
     padding: var(--webops-space-3);
     background: var(--webops-color-bg-primary);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-family: 'Courier New', monospace;
@@ -1859,9 +1857,9 @@ html .webops-s-db5c870.webops-s-db5c870 {
 }
 
 html .webops-s-ddd2cea.webops-s-ddd2cea {
-    background: rgba(0, 255, 136, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-radius: var(--webops-radius-md);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 html .webops-s-de9e69b.webops-s-de9e69b {
@@ -1917,7 +1915,7 @@ html .webops-s-e5c046f.webops-s-e5c046f {
 
 html .webops-s-e63c09e.webops-s-e63c09e {
     padding: var(--webops-space-3);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     background: var(--webops-color-bg-secondary);
     cursor: pointer;
@@ -1937,7 +1935,7 @@ html .webops-s-e6d43a1.webops-s-e6d43a1 {
 }
 
 html .webops-s-e6f052f.webops-s-e6f052f {
-    background: #10B981;
+    background: var(--webops-color-primary);
 }
 
 html .webops-s-e830593.webops-s-e830593 {
@@ -2098,7 +2096,7 @@ html .webops-s-ff03568.webops-s-ff03568 {
 
 html .webops-s-ffbb713.webops-s-ffbb713 {
     background: transparent;
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     color: var(--webops-color-text-secondary);
     padding: var(--webops-space-1-5) var(--webops-space-3);
     border-radius: var(--webops-radius-sm);

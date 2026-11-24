@@ -27,7 +27,7 @@ Add `python3 $S/human_check.py --catalog human/designs.json --root .` for the hu
 | Labels, decorative SVGs | Unlabelled controls labelled; decorative SVGs have `aria-hidden="true"`. |
 | Duplicate API docs | Removed `apps/api/docs/`, `static/api/docs/` and `templates/api/docs/{index.html,styles.css,script.js}`. `templates/api/docs.html` is the routed page. |
 | Motion | `flat-ui.css` keeps shadows off but no longer blanket-disables transitions; `prefers-reduced-motion: reduce` collapses them. |
-| Contrast | Checked dark-theme text and accent pairs with `contrast.py` (all at or above 4.5:1 for text). `.webops-btn-danger` used white on red (3.76:1); it now uses the dark text like the other filled buttons (5.26:1). Brand-generated themes are not checked. |
+| Contrast | Checked dark-theme text and accent pairs with `contrast.py` (all at or above 4.5:1 for text). `.webops-btn-danger` used white on red (3.76:1); it now uses the dark text like the other filled buttons (5.26:1). Re-measured in the browser after the neutral palette (see Colour and contrast). |
 | Human brief | `control-panel/human/designs.json` covers deploy create, delete confirmation, sign-in and dashboard. It passes the structural gate; every review is `pending` and no research was done. |
 | Pre-existing bugs | Removed committed diff markers in `automation/template_list.html`; fixed `<span="material-icons">` in `deployments/create.html`. |
 
@@ -42,6 +42,22 @@ Found and fixed:
 - 3 and 4 column grids stack under 640 px; page-header, filter-form and status-banner rows wrap on phones.
 
 Result: no page is wider than the viewport at any tested width. At 320 px, 4 pages still have a small element (button, badge or card header, up to about 40 px) clipped (`compliance/dashboard`, `dashboard`, `deployments/llm_detail`, `integrations/dashboard`). Limits: sample data, no real fonts or API data, drawer and JS states not exercised, Chrome only.
+
+## Colour and contrast
+
+Measured in headless Chrome on all 63 pages (text elements against their effective background, WCAG AA 4.5:1, 3:1 for large text), dark and light schemes:
+
+| | Below AA before | Below AA after |
+|---|---|---|
+| Dark | 19.7% | 1.1% |
+| Light | 51.9% | 0.7% |
+
+- **No green or sky-blue accents.** The primary is now a neutral ink: near-white on dark, near-black on light (`--webops-sat-primary: 0%`, lightness set per theme). Success and info follow it; warning and error keep their hue (amber, red) but are darkened on the light theme. Hard-coded `#00ff88`, `rgba(0, 255, 136, a)`, `#00aaff`, `#3b82f6` and `#10b981` in the CSS, favicon, `theme-color`, admin CSS and trash admin are replaced with tokens or neutrals. The `forest` and `custom` themes and the branding preset swatches stay as opt-in colours.
+- **Branding defaults are neutral.** `BrandingSettings` defaults changed (hue 0, saturation 0, lightness 12, `#1f2937` / `#4b5563` / `#374151`). Migration `core/0009` moves a row that still has the old defaults to the new ones and leaves customised rows alone. A 0% saturation palette does not emit `--webops-light-primary`, so each theme chooses its own ink lightness.
+- **Invisible headings fixed.** 14 rules (page titles, `.webops-h1`, header and error titles) had `background: <colour>` plus `-webkit-text-fill-color: currentColor`, left over from removing gradient text. The text was the same colour as its own background. They now set `color`.
+- New `--webops-color-on-primary` token for text on a primary fill (dark on dark theme, white on light); 15 rules that used white on a primary, success or info fill now use it.
+- Tertiary text raised (dark `hsl(0 0% 60%)`, light `hsl(0 0% 38%)`), danger button text darkened, plain `a.webops-btn` no longer falls back to the browser's link blue.
+- Left: a few badges and editor greys near 4:1, sample-data artefacts in the check, and the older Markdown docs (`templates/STYLE_GUIDE.md`, `templates/api/docs/*.md`) that still quote the old green and blue.
 
 ## Remaining, by design or needs a human
 

@@ -27,7 +27,7 @@
     background: var(--webops-color-bg-secondary);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--webops-color-primary-alpha-10);
     backdrop-filter: blur(10px);
 }
 
@@ -62,12 +62,12 @@
 }
 
 .webops-docs-nav__item:hover {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
 }
 
 .webops-docs-nav__item.active {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-primary);
 }
 
@@ -81,7 +81,7 @@
     background: var(--webops-color-bg-secondary);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
-    border: 1px solid rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--webops-color-primary-alpha-10);
     backdrop-filter: blur(10px);
 }
 
@@ -103,14 +103,14 @@
 
 .webops-method-badge--get {
     background: rgba(0, 170, 255, 0.2);
-    color: #00aaff;
+    color: var(--webops-color-primary);
     border: 1px solid rgba(0, 170, 255, 0.3);
 }
 
 .webops-method-badge--post {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-primary);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
 }
 
 .webops-method-badge--put, .webops-method-badge--patch {
@@ -159,7 +159,7 @@
 
 .webops-code-block {
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
     font-family: var(--webops-font-family-mono);
@@ -178,8 +178,8 @@
     top: var(--webops-space-1-5);
     right: var(--webops-space-1-5);
     padding: var(--webops-space-0-5) var(--webops-space-1-5);
-    background: rgba(0, 255, 136, 0.1);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-sm);
     color: var(--webops-color-primary);
     font-size: var(--webops-font-size-xs);
@@ -188,14 +188,14 @@
 }
 
 .webops-copy-button:hover {
-    background: rgba(0, 255, 136, 0.2);
+    background: var(--webops-color-primary-alpha-20);
 }
 
 .webops-tabs {
     display: flex;
     gap: var(--webops-space-1-5);
     margin-bottom: var(--webops-space-3);
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
 }
 
 .webops-tab {
@@ -229,7 +229,7 @@
 }
 
 .webops-param-table th {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     padding: var(--webops-space-1-5);
     text-align: left;
     font-size: var(--webops-font-size-xs);
@@ -241,7 +241,7 @@
 
 .webops-param-table td {
     padding: var(--webops-space-1-5);
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
     color: var(--webops-color-text-secondary);
     font-size: var(--webops-font-size-sm);
 }
@@ -284,7 +284,7 @@
     margin-top: var(--webops-space-3);
     padding: var(--webops-space-3);
     background: var(--webops-color-bg-secondary);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
 }
 
@@ -292,7 +292,7 @@
     display: inline-block;
     width: 12px;
     height: 12px;
-    border: 2px solid rgba(0, 255, 136, 0.3);
+    border: 2px solid var(--webops-color-primary-alpha-30);
     border-top-color: var(--webops-color-primary);
     border-radius: 50%;
     animation: none;

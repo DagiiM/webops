@@ -20,14 +20,14 @@
     --accent: #f093fb;
 
     /* Semantic Colors */
-    --success: #10b981;
-    --success-light: #d1fae5;
+    --success: #1f2937;
+    --success-light: #e5e7eb;
     --warning: #f59e0b;
     --warning-light: #fef3c7;
     --danger: #ef4444;
     --danger-light: #fee2e2;
-    --info: #3b82f6;
-    --info-light: #dbeafe;
+    --info: #1f2937;
+    --info-light: #e5e7eb;
 
     /* Grayscale */
     --gray-50: #fafafa;

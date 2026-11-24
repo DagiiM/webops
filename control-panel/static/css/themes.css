@@ -6,17 +6,19 @@
 /* Default Theme (Dark) - Uses the HSL system from variables.css */
 :root {
     /* Theme variables are inherited from variables.css and use the HSL system */
-    --webops-hue-primary: 150;       /* Green theme */
-    --webops-sat-primary: 100%;
-    --webops-light-primary: 50%;
+    --webops-hue-primary: 0;         /* Neutral ink on dark */
+    --webops-sat-primary: 0%;
+    --webops-light-primary: 93%;
+    --webops-color-on-primary: hsl(0 0% 4%);
 }
 
 /* Light Theme - Clean and modern light theme */
 [data-theme="light"] {
     /* Light theme uses teal primary color */
-    --webops-hue-primary: 170;       /* Teal for light theme */
-    --webops-sat-primary: 100%;
-    --webops-light-primary: 50%;
+    --webops-hue-primary: 0;         /* Neutral ink on light */
+    --webops-sat-primary: 0%;
+    --webops-light-primary: 12%;
+    --webops-color-on-primary: #ffffff;
 
     /* Light theme specific overrides */
     --webops-color-bg-primary: #ffffff;
@@ -30,14 +32,14 @@
 
     --webops-color-text-primary: #1a1a1a;
     --webops-color-text-secondary: #4a5568;
-    --webops-color-text-tertiary: #718096;
+    --webops-color-text-tertiary: #4b5563;
     --webops-color-text-disabled: #a0aec0;
 
     /* Status colors remain independent for accessibility */
-    --webops-color-success: hsl(170 100% 50%);    /* Teal success */
+    --webops-color-success: hsl(0 0% 12%);    /* Neutral success */
     --webops-color-warning: #ed8936;
     --webops-color-error: #e53e3e;
-    --webops-color-info: #3182ce;
+    --webops-color-info: #374151;
 
     /* Graph colors use primary theme color */
     --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
@@ -74,10 +76,10 @@
     --webops-color-text-disabled: #663399;
 
     /* Status colors for custom theme */
-    --webops-color-success: #00ff88;
+    --webops-color-success: #f0e6ff;
     --webops-color-warning: #ffaa00;
     --webops-color-error: #ff4466;
-    --webops-color-info: #00aaff;
+    --webops-color-info: #c299ff;
 
     /* Graph colors use primary theme color */
     --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
@@ -94,9 +96,10 @@
 /* High Contrast Theme (Accessibility) - WCAG AA compliant */
 [data-theme="high-contrast"] {
     /* Cyan theme for high contrast */
-    --webops-hue-primary: 180;       /* Cyan primary */
-    --webops-sat-primary: 100%;
-    --webops-light-primary: 50%;
+    --webops-hue-primary: 0;         /* Neutral primary */
+    --webops-sat-primary: 0%;
+    --webops-light-primary: 100%;
+    --webops-color-on-primary: #000000;
 
     /* High contrast backgrounds */
     --webops-color-bg-primary: #000000;
@@ -114,10 +117,10 @@
     --webops-color-text-disabled: #666666;
 
     /* High contrast status colors */
-    --webops-color-success: #00ff00;
+    --webops-color-success: #ffffff;
     --webops-color-warning: #ffff00;
     --webops-color-error: #ff0000;
-    --webops-color-info: #0088ff;
+    --webops-color-info: #ffffff;
 
     /* Graph colors use primary theme color */
     --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));

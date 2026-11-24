@@ -18,11 +18,8 @@
 .error-code {
     font-size: 120px;
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-primary);
-
-    -webkit-text-fill-color: currentColor;
-
-    line-height: 1;
+    color: var(--webops-color-primary);
+line-height: 1;
     margin-bottom: var(--webops-space-3);
     animation: none;
 }

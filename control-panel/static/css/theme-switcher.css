@@ -32,7 +32,7 @@
     height: 48px;
     padding: var(--webops-space-1-5);
     background: var(--webops-color-surface);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-full);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
@@ -45,7 +45,7 @@
 .theme-switcher-toggle:hover,
 .webops-theme-toggle:hover {
     background: var(--webops-color-surface-hover);
-    border-color: rgba(0, 255, 136, 0.4);
+    border-color: var(--webops-color-primary-alpha-35);
     box-shadow: none;
     transform: none;
 }
@@ -81,7 +81,7 @@
     right: 0;
     min-width: 200px;
     background: var(--webops-color-bg-elevated);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-lg);
     box-shadow: none;
     backdrop-filter: blur(20px);
@@ -107,7 +107,7 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--webops-space-3);
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
     background: var(--webops-color-surface);
 }
 
@@ -181,7 +181,7 @@
 
 .theme-option.active,
 .webops-theme-option.active {
-    background: rgba(0, 255, 136, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
     font-weight: var(--webops-font-weight-semibold);
 }

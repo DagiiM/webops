@@ -15,7 +15,7 @@
 .webops-fill-warning { background: var(--webops-color-warning); }
 .webops-fill-error { background: var(--webops-color-error); }
 
-.webops-bg-tint-success { background: rgba(0, 255, 136, 0.1); } /* literal: matches former inline status tint */
+.webops-bg-tint-success { background: var(--webops-color-primary-alpha-10); } /* literal: matches former inline status tint */
 .webops-bg-tint-error { background: rgba(255, 68, 68, 0.1); } /* literal: matches former inline status tint */
 .webops-bg-tint-muted { background: rgba(128, 128, 128, 0.1); } /* literal: matches former inline status tint */
 .webops-bg-tint-warning { background: rgba(255, 191, 0, 0.1); } /* literal: matches former inline status tint */
