@@ -400,3 +400,38 @@ class WorkerPagesTests(Base):
         self.node.refresh_from_db()
         self.assertIsNotNone(self.node.revoked_at)
         self.assertEqual(self.client.get(reverse("deployments:deployment_list")).status_code, 200)
+
+
+@override_settings(ALLOWED_HOSTS=["testserver"], WEBOPS_WORKER_TRUSTED_OWNERS="ifinsta")
+class RetryTests(Base):
+    def setUp(self):
+        super().setUp()
+        self.j = self.job()
+        wq.claim(self.node)
+        wq.complete(self.j.pk, self.node, ok=False, exit_code=1, summary="boom")
+
+    def test_operator_retries_on_the_latest_commit(self):
+        self.client.force_login(self.op)
+        page = self.client.get(reverse("deployments:job_detail", args=[self.j.pk]))
+        self.assertContains(page, "Retry on latest commit")
+        with mock.patch.object(wq, "assess", return_value=(True, "", "rust", "c" * 40)):
+            r = self.client.post(reverse("deployments:job_retry", args=[self.j.pk]))
+        new = BuildJob.objects.exclude(pk=self.j.pk).get()
+        self.assertRedirects(r, reverse("deployments:job_detail", args=[new.pk]), fetch_redirect_response=False)
+        self.assertEqual((new.commit, new.status), ("c" * 40, "queued"))
+
+    def test_retry_is_operator_only_and_only_for_finished_failures(self):
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.post(reverse("deployments:job_retry", args=[self.j.pk])).status_code, 403)
+        self.client.force_login(self.op)
+        running = self.job()
+        r = self.client.post(reverse("deployments:job_retry", args=[running.pk]), follow=True)
+        self.assertContains(r, "Only a failed or cancelled job")
+        self.assertEqual(BuildJob.objects.count(), 2)
+
+    def test_retry_runs_the_same_checks_as_approval(self):
+        self.client.force_login(self.op)
+        wq.revoke(self.node)
+        r = self.client.post(reverse("deployments:job_retry", args=[self.j.pk]), follow=True)
+        self.assertContains(r, "No worker is online")
+        self.assertEqual(BuildJob.objects.count(), 1)

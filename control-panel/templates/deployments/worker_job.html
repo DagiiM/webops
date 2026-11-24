@@ -8,6 +8,7 @@
         <p class="webops-text-muted">{{ job.deployment.name }} · {{ job.kind }} · commit <code>{{ job.commit|slice:":10" }}</code></p>
     </div>
     <div class="ui-actions">
+        {% if can_retry %}<form method="post" action="{% url 'deployments:job_retry' job.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-primary" type="submit">Retry on latest commit</button></form>{% endif %}
         {% if can_cancel %}<form method="post" action="{% url 'deployments:job_cancel' job.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-danger" type="submit">Cancel job</button></form>{% endif %}
         <a href="{% url 'deployments:deployment_detail' job.deployment.pk %}" class="webops-btn">Deployment</a>
     </div>

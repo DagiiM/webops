@@ -58,7 +58,8 @@ def job_detail(request, pk):
     job = get_object_or_404(BuildJob.objects.select_related("deployment", "worker"), pk=pk)
     if not request.user.is_staff and job.deployment.deployed_by_id != request.user.pk:
         return HttpResponseForbidden("Not your job.")
-    return render(request, "deployments/worker_job.html", {"job": job, "can_cancel": request.user.is_staff and job.status in BuildJob.ACTIVE})
+    return render(request, "deployments/worker_job.html", {"job": job, "can_cancel": request.user.is_staff and job.status in BuildJob.ACTIVE,
+                                                        "can_retry": request.user.is_staff and job.status in (BuildJob.Status.FAILED, BuildJob.Status.CANCELLED)})
 
 
 @login_required
@@ -71,3 +72,23 @@ def job_cancel(request, pk):
     wq.cancel(job)
     messages.success(request, "Job cancelled. The request is back with the operator.")
     return redirect("deployments:job_detail", pk=job.pk)
+
+
+@login_required
+@require_POST
+def job_retry(request, pk):
+    """Re-run a failed or cancelled build on the branch's latest commit, after the same checks as an approval."""
+    denied = _staff_only(request)
+    if denied:
+        return denied
+    job = get_object_or_404(BuildJob.objects.select_related("deployment"), pk=pk)
+    if job.status not in (BuildJob.Status.FAILED, BuildJob.Status.CANCELLED):
+        messages.error(request, "Only a failed or cancelled job can be retried.")
+        return redirect("deployments:job_detail", pk=job.pk)
+    ok, reason, kind, commit = wq.assess(job.deployment)
+    if not ok:
+        messages.error(request, reason)
+        return redirect("deployments:job_detail", pk=job.pk)
+    new = wq.enqueue(job.deployment, kind, commit)
+    messages.success(request, "Queued a new build on the latest commit.")
+    return redirect("deployments:job_detail", pk=new.pk)

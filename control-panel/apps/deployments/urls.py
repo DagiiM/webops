@@ -53,6 +53,7 @@ urlpatterns = [
     path('workers/<int:pk>/revoke/', worker_views.worker_revoke, name='worker_revoke'),
     path('workers/jobs/<int:pk>/', worker_views.job_detail, name='job_detail'),
     path('workers/jobs/<int:pk>/cancel/', worker_views.job_cancel, name='job_cancel'),
+    path('workers/jobs/<int:pk>/retry/', worker_views.job_retry, name='job_retry'),
     path('<int:pk>/', deployment_detail, name='deployment_detail'),
     path('<int:pk>/start/', deployment_start, name='deployment_start'),
     path('<int:pk>/stop/', deployment_stop, name='deployment_stop'),

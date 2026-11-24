@@ -114,6 +114,52 @@ class CatalogTests(SimpleTestCase):
         agent.Panel("https://panel.example/", "t")
 
 
+class ToolchainTests(SimpleTestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def write(self, name, text):
+        (self.tmp / name).write_text(text)
+
+    def test_pinned_channels_are_read_and_validated(self):
+        for channel in ("1.97.0", "1.97", "stable", "beta", "nightly", "nightly-2024-05-01"):
+            self.write("rust-toolchain.toml", f'[toolchain]\nchannel = "{channel}"\ncomponents = ["clippy"]\n')
+            self.assertEqual(agent.rust_channel(self.tmp), channel)
+
+    def test_anything_that_is_not_a_plain_release_name_is_ignored(self):
+        for bad in ("1.97.0; rm -rf /", "../../x", "nightly-latest", "1.97.0 --foo", "$(id)", "", "stable\\nx", "1.2.3.4"):
+            self.write("rust-toolchain.toml", f'[toolchain]\nchannel = "{bad}"\n')
+            self.assertIsNone(agent.rust_channel(self.tmp), bad)
+        for odd in ('[toolchain]\nchannel = ["a"]\n', '[toolchain]\nchannel = 5\n', "not = [toml", "[other]\nx = 1\n"):
+            self.write("rust-toolchain.toml", odd)
+            self.assertIsNone(agent.rust_channel(self.tmp), odd)
+
+    def test_plain_rust_toolchain_file_and_no_file(self):
+        self.assertIsNone(agent.rust_channel(self.tmp))
+        self.write("rust-toolchain", "stable\n")
+        self.assertEqual(agent.rust_channel(self.tmp), "stable")
+        self.write("rust-toolchain", "evil; id\n")
+        self.assertIsNone(agent.rust_channel(self.tmp))
+
+    def test_install_runs_the_trusted_rustup_with_the_validated_channel_only(self):
+        out = []
+        done = mock.Mock(returncode=0, stdout="installed", stderr="")
+        with mock.patch.object(agent.subprocess, "run", return_value=done) as run:
+            agent.ensure_rust_toolchain("1.97.0", out.append, time.time() + 600)
+        first = run.call_args_list[0]
+        self.assertEqual(first[0][0][:4], ["/opt/rust/cargo/bin/rustup", "toolchain", "install", "1.97.0"])
+        self.assertNotIn("shell", first[1])
+        self.assertEqual(run.call_args_list[1][0][0][:3], ["chmod", "-R", "a+rX"])
+        self.assertTrue(any("installed" in o for o in out))
+
+    def test_a_failed_install_stops_the_job_with_a_clear_error(self):
+        done = mock.Mock(returncode=1, stdout="", stderr="no such release")
+        with mock.patch.object(agent.subprocess, "run", return_value=done):
+            with self.assertRaises(RuntimeError):
+                agent.ensure_rust_toolchain("1.97.0", lambda t: None, time.time() + 600)
+
+
 class ExtractionTests(SimpleTestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -307,3 +353,24 @@ class EndToEndTests(LiveServerTestCase):
         wq.revoke(self.node)
         status, _ = self.panel.call("POST", "/api/worker/v1/claim", {})
         self.assertEqual(status, 401)
+
+
+    def test_a_rust_job_pins_the_toolchain_and_reports_the_artifact(self):
+        """Fake cargo, real everything else: the pinned channel reaches the job as RUSTUP_TOOLCHAIN, installed by the agent, not the job."""
+        fake = Path("/usr/local/bin/cargo")
+        existed = fake.exists()
+        self.assertFalse(existed, "refusing to overwrite a real cargo")
+        fake.write_text("#!/bin/sh\necho toolchain=$RUSTUP_TOOLCHAIN user=$(id -un)\nmkdir -p target/release && printf bin > target/release/care && chmod 755 target/release/care\n")
+        fake.chmod(0o755)
+        self.addCleanup(fake.unlink)
+        job = self.enqueue("rust", {"Cargo.toml": "[package]\nname='care'\n", "Cargo.lock": "", "rust-toolchain.toml": '[toolchain]\nchannel = "1.97.0"\n'})
+        calls = []
+        with mock.patch.object(agent, "ensure_rust_toolchain", side_effect=lambda ch, emit, dl: calls.append(ch)):
+            agent.run_once(self.panel)
+        job.refresh_from_db()
+        self.assertEqual(calls, ["1.97.0"])
+        self.assertEqual(job.status, "succeeded", job.log)
+        self.assertIn("cargo build --release --locked", job.log)
+        self.assertIn("toolchain=1.97.0", job.log)
+        self.assertNotIn("user=root", job.log)
+        self.assertEqual(job.result["artifacts"], ["target/release/care"])

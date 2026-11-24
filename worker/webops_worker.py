@@ -20,6 +20,7 @@ import ctypes
 import json
 import os
 import pwd
+import re
 import resource
 import selectors
 import shutil
@@ -29,6 +30,7 @@ import stat
 import subprocess
 import sys
 import time
+import tomllib
 import urllib.error
 import urllib.request
 import zipfile
@@ -112,6 +114,43 @@ def build_env(home, token_free=True):
         "CARGO_HOME": home + "/.cargo", "RUSTUP_HOME": "/opt/rust/rustup", "npm_config_cache": home + "/.npm",
         "PIP_CACHE_DIR": home + "/.pip", "PIP_DISABLE_PIP_VERSION_CHECK": "1", "NO_COLOR": "1",
     }
+
+
+# ───────────────────────────── toolchains ─────────────────────────────
+
+CHANNEL_RE = re.compile(r"^(stable|beta|nightly(-\d{4}-\d{2}-\d{2})?|\d{1,2}\.\d{1,3}(\.\d{1,2})?)$")
+
+
+def rust_channel(src):
+    """The Rust toolchain a project pins (rust-toolchain.toml / rust-toolchain), or None. Strictly validated: the value
+    is handed to rustup, so only a plain release name is ever accepted."""
+    src = Path(src)
+    try:
+        if (src / "rust-toolchain.toml").is_file():
+            value = (tomllib.loads((src / "rust-toolchain.toml").read_text()).get("toolchain") or {}).get("channel")
+        elif (src / "rust-toolchain").is_file():
+            text = (src / "rust-toolchain").read_text().strip()
+            value = text if "\n" not in text and "[" not in text else (tomllib.loads(text).get("toolchain") or {}).get("channel")
+        else:
+            return None
+    except (OSError, ValueError, AttributeError, tomllib.TOMLDecodeError):
+        return None
+    return value if isinstance(value, str) and CHANNEL_RE.match(value) else None
+
+
+def ensure_rust_toolchain(channel, emit, wall_deadline):
+    """Install a pinned toolchain as root with the trusted rustup binary, then make it readable for job users."""
+    env = {"PATH": "/opt/rust/cargo/bin:/usr/bin:/bin", "HOME": "/root", "CARGO_HOME": "/opt/rust/cargo", "RUSTUP_HOME": "/opt/rust/rustup"}
+    emit(f"\n$ rustup toolchain install {channel} --profile minimal\n")
+    try:
+        done = subprocess.run(["/opt/rust/cargo/bin/rustup", "toolchain", "install", channel, "--profile", "minimal", "--no-self-update"],
+                              env=env, capture_output=True, text=True, timeout=max(60, min(900, int(wall_deadline - time.time()))))
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Could not install Rust {channel}: {exc}")
+    emit((done.stdout + done.stderr)[-2000:])
+    if done.returncode != 0:
+        raise RuntimeError(f"rustup could not install Rust {channel}.")
+    subprocess.run(["chmod", "-R", "a+rX", "/opt/rust"], check=False)
 
 
 # ───────────────────────────── source ─────────────────────────────
@@ -346,6 +385,11 @@ def handle(panel, job):
         env = build_env(home)
         deadline = time.time() + limits["wall_seconds"]
         emit(f"== job {job_id}: {kind} build of commit {job.get('commit', '')[:10]} (attempt {job.get('attempt', 1)})\n")
+        if kind == "rust":
+            channel = rust_channel(project)
+            if channel:
+                ensure_rust_toolchain(channel, emit, deadline)
+                env["RUSTUP_TOOLCHAIN"] = channel                 # explicit, so rustup never tries to install anything as the job user
         steps = plan(kind, project)
         for number, argv in enumerate(steps, 1):
             emit(f"\n$ [{number}/{len(steps)}] {' '.join(argv)}\n")
