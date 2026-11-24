@@ -34,7 +34,6 @@ class TokenOrSessionAuthMiddleware:
         path = scope.get('path', 'unknown')
         headers = scope.get("headers", ())
         logger.info(f"WebSocket connection attempt from {client_ip} to {path}")
-        logger.debug(f"WebSocket headers: {headers}")
 
         # Try token authentication first
         token = self._extract_bearer_token(headers)
@@ -44,7 +43,7 @@ class TokenOrSessionAuthMiddleware:
             token = self._extract_token_from_query(scope)
 
         if token:
-            logger.debug(f"WebSocket connection attempt with token: {token[:10]}...")
+            logger.debug("WebSocket connection attempt using token authentication")
             user = await self._get_user_from_token(token)
             if user:
                 logger.info(f"WebSocket authenticated via token for user: {user.username}")
@@ -55,10 +54,9 @@ class TokenOrSessionAuthMiddleware:
 
         # Fall back to session authentication
         session_key = self._extract_session_key(headers)
-        logger.debug(f"Extracted session key: {session_key}")
 
         if session_key:
-            logger.debug(f"WebSocket connection attempt with session cookie: {session_key[:10]}...")
+            logger.debug("WebSocket connection attempt using session authentication")
             user = await self._get_user_from_session(session_key)
             if user:
                 logger.info(f"WebSocket authenticated via session for user: {user.username}")
@@ -156,7 +154,7 @@ class TokenOrSessionAuthMiddleware:
             else:
                 logger.warning("No _auth_user_id in session data")
         except Session.DoesNotExist:
-            logger.warning(f"Session not found in database: {session_key}")
+            logger.warning("Session not found in database")
         except User.DoesNotExist:
             logger.warning(f"User not found: {user_id}")
         except KeyError as e:
