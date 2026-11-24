@@ -21,6 +21,12 @@ from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
 logger = logging.getLogger(__name__)
 
 
+
+def _worker_ready():
+    from ..services import worker_queue as wq
+    return restricted() and wq.worker_ready()
+
+
 @login_required
 def deployment_list(request):
     """List all deployments for the current user."""
@@ -28,7 +34,7 @@ def deployment_list(request):
     # Only show deployments created by the current user
     deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     return render(request, 'deployments/list.html', {
-        'deployments': deployments, 'restricted_workloads': restricted(), 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
+        'deployments': deployments, 'restricted_workloads': restricted(), 'worker_ready': _worker_ready(), 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
     })
 
 
@@ -60,7 +66,8 @@ def deployment_detail(request, pk):
         'logs': logs,
         'service_status': service_status,
         'celery_services': celery_services,
-        'host_cannot_run': deployment.status == 'requested' and restricted() and not deployment.static_only,
+        'worker_ready': _worker_ready(),
+        'host_cannot_run': deployment.status == 'requested' and restricted() and not deployment.static_only and not _worker_ready(),
         'host_cannot_run_reason': executable_block_reason(),
         'can_decide': request.user.is_staff and deployment.status == 'requested',
     })
@@ -85,6 +92,7 @@ def _create_form_context(request, errors=None, values=None):
         'core_status': core_status,
         'approval_required': requires_review(request.user) or restricted(),
         'restricted_workloads': restricted(),
+        'worker_ready': _worker_ready(),
         'form_errors': errors or [],
         'values': values or {},
         'ai_providers': list(AIProvider.objects.filter(user=request.user)),
@@ -506,6 +514,7 @@ def dashboard(request):
         'failed_deployments': failed_deployments,
         'review_requests': review_requests,
         'restricted_workloads': restricted(),
+        'worker_ready': _worker_ready(),
         'expiring_tokens': expiring_tokens,
         'waiting_count': waiting_count,
         'recent_changes': recent_changes,
@@ -1173,17 +1182,26 @@ def deployment_approve(request, pk):
     if not request.user.is_staff:
         return HttpResponseForbidden("Operator approval required.")
     deployment = get_object_or_404(ApplicationDeployment, pk=pk, is_deleted=False, status="requested")
-    if restricted() and not deployment.static_only:
-        return HttpResponseForbidden(executable_block_reason())
+    use_worker = restricted() and not deployment.static_only
+    kind = commit = None
+    if use_worker:
+        # This host never runs repository code. A healthy worker may build it, but only for trusted owners.
+        from ..services import worker_queue as wq
+        ok, reason, kind, commit = wq.assess(deployment)
+        if not ok:
+            return HttpResponseForbidden(reason)
     if not BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(status="building"):
         return HttpResponseForbidden("Request already processed.")
     try:
-        queue_deployment(deployment)
+        if use_worker:
+            wq.enqueue(deployment, kind, commit)
+        else:
+            queue_deployment(deployment)
     except Exception:
         BaseDeployment.objects.filter(pk=pk, status="building").update(status="requested")
         messages.error(request, "Unable to queue request; try again.")
     else:
-        messages.success(request, "Deployment request approved and queued.")
+        messages.success(request, "Approved. A worker will build it." if use_worker else "Deployment request approved and queued.")
     return redirect("deployments:deployment_list")
 
 

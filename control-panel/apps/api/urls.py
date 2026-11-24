@@ -1,7 +1,7 @@
 """URL configuration for API app."""
 
 from django.urls import path
-from . import views, token_views, doc_views, mcp_views, llm_public, ai_views
+from . import views, token_views, doc_views, mcp_views, llm_public, ai_views, worker_views
 
 urlpatterns = [
     path('mcp/', mcp_views.mcp_endpoint, name='mcp_endpoint'),
@@ -12,6 +12,12 @@ urlpatterns = [
     path('llm/v1/completions', llm_public.completions_view, name='llm_public_completions'),
     path('llm/keys/', llm_public.keys_view, name='llm_keys'),
     path('llm/keys/<int:pk>/revoke/', llm_public.key_revoke, name='llm_key_revoke'),
+    # Remote build workers (bearer-token authenticated; see worker_views)
+    path('worker/v1/heartbeat', worker_views.heartbeat, name='worker_heartbeat'),
+    path('worker/v1/claim', worker_views.claim, name='worker_claim'),
+    path('worker/v1/jobs/<int:job_id>/source', worker_views.source, name='worker_source'),
+    path('worker/v1/jobs/<int:job_id>/log', worker_views.log, name='worker_log'),
+    path('worker/v1/jobs/<int:job_id>/complete', worker_views.complete, name='worker_complete'),
     # AI providers (OpenAI-compatible: local model or external endpoint)
     path('ai/providers/', ai_views.providers_view, name='ai_providers'),
     path('ai/providers/<int:pk>/test/', ai_views.provider_test, name='ai_provider_test'),

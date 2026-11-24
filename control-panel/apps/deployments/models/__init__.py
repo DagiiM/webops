@@ -15,6 +15,7 @@ from .base import BaseDeployment, DeploymentLog, HealthCheckRecord
 from .application import ApplicationDeployment
 from .llm import LLMDeployment
 from .configuration import DeploymentConfiguration
+from .worker import WorkerNode, BuildJob
 
 __all__ = [
     'BaseDeployment',
@@ -23,4 +24,6 @@ __all__ = [
     'DeploymentLog',
     'HealthCheckRecord',
     'DeploymentConfiguration',
+    'WorkerNode',
+    'BuildJob',
 ]

@@ -3,6 +3,7 @@
 from django.urls import path, include
 from .views.application_deployment import deployment_approve, deployment_decline
 from .views.ai_assist import ai_assist
+from .views import workers as worker_views
 from .views import (
     # Legacy/Application views
     deployment_list,
@@ -48,6 +49,10 @@ urlpatterns = [
     path('create/', deployment_create, name='deployment_create'),
     path('github/branches/', github_repo_branches, name='github_repo_branches'),
     path('ai-assist/', ai_assist, name='ai_assist'),
+    path('workers/', worker_views.workers, name='workers'),
+    path('workers/<int:pk>/revoke/', worker_views.worker_revoke, name='worker_revoke'),
+    path('workers/jobs/<int:pk>/', worker_views.job_detail, name='job_detail'),
+    path('workers/jobs/<int:pk>/cancel/', worker_views.job_cancel, name='job_cancel'),
     path('<int:pk>/', deployment_detail, name='deployment_detail'),
     path('<int:pk>/start/', deployment_start, name='deployment_start'),
     path('<int:pk>/stop/', deployment_stop, name='deployment_stop'),
