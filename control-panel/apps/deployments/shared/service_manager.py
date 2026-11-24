@@ -301,6 +301,8 @@ class ServiceManager:
         """
         if deployment.is_deleted or deployment.status == "requested":
             return False, "Deployment has not been approved or has been deleted"
+        if self.runtime and deployment.status == "building" and hasattr(deployment,"llmdeployment"):
+            return False, "Model deployment is still in progress."
         if self.runtime:
             ok, message = self.runtime.lifecycle(deployment, "start")
             if ok:
@@ -368,6 +370,8 @@ class ServiceManager:
         """
         if deployment.is_deleted or deployment.status == "requested":
             return False, "Deployment has not been approved or has been deleted"
+        if self.runtime and deployment.status == "building" and hasattr(deployment,"llmdeployment"):
+            return False, "Model deployment is still in progress."
         if self.runtime:
             ok, message = self.runtime.lifecycle(deployment, "stop")
             if ok:
@@ -406,6 +410,8 @@ class ServiceManager:
         """
         if deployment.is_deleted or deployment.status == "requested":
             return False, "Deployment has not been approved or has been deleted"
+        if self.runtime and deployment.status == "building" and hasattr(deployment,"llmdeployment"):
+            return False, "Model deployment is still in progress."
         if self.runtime:
             ok, message = self.runtime.lifecycle(deployment, "restart")
             if ok:

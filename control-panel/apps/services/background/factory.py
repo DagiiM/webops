@@ -58,8 +58,10 @@ def get_background_processor() -> BackgroundProcessor:
 
         if choice == "memory":
             from apps.deployments.tasks.application import deploy_application, delete_deployment, restart_deployment, stop_deployment
+            from apps.deployments.tasks.llm import deploy_llm_model
             from apps.services.tasks import start_service_task, stop_service_task, restart_service_task
             _processor_instance = InMemoryBackgroundProcessor(registry={
+                "apps.deployments.tasks.llm.deploy_llm_model": deploy_llm_model.run,
                 "services.start_service_task": start_service_task.run,
                 "services.stop_service_task": stop_service_task.run,
                 "services.restart_service_task": restart_service_task.run,

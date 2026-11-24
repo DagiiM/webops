@@ -118,6 +118,14 @@ class SupervisorRuntime:
                     raise ValueError("Shell pipelines are unsupported in Supervisor mode")
                 if (venv / argv[0]).is_file():
                     argv[0] = str(venv / argv[0])
+            return self.install_process(deployment,base,cwd,argv,env)
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            return False, str(exc)
+
+    def install_process(self,deployment,base,cwd,argv,env):
+        try:
+            name=self._name(deployment)
+            if not self.ready():return False,"Supervisor unavailable"
             self.root.joinpath("programs").mkdir(parents=True, exist_ok=True, mode=0o700)
             logs = base / "runtime-logs"
             logs.mkdir(exist_ok=True, mode=0o700)
@@ -186,7 +194,7 @@ stderr_logfile_backups=2
                 return False, msg
             if action == "stop":
                 return (not self.status(deployment)["active"]), msg
-            deadline = time.monotonic() + 15
+            deadline = time.monotonic() + (120 if getattr(deployment,"project_type",None) == "llm" or hasattr(deployment,"llmdeployment") else 15)
             while time.monotonic() < deadline:
                 if self.status(deployment)["active"]:
                     try:

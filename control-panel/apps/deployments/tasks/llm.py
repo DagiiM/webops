@@ -36,7 +36,7 @@ def deploy_llm_model(
     from ..services.llm_transformers import TransformersLLMService
 
     try:
-        deployment = LLMDeployment.objects.get(id=deployment_id)
+        deployment = LLMDeployment.objects.get(id=deployment_id,is_deleted=False)
         logger.info(f"Starting LLM deployment {deployment.name} (Model: {deployment.model_name}, Backend: {deployment.backend})")
 
         # Verify this is an LLM deployment
@@ -45,6 +45,10 @@ def deploy_llm_model(
             logger.error(error_msg)
             return {'success': False, 'error': error_msg}
 
+        from apps.services.runtime import portable_runtime
+        if portable_runtime():
+            from ..services.llm_cpu import deploy_cpu
+            return deploy_cpu(deployment)
         # Route to correct backend
         if deployment.backend == 'transformers':
             logger.info(f"Using Transformers backend for {deployment.name}")
@@ -102,6 +106,8 @@ def deploy_llm_model(
             pass
 
         # Retry with exponential backoff (but only twice for LLM - downloads are expensive)
+        if self.request.called_directly:
+            return {"success":False,"error":error_msg}
         if self.request.retries < self.max_retries:
             raise self.retry(exc=exc, countdown=120 * (2 ** self.request.retries))
         else:
