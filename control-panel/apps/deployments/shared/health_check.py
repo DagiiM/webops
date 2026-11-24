@@ -76,6 +76,11 @@ class HealthChecker:
 
     def check_process(self) -> HealthCheckResult:
         """Check if the deployment service is running."""
+        from apps.services.runtime import portable_runtime
+        runtime = portable_runtime()
+        if runtime:
+            data = runtime.status(self.deployment)
+            return HealthCheckResult(data["active"], data["output"], {"status": data["state"], "pid": data["pid"], "runtime": runtime.name})
         try:
             # Check systemd service status
             result = subprocess.run(
@@ -194,6 +199,19 @@ class HealthChecker:
 
     def check_resources(self) -> HealthCheckResult:
         """Check resource usage (CPU, memory) for the deployment process."""
+        from apps.services.runtime import portable_runtime
+        runtime = portable_runtime()
+        if runtime:
+            data = runtime.status(self.deployment)
+            if not data["pid"]:
+                return HealthCheckResult(False, "Runtime has no live process")
+            try:
+                process = psutil.Process(data["pid"])
+                memory = process.memory_info().rss / 1048576
+                cpu = process.cpu_percent(interval=0.1)
+                return HealthCheckResult(cpu <= 90 and memory <= 1024, "Process resources sampled", {"pid": data["pid"], "memory_mb": memory, "cpu_percent": cpu})
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                return HealthCheckResult(False, str(e))
         try:
             # Get PID from systemd
             result = subprocess.run(

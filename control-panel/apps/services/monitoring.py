@@ -165,6 +165,24 @@ class SystemMonitor:
 
     def check_service_status(self, deployment: BaseDeployment) -> ServiceStatus:
         """Check status of a deployed service."""
+        from apps.services.runtime import portable_runtime
+        runtime = portable_runtime()
+        if runtime:
+            data = runtime.status(deployment)
+            pid = data["pid"]
+            status = ServiceStatus.Status.RUNNING if data["active"] else (ServiceStatus.Status.STOPPED if data["state"] in ("STOPPED", "EXITED") else ServiceStatus.Status.FAILED)
+            memory = cpu = uptime = 0
+            if pid:
+                try:
+                    process = psutil.Process(pid)
+                    memory = process.memory_info().rss / (1024 * 1024)
+                    cpu = process.cpu_percent(interval=0.1)
+                    uptime = int(timezone.now().timestamp() - process.create_time())
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            record, _ = ServiceStatus.objects.update_or_create(deployment=deployment, defaults={
+                "status": status, "pid": pid, "memory_mb": memory, "cpu_percent": cpu, "uptime_seconds": uptime})
+            return record
         service_name = f"webops-{deployment.name}"
         systemctl = _systemctl_binary()
 
@@ -266,7 +284,10 @@ class SystemMonitor:
             return None
 
         # Construct URL
-        if deployment.domain:
+        from apps.services.runtime import portable_runtime
+        if portable_runtime() and deployment.port:
+            url = f"http://127.0.0.1:{deployment.port}/"
+        elif deployment.domain:
             url = f"http://{deployment.domain}/"
         else:
             url = f"http://localhost:{deployment.port}/"
@@ -331,7 +352,7 @@ class SystemMonitor:
             )
             return health_check
 
-    def get_system_summary(self) -> Dict[str, Any]:
+    def get_system_summary(self, user=None) -> Dict[str, Any]:
         """Get comprehensive system summary."""
         latest = self.get_latest_metrics()
         if not latest:
@@ -341,7 +362,10 @@ class SystemMonitor:
         all_unacked_alerts = Alert.objects.filter(is_acknowledged=False)
 
         # Get service statuses
-        deployments = ApplicationDeployment.objects.all()
+        deployments = ApplicationDeployment.objects.filter(is_deleted=False)
+        if user is not None:
+            deployments = deployments.filter(deployed_by=user)
+            all_unacked_alerts = all_unacked_alerts.filter(deployment__deployed_by=user, deployment__is_deleted=False)
         service_statuses = []
         for deployment in deployments:
             status = ServiceStatus.objects.filter(deployment=deployment).first()

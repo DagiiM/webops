@@ -672,7 +672,7 @@ class WebOpsChatInterface {
             padding: var(--webops-space-2) var(--webops-space-3);
             color: var(--webops-color-text-primary);
             z-index: 10000;
-            animation: webopsToastSlideIn 0.3s ease-out;
+            animation: none;
         `;
         
         document.body.appendChild(toast);

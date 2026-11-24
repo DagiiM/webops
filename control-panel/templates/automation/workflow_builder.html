@@ -290,7 +290,7 @@
     font-family: var(--webops-font-family-primary);
     border-radius: var(--webops-radius-lg);
     overflow: hidden;
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
 }
 
 .webops-workflow-toolbar {
@@ -301,7 +301,7 @@
     background: var(--webops-color-bg-card);
     backdrop-filter: blur(20px);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    box-shadow: var(--webops-shadow-xs);
+    box-shadow: none;
     z-index: var(--webops-z-sticky);
     min-height: 48px;
     position: relative;
@@ -318,11 +318,11 @@
 .toolbar-item {
     padding: 2px !important;
     position: relative;
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .toolbar-text {
-    transition: opacity var(--webops-transition-base), max-width var(--webops-transition-base);
+    transition: none;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -348,12 +348,12 @@
     background: var(--webops-color-bg-elevated);
     border: var(--webops-border-width-thin) solid var(--webops-color-surface);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     backdrop-filter: blur(20px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px);
-    transition: all var(--webops-transition-base);
+    transform: none;
+    transition: none;
     z-index: var(--webops-z-dropdown);
     padding: var(--webops-space-2) 0;
 }
@@ -375,7 +375,7 @@
     border-radius: 0;
     color: var(--webops-color-text-primary);
     cursor: pointer;
-    transition: background var(--webops-transition-fast);
+    transition: none;
     font-size: var(--webops-font-size-sm);
     text-align: left;
 }
@@ -517,21 +517,21 @@
     border-radius: var(--webops-radius-lg);
     background: var(--webops-color-bg-card);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-base);
-    box-shadow: var(--webops-shadow-sm);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-workflow-name-input:hover {
     border-color: var(--webops-color-primary-alpha-30);
     background: var(--webops-color-bg-elevated);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-workflow-name-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
     background: var(--webops-color-bg-elevated);
-    box-shadow: var(--webops-shadow-primary-sm);
+    box-shadow: none;
 }
 
 .webops-zoom-indicator {
@@ -560,8 +560,8 @@
     border-right: var(--webops-border-width-thin) solid var(--webops-color-surface);
     overflow-y: auto;
     flex-shrink: 0;
-    box-shadow: var(--webops-shadow-sm);
-    transition: width var(--webops-transition-medium), min-width var(--webops-transition-medium);
+    box-shadow: none;
+    transition: none;
 }
 
 /* Minimized Palette */
@@ -573,7 +573,7 @@
 .webops-palette-header {
     padding: var(--webops-space-1);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
+    background: var(--webops-color-primary);
     color: white;
     position: relative;
 }
@@ -582,8 +582,8 @@
     margin: 0;
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-bold);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: opacity var(--webops-transition-fast);
+    text-shadow: none;
+    transition: none;
 }
 
 .webops-node-palette.minimized .webops-palette-header h3 {
@@ -608,7 +608,7 @@
     color: white;
     font-size: var(--webops-font-size-xs);
     backdrop-filter: blur(10px);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-node-palette.minimized .webops-palette-search {
@@ -623,7 +623,7 @@
     outline: none;
     border-color: rgba(255, 255, 255, 0.4);
     background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    box-shadow: none;
 }
 
 .webops-palette-toggle {
@@ -633,7 +633,7 @@
     padding: var(--webops-space-1);
     border-radius: var(--webops-radius-md);
     color: white;
-    transition: all var(--webops-transition-base);
+    transition: none;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
@@ -646,7 +646,7 @@
 
 .webops-palette-toggle .material-icons {
     font-size: var(--webops-icon-size-sm);
-    transition: transform var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-node-palette.minimized .webops-palette-toggle .material-icons {
@@ -668,7 +668,7 @@
     background: var(--webops-color-bg-tertiary);
     text-transform: uppercase;
     letter-spacing: var(--webops-letter-spacing-wider);
-    transition: padding var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-node-palette.minimized .webops-palette-section-header {
@@ -677,7 +677,7 @@
 }
 
 .webops-palette-section-header span {
-    transition: opacity var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-node-palette.minimized .webops-palette-section-header span:not(.material-icons) {
@@ -736,10 +736,10 @@
     border: var(--webops-border-width-base) solid var(--webops-color-surface);
     border-radius: var(--webops-radius-lg);
     cursor: grab;
-    transition: all var(--webops-transition-base);
+    transition: none;
     font-size: var(--webops-font-size-xs);
     font-weight: var(--webops-font-weight-medium);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
     position: relative;
     overflow: hidden;
 }
@@ -757,15 +757,15 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     transform: scaleX(0);
-    transition: transform var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-palette-node:hover {
     border-color: var(--webops-color-primary);
-    box-shadow: var(--webops-shadow-md);
-    transform: translateY(-1px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-palette-node:hover::before {
@@ -793,7 +793,7 @@
 }
 
 .node-label {
-    transition: opacity var(--webops-transition-fast);
+    transition: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -819,12 +819,12 @@
     padding: var(--webops-space-2) var(--webops-space-3);
     border-radius: var(--webops-radius-md);
     border: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     font-size: var(--webops-font-size-xs);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: opacity var(--webops-transition-fast), visibility var(--webops-transition-fast);
+    transition: none;
     z-index: var(--webops-z-dropdown);
     pointer-events: none;
 }
@@ -838,11 +838,7 @@
 .webops-canvas-container {
     flex: 1;
     position: relative;
-    background:
-        radial-gradient(circle at 25% 25%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, var(--webops-color-primary-alpha-05) 0%, transparent 50%),
-        linear-gradient(90deg, var(--webops-color-surface) 1px, transparent 1px),
-        linear-gradient(var(--webops-color-surface) 1px, transparent 1px);
+    background: var(--webops-color-primary-alpha-05);
     background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
     overflow: hidden;
 }
@@ -851,7 +847,7 @@
     width: 100%;
     height: 100%;
     cursor: grab;
-    transition: cursor var(--webops-transition-fast);
+    transition: none;
 }
 
 #workflow-canvas:active {
@@ -868,14 +864,14 @@
     backdrop-filter: blur(20px);
     border: var(--webops-border-width-base) solid var(--webops-color-surface);
     border-radius: var(--webops-radius-2xl);
-    box-shadow: var(--webops-shadow-lg);
-    transition: all var(--webops-transition-base);
+    box-shadow: none;
+    transition: none;
     overflow: hidden;
 }
 
 .webops-canvas-minimap:hover {
-    box-shadow: var(--webops-shadow-xl);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 #minimap-canvas {
@@ -893,8 +889,8 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    box-shadow: var(--webops-shadow-sm);
-    transition: width var(--webops-transition-medium), min-width var(--webops-transition-medium);
+    box-shadow: none;
+    transition: none;
     position: relative;
 }
 
@@ -941,7 +937,7 @@
 
 /* Properties panel size toggle button */
 #btn-toggle-properties-size {
-    transition: transform var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-properties-panel.minimized #btn-toggle-properties-size .material-icons {
@@ -964,8 +960,8 @@
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-    box-shadow: var(--webops-shadow-sm);
-    transition: all var(--webops-transition-base);
+    box-shadow: none;
+    transition: none;
 }
 
 .webops-properties-toggle:hover {
@@ -976,7 +972,7 @@
 .webops-properties-toggle .material-icons {
     font-size: var(--webops-icon-size-sm);
     color: var(--webops-color-text-secondary);
-    transition: transform var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-properties-panel.minimized .webops-properties-toggle .material-icons {
@@ -989,7 +985,7 @@
     align-items: center;
     padding: var(--webops-space-1);
     border-bottom: var(--webops-border-width-thin) solid var(--webops-color-surface);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
+    background: var(--webops-color-primary);
     color: white;
 }
 
@@ -997,8 +993,8 @@
     margin: 0;
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-bold);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: opacity var(--webops-transition-fast);
+    text-shadow: none;
+    transition: none;
 }
 
 .webops-properties-panel.minimized .webops-properties-header h3 {
@@ -1021,7 +1017,7 @@
     padding: var(--webops-space-1);
     border-radius: var(--webops-radius-md);
     color: white;
-    transition: all var(--webops-transition-base);
+    transition: none;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
@@ -1070,7 +1066,7 @@
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-semibold);
     border-radius: var(--webops-radius-lg);
-    transition: all var(--webops-transition-base);
+    transition: none;
     border: var(--webops-border-width-base) solid transparent;
     position: relative;
     overflow: hidden;
@@ -1083,8 +1079,8 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left var(--webops-duration-slow) var(--webops-ease-out);
+    background: transparent;
+    transition: none;
 }
 
 .webops-btn-sm:hover::before {
@@ -1092,33 +1088,33 @@
 }
 
 .webops-btn-sm:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-btn-primary {
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 100%);
-    box-shadow: var(--webops-shadow-primary-sm);
+    background: var(--webops-color-primary);
+    box-shadow: none;
 }
 
 .webops-btn-primary:hover {
-    box-shadow: var(--webops-shadow-primary);
+    box-shadow: none;
 }
 
 .webops-btn-success {
-    background: linear-gradient(135deg, var(--webops-color-success) 0%, var(--webops-color-success-dark) 100%);
-    box-shadow: var(--webops-shadow-success);
+    background: var(--webops-color-success);
+    box-shadow: none;
 }
 
 .webops-btn-success:hover {
-    box-shadow: var(--webops-shadow-success);
+    box-shadow: none;
 }
 
 .webops-btn-secondary {
     background: var(--webops-color-bg-card);
     color: var(--webops-color-text-primary);
     border-color: var(--webops-color-surface);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-btn-secondary:hover {
@@ -1279,14 +1275,14 @@
 }
 
 .webops-palette-node {
-    animation: slideIn var(--webops-duration-base) var(--webops-ease-out) forwards;
+    animation: none;
 }
 
-.webops-palette-node:nth-child(1) { animation-delay: var(--webops-duration-fast); }
-.webops-palette-node:nth-child(2) { animation-delay: var(--webops-duration-base); }
-.webops-palette-node:nth-child(3) { animation-delay: var(--webops-duration-medium); }
-.webops-palette-node:nth-child(4) { animation-delay: var(--webops-duration-slow); }
-.webops-palette-node:nth-child(5) { animation-delay: var(--webops-duration-slower); }
+.webops-palette-node:nth-child(1) { animation-delay: 0s; }
+.webops-palette-node:nth-child(2) { animation-delay: 0s; }
+.webops-palette-node:nth-child(3) { animation-delay: 0s; }
+.webops-palette-node:nth-child(4) { animation-delay: 0s; }
+.webops-palette-node:nth-child(5) { animation-delay: 0s; }
 
 /* Additional Enhancements */
 .webops-canvas-container {
@@ -1316,7 +1312,7 @@
     border-radius: 50%;
     background: var(--webops-color-success);
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-palette-node:hover::after {
@@ -1329,7 +1325,7 @@
     background: var(--webops-color-bg-card);
     border: var(--webops-border-width-thin) solid var(--webops-color-surface);
     border-radius: var(--webops-radius-md);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     padding: var(--webops-space-2) 0;
     min-width: 180px;
     z-index: var(--webops-z-dropdown);
@@ -1343,7 +1339,7 @@
     padding: var(--webops-space-2) var(--webops-space-4);
     color: var(--webops-color-text-primary);
     cursor: pointer;
-    transition: background var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-context-menu-item:hover {
@@ -1380,7 +1376,7 @@
     padding: var(--webops-space-2);
     cursor: pointer;
     z-index: 10;
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-grid-toggle:hover {

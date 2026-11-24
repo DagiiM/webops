@@ -46,7 +46,7 @@ class RateLimiter:
                  max_requests: int = 100, 
                  window_seconds: int = 3600,
                  burst_requests: int = 20,
-                 burst_window: int = 60):
+                 burst_window: int = 60, namespace: str = "default"):
         """
         Initialize rate limiter.
         
@@ -56,6 +56,7 @@ class RateLimiter:
             burst_requests: Maximum burst requests
             burst_window: Burst window in seconds
         """
+        self.namespace = namespace
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         self.burst_requests = burst_requests
@@ -64,8 +65,8 @@ class RateLimiter:
     def get_cache_keys(self, identifier: str) -> Tuple[str, str]:
         """Get cache keys for rate limiting."""
         return (
-            f"rate_limit:{identifier}:{self.window_seconds}",
-            f"burst_limit:{identifier}:{self.burst_window}"
+            f"rate_limit:{self.namespace}:{identifier}:{self.window_seconds}",
+            f"burst_limit:{self.namespace}:{identifier}:{self.burst_window}"
         )
     
     def is_allowed(self, identifier: str) -> Tuple[bool, Dict[str, int]]:
@@ -127,9 +128,9 @@ class RateLimiter:
 
 
 # Pre-configured rate limiters
-API_RATE_LIMITER = RateLimiter(max_requests=100, window_seconds=3600)  # 100/hour
-LOGIN_RATE_LIMITER = RateLimiter(max_requests=5, window_seconds=900)   # 5/15min
-DEPLOYMENT_RATE_LIMITER = RateLimiter(max_requests=10, window_seconds=3600)  # 10/hour
+API_RATE_LIMITER = RateLimiter(max_requests=100, window_seconds=3600, namespace="api")  # 100/hour
+LOGIN_RATE_LIMITER = RateLimiter(max_requests=5, window_seconds=900, namespace="login")   # 5/15min
+DEPLOYMENT_RATE_LIMITER = RateLimiter(max_requests=10, window_seconds=3600, namespace="deployment")  # 10/hour
 
 
 def rate_limit(limiter: RateLimiter, key_func: Optional[callable] = None):
@@ -204,7 +205,7 @@ def login_rate_limit(view_func):
 
 def deployment_rate_limit(view_func):
     """Deployment rate limiting decorator."""
-    return rate_limit(DEPLOYMENT_RATE_LIMITER)(view_func)
+    return rate_limit(DEPLOYMENT_RATE_LIMITER, key_func=lambda request, *a, **kw: f"user:{request.user.pk}" if request.user.is_authenticated else get_client_ip(request))(view_func)
 
 
 def user_rate_limit(limiter: RateLimiter):
@@ -229,7 +230,7 @@ class RateLimitMiddleware:
         self.global_limiter = RateLimiter(
             max_requests=getattr(settings,'GLOBAL_RATE_LIMIT_MAX',1000),
             window_seconds=3600,
-            burst_requests=getattr(settings,'GLOBAL_RATE_LIMIT_BURST',20)
+            burst_requests=getattr(settings,'GLOBAL_RATE_LIMIT_BURST',120), namespace='global'
         )  # 1000/hour
     
     def __call__(self, request):
@@ -240,7 +241,7 @@ class RateLimitMiddleware:
             return self.get_response(request)
         
         # Get client identifier
-        identifier = get_client_ip(request)
+        identifier = f"user:{request.user.pk}" if getattr(request, "user", None) and request.user.is_authenticated else get_client_ip(request)
         
         # Check global rate limit
         allowed, info = self.global_limiter.is_allowed(identifier)

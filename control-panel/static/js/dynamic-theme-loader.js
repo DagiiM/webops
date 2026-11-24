@@ -177,14 +177,6 @@ class WebOpsDynamicThemeLoader {
     applyThemeToDocument(themeName) {
         // Set data-theme attribute on document element
         document.documentElement.setAttribute('data-theme', themeName);
-        
-        // Add theme transition class for smooth transitions
-        document.documentElement.classList.add('theme-transitioning');
-        
-        // Remove transition class after animation completes
-        setTimeout(() => {
-            document.documentElement.classList.remove('theme-transitioning');
-        }, 300);
     }
 
     /**

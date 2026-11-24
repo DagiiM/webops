@@ -29,6 +29,8 @@ class ServiceManager:
 
     def __init__(self):
         """Initialize service manager."""
+        from apps.services.runtime import portable_runtime
+        self.runtime = portable_runtime()
         self._health_check_thread = None
         self._stop_health_check = threading.Event()
         self._fallback_configs = {
@@ -111,6 +113,13 @@ class ServiceManager:
 
     def get_core_services_status(self) -> Dict[str, Any]:
         """Read-only check of core services required for deployment."""
+        if self.runtime:
+            import os
+            ready = self.runtime.ready()
+            memory = os.getenv("WEBOPS_BG_PROCESSOR") == "memory"
+            return {"systemctl": False, "runtime": self.runtime.name, "runtime_ready": ready,
+                    "services": {"nginx": False, "postgresql": False, "redis": False, "celery": False, "web": True},
+                    "all_ok": ready and memory}
         # Test if systemd is actually functional (not just if systemctl exists)
         systemctl_ok = False
         try:
@@ -290,6 +299,15 @@ class ServiceManager:
         Returns:
             Tuple of (success, message)
         """
+        if deployment.is_deleted or deployment.status == "requested":
+            return False, "Deployment has not been approved or has been deleted"
+        if self.runtime:
+            ok, message = self.runtime.lifecycle(deployment, "start")
+            if ok:
+                deployment.status = BaseDeployment.Status.RUNNING
+                deployment.save(update_fields=["status"])
+            self._log(deployment, message, DeploymentLog.Level.SUCCESS if ok else DeploymentLog.Level.ERROR)
+            return ok, message
         self._log(deployment, f"Starting service {deployment.name}")
 
         success, output = self._run_systemctl('start', deployment.name)
@@ -348,12 +366,21 @@ class ServiceManager:
         Returns:
             Tuple of (success, message)
         """
+        if deployment.is_deleted or deployment.status == "requested":
+            return False, "Deployment has not been approved or has been deleted"
+        if self.runtime:
+            ok, message = self.runtime.lifecycle(deployment, "stop")
+            if ok:
+                deployment.status = BaseDeployment.Status.STOPPED
+                deployment.save(update_fields=["status"])
+            self._log(deployment, message, DeploymentLog.Level.SUCCESS if ok else DeploymentLog.Level.ERROR)
+            return ok, message
         self._log(deployment, f"Stopping service {deployment.name}")
 
         success, output = self._run_systemctl('stop', deployment.name)
 
         if success:
-            deployment.status = STOPPED
+            deployment.status = BaseDeployment.Status.STOPPED
             deployment.save(update_fields=['status'])
 
             self._log(
@@ -377,6 +404,15 @@ class ServiceManager:
         Returns:
             Tuple of (success, message)
         """
+        if deployment.is_deleted or deployment.status == "requested":
+            return False, "Deployment has not been approved or has been deleted"
+        if self.runtime:
+            ok, message = self.runtime.lifecycle(deployment, "restart")
+            if ok:
+                deployment.status = BaseDeployment.Status.RUNNING
+                deployment.save(update_fields=["status"])
+            self._log(deployment, message, DeploymentLog.Level.SUCCESS if ok else DeploymentLog.Level.ERROR)
+            return ok, message
         self._log(deployment, f"Restarting service {deployment.name}")
 
         success, output = self._run_systemctl('restart', deployment.name)
@@ -400,6 +436,8 @@ class ServiceManager:
         """
         Get current service status using read-only systemctl queries (no sudo).
         """
+        if self.runtime:
+            return self.runtime.status(deployment)
         service_unit = f"{deployment.name}.service"
 
         # is-active (read-only)
@@ -434,6 +472,13 @@ class ServiceManager:
             output = status_proc.stdout or status_proc.stderr
         except Exception as e:
             output = str(e)
+
+        return {
+            'active': is_active,
+            'enabled': is_enabled,
+            'status': deployment.status,
+            'output': output,
+        }
 
     def restart_core_service(self, service_name: str) -> Tuple[bool, str]:
         """
@@ -533,6 +578,9 @@ class ServiceManager:
         Returns:
             Dictionary with detailed service information
         """
+        if self.runtime:
+            ready = self.runtime.ready()
+            return {"supervisor": {"name": "supervisor", "active": ready, "status": "running" if ready else "unavailable", "restartable": False}}
         services = {}
         
         for service_key, units in self.CORE_UNITS.items():
@@ -856,6 +904,9 @@ class ServiceManager:
         """Ensure the Celery worker service is running; start it if not.
         Uses sudo -n to avoid interactive prompts.
         """
+        import os
+        if os.getenv("WEBOPS_BG_PROCESSOR") == "memory":
+            return True, "In-memory task processor selected"
         unit = 'webops-celery.service'
         try:
             proc = subprocess.run(
@@ -881,13 +932,6 @@ class ServiceManager:
             return False, f"Failed to start Celery: {e.stderr.strip()}"
         except Exception as e:
             return False, f"Failed to start Celery: {e}"
-
-        return {
-            'active': is_active,
-            'enabled': is_enabled,
-            'status': deployment.status,
-            'output': output,
-        }
 
     def install_nginx_config(
         self,
@@ -985,6 +1029,8 @@ class ServiceManager:
         Returns:
             Tuple of (success, message)
         """
+        if self.runtime:
+            return self.runtime.remove(deployment)
         service_path = Path(f"/etc/systemd/system/{deployment.name}.service")
 
         # Stop service first
@@ -1029,6 +1075,8 @@ class ServiceManager:
         Returns:
             Tuple of (success, message)
         """
+        if self.runtime:
+            return True, "Direct local routing; no Nginx configuration"
         config_path = Path(f"/etc/nginx/sites-available/{deployment.name}")
         enabled_path = Path(f"/etc/nginx/sites-enabled/{deployment.name}")
 

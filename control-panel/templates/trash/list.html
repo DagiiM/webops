@@ -24,10 +24,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background:
-        radial-gradient(circle at 20% 80%, var(--webops-color-primary-alpha-10) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, var(--webops-color-primary-alpha-05) 0%, transparent 50%);
-    animation: webopsTrashHeaderPulse 8s ease-in-out infinite;
+    background: var(--webops-color-primary-alpha-10);
+    animation: none;
 }
 
 @keyframes webopsTrashHeaderPulse {
@@ -43,10 +41,10 @@
 .webops-trash-title {
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-extrabold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
     margin-bottom: var(--webops-space-2);
     display: flex;
     align-items: center;
@@ -61,7 +59,7 @@
 .webops-trash-title-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -75,7 +73,7 @@
     font-family: 'Material Icons';
     font-size: var(--webops-font-size-2xl);
     color: var(--webops-color-bg-primary);
-    animation: webopsTrashIconFloat 3s ease-in-out infinite;
+    animation: none;
 }
 
 .webops-trash-subtitle {
@@ -99,7 +97,7 @@
     border-radius: var(--webops-radius-xl);
     padding: var(--webops-space-4);
     text-align: center;
-    transition: all var(--webops-transition-base);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -111,9 +109,9 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-stat-card:hover::before {
@@ -121,8 +119,8 @@
 }
 
 .webops-trash-stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--webops-shadow-xl), 0 0 30px var(--webops-color-primary-glow);
+    transform: none;
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-35);
 }
 
@@ -131,7 +129,7 @@
     font-weight: var(--webops-font-weight-extrabold);
     color: var(--webops-color-primary);
     margin-bottom: var(--webops-space-1);
-    text-shadow: 0 0 10px var(--webops-color-primary-glow);
+    text-shadow: none;
 }
 
 .webops-trash-stat-label {
@@ -171,13 +169,13 @@
     border-radius: var(--webops-radius-lg);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-base);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-search-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -188,7 +186,7 @@
     transform: translateY(-50%);
     color: var(--webops-color-text-tertiary);
     font-size: var(--webops-font-size-lg);
-    transition: color var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-search-input:focus + .webops-trash-search-icon {
@@ -223,13 +221,13 @@
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
     cursor: pointer;
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-filter-select:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* Bulk Actions Bar */
@@ -245,8 +243,8 @@
     justify-content: space-between;
     gap: var(--webops-space-4);
     opacity: 0;
-    transform: translateY(-10px);
-    transition: all var(--webops-transition-base);
+    transform: none;
+    transition: none;
 }
 
 .webops-trash-bulk-actions.active {
@@ -288,7 +286,7 @@
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-xl);
     padding: var(--webops-space-5);
-    transition: all var(--webops-transition-base);
+    transition: none;
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -301,9 +299,9 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-item-card:hover::before {
@@ -311,8 +309,8 @@
 }
 
 .webops-trash-item-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--webops-shadow-xl), 0 0 40px var(--webops-color-primary-glow);
+    transform: none;
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-30);
 }
 
@@ -333,12 +331,12 @@
     justify-content: center;
     font-size: var(--webops-font-size-xl);
     color: var(--webops-color-primary);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-item-card:hover .webops-trash-item-icon {
     background: var(--webops-color-primary-alpha-20);
-    transform: scale(1.1);
+    transform: none;
 }
 
 .webops-trash-item-title {
@@ -408,7 +406,7 @@
     width: 20px;
     height: 20px;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-trash-item-card:hover .webops-trash-item-checkbox {
@@ -495,7 +493,7 @@
     border: 2px solid var(--webops-color-primary-alpha-20);
     border-top: 2px solid var(--webops-color-primary);
     border-radius: 50%;
-    animation: webopsTrashSpin 1s linear infinite;
+    animation: none;
 }
 
 @keyframes webopsTrashSpin {
@@ -638,7 +636,7 @@
 /* Selection States */
 .webops-trash-item-card.selected {
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 2px var(--webops-color-primary-alpha-20);
+    box-shadow: none;
 }
 
 .webops-trash-item-card.selected::before {

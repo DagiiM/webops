@@ -67,10 +67,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px),
-        repeating-linear-gradient(90deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px);
-    animation: webopsGridPulse 8s ease-in-out infinite;
+    background-image: none;
+    animation: none;
 }
 
 .webops-app-background::after {
@@ -80,9 +78,9 @@ body {
     left: 50%;
     width: 800px;
     height: 800px;
-    background: radial-gradient(circle, var(--webops-color-primary-glow) 0%, transparent 70%);
+    background: var(--webops-color-primary-glow);
     transform: translate(-50%, -50%);
-    animation: webopsGlowPulse 6s ease-in-out infinite;
+    animation: none;
 }
 
 @keyframes webopsGridPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
@@ -93,10 +91,10 @@ body {
 .webops-h1 {
     font-size: var(--webops-font-size-sm);
     font-weight: var(--font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
     margin-bottom: var(--webops-space-3);
 }
 
@@ -119,7 +117,7 @@ body {
     color: var(--webops-color-primary);
     text-decoration: none;
     font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    transition: none;
     border-radius: var(--webops-radius-sm);
     padding: var(--webops-space-0-5) var(--webops-space-1);
     margin: calc(-1 * var(--webops-space-0-5)) calc(-1 * var(--webops-space-1));
@@ -143,7 +141,7 @@ body {
 .webops-link:active {
     color: var(--webops-color-primary-dark);
     background: var(--webops-color-primary-alpha-15);
-    transform: translateY(1px);
+    transform: none;
 }
 
 /* WebOps Link Variants */
@@ -210,7 +208,7 @@ textarea:focus,
 select:focus {
     outline: 2px solid var(--webops-color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* Reduce motion for users who prefer it */
@@ -218,9 +216,9 @@ select:focus {
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
+        animation-duration: 0s !important;
         animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        transition-duration: 0s !important;
     }
     
     .webops-app-background::before,
@@ -241,9 +239,9 @@ select:focus {
 
 /* Improved loading states */
 .webops-skeleton {
-    background: linear-gradient(90deg, var(--webops-color-surface) 25%, var(--webops-color-surface-hover) 50%, var(--webops-color-surface) 75%);
+    background: var(--webops-color-surface);
     background-size: 200% 100%;
-    animation: webopsSkeletonLoading 1.5s infinite;
+    animation: none;
 }
 
 @keyframes webopsSkeletonLoading {
@@ -262,7 +260,7 @@ select:focus {
     justify-content: center;
     z-index: 3000;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-loader-overlay.active {
@@ -285,23 +283,23 @@ select:focus {
     height: 100px;
     border-radius: 50%;
     border: 2px solid var(--webops-color-primary-alpha-15);
-    box-shadow: 0 0 0 1px var(--webops-color-primary-alpha-10) inset;
-    animation: webopsLoaderSpin 1.6s linear infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 .webops-loader-ring:nth-child(2) {
     width: 80px;
     height: 80px;
     border-color: var(--webops-color-primary-alpha-35);
-    animation-duration: 1.2s;
-    animation-direction: reverse;
+    animation-duration: 0s;
+    animation-direction: normal;
 }
 
 .webops-loader-ring:nth-child(3) {
     width: 60px;
     height: 60px;
     border-color: var(--webops-color-primary-alpha-35);
-    animation-duration: 1s;
+    animation-duration: 0s;
 }
 
 @keyframes webopsLoaderSpin {
@@ -312,14 +310,14 @@ select:focus {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--webops-color-primary) 0%, var(--webops-color-primary-dark) 70%);
-    box-shadow: 0 0 24px var(--webops-color-primary-glow);
-    animation: webopsCorePulse 1.8s ease-in-out infinite;
+    background: var(--webops-color-primary);
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes webopsCorePulse {
     0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.15); opacity: 1; }
+    50% { transform: none; opacity: 1; }
 }
 
 .webops-loader-particles {
@@ -335,7 +333,7 @@ select:focus {
     border-radius: 50%;
     background: var(--webops-color-primary);
     opacity: 0.7;
-    animation: webopsParticle 2.4s ease-in-out infinite;
+    animation: none;
 }
 
 .webops-loader-particle:nth-child(1) { top: 10%; left: 50%; }
@@ -352,7 +350,7 @@ select:focus {
     margin-top: 16px;
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-primary);
-    text-shadow: 0 0 12px var(--webops-color-primary-glow);
+    text-shadow: none;
 }
 
 /* Accessibility: respect reduced motion */
@@ -377,10 +375,10 @@ select:focus {
     margin: 0 0 var(--webops-space-2) 0;
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-text-primary), var(--webops-color-primary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-text-primary);
+
+    -webkit-text-fill-color: currentColor;
+
 }
 
 .webops-text-muted {
@@ -402,13 +400,13 @@ select:focus {
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-stat-card:hover {
     border-color: var(--webops-color-primary-alpha-35);
-    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-stat-icon {
@@ -508,12 +506,12 @@ select:focus {
 .webops-oauth-config__title {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
     margin-bottom: var(--webops-space-1);
-    animation: webopsTextGlow 3s ease-in-out infinite;
+    animation: none;
 }
 
 @keyframes webopsTextGlow {
@@ -535,14 +533,14 @@ select:focus {
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
-    box-shadow: var(--webops-shadow-md), 0 0 20px var(--webops-color-primary-glow);
-    transition: all var(--webops-transition-base);
+    box-shadow: none;
+    transition: none;
 }
 
 .webops-oauth-config__info-box:hover {
     border-color: var(--webops-color-primary-alpha-35);
-    box-shadow: var(--webops-shadow-lg), 0 0 30px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-oauth-config__info-title {
@@ -573,7 +571,7 @@ select:focus {
     margin-bottom: var(--webops-space-2);
     padding: var(--webops-space-2);
     border-radius: var(--webops-radius-md);
-    transition: background var(--webops-transition-fast);
+    transition: none;
     color: var(--webops-color-text-secondary);
     line-height: 1.6;
 }
@@ -595,7 +593,7 @@ select:focus {
     color: var(--webops-color-primary);
     text-decoration: none;
     font-weight: var(--webops-font-weight-medium);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-oauth-config__info-item a:hover {
@@ -620,13 +618,13 @@ select:focus {
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-4);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-primary-glow);
-    animation: webopsFormFloat 6s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes webopsFormFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-3px); }
+    0%, 100% { transform: none; }
+    50% { transform: none; }
 }
 
 .webops-oauth-config__form-group {
@@ -644,7 +642,7 @@ select:focus {
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
     margin-bottom: var(--webops-space-1);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-oauth-config__input {
@@ -655,16 +653,16 @@ select:focus {
     border-radius: var(--webops-radius-md);
     font-size: var(--webops-font-size-base);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-family: var(--webops-font-family-primary);
 }
 
 .webops-oauth-config__input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-oauth-config__input:hover:not(:focus) {
@@ -684,7 +682,7 @@ select:focus {
     color: var(--webops-color-text-tertiary);
     margin-top: var(--webops-space-1);
     opacity: 0.7;
-    transition: opacity var(--webops-transition-fast);
+    transition: none;
     line-height: 1.5;
 }
 
@@ -707,7 +705,7 @@ select:focus {
     align-items: center;
     gap: var(--webops-space-1);
     margin-bottom: var(--webops-space-0-5);
-    animation: webopsErrorShake 0.5s ease-in-out;
+    animation: none;
 }
 
 @keyframes webopsErrorShake {
@@ -753,15 +751,15 @@ select:focus {
     text-decoration: none;
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     cursor: pointer;
 }
 
 .webops-oauth-config__btn-secondary:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-35);
-    transform: translateY(-2px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-oauth-config__btn-primary {
@@ -769,15 +767,15 @@ select:focus {
     align-items: center;
     gap: var(--webops-space-1-5);
     padding: var(--webops-space-2-5) var(--webops-space-4);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     border: none;
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-bg-primary);
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-semibold);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
-    box-shadow: var(--webops-shadow-md);
+    transition: none;
+    box-shadow: none;
     position: relative;
     overflow: hidden;
 }
@@ -789,14 +787,14 @@ select:focus {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left var(--webops-transition-base);
+    background: transparent;
+    transition: none;
 }
 
 .webops-oauth-config__btn-primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-oauth-config__btn-primary:hover::before {
@@ -804,8 +802,8 @@ select:focus {
 }
 
 .webops-oauth-config__btn-primary:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Real-time validation error styles */
@@ -817,13 +815,13 @@ select:focus {
     display: flex;
     align-items: center;
     gap: var(--webops-space-1);
-    animation: webopsValidationSlide 0.3s ease-out;
+    animation: none;
 }
 
 @keyframes webopsValidationSlide {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: none;
     }
     to {
         opacity: 1;
@@ -839,12 +837,12 @@ select:focus {
 /* Input states for validation */
 .webops-oauth-config__input.webops-oauth-config__input--error {
     border-color: var(--webops-color-error);
-    box-shadow: 0 0 0 3px var(--webops-color-error-alpha-20);
+    box-shadow: none;
 }
 
 .webops-oauth-config__input.webops-oauth-config__input--success {
     border-color: var(--webops-color-success);
-    box-shadow: 0 0 0 3px var(--webops-color-success-alpha-20);
+    box-shadow: none;
 }
 
 /* Responsive Design */
@@ -990,24 +988,22 @@ select:focus {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    box-shadow: 
-        var(--webops-shadow-lg),
-        0 0 40px var(--webops-color-primary-glow);
-    animation: loginCardFloat 6s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes loginCardFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
+    0%, 100% { transform: none; }
+    50% { transform: none; }
 }
 
 .login-page .webops-h1 {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
     text-align: center;
     margin-bottom: var(--webops-space-1);
 }
@@ -1034,14 +1030,14 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     width: 100%;
 }
 
 .login-page .webops-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -1050,24 +1046,24 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-semibold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     border: none;
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-bg-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
-    box-shadow: var(--webops-shadow-md);
+    transition: none;
+    box-shadow: none;
 }
 
 .login-page .webops-btn-primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .login-page .webops-btn-primary:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .login-page .webops-checkbox {
@@ -1078,7 +1074,7 @@ input:-internal-autofill-selected{
     color: var(--webops-color-primary);
     text-decoration: none;
     font-weight: var(--webops-font-weight-medium);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .login-page .webops-text-primary:hover {
@@ -1149,7 +1145,7 @@ input:-internal-autofill-selected{
 
 .webops-table tbody tr {
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
-    transition: background var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-table tbody tr:hover {
@@ -1234,7 +1230,7 @@ input:-internal-autofill-selected{
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    animation: webopsStatusPulse 2s ease-in-out infinite;
+    animation: none;
 }
 
 @keyframes webopsStatusPulse {
@@ -1249,7 +1245,7 @@ input:-internal-autofill-selected{
 
 .webops-status-running::before {
     background: var(--webops-color-success);
-    box-shadow: 0 0 8px var(--webops-color-success);
+    box-shadow: none;
 }
 
 .webops-status-pending {
@@ -1259,7 +1255,7 @@ input:-internal-autofill-selected{
 
 .webops-status-pending::before {
     background: var(--webops-color-warning);
-    box-shadow: 0 0 8px var(--webops-color-warning);
+    box-shadow: none;
 }
 
 .webops-status-building {
@@ -1269,7 +1265,7 @@ input:-internal-autofill-selected{
 
 .webops-status-building::before {
     background: var(--webops-color-info);
-    box-shadow: 0 0 8px var(--webops-color-info);
+    box-shadow: none;
 }
 
 .webops-status-failed, .webops-status-stopped {
@@ -1279,7 +1275,7 @@ input:-internal-autofill-selected{
 
 .webops-status-failed::before, .webops-status-stopped::before {
     background: var(--webops-color-error);
-    box-shadow: 0 0 8px var(--webops-color-error);
+    box-shadow: none;
 }
 
 /* WebOps Code Editor Component */
@@ -1394,7 +1390,7 @@ input:-internal-autofill-selected{
     justify-content: center;
     z-index: 2000;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
     padding: var(--webops-space-3);
     overflow-y: auto;
 }
@@ -1419,8 +1415,8 @@ input:-internal-autofill-selected{
     display: flex;
     flex-direction: column;
     transform: scale(0.95) translateY(-20px);
-    transition: all var(--webops-transition-base);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-modal-shadow);
+    transition: none;
+    box-shadow: none;
     position: relative;
 }
 
@@ -1451,7 +1447,7 @@ input:-internal-autofill-selected{
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: 20px;
 }
 
@@ -1510,8 +1506,8 @@ input:-internal-autofill-selected{
     display: flex;
     flex-direction: column;
     transform: scale(0.95) translateY(-20px);
-    transition: all var(--webops-transition-base);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-modal-shadow);
+    transition: none;
+    box-shadow: none;
     position: relative;
 }
 
@@ -1611,7 +1607,7 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-sm);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-modal__content input:focus,
@@ -1619,7 +1615,7 @@ input:-internal-autofill-selected{
 .webops-modal__content select:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-10);
+    box-shadow: none;
 }
 
 /* Modal content lists */
@@ -1757,7 +1753,7 @@ input:-internal-autofill-selected{
 @media (prefers-reduced-motion: reduce) {
     .webops-modal__content {
         transform: none;
-        transition: opacity var(--webops-transition-fast);
+        transition: none;
     }
     
     .webops-modal.active .webops-modal__content {
@@ -1782,20 +1778,20 @@ input:-internal-autofill-selected{
     border: none;
     border-radius: var(--webops-radius-md);
     cursor: pointer;
-    transition: all var(--webops-transition-base);
+    transition: none;
     text-decoration: none;
 }
 
 .webops-btn-primary {
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     color: var(--webops-color-bg-primary);
-    box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 .webops-btn-primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: 0 6px 20px var(--webops-color-primary-glow);
-    transform: translateY(-1px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-btn-secondary {
@@ -1811,39 +1807,39 @@ input:-internal-autofill-selected{
 }
 
 .webops-btn-danger {
-    background: linear-gradient(135deg, var(--webops-color-error), var(--webops-color-error-dark));
+    background: var(--webops-color-error);
     color: white;
-    box-shadow: 0 4px 12px var(--webops-color-error-alpha-30);
+    box-shadow: none;
 }
 
 .webops-btn-danger:hover {
-    background: linear-gradient(135deg, var(--webops-color-error-light), var(--webops-color-error));
-    transform: translateY(-1px);
+    background: var(--webops-color-error-light);
+    transform: none;
 }
 
 /* Success & Info Button Variants */
 .webops-btn-success {
     background: var(--webops-color-success);
     color: var(--webops-color-bg-primary);
-    box-shadow: 0 4px 12px var(--webops-color-success-alpha-30);
+    box-shadow: none;
 }
 
 .webops-btn-success:hover {
     background: var(--webops-color-success);
-    box-shadow: 0 6px 20px var(--webops-color-success-alpha-30);
-    transform: translateY(-1px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-btn-info {
     background: var(--webops-color-info);
     color: var(--webops-color-bg-primary);
-    box-shadow: 0 4px 12px var(--webops-color-info-alpha-30);
+    box-shadow: none;
 }
 
 .webops-btn-info:hover {
     background: var(--webops-color-info);
-    box-shadow: 0 6px 20px var(--webops-color-info-alpha-30);
-    transform: translateY(-1px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-btn-sm {
@@ -1866,13 +1862,13 @@ input:-internal-autofill-selected{
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-base);
+    transition: none;
     outline: none;
 }
 
 .webops-input:focus {
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -1897,14 +1893,14 @@ input:-internal-autofill-selected{
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-base);
+    transition: none;
     outline: none;
     resize: vertical;
 }
 
 .webops-textarea:focus {
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -1918,14 +1914,14 @@ input:-internal-autofill-selected{
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-base);
+    transition: none;
     outline: none;
     cursor: pointer;
 }
 
 .webops-select:focus {
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* WebOps Checkbox & Radio */
@@ -1936,7 +1932,7 @@ input:-internal-autofill-selected{
     border: 2px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-sm);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-radio {
@@ -1989,15 +1985,15 @@ input:-internal-autofill-selected{
     backdrop-filter: blur(20px);
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
-    box-shadow: var(--webops-shadow-sm);
-    transition: all var(--webops-transition-base);
+    box-shadow: none;
+    transition: none;
     position: relative;
     overflow: hidden;
 }
 
 .webops-card:hover {
-    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-card-header {
@@ -2157,7 +2153,7 @@ input:-internal-autofill-selected{
 .webops-text-muted { color: var(--webops-color-text-secondary); }
 
 /* Background Colors */
-.webops-bg-error { background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); }
+.webops-bg-error { background: var(--webops-color-error); }
 
 /* Text Colors */
 .webops-text-white { color: white; }
@@ -2238,7 +2234,7 @@ input:-internal-autofill-selected{
     height: 100%;
     background: var(--webops-color-primary);
     border-radius: var(--webops-radius-sm);
-    transition: width var(--webops-transition-base);
+    transition: none;
 }
 
 /* Material Icons Alignment */
@@ -2268,10 +2264,10 @@ input:-internal-autofill-selected{
     right: 20px;
     padding: var(--webops-space-3);
     border-radius: var(--webops-radius-md);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     z-index: 10000;
     max-width: 500px;
-    animation: slideIn 0.3s ease;
+    animation: none;
 }
 
 .webops-notification-success {
@@ -2301,7 +2297,7 @@ input:-internal-autofill-selected{
     justify-content: center;
     z-index: 9999;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
     pointer-events: none;
 }
 
@@ -2331,8 +2327,8 @@ input:-internal-autofill-selected{
     border-top-color: var(--webops-color-primary);
     border-right-color: var(--webops-color-primary);
     border-radius: 50%;
-    animation: webopsLoaderSpin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    box-shadow: 0 0 20px var(--webops-color-primary-alpha-30);
+    animation: none;
+    box-shadow: none;
 }
 
 .webops-loader-ring:nth-child(2) {
@@ -2342,8 +2338,8 @@ input:-internal-autofill-selected{
     left: 5%;
     border-top-color: var(--webops-color-primary-light);
     border-right-color: transparent;
-    animation-duration: 1.5s;
-    animation-direction: reverse;
+    animation-duration: 0s;
+    animation-direction: normal;
 }
 
 .webops-loader-ring:nth-child(3) {
@@ -2353,7 +2349,7 @@ input:-internal-autofill-selected{
     left: 10%;
     border-top-color: transparent;
     border-right-color: var(--webops-color-primary-dark);
-    animation-duration: 1.8s;
+    animation-duration: 0s;
 }
 
 /* Center pulsing dot */
@@ -2364,13 +2360,10 @@ input:-internal-autofill-selected{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     border-radius: 50%;
-    box-shadow:
-        0 0 20px var(--webops-color-primary-glow),
-        0 0 40px var(--webops-color-primary-glow),
-        inset 0 0 10px var(--webops-color-bg-highlight);
-    animation: webopsLoaderPulse 1.5s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 /* Loading text */
@@ -2385,13 +2378,13 @@ input:-internal-autofill-selected{
     text-transform: uppercase;
     letter-spacing: 0.15em;
     white-space: nowrap;
-    animation: webopsLoaderTextPulse 1.5s ease-in-out infinite;
+    animation: none;
 }
 
 /* Animated dots */
 .webops-loader-text::after {
     content: '';
-    animation: webopsLoaderDots 1.5s steps(4) infinite;
+    animation: none;
 }
 
 /* Spinning particles */
@@ -2409,9 +2402,9 @@ input:-internal-autofill-selected{
     height: 4px;
     background: var(--webops-color-primary);
     border-radius: 50%;
-    box-shadow: 0 0 6px var(--webops-color-primary);
+    box-shadow: none;
     opacity: 0;
-    animation: webopsLoaderParticle 2s ease-in-out infinite;
+    animation: none;
 }
 
 .webops-loader-particle:nth-child(1) {
@@ -2423,19 +2416,19 @@ input:-internal-autofill-selected{
 .webops-loader-particle:nth-child(2) {
     top: 50%;
     right: 0;
-    animation-delay: 0.5s;
+    animation-delay: 0s;
 }
 
 .webops-loader-particle:nth-child(3) {
     bottom: 0;
     left: 50%;
-    animation-delay: 1s;
+    animation-delay: 0s;
 }
 
 .webops-loader-particle:nth-child(4) {
     top: 50%;
     left: 0;
-    animation-delay: 1.5s;
+    animation-delay: 0s;
 }
 
 /* Animations */
@@ -2487,7 +2480,7 @@ input:-internal-autofill-selected{
     }
     100% {
         opacity: 0;
-        transform: scale(1.5);
+        transform: none;
     }
 }
 
@@ -2525,30 +2518,30 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-lg);
     color: var(--webops-color-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     backdrop-filter: blur(10px);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-sidebar-toggle:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-30);
-    box-shadow: var(--webops-shadow-lg);
-    transform: translateY(-1px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-sidebar-toggle:active {
     transform: translateY(0);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-sidebar-toggle .material-icons {
     color: inherit;
-    transition: transform var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-sidebar-toggle:hover .material-icons {
-    transform: scale(1.1);
+    transform: none;
 }
 
 /* Show toggle button on mobile */
@@ -2602,7 +2595,7 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
 }
@@ -2610,7 +2603,7 @@ input:-internal-autofill-selected{
 .webops-theme-toggle:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-20);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-theme-toggle[aria-expanded="true"] {
@@ -2620,7 +2613,7 @@ input:-internal-autofill-selected{
 
 .webops-theme-toggle__icon {
     color: var(--webops-color-primary);
-    transition: transform var(--webops-transition-fast);
+    transition: none;
     order: 2;
 }
 
@@ -2669,7 +2662,7 @@ input:-internal-autofill-selected{
 
 .webops-theme-toggle__arrow {
     color: var(--webops-color-text-secondary);
-    transition: transform var(--webops-transition-fast);
+    transition: none;
     order: 3;
 }
 
@@ -2685,12 +2678,12 @@ input:-internal-autofill-selected{
     background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     backdrop-filter: blur(20px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px);
-    transition: all var(--webops-transition-fast);
+    transform: none;
+    transition: none;
     z-index: 1000;
     padding: var(--webops-space-1-5);
 }
@@ -2712,7 +2705,7 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: var(--webops-font-size-sm);
     text-align: left;
 }
@@ -2734,19 +2727,19 @@ input:-internal-autofill-selected{
 }
 
 .webops-theme-option__preview--dark {
-    background: linear-gradient(135deg, #0a0e0d 0%, #111816 100%);
+    background: #0a0e0d;
 }
 
 .webops-theme-option__preview--light {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: #ffffff;
 }
 
 .webops-theme-option__preview--custom {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #1a1a2e;
 }
 
 .webops-theme-option__preview--high-contrast {
-    background: linear-gradient(135deg, #000000 0%, #ffffff 100%);
+    background: #000000;
 }
 
 .webops-theme-option__label {
@@ -2768,18 +2761,18 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-secondary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-settings-button:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-primary);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-settings-button__icon {
-    transition: transform var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-settings-button:hover .webops-settings-button__icon {
@@ -2804,13 +2797,13 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-text-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-user-menu__trigger:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-20);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-user-menu__trigger[aria-expanded="true"] {
@@ -2839,7 +2832,7 @@ input:-internal-autofill-selected{
 
 .webops-user-menu__arrow {
     color: var(--webops-color-text-secondary);
-    transition: transform var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-user-menu__trigger[aria-expanded="true"] .webops-user-menu__arrow {
@@ -2854,12 +2847,12 @@ input:-internal-autofill-selected{
     background: var(--webops-color-bg-elevated);
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     backdrop-filter: blur(20px);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px);
-    transition: all var(--webops-transition-fast);
+    transform: none;
+    transition: none;
     z-index: 1000;
     padding: var(--webops-space-3);
 }
@@ -2924,7 +2917,7 @@ input:-internal-autofill-selected{
     color: var(--webops-color-text-primary);
     text-decoration: none;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: var(--webops-font-size-sm);
     text-align: left;
 }
@@ -2945,7 +2938,7 @@ input:-internal-autofill-selected{
 
 .webops-user-menu__item-icon {
     color: var(--webops-color-text-secondary);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-user-menu__item:hover .webops-user-menu__item-icon {
@@ -2976,7 +2969,7 @@ input:-internal-autofill-selected{
     cursor: pointer;
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-tab:hover {
@@ -3025,7 +3018,7 @@ input:-internal-autofill-selected{
 .webops-breadcrumb-item {
     color: var(--webops-color-text-secondary);
     text-decoration: none;
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-breadcrumb-item:hover {
@@ -3049,7 +3042,7 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     border-bottom: 1px solid var(--webops-color-primary-alpha-05);
     cursor: pointer;
-    transition: background var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-file-item:hover {
@@ -3181,15 +3174,15 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     border-radius: var(--webops-radius-lg);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    transition: all var(--webops-transition-medium);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
 
 .webops-info-item:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-10);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-info-item::before {
@@ -3199,9 +3192,9 @@ input:-internal-autofill-selected{
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     opacity: 0;
-    transition: opacity var(--webops-transition-medium);
+    transition: none;
 }
 
 .webops-info-item:hover::before {
@@ -3234,7 +3227,7 @@ input:-internal-autofill-selected{
     background: var(--webops-color-primary-alpha-05);
     border-radius: var(--webops-radius-md);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-info-value:hover {
@@ -3255,7 +3248,7 @@ input:-internal-autofill-selected{
 .webops-info-value .webops-btn {
     flex-shrink: 0;
     opacity: 0.7;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-info-value:hover .webops-btn {
@@ -3265,7 +3258,7 @@ input:-internal-autofill-selected{
 .webops-info-value .webops-btn:hover {
     background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
-    transform: scale(1.05);
+    transform: none;
 }
 
 .webops-label {
@@ -3419,12 +3412,12 @@ input:-internal-autofill-selected{
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-lg);
     overflow: hidden;
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-code-example:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-10);
+    box-shadow: none;
 }
 
 .webops-h4 {
@@ -3485,7 +3478,7 @@ input:-internal-autofill-selected{
     height: 100vh;
     overflow-y: auto;
     z-index: 1000;
-    transition: all var(--webops-transition-base);
+    transition: none;
     transform: translateX(0);
 }
 
@@ -3551,8 +3544,8 @@ input:-internal-autofill-selected{
 
 .webops-sidebar-toggle:hover {
     background: var(--webops-color-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--webops-color-primary-alpha-30);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-sidebar-toggle svg {
@@ -3566,7 +3559,7 @@ input:-internal-autofill-selected{
     margin-left: 280px;
     min-height: 100vh;
     background: var(--webops-color-bg-primary);
-    transition: margin-left var(--webops-transition-base);
+    transition: none;
 }
 
 /* Main content adjustment for minimized sidebar */
@@ -3584,7 +3577,7 @@ input:-internal-autofill-selected{
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-sidebar-overlay.active {
@@ -3602,7 +3595,7 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-2-5) var(--webops-space-4);
     color: var(--webops-color-text-secondary);
     text-decoration: none;
-    transition: all var(--webops-transition-base);
+    transition: none;
     border-left: 3px solid transparent;
     font-weight: var(--webops-font-weight-medium);
     justify-content: flex-start;
@@ -3740,20 +3733,20 @@ input:-internal-autofill-selected{
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-border-radius-lg);
     overflow: hidden;
-    transition: all var(--webops-transition-base);
+    transition: none;
     cursor: pointer;
     position: relative;
 }
 
 .webops-theme-card:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: var(--webops-shadow-md);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-theme-card.selected {
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 2px var(--webops-color-primary-alpha-20);
+    box-shadow: none;
 }
 
 .webops-theme-header {
@@ -3772,8 +3765,8 @@ input:-internal-autofill-selected{
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    animation: shimmer 3s infinite;
+    background: transparent;
+    animation: none;
 }
 
 @keyframes shimmer {
@@ -3785,7 +3778,7 @@ input:-internal-autofill-selected{
     font-size: var(--webops-font-size-lg);
     font-weight: var(--webops-font-weight-bold);
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
     z-index: 1;
     position: relative;
 }
@@ -3805,12 +3798,12 @@ input:-internal-autofill-selected{
     height: 32px;
     border-radius: var(--webops-border-radius-sm);
     border: 2px solid var(--webops-color-bg-secondary);
-    box-shadow: var(--webops-shadow-sm);
-    transition: transform var(--webops-transition-fast);
+    box-shadow: none;
+    transition: none;
 }
 
 .webops-theme-color:hover {
-    transform: scale(1.1);
+    transform: none;
 }
 
 .webops-theme-description {
@@ -4005,24 +3998,22 @@ input:-internal-autofill-selected{
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-15);
-    box-shadow: 
-        var(--webops-shadow-lg),
-        0 0 40px var(--webops-color-primary-glow);
-    animation: loginCardFloat 6s ease-in-out infinite;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes loginCardFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
+    0%, 100% { transform: none; }
+    50% { transform: none; }
 }
 
 .login-page .webops-h1 {
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
     text-align: center;
     margin-bottom: var(--webops-space-1);
 }
@@ -4045,14 +4036,14 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     width: 100%;
 }
 
 .login-page .webops-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -4061,24 +4052,24 @@ input:-internal-autofill-selected{
     padding: var(--webops-space-3);
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-semibold);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     border: none;
     border-radius: var(--webops-radius-md);
     color: var(--webops-color-bg-primary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
-    box-shadow: var(--webops-shadow-md);
+    transition: none;
+    box-shadow: none;
 }
 
 .login-page .webops-btn-primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .login-page .webops-btn-primary:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .login-page .webops-checkbox {
@@ -4089,7 +4080,7 @@ input:-internal-autofill-selected{
     color: var(--webops-color-primary);
     text-decoration: none;
     font-weight: var(--webops-font-weight-medium);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .login-page .webops-text-primary:hover {
@@ -4131,7 +4122,7 @@ input:-internal-autofill-selected{
 
 
 .webops-card:hover {
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-35);
 }
 
@@ -4169,7 +4160,7 @@ input:-internal-autofill-selected{
     background: var(--webops-color-bg-secondary);
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .dependency-item:hover {
@@ -4223,7 +4214,7 @@ input:-internal-autofill-selected{
 .dependency-icon.installing {
     color: var(--webops-color-primary);
     background: var(--webops-color-primary-alpha-10);
-    animation: webopsSpin 1s linear infinite;
+    animation: none;
 }
 
 .dependency-icon.failed {
@@ -4284,7 +4275,7 @@ input:-internal-autofill-selected{
     background: var(--webops-color-primary);
     color: white;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     display: flex;
     align-items: center;
     gap: var(--webops-space-1);
@@ -4293,7 +4284,7 @@ input:-internal-autofill-selected{
 .dependency-install-btn:hover {
     background: var(--webops-color-primary-light);
     border-color: var(--webops-color-primary-light);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .dependency-install-btn:active {
@@ -4390,7 +4381,7 @@ input:-internal-autofill-selected{
     justify-content: center;
     z-index: 2000;
     opacity: 0;
-    transition: opacity var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-modal-overlay--active {
@@ -4408,9 +4399,9 @@ input:-internal-autofill-selected{
     max-width: 500px;
     max-height: 80vh;
     overflow-y: auto;
-    transform: scale(0.9);
-    transition: transform var(--webops-transition-base);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: none;
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-modal-overlay--active .webops-modal {
@@ -4446,7 +4437,7 @@ input:-internal-autofill-selected{
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: 24px;
     padding: 0;
 }
@@ -4543,7 +4534,7 @@ input:-internal-autofill-selected{
     bottom: 0;
     background: var(--webops-color-neutral-alpha-20);
     border: 1px solid var(--webops-color-neutral-alpha-30);
-    transition: var(--webops-transition-base);
+    transition: none;
     border-radius: 28px;
 }
 
@@ -4555,9 +4546,9 @@ input:-internal-autofill-selected{
     left: 3px;
     bottom: 3px;
     background: var(--webops-color-text-secondary);
-    transition: var(--webops-transition-base);
+    transition: none;
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
 }
 
 .webops-toggle-switch__input:checked + .webops-toggle-switch__slider {
@@ -4571,7 +4562,7 @@ input:-internal-autofill-selected{
 }
 
 .webops-toggle-switch__input:focus + .webops-toggle-switch__slider {
-    box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-30);
+    box-shadow: none;
 }
 
 .webops-toggle-switch__input:disabled + .webops-toggle-switch__slider {
@@ -4736,7 +4727,7 @@ input:-internal-autofill-selected{
     border: 2px solid transparent;
     border-top: 2px solid currentColor;
     border-radius: 50%;
-    animation: webopsSpin 1s linear infinite;
+    animation: none;
 }
 
 @keyframes webopsSpin {
@@ -4768,7 +4759,7 @@ input:-internal-autofill-selected{
     top: var(--webops-space-4);
     border: 1px solid var(--webops-color-primary-alpha-10);
     backdrop-filter: blur(20px);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-settings-nav {
@@ -4789,7 +4780,7 @@ input:-internal-autofill-selected{
     color: var(--webops-color-text-secondary);
     text-decoration: none;
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-weight: var(--webops-font-weight-medium);
     position: relative;
     overflow: hidden;
@@ -4802,8 +4793,8 @@ input:-internal-autofill-selected{
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, var(--webops-color-primary-alpha-05), transparent);
-    transition: left var(--webops-transition-base);
+    background: transparent;
+    transition: none;
 }
 
 .webops-settings-nav-link:hover {
@@ -4835,11 +4826,11 @@ input:-internal-autofill-selected{
 
 .webops-settings-nav-icon {
     font-size: 20px;
-    transition: transform var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-settings-nav-link:hover .webops-settings-nav-icon {
-    transform: scale(1.1);
+    transform: none;
 }
 
 /* Settings Main Content */
@@ -4849,13 +4840,13 @@ input:-internal-autofill-selected{
     padding: 0;
     border: 1px solid var(--webops-color-primary-alpha-10);
     backdrop-filter: blur(20px);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
     overflow: hidden;
 }
 
 /* Enhanced Card Headers */
 .webops-settings-content .webops-card__header {
-    background: linear-gradient(135deg, var(--webops-color-primary-alpha-05) 0%, var(--webops-color-primary-alpha-10) 100%);
+    background: var(--webops-color-primary-alpha-05);
     border-bottom: 1px solid var(--webops-color-primary-alpha-15);
     padding: var(--webops-space-4) var(--webops-space-4);
     position: relative;
@@ -4869,8 +4860,8 @@ input:-internal-autofill-selected{
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light), var(--webops-color-primary));
-    animation: webopsHeaderShimmer 3s ease-in-out infinite;
+    background: var(--webops-color-primary);
+    animation: none;
 }
 
 @keyframes webopsHeaderShimmer {
@@ -4925,7 +4916,7 @@ input:-internal-autofill-selected{
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
     margin-bottom: var(--webops-space-1-5);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-settings-form .webops-form-control {
@@ -4936,16 +4927,16 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     font-size: var(--webops-font-size-base);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-family: var(--webops-font-family-primary);
 }
 
 .webops-settings-form .webops-form-control:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-settings-form .webops-form-control:hover:not(:focus) {
@@ -4967,7 +4958,7 @@ input:-internal-autofill-selected{
     cursor: pointer;
     padding: var(--webops-space-2);
     border-radius: var(--webops-radius-md);
-    transition: background var(--webops-transition-fast);
+    transition: none;
     position: relative;
 }
 
@@ -4989,7 +4980,7 @@ input:-internal-autofill-selected{
     background: var(--webops-color-neutral-alpha-20);
     border: 1px solid var(--webops-color-neutral-alpha-30);
     border-radius: 24px;
-    transition: all var(--webops-transition-base);
+    transition: none;
     flex-shrink: 0;
 }
 
@@ -5002,8 +4993,8 @@ input:-internal-autofill-selected{
     height: 18px;
     background: var(--webops-color-text-secondary);
     border-radius: 50%;
-    transition: all var(--webops-transition-base);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-toggle input:checked + .webops-toggle__slider {
@@ -5014,11 +5005,11 @@ input:-internal-autofill-selected{
 .webops-toggle input:checked + .webops-toggle__slider::before {
     transform: translateX(24px);
     background: var(--webops-color-primary);
-    box-shadow: 0 0 8px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 .webops-toggle input:focus + .webops-toggle__slider {
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 .webops-toggle__label {
@@ -5042,7 +5033,7 @@ input:-internal-autofill-selected{
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
     text-align: center;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-toggle--radio:hover {
@@ -5067,7 +5058,7 @@ input:-internal-autofill-selected{
     justify-content: space-between;
     padding: var(--webops-space-4);
     border-bottom: 1px solid var(--webops-color-primary-alpha-10);
-    transition: background var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-setting-item:last-child {
@@ -5120,18 +5111,18 @@ input:-internal-autofill-selected{
     min-width: 120px;
     padding: var(--webops-space-2-5) var(--webops-space-4);
     font-weight: var(--webops-font-weight-semibold);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-form-actions .webops-btn--primary {
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
-    box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+    background: var(--webops-color-primary);
+    box-shadow: none;
 }
 
 .webops-form-actions .webops-btn--primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: 0 6px 20px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-form-actions .webops-btn--secondary {
@@ -5143,7 +5134,7 @@ input:-internal-autofill-selected{
 .webops-form-actions .webops-btn--secondary:hover {
     background: var(--webops-color-primary-alpha-10);
     border-color: var(--webops-color-primary);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 /* Responsive Design */

@@ -177,10 +177,10 @@
     font-size: var(--webops-font-size-3xl);
     font-weight: var(--webops-font-weight-bold);
     color: var(--webops-color-text-primary);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
 }
 
 .webops-header-actions {
@@ -202,13 +202,13 @@
     background: var(--webops-color-bg-elevated);
     border-radius: var(--webops-radius-lg);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    box-shadow: var(--webops-shadow-sm);
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    box-shadow: none;
+    transition: none;
 }
 
 .webops-overview-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-20);
 }
 
@@ -250,7 +250,7 @@
     padding: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-section-header {
@@ -286,7 +286,7 @@
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-4);
     border: 1px solid var(--webops-color-primary-alpha-10);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-table-container {
@@ -385,12 +385,12 @@
     margin-bottom: var(--webops-space-2);
     border-left: 4px solid;
     background: var(--webops-color-bg-secondary);
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    transition: none;
 }
 
 .webops-alert-item:hover {
     transform: translateX(4px);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-alert-critical {
@@ -453,7 +453,7 @@
     font-weight: var(--webops-font-weight-medium);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    transition: none;
     display: inline-flex;
     align-items: center;
     gap: var(--webops-space-2);
@@ -468,7 +468,7 @@
 .webops-btn-primary:hover {
     background: var(--webops-color-primary-dark);
     border-color: var(--webops-color-primary-dark);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-btn-secondary {

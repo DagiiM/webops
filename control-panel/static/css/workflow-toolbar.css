@@ -21,7 +21,7 @@
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
     margin-bottom: var(--webops-space-4);
     position: relative;
     overflow: visible;
@@ -98,7 +98,7 @@
 
 .toolbar-item {
     flex-shrink: 0;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 /* Ensure toolbar items wrap gracefully */
@@ -130,14 +130,14 @@
     color: var(--webops-color-text-primary);
     font-size: var(--webops-font-size-base);
     font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     backdrop-filter: blur(10px);
 }
 
 .webops-workflow-name-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
 }
 
@@ -184,7 +184,7 @@
     font-weight: var(--webops-font-weight-medium);
     text-decoration: none;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     backdrop-filter: blur(10px);
     white-space: nowrap;
     flex-shrink: 0;
@@ -199,19 +199,19 @@
     background: var(--webops-color-surface);
     border-color: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-text-primary);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-btn-secondary:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-30);
-    transform: translateY(-1px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-btn-secondary:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-sm);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-btn-secondary:disabled {
@@ -222,39 +222,39 @@
 }
 
 .webops-btn-primary {
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     border-color: var(--webops-color-primary);
     color: var(--webops-color-bg-primary);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-btn-primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: var(--webops-shadow-lg), 0 0 20px var(--webops-color-primary-glow);
-    transform: translateY(-1px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-btn-primary:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-btn-success {
-    background: linear-gradient(135deg, var(--webops-color-success), var(--webops-color-success-dark, #059669));
+    background: var(--webops-color-success);
     border-color: var(--webops-color-success);
     color: var(--webops-color-bg-primary);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-btn-success:hover {
-    background: linear-gradient(135deg, var(--webops-color-success-light, #4ade80), var(--webops-color-success));
-    box-shadow: var(--webops-shadow-lg), 0 0 20px rgba(16, 185, 129, 0.3);
-    transform: translateY(-1px);
+    background: var(--webops-color-success-light, #4ade80);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-btn-success:active {
-    transform: translateY(0px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 /* Button icons */
@@ -323,13 +323,13 @@
     backdrop-filter: blur(20px);
     border: 1px solid var(--webops-color-primary-alpha-15);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
     min-width: 200px;
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--webops-transition-fast);
+    transform: none;
+    transition: none;
 }
 
 .webops-toolbar-dropdown.active {
@@ -350,7 +350,7 @@
     font-size: var(--webops-font-size-sm);
     text-align: left;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-toolbar-dropdown-item:hover {
@@ -412,7 +412,7 @@
 .webops-workflow-toolbar .webops-toolbar-dropdown-item:focus {
     outline: 2px solid var(--webops-color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* ==========================================================================
@@ -422,7 +422,7 @@
 @keyframes toolbarItemSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: none;
     }
     to {
         opacity: 1;
@@ -431,7 +431,7 @@
 }
 
 .webops-workflow-toolbar .toolbar-item {
-    animation: toolbarItemSlideIn 0.3s ease-out;
+    animation: none;
 }
 
 /* ==========================================================================

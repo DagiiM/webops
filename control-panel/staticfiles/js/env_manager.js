@@ -381,7 +381,7 @@ function showNotification(message, type = 'info') {
         right: 20px;
         z-index: 2000;
         min-width: 300px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
     `;
     notification.textContent = message;
 

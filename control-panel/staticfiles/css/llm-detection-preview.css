@@ -16,14 +16,14 @@
     border: 1px solid var(--webops-color-border, #e0e0e0);
     border-radius: var(--webops-radius-lg, 12px);
     padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    animation: slideIn 0.3s ease-out;
+    box-shadow: none;
+    animation: none;
 }
 
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: none;
     }
     to {
         opacity: 1;
@@ -142,7 +142,7 @@
     border: 3px solid rgba(0, 123, 255, 0.1);
     border-top-color: var(--webops-color-primary, #007bff);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: none;
 }
 
 @keyframes spin {

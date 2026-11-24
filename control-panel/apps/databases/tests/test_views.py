@@ -111,8 +111,7 @@ class DatabaseViewTest(TestCase):
         response = self.client.post(self.url('database_delete', True), {'confirm':'yes'})
         self.assertEqual(response.status_code, 302, response.content[:120])
         self.assertEqual(response.url, self.url('database_list'))
-        service.return_value.delete_database.assert_called_once_with('test_db')
-        service.return_value.delete_user.assert_called_once_with('test_user')
+        service.assert_not_called()  # Owners remove their connection, never a host database.
         self.db.refresh_from_db()
         self.assertTrue(self.db.is_deleted)
 

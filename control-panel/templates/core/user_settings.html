@@ -115,9 +115,9 @@
                         <label class="webops-form-label">Animations</label>
                         <div class="webops-toggle-group">
                             <label class="webops-toggle">
-                                <input type="checkbox" id="animations" name="animations" {% if preferences.animations_enabled %}checked{% endif %}>
+                                <input type="checkbox" id="animations" name="animations" disabled>
                                 <span class="webops-toggle__slider"></span>
-                                <span class="webops-toggle__label">Enable UI animations</span>
+                                <span class="webops-toggle__label">UI animations disabled</span>
                             </label>
                         </div>
                     </div>
@@ -415,7 +415,7 @@
     height: fit-content;
     position: sticky;
     top: calc(var(--webops-space-6) + 60px);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
     backdrop-filter: blur(20px);
 }
 
@@ -451,7 +451,7 @@
     color: var(--webops-color-text-secondary);
     text-decoration: none;
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     margin-bottom: var(--webops-space-1);
     position: relative;
     overflow: hidden;
@@ -464,8 +464,8 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, var(--webops-color-primary-alpha-05), transparent);
-    transition: left var(--webops-transition-base);
+    background: transparent;
+    transition: none;
 }
 
 .webops-settings-nav__item:hover {
@@ -501,11 +501,11 @@
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    transition: transform var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-settings-nav__item:hover .webops-settings-nav__item-icon {
-    transform: scale(1.1);
+    transform: none;
 }
 
 .webops-settings-nav__item-label {
@@ -524,18 +524,18 @@
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-lg);
     overflow: hidden;
-    box-shadow: var(--webops-shadow-md);
-    transition: all var(--webops-transition-base);
+    box-shadow: none;
+    transition: none;
     backdrop-filter: blur(20px);
 }
 
 .webops-card:hover {
-    box-shadow: var(--webops-shadow-lg), var(--webops-shadow-glow);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-card__header {
-    background: linear-gradient(135deg, var(--webops-color-primary-alpha-05) 0%, var(--webops-color-primary-alpha-10) 100%);
+    background: var(--webops-color-primary-alpha-05);
     border-bottom: 1px solid var(--webops-color-primary-alpha-15);
     padding: var(--webops-space-4) var(--webops-space-4);
     position: relative;
@@ -549,8 +549,8 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--webops-color-primary), var(--webops-color-primary-light), var(--webops-color-primary));
-    animation: webopsHeaderShimmer 3s ease-in-out infinite;
+    background: var(--webops-color-primary);
+    animation: none;
 }
 
 @keyframes webopsHeaderShimmer {
@@ -627,7 +627,7 @@
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
     margin-bottom: var(--webops-space-1-5);
-    transition: color var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-form-control {
@@ -638,16 +638,16 @@
     border-radius: var(--webops-radius-md);
     font-size: var(--webops-font-size-base);
     color: var(--webops-color-text-primary);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-family: var(--webops-font-family-primary);
 }
 
 .webops-form-control:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
     background: var(--webops-color-surface-hover);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-form-control:hover:not(:focus) {
@@ -681,7 +681,7 @@
     cursor: pointer;
     padding: var(--webops-space-2);
     border-radius: var(--webops-radius-md);
-    transition: background var(--webops-transition-fast);
+    transition: none;
     position: relative;
 }
 
@@ -703,7 +703,7 @@
     background: var(--webops-color-neutral-alpha-20);
     border: 1px solid var(--webops-color-neutral-alpha-30);
     border-radius: 24px;
-    transition: all var(--webops-transition-base);
+    transition: none;
     flex-shrink: 0;
 }
 
@@ -716,8 +716,8 @@
     height: 18px;
     background: var(--webops-color-text-secondary);
     border-radius: 50%;
-    transition: all var(--webops-transition-base);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-toggle input:checked + .webops-toggle__slider {
@@ -728,11 +728,11 @@
 .webops-toggle input:checked + .webops-toggle__slider::before {
     transform: translateX(24px);
     background: var(--webops-color-primary);
-    box-shadow: 0 0 8px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 .webops-toggle input:focus + .webops-toggle__slider {
-    box-shadow: 0 0 0 3px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 .webops-toggle__label {
@@ -755,7 +755,7 @@
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
     text-align: center;
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-toggle--radio:hover {
@@ -795,7 +795,7 @@
     border: none;
     border-radius: var(--webops-radius-md);
     cursor: pointer;
-    transition: all var(--webops-transition-base);
+    transition: none;
     text-decoration: none;
     min-width: 120px;
 }
@@ -804,18 +804,18 @@
     min-width: 120px;
     padding: var(--webops-space-2-5) var(--webops-space-4);
     font-weight: var(--webops-font-weight-semibold);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-form-actions .webops-btn--primary {
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
-    box-shadow: 0 4px 12px var(--webops-color-primary-glow);
+    background: var(--webops-color-primary);
+    box-shadow: none;
 }
 
 .webops-form-actions .webops-btn--primary:hover {
-    background: linear-gradient(135deg, var(--webops-color-primary-light), var(--webops-color-primary));
-    box-shadow: 0 6px 20px var(--webops-color-primary-glow);
-    transform: translateY(-2px);
+    background: var(--webops-color-primary-light);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-form-actions .webops-btn--secondary {
@@ -827,7 +827,7 @@
 .webops-form-actions .webops-btn--secondary:hover {
     background: var(--webops-color-primary-alpha-10);
     border-color: var(--webops-color-primary);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 @media (max-width: 1024px) {

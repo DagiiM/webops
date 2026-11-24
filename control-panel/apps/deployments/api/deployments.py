@@ -45,7 +45,7 @@ def list_deployments(request) -> JsonResponse:
     status_filter = request.GET.get('status')
 
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-    queryset = ApplicationDeployment.objects.filter(deployed_by=request.user)
+    queryset = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
 
     if status_filter:
         queryset = queryset.filter(status=status_filter)
@@ -86,7 +86,7 @@ def get_deployment(request, name: str) -> JsonResponse:
     """Get deployment details by name."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         return JsonResponse({
             'id': deployment.id,
@@ -120,6 +120,20 @@ def create_deployment(request) -> JsonResponse:
                 status=400
             )
 
+        from apps.core.utils import sanitize_deployment_name, validate_repo_url, validate_domain
+        from apps.core.security.access import requires_review, queue_deployment
+        try:
+            data["name"] = sanitize_deployment_name(data["name"])
+        except (ValueError, TypeError, AttributeError):
+            return JsonResponse({"error":"Invalid deployment name"}, status=400)
+        if not validate_repo_url(data["repo_url"]) or (data.get("domain") and not validate_domain(data["domain"])):
+            return JsonResponse({"error":"Invalid repository or domain"}, status=400)
+        from apps.services.runtime import portable_runtime
+        static_only = data.get("static_only") is True and portable_runtime() is not None
+        if static_only and not data["repo_url"].startswith("https://github.com/"):
+            return JsonResponse({"error":"Static publication requires HTTPS GitHub"}, status=400)
+        if requires_review(request.user) and ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False).count() >= 5:
+            return JsonResponse({"error":"Preview deployment limit reached"}, status=429)
         # Check if deployment already exists
         if ApplicationDeployment.objects.filter(name=data['name']).exists():
             return JsonResponse(
@@ -134,24 +148,20 @@ def create_deployment(request) -> JsonResponse:
             repo_url=data['repo_url'],
             branch=data.get('branch', 'main'),
             domain=data.get('domain', ''),
-            env_vars=data.get('env_vars', {}),
-            status=ApplicationDeployment.Status.PENDING,
+            env_vars={} if requires_review(request.user) else data.get('env_vars', {}),
+            status=ApplicationDeployment.Status.REQUESTED if requires_review(request.user) and not static_only else ApplicationDeployment.Status.PENDING,
+            static_only=static_only,
             deployed_by=request.user
         )
 
-        # Ensure Celery worker is running (non-interactive)
-        from ..shared import ServiceManager
-        ServiceManager().ensure_celery_running()
-
-        # Queue deployment task
-        # deploy_application.delay(deployment.id)
-        get_background_processor().submit('apps.deployments.tasks.application.deploy_application', deployment.id)
+        if deployment.status != ApplicationDeployment.Status.REQUESTED:
+            queue_deployment(deployment)
 
         return JsonResponse({
             'id': deployment.id,
             'name': deployment.name,
             'status': deployment.status,
-            'message': 'Deployment queued successfully'
+            'message': 'Awaiting approval' if deployment.status == 'requested' else 'Deployment queued successfully'
         }, status=201)
 
     except json.JSONDecodeError:
@@ -166,7 +176,7 @@ def get_deployment_logs(request, name: str) -> JsonResponse:
     """Get deployment logs."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         tail = request.GET.get('tail')
         queryset = DeploymentLog.objects.filter(deployment=deployment)
@@ -196,16 +206,13 @@ def start_deployment_api(request, name: str) -> JsonResponse:
     """Start a deployment."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
-        # Update status
-        deployment.status = ApplicationDeployment.Status.RUNNING
-        deployment.save(update_fields=['status'])
-
-        return JsonResponse({
-            'message': f'Deployment {name} started',
-            'status': deployment.status
-        })
+        if deployment.status in ("requested", "building"):
+            return JsonResponse({"error":"Deployment is not ready"}, status=409)
+        from ..shared import ServiceManager
+        ok, message = ServiceManager().start_service(deployment)
+        return JsonResponse({"success":ok, "message":message, "status":deployment.status}, status=200 if ok else 409)
 
     except ApplicationDeployment.DoesNotExist:
         return JsonResponse({'error': f'Deployment {name} not found'}, status=404)
@@ -217,20 +224,13 @@ def stop_deployment_api(request, name: str) -> JsonResponse:
     """Stop a deployment."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
-        # Ensure Celery worker is running (non-interactive)
+        if deployment.status in ("requested", "building"):
+            return JsonResponse({"error":"Deployment is not ready"}, status=409)
         from ..shared import ServiceManager
-        ServiceManager().ensure_celery_running()
-
-        # Queue stop task
-        # stop_deployment.delay(deployment.id)
-        get_background_processor().submit('apps.deployments.tasks.stop_deployment', deployment.id)
-
-        return JsonResponse({
-            'message': f'Deployment {name} stop queued',
-            'status': deployment.status
-        })
+        ok, message = ServiceManager().stop_service(deployment)
+        return JsonResponse({"success":ok, "message":message, "status":deployment.status}, status=200 if ok else 409)
 
     except ApplicationDeployment.DoesNotExist:
         return JsonResponse({'error': f'Deployment {name} not found'}, status=404)
@@ -242,20 +242,13 @@ def restart_deployment_api(request, name: str) -> JsonResponse:
     """Restart a deployment."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
-        # Ensure Celery worker is running (non-interactive)
+        if deployment.status in ("requested", "building"):
+            return JsonResponse({"error":"Deployment is not ready"}, status=409)
         from ..shared import ServiceManager
-        ServiceManager().ensure_celery_running()
-
-        # Queue restart task
-        # restart_deployment.delay(deployment.id)
-        get_background_processor().submit('apps.deployments.tasks.restart_deployment', deployment.id)
-
-        return JsonResponse({
-            'message': f'Deployment {name} restart queued',
-            'status': deployment.status
-        })
+        ok, message = ServiceManager().restart_service(deployment)
+        return JsonResponse({"success":ok, "message":message, "status":deployment.status}, status=200 if ok else 409)
 
     except ApplicationDeployment.DoesNotExist:
         return JsonResponse({'error': f'Deployment {name} not found'}, status=404)
@@ -267,8 +260,14 @@ def delete_deployment_api(request, name: str) -> JsonResponse:
     """Delete a deployment."""
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
+        if deployment.status == "requested":
+            if ApplicationDeployment.objects.filter(pk=deployment.pk, status="requested", is_deleted=False).update(is_deleted=True, status="stopped", deleted_by=request.user):
+                return JsonResponse({"success":True, "message":"Request cancelled"})
+            return JsonResponse({"error":"Request changed"}, status=409)
+        if deployment.status == "building":
+            return JsonResponse({"error":"Build in progress"}, status=409)
         # Ensure Celery worker is running (non-interactive)
         from ..shared import ServiceManager
         ServiceManager().ensure_celery_running()
@@ -301,7 +300,7 @@ def generate_env_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Parse request body
         try:
@@ -376,7 +375,7 @@ def validate_project_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Get repo path
         from ..services import DeploymentService
@@ -421,7 +420,7 @@ def validate_env_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Get deployment path
         from ..services import DeploymentService
@@ -458,7 +457,7 @@ def get_env_vars_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Get deployment path
         from ..services import DeploymentService
@@ -504,7 +503,7 @@ def set_env_var_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Parse request body
         try:
@@ -582,7 +581,7 @@ def unset_env_var_api(request, name: str) -> JsonResponse:
     """
     try:
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(name=name, deployed_by=request.user, is_deleted=False)
 
         # Parse request body
         try:

@@ -126,12 +126,12 @@
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-dependency-item:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-dependency-item.installed {
@@ -161,12 +161,12 @@
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 .webops-addon-item:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-checkbox {
@@ -239,10 +239,10 @@ function showNotification(message, type) {
         right: 20px;
         padding: var(--webops-space-3);
         border-radius: var(--webops-radius-md);
-        box-shadow: var(--webops-shadow-lg);
+        box-shadow: none;
         z-index: 10000;
         max-width: 500px;
-        animation: slideIn 0.3s ease;
+        animation: none;
     `;
     
     // Set background color based on type

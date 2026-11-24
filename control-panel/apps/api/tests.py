@@ -28,7 +28,7 @@ class APIDeploymentAdapterTests(TestCase):
             registry={'apps.deployments.tasks.application.deploy_application': deploy_stub}
         )
 
-        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), \
+        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), mock.patch('apps.services.background.get_background_processor', return_value=adapter), \
              mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             payload = {
                 'name': 'api-test-app',
@@ -74,7 +74,7 @@ class APIDeploymentAdapterTests(TestCase):
             status=ApplicationDeployment.Status.PENDING,
         )
 
-        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), \
+        with mock.patch('apps.deployments.api.deployments.get_background_processor', return_value=adapter), mock.patch('apps.services.background.get_background_processor', return_value=adapter), \
              mock.patch('apps.deployments.shared.service_manager.ServiceManager.ensure_celery_running', return_value=None):
             resp = self.client.delete(
                 reverse('api_deployment_delete', kwargs={'name': dep.name}),

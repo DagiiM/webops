@@ -23,14 +23,14 @@
     border-radius: var(--webops-radius-lg);
     padding: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-primary-glow);
+    box-shadow: none;
     display: flex;
     align-items: flex-start;
     gap: var(--webops-space-3);
     pointer-events: all;
     transform: translateX(100%);
     opacity: 0;
-    transition: all var(--webops-transition-base);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -54,7 +54,7 @@
     height: var(--webops-space-0-5);
     background: currentColor;
     opacity: var(--webops-opacity-hover);
-    transition: width linear;
+    transition: none;
 }
 
 /* Toast Icon */
@@ -103,7 +103,7 @@
     border-radius: var(--webops-radius-sm);
     color: var(--webops-color-text-tertiary);
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-size: var(--webops-font-size-lg);
     line-height: 1;
 }
@@ -116,7 +116,7 @@
 .webops-toast__close:focus-visible {
     outline: 2px solid var(--webops-color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* Toast Actions */
@@ -136,7 +136,7 @@
     font-weight: var(--webops-font-weight-medium);
     text-decoration: none;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     font-family: var(--webops-font-family-primary);
 }
 
@@ -149,13 +149,13 @@
 .webops-toast__action:focus-visible {
     outline: 2px solid var(--webops-color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+    box-shadow: none;
 }
 
 /* Toast Type Variants */
 .webops-toast--success {
     border-color: var(--webops-color-success);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-success-alpha-30);
+    box-shadow: none;
 }
 
 .webops-toast--success .webops-toast__icon {
@@ -169,7 +169,7 @@
 
 .webops-toast--error {
     border-color: var(--webops-color-error);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-error-alpha-30);
+    box-shadow: none;
 }
 
 .webops-toast--error .webops-toast__icon {
@@ -183,7 +183,7 @@
 
 .webops-toast--warning {
     border-color: var(--webops-color-warning);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-warning-alpha-30);
+    box-shadow: none;
 }
 
 .webops-toast--warning .webops-toast__icon {
@@ -197,7 +197,7 @@
 
 .webops-toast--info {
     border-color: var(--webops-color-info);
-    box-shadow: var(--webops-shadow-lg), 0 0 40px var(--webops-color-info-alpha-30);
+    box-shadow: none;
 }
 
 .webops-toast--info .webops-toast__icon {
@@ -271,7 +271,7 @@
 
 /* Animation for new toasts pushing existing ones up */
 .webops-toast-container .webops-toast {
-    animation: webopsToastSlideIn var(--webops-transition-medium) forwards;
+    animation: none;
 }
 
 @keyframes webopsToastSlideIn {
@@ -286,7 +286,7 @@
 }
 
 .webops-toast.webops-toast--hide {
-    animation: webopsToastSlideOut var(--webops-transition-medium) forwards;
+    animation: none;
 }
 
 @keyframes webopsToastSlideOut {

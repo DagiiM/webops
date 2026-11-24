@@ -1,0 +1,14 @@
+/* WebOps flat visual contract. No decorative motion or elevation. */
+html, html *, html *::before, html *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+}
+.webops-btn:hover, .webops-btn:active, .webops-card:hover,
+.webops-nav-item:hover, .webops-palette-node:hover {
+    transform: none !important;
+}
+.app-background, .graph-nodes, .graph-node { display: none !important; }
+:focus-visible { outline: 2px solid var(--webops-color-primary, #2563eb) !important; outline-offset: 2px; }

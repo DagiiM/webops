@@ -135,6 +135,7 @@ class DatabaseCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        # Connection records are user-owned; dependency installation is host-wide.
         # Check dependencies before creating database
         db_type = form.cleaned_data.get('db_type')
         if db_type:
@@ -285,6 +286,10 @@ def database_delete(request, pk):
         if request.POST.get('confirm') != 'yes':
             messages.error(request, "Deletion must be explicitly confirmed.")
             return render(request, 'databases/delete_confirm.html', {'database': database}, status=400)
+        if database.deployment_id is None or database.db_type != "postgresql" or not request.user.is_staff:
+            database.delete(user=request.user)
+            messages.success(request, f"Connection {database.name} removed. No external database was dropped.")
+            return redirect("database_list")
         db_service = DatabaseService()
         success, error = db_service.delete_database(database.database_name or database.name)
         if not success:

@@ -74,7 +74,7 @@
             border-radius: var(--webops-radius-md);
             color: var(--webops-color-text-primary);
             font-size: var(--webops-font-size-base);
-            transition: all var(--webops-transition-fast);
+            transition: none;
         }
 
         .auth-input::placeholder {
@@ -85,7 +85,7 @@
         .auth-input:focus {
             outline: none;
             border-color: var(--webops-color-primary);
-            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+            box-shadow: none;
             background: var(--webops-color-bg-elevated);
         }
 
@@ -110,7 +110,7 @@
             transform: translateY(-50%);
             color: var(--webops-color-text-tertiary);
             pointer-events: none;
-            transition: all var(--webops-transition-fast);
+            transition: none;
             font-size: 20px;
         }
 
@@ -129,8 +129,8 @@
             margin-top: var(--webops-space-1);
             font-size: var(--webops-font-size-sm);
             opacity: 0;
-            transform: translateY(-4px);
-            transition: all var(--webops-transition-fast);
+            transform: none;
+            transition: none;
         }
 
         .auth-feedback.show {
@@ -175,7 +175,7 @@
         .password-strength-fill {
             height: 100%;
             width: 0%;
-            transition: all var(--webops-transition-base);
+            transition: none;
             border-radius: var(--webops-radius-full);
         }
 
@@ -243,7 +243,7 @@
             align-items: center;
             justify-content: center;
             border-radius: var(--webops-radius-sm);
-            transition: all var(--webops-transition-fast);
+            transition: none;
         }
 
         .password-toggle:hover {
@@ -273,7 +273,7 @@
             border: 2px solid currentColor;
             border-top-color: transparent;
             border-radius: 50%;
-            animation: spin 0.6s linear infinite;
+            animation: none;
         }
 
         @keyframes spin {
@@ -288,13 +288,13 @@
             padding: var(--webops-space-3);
             border-radius: var(--webops-radius-md);
             margin-bottom: var(--webops-space-4);
-            animation: slideIn 0.3s ease-out;
+            animation: none;
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-8px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -327,6 +327,7 @@
 
         {% block extra_styles %}{% endblock %}
     </style>
+    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
 </head>
 <body class="auth-page">
     <!-- Theme Switcher -->

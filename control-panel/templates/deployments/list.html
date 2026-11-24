@@ -4,6 +4,19 @@
 {% block header_title %}Deployments{% endblock %}
 
 {% block content %}
+{% if user.is_staff and review_requests %}
+<section class="webops-card webops-mb-lg">
+<div class="webops-card-header"><h3>Deployment requests awaiting review</h3></div>
+<div class="webops-card-body">
+<p>Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.</p>
+{% for item in review_requests %}
+<div class="webops-flex webops-gap-sm webops-mb-md" style="align-items:center;flex-wrap:wrap">
+<strong>{{ item.name }}</strong> · {{ item.deployed_by.username }} · <code>{{ item.repo_url }}</code> · Branch: {{ item.branch }}
+<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>
+</div>
+{% endfor %}
+</div></section>
+{% endif %}
 <div class="webops-page-header">
     <div>
         <h2 class="webops-page-title">Deployments</h2>
@@ -23,7 +36,7 @@
 
 <div class="webops-card">
     <div class="webops-card-header">
-        <h3 class="webops-h3">All Deployments</h3>
+        <h3 class="webops-h3">My Deployments</h3>
         <input type="text" id="search" placeholder="Search deployments..." class="webops-input" style="max-width: 300px;">
     </div>
 
@@ -51,6 +64,8 @@
                             <span class="webops-badge webops-badge-success">Running</span>
                         {% elif deployment.status == 'stopped' %}
                             <span class="webops-badge webops-badge-info">Stopped</span>
+                        {% elif deployment.status == 'requested' %}
+                            <span class="webops-badge webops-badge-warning">Awaiting approval</span>
                         {% elif deployment.status == 'pending' %}
                             <span class="webops-badge webops-badge-warning">Building</span>
                         {% elif deployment.status == 'failed' %}

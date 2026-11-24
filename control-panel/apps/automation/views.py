@@ -41,7 +41,7 @@ def workflow_list(request):
     
     # Optimize query with prefetch_related and annotations
     workflows = Workflow.objects.filter(
-        owner=request.user
+        owner=request.user, is_deleted=False
     ).prefetch_related(
         Prefetch('executions',
                  queryset=WorkflowExecution.objects.order_by('-started_at')[:5],
@@ -107,7 +107,7 @@ def workflow_create(request):
 @login_required
 def workflow_builder(request, workflow_id):
     """Visual workflow builder interface."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     # Get all nodes and connections
     nodes = list(workflow.nodes.all())
@@ -151,7 +151,7 @@ def workflow_builder(request, workflow_id):
 @require_POST
 def workflow_save(request, workflow_id):
     """Save workflow changes."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     try:
         data = json.loads(request.body)
@@ -241,7 +241,7 @@ def workflow_save(request, workflow_id):
 @require_POST
 def workflow_execute(request, workflow_id):
     """Execute a workflow."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     if workflow.status == Workflow.Status.DISABLED:
         return JsonResponse({
@@ -305,7 +305,7 @@ def workflow_execute(request, workflow_id):
 @require_POST
 def workflow_delete(request, workflow_id):
     """Delete a workflow."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     workflow_name = workflow.name
     workflow.delete()
@@ -321,7 +321,7 @@ def workflow_delete(request, workflow_id):
 @login_required
 def execution_list(request, workflow_id):
     """List workflow executions."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     executions = workflow.executions.order_by('-started_at')[:50]
 
@@ -336,7 +336,7 @@ def execution_list(request, workflow_id):
 @login_required
 def execution_detail(request, execution_id):
     """View execution details."""
-    execution = get_object_or_404(WorkflowExecution, pk=execution_id)
+    execution = get_object_or_404(WorkflowExecution, pk=execution_id, workflow__owner=request.user, workflow__is_deleted=False, is_deleted=False)
 
     # Check permission
     if execution.workflow.owner != request.user:
@@ -372,7 +372,7 @@ def template_list(request):
 @login_required
 def template_preview(request, template_id):
     """Get template preview data for modal."""
-    template = get_object_or_404(WorkflowTemplate, pk=template_id)
+    template = get_object_or_404(WorkflowTemplate.objects.filter(is_public=True, is_deleted=False), pk=template_id)
     
     # Check if template is public or owned by user
     if not template.is_public and template.author != request.user:
@@ -447,7 +447,7 @@ def template_preview(request, template_id):
 @require_POST
 def workflow_create_from_template(request, template_id):
     """Create workflow from template."""
-    template = get_object_or_404(WorkflowTemplate, pk=template_id)
+    template = get_object_or_404(WorkflowTemplate.objects.filter(is_public=True, is_deleted=False), pk=template_id)
 
     # Check if template is public or owned by user
     if not template.is_public and template.author != request.user:
@@ -519,7 +519,7 @@ def workflow_create_from_template(request, template_id):
 @require_http_methods(["GET"])
 def api_workflow_status(request, workflow_id):
     """API: Get workflow status and statistics."""
-    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
 
     data = {
         'id': workflow.id,
@@ -546,7 +546,7 @@ def api_workflow_status(request, workflow_id):
 @require_http_methods(["GET"])
 def api_execution_status(request, execution_id):
     """API: Get execution status."""
-    execution = get_object_or_404(WorkflowExecution, pk=execution_id)
+    execution = get_object_or_404(WorkflowExecution, pk=execution_id, workflow__owner=request.user, workflow__is_deleted=False, is_deleted=False)
 
     # Check permission
     if execution.workflow.owner != request.user:
@@ -556,7 +556,7 @@ def api_execution_status(request, execution_id):
         'id': execution.id,
         'workflow_id': execution.workflow.id,
         'status': execution.status,
-        'started_at': execution.started_at.isoformat(),
+        'started_at': execution.started_at.isoformat() if execution.started_at else None,
         'completed_at': execution.completed_at.isoformat() if execution.completed_at else None,
         'duration_ms': execution.duration_ms,
         'trigger_type': execution.trigger_type,
@@ -598,7 +598,7 @@ def api_node_types(request):
 
 
 @login_required
-@require_http_methods(["POST", "GET"])
+@require_POST
 def webhook_trigger(request, workflow_id):
     """
     Trigger a workflow via webhook.
@@ -606,7 +606,7 @@ def webhook_trigger(request, workflow_id):
     This endpoint allows external systems to trigger workflows.
     It supports both GET and POST requests.
     """
-    workflow = get_object_or_404(Workflow, pk=workflow_id)
+    workflow = get_object_or_404(Workflow, pk=workflow_id, owner=request.user, is_deleted=False)
     
     # Check if workflow accepts webhook triggers
     if workflow.trigger_type != Workflow.TriggerType.WEBHOOK:
@@ -679,7 +679,7 @@ def retry_execution(request, execution_id):
     """
     Retry a failed workflow execution.
     """
-    execution = get_object_or_404(WorkflowExecution, pk=execution_id)
+    execution = get_object_or_404(WorkflowExecution, pk=execution_id, workflow__owner=request.user, workflow__is_deleted=False, is_deleted=False)
     
     # Check permission
     if execution.workflow.owner != request.user:

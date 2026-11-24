@@ -67,12 +67,13 @@ ADDONS_PATH = config('ADDONS_PATH', default=str(BASE_DIR / 'addons'))
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'apps.api.rate_limiting.RateLimitMiddleware',  # Global rate limiting
     'apps.databases.middleware.DatabaseRateLimitMiddleware',  # Database-specific rate limiting
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.api.rate_limiting.RateLimitMiddleware',  # Global rate limiting
+    'apps.core.security.access.ResourceAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

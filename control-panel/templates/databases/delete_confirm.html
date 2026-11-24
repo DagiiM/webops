@@ -150,7 +150,7 @@
 <style>
 .warning-card {
     border: 3px solid var(--webops-color-error);
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+    box-shadow: none;
 }
 
 .database-info {
@@ -198,7 +198,7 @@
 
 .impact-section {
     padding: var(--webops-space-3);
-    background: linear-gradient(135deg, var(--webops-color-error-alpha-10) 0%, var(--webops-color-error-alpha-20) 100%);
+    background: var(--webops-color-error-alpha-10);
     border-radius: var(--webops-radius-md);
     border: 2px solid var(--webops-color-error-alpha-30);
     margin-bottom: var(--webops-space-3);
@@ -256,7 +256,7 @@
     background: var(--webops-color-bg-tertiary);
     border-radius: var(--webops-radius-md);
     border: 2px solid var(--webops-color-primary-alpha-20);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .checkbox-label:hover {
@@ -295,7 +295,7 @@
 
 .btn-danger:hover:not(:disabled) {
     background: var(--webops-color-error-dark);
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .btn-danger:disabled {

@@ -76,7 +76,7 @@
             top: 0;
             bottom: 0;
             overflow-y: auto;
-            transition: transform var(--webops-transition-base);
+            transition: none;
             z-index: 1000;
         }
 
@@ -115,7 +115,7 @@
             color: var(--webops-color-text-secondary);
             text-decoration: none;
             border-radius: var(--webops-radius-md);
-            transition: all var(--webops-transition-fast);
+            transition: none;
             margin-bottom: var(--webops-space-1);
         }
 
@@ -153,10 +153,10 @@
         .webops-header-title {
             font-size: var(--webops-font-size-2xl);
             font-weight: var(--webops-font-weight-bold);
-            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: var(--webops-color-primary);
+
+            -webkit-text-fill-color: currentColor;
+
         }
 
         .webops-user-menu {
@@ -170,7 +170,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+            background: var(--webops-color-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -188,7 +188,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all var(--webops-transition-fast);
+            transition: none;
         }
 
         .webops-theme-toggle:hover {
@@ -207,7 +207,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all var(--webops-transition-fast);
+            transition: none;
         }
 
         .webops-settings-button:hover {
@@ -230,7 +230,7 @@
             cursor: pointer;
             padding: var(--webops-space-3) var(--webops-space-4);
             border-radius: var(--webops-radius-md);
-            transition: all var(--webops-transition-fast);
+            transition: none;
             font-family: inherit;
             font-size: inherit;
         }
@@ -245,7 +245,7 @@
 
         .webops-dropdown-arrow {
             font-size: 16px;
-            transition: transform var(--webops-transition-fast);
+            transition: none;
         }
 
         .webops-user-menu-trigger.active .webops-dropdown-arrow {
@@ -261,12 +261,12 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--webops-color-primary-alpha-20);
             border-radius: var(--webops-radius-lg);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: none;
             min-width: 280px;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-10px);
-            transition: all var(--webops-transition-base);
+            transform: none;
+            transition: none;
             z-index: 1000;
         }
 
@@ -288,7 +288,7 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+            background: var(--webops-color-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -330,7 +330,7 @@
             width: 100%;
             text-align: left;
             cursor: pointer;
-            transition: all var(--webops-transition-fast);
+            transition: none;
             font-family: inherit;
             font-size: inherit;
         }
@@ -367,7 +367,7 @@
             justify-content: center;
             z-index: 2000;
             opacity: 0;
-            transition: opacity var(--webops-transition-base);
+            transition: none;
         }
 
         .modal-overlay.active {
@@ -384,8 +384,8 @@
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
-            transform: scale(0.9);
-            transition: transform var(--webops-transition-base);
+            transform: none;
+            transition: none;
         }
 
         .modal-overlay.active .modal {
@@ -417,7 +417,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all var(--webops-transition-fast);
+            transition: none;
             font-size: 24px;
         }
 
@@ -476,7 +476,7 @@
             bottom: 0;
             background: var(--webops-color-surface);
             border: 1px solid var(--webops-color-primary-alpha-20);
-            transition: var(--webops-transition-base);
+            transition: none;
             border-radius: 28px;
         }
 
@@ -488,7 +488,7 @@
             left: 3px;
             bottom: 3px;
             background: var(--webops-color-text-secondary);
-            transition: var(--webops-transition-base);
+            transition: none;
             border-radius: 50%;
         }
 
@@ -606,6 +606,7 @@
         }
     </style>
   
+    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
 </head>
 <body>
     <div class="webops-app-background"></div>

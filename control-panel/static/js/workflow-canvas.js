@@ -1470,9 +1470,9 @@ class WorkflowCanvas {
             background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#F59E0B'};
             color: white;
             border-radius: var(--webops-radius-md);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: none;
             z-index: 9999;
-            animation: slideIn 0.3s ease;
+            animation: none;
             font-family: var(--webops-font-sans);
             font-size: var(--webops-font-size-sm);
             font-weight: 500;
@@ -1699,7 +1699,7 @@ class WorkflowCanvas {
             max-height: 80vh;
             overflow-y: auto;
             border: 1px solid var(--webops-color-border);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: none;
         `;
         
         settingsContent.innerHTML = `

@@ -464,5 +464,5 @@ body {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+  box-shadow: none;
 }

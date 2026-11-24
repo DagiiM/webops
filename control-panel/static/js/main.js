@@ -8,7 +8,7 @@
 class GraphBackground {
     constructor() {
         this.nodes = [];
-        this.nodeCount = 20;
+        this.nodeCount = 0;
         this.init();
     }
 
@@ -115,17 +115,9 @@ class Toast {
         const toast = document.createElement('div');
         toast.className = 'toast toast-' + type;
         toast.textContent = message;
-        toast.style.cssText = 'position:fixed;top:24px;right:24px;background:rgba(20,26,23,0.95);backdrop-filter:blur(20px);border:1px solid var(--color-' + (type === 'error' ? 'error' : 'success') + ');border-radius:8px;padding:16px 24px;color:var(--webops-color-text-primary);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:9999;opacity:0;transform:translateX(400px);transition:all 0.3s';
+        toast.style.cssText = 'position:fixed;top:24px;right:24px;background:var(--webops-color-bg-elevated);border:1px solid var(--webops-color-border);border-radius:8px;padding:16px 24px;color:var(--webops-color-text-primary);z-index:9999';
         document.body.appendChild(toast);
-        requestAnimationFrame(() => {
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateX(0)';
-        });
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(400px)';
-            setTimeout(() => toast.remove(), 300);
-        }, duration);
+        setTimeout(() => toast.remove(), duration);
     }
 
     static success(msg, options = {}) {
@@ -571,7 +563,7 @@ async function restartAllServices() {
     // Show loading state
     const restartBtn = event.target.closest('button');
     const originalText = restartBtn.innerHTML;
-    restartBtn.innerHTML = '<span class="material-icons" style="animation: spin 1s linear infinite;">autorenew</span> Restarting All...';
+    restartBtn.innerHTML = '<span class="material-icons" style="animation: none;">autorenew</span> Restarting All...';
     restartBtn.disabled = true;
     
     const results = [];

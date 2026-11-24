@@ -104,10 +104,12 @@
                         <span class="webops-nav-item__text">Branding</span>
                     </a>
                     {% endif %}
+                    {% if user.is_staff %}
                     <a href="{% url 'admin:index' %}" class="webops-nav-item" target="_blank">
                         <span class="webops-nav-item__icon material-icons">admin_panel_settings</span>
                         <span class="webops-nav-item__text">Admin Panel</span>
                     </a>
+                    {% endif %}
                     <a href="{% url 'logout' %}" class="webops-nav-item">
                         <span class="webops-nav-item__icon material-icons">logout</span>
                         <span class="webops-nav-item__text">Logout</span>

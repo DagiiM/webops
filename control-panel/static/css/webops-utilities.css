@@ -351,16 +351,16 @@
    ════════════════════════════════════════════════════════════════════════════════ */
 
 .webops-shadow-none { box-shadow: none !important; }
-.webops-shadow-sm { box-shadow: var(--webops-shadow-sm) !important; }
-.webops-shadow { box-shadow: var(--webops-shadow-base) !important; }
-.webops-shadow-md { box-shadow: var(--webops-shadow-md) !important; }
-.webops-shadow-lg { box-shadow: var(--webops-shadow-lg) !important; }
-.webops-shadow-xl { box-shadow: var(--webops-shadow-xl) !important; }
-.webops-shadow-2xl { box-shadow: var(--webops-shadow-2xl) !important; }
-.webops-shadow-inner { box-shadow: inset 0 2px 4px 0 hsl(0 0% 0% / 5%) !important; }
+.webops-shadow-sm { box-shadow: none !important; }
+.webops-shadow { box-shadow: none !important; }
+.webops-shadow-md { box-shadow: none !important; }
+.webops-shadow-lg { box-shadow: none !important; }
+.webops-shadow-xl { box-shadow: none !important; }
+.webops-shadow-2xl { box-shadow: none !important; }
+.webops-shadow-inner { box-shadow: none !important; }
 
-.webops-shadow-primary { box-shadow: var(--webops-shadow-primary) !important; }
-.webops-shadow-success { box-shadow: var(--webops-shadow-success) !important; }
+.webops-shadow-primary { box-shadow: none !important; }
+.webops-shadow-success { box-shadow: none !important; }
 
 /* ════════════════════════════════════════════════════════════════════════════════
    BACKGROUND UTILITIES
@@ -517,7 +517,7 @@
    ════════════════════════════════════════════════════════════════════════════════ */
 
 .webops-animate-pulse {
-  animation: webops-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: none;
 }
 
 @keyframes webops-pulse {
@@ -526,22 +526,22 @@
 }
 
 .webops-animate-bounce {
-  animation: webops-bounce 1s infinite;
+  animation: none;
 }
 
 @keyframes webops-bounce {
   0%, 100% {
     transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    animation-timing-function: linear;
   }
   50% {
     transform: translateY(0);
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    animation-timing-function: linear;
   }
 }
 
 .webops-animate-spin {
-  animation: webops-spin 1s linear infinite;
+  animation: none;
 }
 
 @keyframes webops-spin {
@@ -550,7 +550,7 @@
 }
 
 .webops-animate-ping {
-  animation: webops-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: none;
 }
 
 @keyframes webops-ping {
@@ -561,27 +561,27 @@
 }
 
 .webops-transition-all {
-  transition-property: all !important;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transition-duration: 150ms !important;
+  transition-property: none !important;
+  transition-timing-function: linear !important;
+  transition-duration: 0s !important;
 }
 
 .webops-transition-colors {
-  transition-property: color, background-color, border-color !important;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transition-duration: 150ms !important;
+  transition-property: none !important;
+  transition-timing-function: linear !important;
+  transition-duration: 0s !important;
 }
 
 .webops-transition-opacity {
-  transition-property: opacity !important;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transition-duration: 150ms !important;
+  transition-property: none !important;
+  transition-timing-function: linear !important;
+  transition-duration: 0s !important;
 }
 
 .webops-transition-transform {
-  transition-property: transform !important;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transition-duration: 150ms !important;
+  transition-property: none !important;
+  transition-timing-function: linear !important;
+  transition-duration: 0s !important;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════════

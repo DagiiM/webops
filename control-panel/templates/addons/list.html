@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Addons{% endblock %}
 {% block content %}
+{% if not user.is_staff %}<p class="webops-text-muted">You can manage your own services and records. Shared host infrastructure is managed by operators.</p>{% endif %}
 <div class="webops-container">
     <div class="webops-addons-header">
         <h1 class="webops-page-title">Addons</h1>
@@ -163,13 +164,13 @@
     border: 1px solid var(--webops-color-border);
     border-radius: var(--webops-radius-2xl);
     overflow: hidden;
-    transition: all var(--webops-duration-normal) var(--webops-ease-out);
-    box-shadow: var(--webops-shadow-sm);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-addon-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--webops-shadow-lg);
+    transform: none;
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-30);
 }
 
@@ -386,12 +387,12 @@
     font-weight: var(--webops-font-weight-medium);
     border: none;
     cursor: pointer;
-    transition: all var(--webops-duration-fast) var(--webops-ease-out);
+    transition: none;
     text-decoration: none;
 }
 
 .webops-addon-action-button:hover {
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-addon-action-secondary {

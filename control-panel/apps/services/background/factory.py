@@ -57,7 +57,17 @@ def get_background_processor() -> BackgroundProcessor:
             # If Celery import fails, fallback
 
         if choice == "memory":
-            _processor_instance = InMemoryBackgroundProcessor()
+            from apps.deployments.tasks.application import deploy_application, delete_deployment, restart_deployment, stop_deployment
+            from apps.services.tasks import start_service_task, stop_service_task, restart_service_task
+            _processor_instance = InMemoryBackgroundProcessor(registry={
+                "services.start_service_task": start_service_task.run,
+                "services.stop_service_task": stop_service_task.run,
+                "services.restart_service_task": restart_service_task.run,
+                "apps.deployments.tasks.application.deploy_application": deploy_application.run,
+                "apps.deployments.tasks.application.delete_deployment": delete_deployment.run,
+                "apps.deployments.tasks.application.restart_deployment": restart_deployment.run,
+                "apps.deployments.tasks.application.stop_deployment": stop_deployment.run,
+            })
             return _processor_instance
 
         # Default fallback

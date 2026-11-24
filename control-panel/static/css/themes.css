@@ -133,7 +133,7 @@
 
 /* Theme transition animations */
 [data-theme] {
-    transition: all var(--webops-transition-base);
+    transition: none;
 }
 
 /* Scrollbar theming */

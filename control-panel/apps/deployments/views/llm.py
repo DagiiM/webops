@@ -111,7 +111,7 @@ def llm_list(request):
     """
     List all LLM deployments.
     """
-    llm_deployments = LLMDeployment.objects.all().order_by('-created_at')
+    llm_deployments = LLMDeployment.objects.filter(deployed_by=request.user, is_deleted=False).order_by('-created_at')
 
     # Calculate stats
     total = llm_deployments.count()
@@ -135,7 +135,7 @@ def llm_detail(request, pk):
     """
     LLM deployment detail view.
     """
-    deployment = get_object_or_404(LLMDeployment, pk=pk)
+    deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     logs = deployment.logs.all()[:100]  # Last 100 logs
 
@@ -168,7 +168,7 @@ def llm_test_endpoint(request, pk):
     import requests
     from django.http import JsonResponse
 
-    deployment = get_object_or_404(LLMDeployment, pk=pk)
+    deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     if deployment.status != 'running':
         return JsonResponse({
@@ -385,7 +385,7 @@ def llm_playground(request, pk):
     """
     Interactive playground for testing LLM models.
     """
-    deployment = get_object_or_404(LLMDeployment, pk=pk)
+    deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     context = {
         'deployment': deployment,
@@ -401,7 +401,7 @@ def llm_update_backend(request, pk):
     """
     Update the LLM backend for a pending or failed deployment.
     """
-    deployment = get_object_or_404(LLMDeployment, pk=pk)
+    deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     # Only allow backend changes for pending or failed deployments
     if deployment.status not in ['pending', 'failed']:
