@@ -279,3 +279,32 @@ class LLMDetailPublicPanelTests(TestCase):
         self.d.model_name = "meta/Unreviewed-70B"
         self.d.save()
         self.assertNotIn("/api/llm/v1/completions", self.get().content.decode())
+
+
+@override_settings(ALLOWED_HOSTS=["testserver", "my-pod-8000.proxy.example"], **SETTINGS)
+class LLMListEndpointTests(TestCase):
+    """The Endpoint column shows the public URL for the requesting host, never a bare localhost link."""
+    def setUp(self):
+        cache.clear()
+        self.me = get_user_model().objects.create_user(username="list-me", password="pw-list-12345")
+        self.client.force_login(self.me)
+        LLMDeployment.objects.create(name="reviewed", deployed_by=self.me, status="running", port=9371, model_name=MODEL)
+        LLMDeployment.objects.create(name="unreviewed", deployed_by=self.me, status="running", port=9372, model_name="meta/Unreviewed-70B")
+        LLMDeployment.objects.create(name="stopped", deployed_by=self.me, status="stopped", port=9373, model_name=MODEL)
+        runtime = MagicMock()
+        runtime.status.return_value = {"active": True, "enabled": True}
+        p = patch("apps.services.runtime.portable_runtime", return_value=runtime)
+        p.start()
+        self.addCleanup(p.stop)
+
+    def test_public_endpoint_follows_the_request_host(self):
+        html = self.client.get("/deployments/llm/", secure=True, HTTP_HOST="my-pod-8000.proxy.example").content.decode()
+        self.assertIn("https://my-pod-8000.proxy.example/api/llm/v1/completions", html)
+        self.assertNotIn("http://localhost:9371", html)
+        self.assertNotIn('href="http://localhost', html)
+
+    def test_unreviewed_models_show_an_honest_internal_address(self):
+        html = self.client.get("/deployments/llm/", secure=True, HTTP_HOST="my-pod-8000.proxy.example").content.decode()
+        self.assertEqual(html.count("/api/llm/v1/completions"), 1)       # only the reviewed, running model
+        self.assertIn("localhost:9372", html)
+        self.assertNotIn("localhost:9373", html)                          # stopped: no endpoint at all

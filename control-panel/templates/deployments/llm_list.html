@@ -77,10 +77,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if deployment.port and deployment.status == 'running' %}
-                            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-text-primary">
-                                :{{ deployment.port }}
-                            </a>
+                        {% if deployment.public_endpoint %}
+                            <a href="{% url 'deployments:llm_detail' deployment.pk %}" class="webops-text-primary" title="Public API: open this model for keys and examples"><code class="webops-text-sm">{{ deployment.public_endpoint }}</code></a>
+                        {% elif deployment.port and deployment.status == 'running' %}
+                            <span class="webops-text-muted" title="Reachable from the server itself only"><code class="webops-text-sm">localhost:{{ deployment.port }}</code></span>
                         {% else %}
                             <span class="webops-text-muted">—</span>
                         {% endif %}

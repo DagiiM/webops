@@ -145,6 +145,16 @@ def llm_list(request):
     building = llm_deployments.filter(status='building').count()
     failed = llm_deployments.filter(status='failed').count()
 
+    # Public endpoint for reviewed CPU models, built from the request so it is right for whatever host and
+    # scheme the panel is served on. Anything else is only reachable from the server itself.
+    from django.urls import reverse
+    from ..services.llm_preflight import SUPPORTED
+    portable = __import__('apps.services.runtime', fromlist=['portable_runtime']).portable_runtime() is not None
+    public_url = request.build_absolute_uri(reverse('llm_public_completions')) if portable else ''
+    llm_deployments = list(llm_deployments)
+    for d in llm_deployments:
+        d.public_endpoint = public_url if public_url and d.status == 'running' and d.port and d.model_name in SUPPORTED else ''
+
     context = {
         'llm_deployments': llm_deployments,
         'total': total,
