@@ -131,6 +131,19 @@ class PublicLLMAPITests(TestCase):
         self.assertEqual(self.post({"prompt": "Hi"}).status_code, 200)
 
     @patch("apps.api.llm_public.requests.post")
+    def test_model_id_is_accepted_when_unambiguous(self, post):
+        post.return_value = upstream()
+        response = self.post({"model": MODEL, "prompt": "Hi"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["model"], "smol-mine")  # the deployment name stays canonical
+        # A second ready deployment of the same model makes the model id ambiguous: refuse, do not guess.
+        LLMDeployment.objects.create(name="smol-mine-2", deployed_by=self.owner, status="running", port=9105, model_name=MODEL)
+        cache.clear()
+        self.assertEqual(self.post({"model": MODEL, "prompt": "Hi"}).status_code, 404)
+        cache.clear()
+        self.assertEqual(self.post({"model": "smol-mine-2", "prompt": "Hi"}).status_code, 200)
+
+    @patch("apps.api.llm_public.requests.post")
     def test_cannot_use_someone_elses_stopped_or_unreviewed_model(self, post):
         for name in ("smol-theirs", "smol-stopped", "big-unreviewed", "nope"):
             self.assertEqual(self.post({"model": name, "prompt": "Hi"}).status_code, 404, name)
@@ -220,3 +233,49 @@ class LLMKeyManagementTests(TestCase):
     def test_keys_list_is_per_user(self):
         make_key(self.other, name="not-mine")
         self.assertNotContains(self.client.get("/api/llm/keys/"), "not-mine")
+
+
+@override_settings(ALLOWED_HOSTS=["testserver", "panel.example.test", "my-pod-8000.proxy.example"], **SETTINGS)
+class LLMDetailPublicPanelTests(TestCase):
+    """The API endpoints panel is built from the request, never a hard-coded localhost."""
+    def setUp(self):
+        cache.clear()
+        U = get_user_model()
+        self.me = U.objects.create_user(username="panel-me", password="pw-panel-12345")
+        self.client.force_login(self.me)
+        self.d = LLMDeployment.objects.create(name="panel-model", deployed_by=self.me, status="running", port=9371, model_name=MODEL)
+        runtime = MagicMock()
+        runtime.status.return_value = {"active": True, "enabled": True}
+        for target in ("apps.services.runtime.portable_runtime",):
+            p = patch(target, return_value=runtime)
+            p.start()
+            self.addCleanup(p.stop)
+
+    def get(self, host="panel.example.test"):
+        return self.client.get(f"/deployments/llm/{self.d.pk}/", secure=True, HTTP_HOST=host)
+
+    def test_shows_public_urls_for_the_requesting_host(self):
+        html = self.get("my-pod-8000.proxy.example").content.decode()
+        self.assertIn("https://my-pod-8000.proxy.example/api/llm/v1/completions", html)
+        self.assertIn("https://my-pod-8000.proxy.example/api/llm/v1/models", html)
+        self.assertIn('"model": "panel-model"', html)
+        self.assertNotIn("http://localhost:9371/v1/completions", html)
+        self.assertIn("Create an API key", html)
+        self.assertIn("not reachable from outside", html)
+
+    def test_reflects_active_key_count(self):
+        make_key(self.me, name="a")
+        make_key(self.me, name="b")
+        make_key(self.me, name="gone", revoked_at=timezone.now())
+        html = self.get().content.decode()
+        self.assertIn("You have 2 active keys", html)
+        self.assertIn("Manage API keys", html)
+
+    def test_not_shown_when_stopped_or_unreviewed(self):
+        self.d.status = "stopped"
+        self.d.save()
+        self.assertNotIn("/api/llm/v1/completions", self.get().content.decode())
+        self.d.status = "running"
+        self.d.model_name = "meta/Unreviewed-70B"
+        self.d.save()
+        self.assertNotIn("/api/llm/v1/completions", self.get().content.decode())

@@ -175,11 +175,31 @@ def llm_detail(request, pk):
     if deployment.status == 'running' and deployment.port:
         api_endpoint = f"http://localhost:{deployment.port}/v1"
 
+    # Public gateway details for reviewed CPU models, built from the request so they are correct for
+    # whatever host and scheme the panel is served on (never a hard-coded localhost).
+    portable = __import__('apps.services.runtime', fromlist=['portable_runtime']).portable_runtime() is not None
+    public_api = None
+    if portable and deployment.status == 'running' and deployment.port:
+        from django.urls import reverse
+        from django.utils import timezone
+        from apps.api.models import LLMAccessKey
+        from ..services.llm_preflight import SUPPORTED
+        if deployment.model_name in SUPPORTED:
+            public_api = {
+                'completions_url': request.build_absolute_uri(reverse('llm_public_completions')),
+                'models_url': request.build_absolute_uri(reverse('llm_public_models')),
+                'model_id': deployment.name,
+                'keys_url': reverse('llm_keys'),
+                'active_keys': LLMAccessKey.objects.filter(
+                    user=request.user, revoked_at__isnull=True, expires_at__gt=timezone.now()).count(),
+            }
+
     context = {
+        'public_api': public_api,
         'deployment': deployment,
         'logs': logs, 'latest_error':deployment.logs.filter(level='error').order_by('-created_at').first() if deployment.status=='failed' else None,
         'service_status': service_status,
-        'api_endpoint': api_endpoint, 'portable': __import__('apps.services.runtime',fromlist=['portable_runtime']).portable_runtime() is not None,
+        'api_endpoint': api_endpoint, 'portable': portable,
     }
 
     return render(request, 'deployments/llm_detail.html', context)

@@ -220,7 +220,32 @@
 </div>
 
 <!-- API Endpoint Info -->
-{% if deployment.status == 'running' and deployment.port %}
+<!-- API Endpoint Info -->
+{% if public_api %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="api-h">
+    <div class="ui-panel__head">
+        <h3 class="ui-panel__title" id="api-h">API endpoints</h3>
+        <a class="webops-btn webops-btn-sm" href="{{ public_api.keys_url }}">{% if public_api.active_keys %}Manage API keys{% else %}Create an API key{% endif %}</a>
+    </div>
+    <div class="webops-card-body">
+        <div class="webops-info-item"><span class="webops-info-label">Completions</span><span class="webops-info-value"><code>POST {{ public_api.completions_url }}</code></span></div>
+        <div class="webops-info-item"><span class="webops-info-label">List models</span><span class="webops-info-value"><code>GET {{ public_api.models_url }}</code></span></div>
+        <div class="webops-info-item"><span class="webops-info-label">Model id</span><span class="webops-info-value"><code>{{ public_api.model_id }}</code></span></div>
+        <div class="webops-info-item"><span class="webops-info-label">Authentication</span><span class="webops-info-value">{% if public_api.active_keys %}Bearer key. You have {{ public_api.active_keys }} active key{{ public_api.active_keys|pluralize }}.{% else %}Bearer key. You have no active key yet.{% endif %}</span></div>
+        <div class="webops-info-item"><span class="webops-info-label">Limits</span><span class="webops-info-value">Prompts up to 4096 characters, up to 128 tokens, one request at a time. Text completions only: no chat or streaming.</span></div>
+        <div class="webops-info-item"><span class="webops-info-label">Internal address</span><span class="webops-info-value webops-text-muted"><code>localhost:{{ deployment.port }}</code> (inside the server only; not reachable from outside)</span></div>
+        <p class="webops-help-text">Example</p>
+        <pre class="webops-code-block">curl {{ public_api.completions_url }} \
+  -H "Authorization: Bearer $WEBOPS_LLM_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "{{ public_api.model_id }}",
+    "prompt": "Once upon a time",
+    "max_tokens": 50
+  }'</pre>
+    </div>
+</section>
+{% elif deployment.status == 'running' and deployment.port %}
 <div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
         <div class="webops-s-66fb080">

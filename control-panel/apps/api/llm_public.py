@@ -143,6 +143,11 @@ def completions_view(request):
     models = _ready_models(key.user)
     name = body.get("model") or (next(iter(models)) if len(models) == 1 else "")
     deployment = models.get(name)
+    if deployment is None and name:
+        # Also accept the model id (e.g. HuggingFaceTB/SmolLM2-135M-Instruct) when exactly one ready
+        # deployment uses it; the deployment name stays the canonical id.
+        same_model = [d for d in models.values() if d.llmdeployment.model_name == name]
+        deployment = same_model[0] if len(same_model) == 1 else None
     if deployment is None:
         return _error("Unknown or not-ready model. GET /api/llm/v1/models lists the models you can use.", 404, "not_found_error")
 
@@ -163,6 +168,7 @@ def completions_view(request):
             raise ValueError
     except (ValueError, KeyError, IndexError, TypeError):
         return _error("Model did not return a valid response.", 502, "server_error")
+    name = deployment.name
     logger.info("LLM public API completion key_id=%s model=%s", key.pk, name)
     return JsonResponse({"id": "cmpl-" + uuid.uuid4().hex[:24], "object": "text_completion",
                          "created": int(time.time()), "model": name,
