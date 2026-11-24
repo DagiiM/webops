@@ -40,6 +40,9 @@
                         <span class="webops-nav-item__icon material-icons" aria-hidden="true">delete</span>
                         <span class="webops-nav-item__text">Recycle Bin</span>
                     </a>
+                    <a href="{% url 'mcp_access' %}" class="webops-nav-item {% if '/mcp/access/' in request.path %}active{% endif %}" role="menuitem">
+                        <span class="material-icons">smart_toy</span><span>AI Assistant (MCP)</span>
+                    </a>
                     <a href="{% url 'token_list' %}" class="webops-nav-item {% if 'token' in request.path %}active{% endif %}" role="menuitem" aria-current="{% if 'token' in request.path %}page{% endif %}">
                         <span class="webops-nav-item__icon material-icons" aria-hidden="true">vpn_key</span>
                         <span class="webops-nav-item__text">API Tokens</span>

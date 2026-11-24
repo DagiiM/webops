@@ -49,3 +49,18 @@ class APIToken(BaseModel):
         verbose_name = 'API Token'
         verbose_name_plural = 'API Tokens'
         ordering = ['-created_at']
+
+
+class MCPAccessToken(models.Model):
+    """Dedicated, hashed assistant credential; never accepted by the general REST API."""
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="mcp_tokens")
+    name = models.CharField(max_length=100)
+    digest = models.CharField(max_length=64,unique=True,editable=False)
+    can_control = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    last_used = models.DateTimeField(null=True,blank=True)
+    revoked_at = models.DateTimeField(null=True,blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]

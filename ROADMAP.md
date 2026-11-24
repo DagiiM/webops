@@ -2,13 +2,13 @@
 
 **Vision:** A self-hosted VPS hosting platform that transforms any fresh server into a production-ready deployment environment with security-first design, minimal dependencies, and automated infrastructure management.
 
-## Current Status: v1.0 Production Ready
+## Current status: production-readiness validation
 
-WebOps has reached production stability with all core features implemented and comprehensive documentation.
+The existing feature set is not yet production-certified. See [evidence-based release gates](docs/production-readiness.md) for required verification and known limitations.
 
 ## Version History
 
-### v1.0 - Production Release (Current)
+### v1.0 - Existing feature baseline (not production certification)
 - **Core Platform**: Django 5.0+ control panel with PostgreSQL database
 - **Frontend**: Pure HTML5/CSS3/JavaScript (zero npm dependencies)
 - **Deployment Engine**: Celery + Redis background task processing

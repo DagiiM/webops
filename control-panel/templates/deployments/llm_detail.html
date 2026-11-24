@@ -12,7 +12,7 @@
     </div>
     <div class="webops-s-f2cdaea">
         {% if deployment.status == 'running' %}
-            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-primary">
+            <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-primary">
                 <span class="material-icons">api</span>
                 API Docs
             </a>
@@ -63,6 +63,7 @@
 </div>
 
 <!-- Status Banner -->
+{% if latest_error %}<div role="alert" class="webops-card webops-mb-md"><strong>Latest deployment error</strong><p>{{ latest_error.message }}</p></div>{% endif %}
 <div class="webops-card webops-mb-3 {% if deployment.status == 'running' %}webops-bg-tint-success{% elif deployment.status == 'failed' %}webops-bg-tint-error{% elif deployment.status == 'stopped' %}webops-bg-tint-muted{% else %}webops-bg-tint-warning{% endif %}">
     <div class="webops-s-9a905a5">
         <span class="material-icons webops-icon-lg {% if deployment.status == 'running' %}webops-fg-success{% elif deployment.status == 'failed' %}webops-fg-error{% elif deployment.status == 'stopped' %}webops-fg-muted{% else %}webops-fg-warning{% endif %}">
@@ -72,7 +73,7 @@
             <h3 class="webops-h3 webops-s-2a0ca83">Status: {{ deployment.get_status_display }}</h3>
             {% if deployment.status == 'running' %}
                 <p class="webops-text-secondary webops-s-6cca3b9">
-                    Model is running and serving requests at <code>http://localhost:{{ deployment.port }}</code>
+                    Model is running on the host. Use the authenticated test panel below; its local port is not public.
                 </p>
             {% elif deployment.status == 'pending' %}
                 <p class="webops-text-secondary webops-s-6cca3b9">
@@ -84,7 +85,7 @@
                 </p>
             {% elif deployment.status == 'failed' %}
                 <p class="webops-text-secondary webops-s-6cca3b9">
-                    Deployment failed. Check logs below for details.
+                    Deployment failed or was blocked before download. Read the latest error below; correct the indicated cause before retrying.
                 </p>
             {% endif %}
         </div>
@@ -92,7 +93,7 @@
 </div>
 
 <!-- Backend Selection -->
-{% if deployment.status == 'pending' or deployment.status == 'failed' %}
+{% if not portable and deployment.status == 'pending' or not portable and deployment.status == 'failed' %}
 <div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
         <h3 class="webops-h3">Deployment Backend</h3>
@@ -235,7 +236,7 @@
                     http://localhost:{{ deployment.port }}/v1/completions
                 </code>
                 <code class="webops-text-sm webops-s-adb4316">
-                    http://localhost:{{ deployment.port }}/v1/chat/completions
+                    {% if portable %}Chat completions are not supported in this CPU preview.{% else %}http://localhost:{{ deployment.port }}/v1/chat/completions{% endif %}
                 </code>
             </div>
 
@@ -248,7 +249,7 @@
 
             <div>
                 <label class="webops-label">Interactive API Documentation</label>
-                <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary webops-s-592c9bd">
+                <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary webops-s-592c9bd">
                     <span class="material-icons">open_in_new</span>
                     Open Swagger UI
                 </a>
@@ -286,13 +287,13 @@
     <div class="webops-s-ee81060">
         <div class="webops-form-group">
             <label for="test-prompt" class="webops-label">Test Prompt</label>
-            <textarea id="test-prompt" class="webops-input" rows="3" placeholder="Enter a prompt to test the model...">Once upon a time</textarea>
+            <textarea id="test-prompt" class="webops-input" rows="3" maxlength="4096" placeholder="Enter a prompt to test the model...">Once upon a time</textarea>
         </div>
 
         <div class="webops-form-row">
             <div class="webops-form-group">
                 <label for="max-tokens" class="webops-label">Max Tokens</label>
-                <input type="number" id="max-tokens" class="webops-input" value="50" min="1" max="2048">
+                <input type="number" id="max-tokens" class="webops-input" value="50" min="1" max="128">
             </div>
             <div class="webops-form-group">
                 <label for="temperature" class="webops-label">Temperature</label>
@@ -347,7 +348,7 @@
     </div>
 </div>
 
-<div id="page-config" hidden data-deployment-id="{{ deployment.pk }}" data-port="{{ deployment.port }}" data-model-name="{{ deployment.model_name }}"></div>
+<div id="page-config" hidden data-deployment-id="{{ deployment.pk }}" data-port="{{ deployment.port }}" data-model-name="{{ deployment.model_name }}" data-url-test="{% url 'deployments:llm_test' deployment.pk %}"></div>
 <script src="{% static 'js/pages/deployments-llm_detail.js' %}"></script>
 
 <link rel="stylesheet" href="{% static 'css/pages/deployments-llm_detail.css' %}">

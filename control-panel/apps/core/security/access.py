@@ -9,6 +9,11 @@ def requires_review(user):
         getattr(settings, "WEBOPS_RUNTIME", os.getenv("WEBOPS_RUNTIME", "systemd")) == "supervisor")
 
 def queue_deployment(deployment):
+    from apps.services.runtime.policy import application_allowed, executable_block_reason, restricted, sandbox_ready
+    if not application_allowed(deployment):
+        raise ValueError(executable_block_reason())
+    if restricted() and not sandbox_ready():
+        raise ValueError("Restricted workload sandbox unavailable; contact an operator.")
     from apps.deployments.shared import ServiceManager
     from apps.services.background import get_background_processor
     ServiceManager().ensure_celery_running()
@@ -46,6 +51,9 @@ def deny_for_user(request, user, match=None):
     if name in HOST_NAMES or match.namespace == "compliance" or (match.namespace == "addons" and name not in ("addons_list","addon_detail")):
         return HttpResponseForbidden("This action manages shared host infrastructure. Operator access is required.")
     if requires_review(user):
+        from apps.services.runtime import portable_runtime
+        if portable_runtime() and name in ("llm_create","llm_detect","llm_test","llm_playground"):
+            return None  # Reviewed CPU models only; views enforce preflight and ownership.
         # Code and environment edits can turn a previously reviewed process into arbitrary code.
         if name in REVIEW_NAMES and (request.method not in ("GET","HEAD") or name in ("llm_playground","llm_test","workflow_execute","retry_execution","webhook_trigger","check_dependencies","database_check_dependencies")):
             return HttpResponseForbidden("This operation requires a trusted operator or isolated execution worker.")

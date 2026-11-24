@@ -73,8 +73,8 @@ class CeleryBackgroundProcessor(BackgroundProcessor):
 
     def backend_info(self) -> Dict[str, Any]:
         return {
-            "broker_url": getattr(self._app_ref.app.conf, "broker_url", None),
-            "result_backend": getattr(self._app_ref.app.conf, "result_backend", None),
+            "broker_configured": bool(getattr(self._app_ref.app.conf, "broker_url", None)),
+            "result_backend_configured": bool(getattr(self._app_ref.app.conf, "result_backend", None)),
             "timezone": getattr(self._app_ref.app.conf, "timezone", None),
         }
 
@@ -106,10 +106,10 @@ class CeleryBackgroundProcessor(BackgroundProcessor):
                     with Connection(broker_url) as conn:
                         # Get queue sizes (this is approximate)
                         queue_info["broker_connected"] = True
-                        queue_info["broker_url"] = broker_url
+                        queue_info["broker_configured"] = True
                 except Exception as e:
                     queue_info["broker_connected"] = False
-                    queue_info["broker_error"] = str(e)
+                    queue_info["broker_error"] = "Connection failed"
             
             return {
                 "processor": "celery",

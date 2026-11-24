@@ -1,0 +1,6 @@
+/* Moved from templates/deployments/llm_create.html (ui-skill rule 17: no inline <script>). */
+(()=>{const form=document.getElementById('cpuLlmForm'),input=document.getElementById('cpuModel'),out=document.getElementById('compatibility'),btn=document.getElementById('checkModel'),deploy=document.getElementById('cpuDeploy');
+input.addEventListener('input',()=>{out.textContent='';deploy.disabled=false;});
+btn.addEventListener('click',async()=>{if(!input.reportValidity())return;btn.disabled=true;deploy.disabled=true;out.textContent='Checking model metadata and available resources…';const model=input.value;
+try{const body=new URLSearchParams({model_name:model,csrfmiddlewaretoken:form.querySelector('[name=csrfmiddlewaretoken]').value});const r=await fetch(form.dataset.urlDetect,{method:'POST',body});const d=await r.json();if(input.value!==model)return;const details=d.estimated_ram_gb!=null?' Estimated RAM '+d.estimated_ram_gb+' GB; weights '+d.weights_gb+' GB. ':'';out.textContent=(d.success?'Compatible. ':'Not compatible. ')+details+(d.errors||[]).join(' ')+' '+(d.warnings||[]).join(' ');deploy.disabled=!d.success;}catch(e){out.textContent='Compatibility could not be verified. Try again.';deploy.disabled=true;}finally{btn.disabled=false;}});
+})();

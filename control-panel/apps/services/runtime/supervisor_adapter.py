@@ -51,6 +51,9 @@ class SupervisorRuntime:
 
     def install_application(self, deployment, service):
         """Register a prepared repo; never report an unstarted app as running."""
+        from .policy import restricted, application_allowed, executable_block_reason
+        if not application_allowed(deployment):
+            return False, executable_block_reason()
         if not self.ready():
             return False, "Supervisor unavailable"
         try:
@@ -118,6 +121,23 @@ class SupervisorRuntime:
                     raise ValueError("Shell pipelines are unsupported in Supervisor mode")
                 if (venv / argv[0]).is_file():
                     argv[0] = str(venv / argv[0])
+            profile = None
+            if restricted():
+                server = Path(__file__).with_name("static_server.py").resolve()
+                argv = [sys.executable, str(server)]
+                profile = {"kind":"static","read":[str(public),str(server)],"write":[],
+                           "executable":sys.executable,"port":port}
+            return self.install_process(deployment,base,cwd,argv,env,profile=profile)
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            return False, str(exc)
+
+    def install_process(self,deployment,base,cwd,argv,env,profile=None):
+        try:
+            from .policy import restricted, sandbox_ready
+            if restricted() and (not profile or not sandbox_ready()):
+                return False, "Restricted workload profile or kernel support unavailable"
+            name=self._name(deployment)
+            if not self.ready():return False,"Supervisor unavailable"
             self.root.joinpath("programs").mkdir(parents=True, exist_ok=True, mode=0o700)
             logs = base / "runtime-logs"
             logs.mkdir(exist_ok=True, mode=0o700)
@@ -127,7 +147,7 @@ class SupervisorRuntime:
             for path in (spec, config, launcher, logs, Path(sys.executable)):
                 if not re.fullmatch(r"/[A-Za-z0-9_./-]+", str(path)):
                     raise ValueError("Unsupported runtime path")
-            self._write(spec, json.dumps({"cwd": str(cwd), "argv": argv, "env": env}))
+            self._write(spec, json.dumps({"cwd": str(cwd), "argv": argv, "env": env, "sandbox":profile}))
             self._write(config, f"""[program:{name}]
 command={sys.executable} {launcher} {spec}
 autostart=false
@@ -169,6 +189,16 @@ stderr_logfile_backups=2
         try:
             if action not in ("start", "stop", "restart"):
                 return False, "Unsupported operation"
+            from .policy import restricted, sandbox_ready
+            if restricted() and action in ("start","restart"):
+                if not sandbox_ready():
+                    return False, "Restricted workload sandbox unavailable"
+                try:
+                    profile=json.loads(self._spec_path(deployment).read_text()).get("sandbox")
+                except (OSError,ValueError):
+                    profile=None
+                if not profile or profile.get("kind") not in ("static","cpu_llm"):
+                    return False, "Legacy process is not confined; redeploy on a supported worker"
             before = self.status(deployment)
             if action == "start" and before["active"]:
                 return True, "Already running"
@@ -186,7 +216,7 @@ stderr_logfile_backups=2
                 return False, msg
             if action == "stop":
                 return (not self.status(deployment)["active"]), msg
-            deadline = time.monotonic() + 15
+            deadline = time.monotonic() + (120 if getattr(deployment,"project_type",None) == "llm" or hasattr(deployment,"llmdeployment") else 15)
             while time.monotonic() < deadline:
                 if self.status(deployment)["active"]:
                     try:

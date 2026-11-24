@@ -16,10 +16,11 @@ async function testModel() {
     result.style.display = 'block';
 
     try {
-        const response = await fetch('http://localhost:' + webopsPage().port + '/v1/completions', {
+        const response = await fetch(webopsPage().urlTest, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
             },
             body: JSON.stringify({
                 model: webopsPage().modelName,
@@ -34,7 +35,7 @@ async function testModel() {
         if (data.choices && data.choices.length > 0) {
             output.textContent = data.choices[0].text;
         } else {
-            output.textContent = 'No response generated';
+            output.textContent = data.error || 'No response generated';
         }
     } catch (error) {
         output.textContent = 'Error: ' + error.message;
@@ -136,7 +137,6 @@ function initLiveLogs() {
 
         // Build WebSocket URL with token as query parameter
         const wsUrlWithToken = `${wsProto}://${wsHost}/ws/deployments/${deploymentId}/?token=${wsToken}`;
-        console.log('Attempting WebSocket connection to:', wsUrlWithToken);
 
         // Create WebSocket connection with token
         ws = new WebSocket(wsUrlWithToken);

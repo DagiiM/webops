@@ -13,6 +13,7 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from apps.core.security.access import requires_review, queue_deployment
+from apps.services.runtime.policy import restricted, executable_block_reason
 from django.views.decorators.http import require_POST
 from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
 
@@ -26,7 +27,7 @@ def deployment_list(request):
     # Only show deployments created by the current user
     deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     return render(request, 'deployments/list.html', {
-        'deployments': deployments, 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
+        'deployments': deployments, 'restricted_workloads': restricted(), 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
     })
 
 
@@ -122,7 +123,7 @@ def deployment_create(request):
                 branch=branch or 'main',
                 domain=domain,
                 deployed_by=request.user,
-                status=BaseDeployment.Status.REQUESTED if requires_review(request.user) and not static_only else BaseDeployment.Status.PENDING,
+                status=BaseDeployment.Status.REQUESTED if (requires_review(request.user) or restricted()) and not static_only else BaseDeployment.Status.PENDING,
                 static_only=static_only,
                 use_docker=use_docker,
                 auto_generate_dockerfile=auto_generate_dockerfile,
@@ -131,7 +132,7 @@ def deployment_create(request):
             )
 
             if deployment.status == BaseDeployment.Status.REQUESTED:
-                messages.success(request, "Deployment request submitted for operator approval.")
+                messages.success(request, executable_block_reason() + " Request saved." if restricted() else "Deployment request submitted for operator approval.")
                 return redirect('deployments:deployment_detail', pk=deployment.id)
             queue_deployment(deployment)
 
@@ -164,7 +165,7 @@ def deployment_create(request):
     return render(request, 'deployments/create.html', {
         'github_connected': github_connected,
         'github_repos': github_repos,
-        'core_status': core_status, 'approval_required': requires_review(request.user),
+        'core_status': core_status, 'approval_required': requires_review(request.user) or restricted(), 'restricted_workloads': restricted(),
     })
 
 
@@ -412,27 +413,13 @@ def deployment_start(request, pk):
     try:
         llm_deployment = LLMDeployment.objects.get(pk=pk)
         is_llm_deployment = True
-        if llm_deployment.status == 'pending':
-            # Trigger initial LLM deployment
-            from ..tasks.llm import deploy_llm_model
-            try:
-                deploy_llm_model.delay(llm_deployment.id)
-            except Exception:
-                logger.exception(
-                    "Failed to enqueue LLM deployment task for deployment_id=%s",
-                    llm_deployment.id
-                )
-                messages.error(
-                    request,
-                    (
-                        "Failed to queue LLM deployment task. "
-                        "Check Redis/Celery configuration and connectivity."
-                    ),
-                )
-                return redirect('deployments:llm_detail', pk=pk)
-
-            messages.success(request, f'LLM deployment started! Check deployment logs for progress.')
-            return redirect('deployments:llm_detail', pk=pk)
+        if llm_deployment.status in ("pending","failed"):
+            from ..services.llm_cpu import queue_llm
+            ok,message=queue_llm(llm_deployment)
+            (messages.success if ok else messages.error)(request,message)
+            return redirect("deployments:llm_detail",pk=pk)
+        if llm_deployment.status == "building":
+            return HttpResponseForbidden("Model deployment already in progress.")
     except LLMDeployment.DoesNotExist:
         pass  # Not an LLM deployment, continue with regular start
 
@@ -541,17 +528,31 @@ def deployment_delete(request, pk):
         elif hasattr(deployment, 'llmdeployment'):
             # LLM deployment - delete directly (no complex services)
             try:
-                # Remove deployment files
-                from ..services import LLMDeploymentService
-                llm_service = LLMDeploymentService()
-                deployment_path = llm_service.get_deployment_path(deployment)
-
-                if deployment_path.exists():
-                    import shutil
-                    shutil.rmtree(deployment_path)
-
-                # Delete from database
-                deployment.delete()
+                from apps.services.runtime import portable_runtime
+                from ..services.llm_cpu import slot_lock
+                from ..services.llm import LLMDeploymentService
+                from ..services.llm_transformers import TransformersLLMService
+                import shutil
+                with slot_lock():
+                    deployment.refresh_from_db()
+                    if deployment.status == "building":
+                        return HttpResponseForbidden("Model is still deploying.")
+                    runtime = portable_runtime()
+                    if runtime:
+                        ok, msg = runtime.remove(deployment)
+                        if not ok: raise RuntimeError(msg)
+                    else:
+                        from ..shared import ServiceManager
+                        manager=ServiceManager()
+                        ok,msg=manager.remove_service(deployment)
+                        if not ok: raise RuntimeError(msg)
+                    llm = deployment.llmdeployment
+                    svc=TransformersLLMService() if llm.backend=="transformers" else LLMDeploymentService()
+                    path=svc.get_deployment_path(llm)
+                    if path.exists():shutil.rmtree(path)
+                    deployment.status="stopped"
+                    deployment.save(update_fields=["status"])
+                    deployment.delete(user=request.user)
 
                 messages.success(
                     request,
@@ -1053,6 +1054,8 @@ def deployment_approve(request, pk):
     if not request.user.is_staff:
         return HttpResponseForbidden("Operator approval required.")
     deployment = get_object_or_404(ApplicationDeployment, pk=pk, is_deleted=False, status="requested")
+    if restricted() and not deployment.static_only:
+        return HttpResponseForbidden(executable_block_reason())
     if not BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(status="building"):
         return HttpResponseForbidden("Request already processed.")
     try:

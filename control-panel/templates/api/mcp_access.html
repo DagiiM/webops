@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}AI Assistant Access - WebOps{% endblock %}
+{% block header_title %}AI Assistant Access{% endblock %}
+{% block content %}
+<div class="webops-card"><div class="webops-card-body">
+<h2>Connect an AI assistant using MCP</h2>
+<p>Streamable HTTP endpoint: <code>{{ endpoint }}</code></p>
+<p>Use a client that supports remote MCP and a custom Authorization header. Read-only access is the default. Control access allows deployment requests, reviewed CPU model deployments, inference and owner process controls; it never grants server administration. Tokens expire after 30 days and are shown only once.</p>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if issued %}<div role="status"><strong>Copy your new token now; it cannot be displayed again.</strong><p><input class="webops-input" type="text" readonly value="{{ issued }}" aria-label="New MCP token" autocomplete="off"></p><p>Set the header <code>Authorization: Bearer YOUR_TOKEN</code> in your client's secret settings. Never paste it into a public repository or conversation.</p></div>{% endif %}
+<form method="post">{% csrf_token %}
+<div class="webops-form-group"><label for="mcp-name">Assistant name</label><input id="mcp-name" name="name" class="webops-input" maxlength="100" required placeholder="My AI assistant"></div>
+<p><label><input type="checkbox" name="can_control"> Allow deployment and inference controls (optional)</label></p>
+<button class="webops-btn webops-btn-primary" type="submit">Create MCP token</button>
+</form></div></div>
+<div class="webops-card webops-mt-md"><div class="webops-card-body"><h3>Your assistant tokens</h3>
+{% for token in tokens %}<div class="webops-flex webops-gap-sm webops-mb-md webops-s-eed9692" ><strong>{{ token.name }}</strong> · {% if token.can_control %}Control{% else %}Read-only{% endif %} · Expires {{ token.expires_at|date:"Y-m-d" }} · {% if token.revoked_at %}Revoked{% else %}<form method="post" action="{% url 'mcp_revoke' token.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-secondary" type="submit">Revoke</button></form>{% endif %}</div>{% empty %}<p>No assistant tokens created.</p>{% endfor %}
+</div></div>
+{% endblock %}

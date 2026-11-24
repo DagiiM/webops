@@ -25,6 +25,28 @@ def llm_create(request):
     hf_service = HuggingFaceIntegrationService()
     hf_connection = hf_service.get_connection(request.user)
 
+    from apps.services.runtime import portable_runtime
+    from ..services.llm_preflight import hardware, SUPPORTED, check_model
+    from ..services.llm_cpu import queue_llm
+    portable = portable_runtime() is not None
+    if portable and request.method == "POST":
+        name=request.POST.get("name","").strip()
+        model=request.POST.get("model_name","").strip()
+        check=check_model(model,"transformers","auto","")
+        context={"portable":True,"hardware":hardware(),"supported_models":SUPPORTED,"preflight":check,"form_name":name,"form_model":model}
+        if not check["success"]:
+            return render(request,"deployments/llm_create.html",context,status=400)
+        try:
+            name=sanitize_deployment_name(name)
+            if not name or BaseDeployment.objects.filter(name=name).exists():
+                raise ValueError("Choose a unique deployment name.")
+            d=LLMDeployment.objects.create(name=name,model_name=model,deployed_by=request.user,backend="transformers",dtype="auto")
+        except (ValueError,TypeError) as exc:
+            context["form_error"]=str(exc)
+            return render(request,"deployments/llm_create.html",context,status=400)
+        ok,message=queue_llm(d)
+        (messages.success if ok else messages.error)(request,message)
+        return redirect("deployments:llm_detail",pk=d.pk)
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         model_name = request.POST.get('model_name', '').strip()
@@ -84,7 +106,10 @@ def llm_create(request):
             ServiceManager().ensure_celery_running()
 
             # Queue LLM deployment task
-            deploy_llm_model.delay(deployment.id)
+            ok,message=queue_llm(deployment)
+            if not ok:
+                messages.error(request,message)
+                return redirect("deployments:llm_detail",pk=deployment.pk)
 
             messages.success(
                 request,
@@ -99,6 +124,7 @@ def llm_create(request):
 
     # GET request - show form
     context = {
+        'portable': portable, 'hardware':hardware() if portable else None,'supported_models':SUPPORTED,
         'has_hf_connection': hf_connection is not None,
         'hf_username': hf_connection.username if hf_connection else None,
     }
@@ -151,9 +177,9 @@ def llm_detail(request, pk):
 
     context = {
         'deployment': deployment,
-        'logs': logs,
+        'logs': logs, 'latest_error':deployment.logs.filter(level='error').order_by('-created_at').first() if deployment.status=='failed' else None,
         'service_status': service_status,
-        'api_endpoint': api_endpoint,
+        'api_endpoint': api_endpoint, 'portable': __import__('apps.services.runtime',fromlist=['portable_runtime']).portable_runtime() is not None,
     }
 
     return render(request, 'deployments/llm_detail.html', context)
@@ -176,53 +202,25 @@ def llm_test_endpoint(request, pk):
             'error': 'Deployment is not running'
         }, status=400)
 
+    import json
     try:
-        # Send test request to vLLM
-        test_prompt = "Hello, how are you?"
-        api_url = f"http://localhost:{deployment.port}/v1/completions"
-
-        response = requests.post(
-            api_url,
-            json={
-                "model": deployment.model_name,
-                "prompt": test_prompt,
-                "max_tokens": 50,
-                "temperature": 0.7
-            },
-            timeout=30
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            generated_text = result['choices'][0]['text']
-
-            return JsonResponse({
-                'success': True,
-                'prompt': test_prompt,
-                'response': generated_text,
-                'model': deployment.model_name
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': f'API returned status {response.status_code}: {response.text}'
-            }, status=response.status_code)
-
-    except requests.exceptions.Timeout:
-        return JsonResponse({
-            'success': False,
-            'error': 'Request timeout - model may be loading or overloaded'
-        }, status=504)
-    except requests.exceptions.ConnectionError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Cannot connect to model server - check if service is running'
-        }, status=503)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        data=json.loads(request.body or b"{}")
+        prompt=data.get("prompt","Hello, how are you?")
+        tokens=int(data.get("max_tokens",32))
+        temp=float(data.get("temperature",0.7))
+        if not isinstance(prompt,str) or not 1 <= len(prompt) <= 4096 or not 1 <= tokens <= 128 or not 0 <= temp <= 2:
+            raise ValueError()
+    except (ValueError,TypeError,AttributeError):
+        return JsonResponse({"success":False,"error":"Prompt must be 1–4096 characters; max tokens 1–128; temperature 0–2."},status=400)
+    try:
+        response=requests.post(f"http://127.0.0.1:{int(deployment.port)}/v1/completions",json={"model":deployment.model_name,"prompt":prompt,"max_tokens":tokens,"temperature":temp},timeout=60,allow_redirects=False)
+        if response.status_code != 200:
+            return JsonResponse({"success":False,"error":"Model busy or inference unavailable. Check status and retry."},status=response.status_code if response.status_code in (429,503) else 502)
+        result=response.json()
+        text=result["choices"][0]["text"]
+        return JsonResponse({"success":True,"response":text,"choices":[{"text":text}],"model":deployment.model_name})
+    except (requests.RequestException,ValueError,KeyError,IndexError,TypeError):
+        return JsonResponse({"success":False,"error":"Model did not return a valid response. Check its runtime status and retry."},status=503)
 
 
 @login_required
@@ -240,6 +238,10 @@ def llm_detect_model(request):
             'error': 'Model name is required'
         }, status=400)
 
+    from apps.services.runtime import portable_runtime
+    if portable_runtime():
+        from ..services.llm_preflight import check_model
+        return JsonResponse(check_model(model_name))
     try:
         from ..shared.llm_detection import detect_model
 
@@ -387,6 +389,10 @@ def llm_playground(request, pk):
     """
     deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
+    from apps.services.runtime import portable_runtime
+    if portable_runtime():
+        return redirect("deployments:llm_detail",pk=pk)
+
     context = {
         'deployment': deployment,
         'api_endpoint': f"http://localhost:{deployment.port}/v1" if deployment.port else None,
@@ -403,6 +409,10 @@ def llm_update_backend(request, pk):
     """
     deployment = get_object_or_404(LLMDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
+    from apps.services.runtime import portable_runtime
+    if portable_runtime():
+        messages.error(request,"Only the reviewed CPU Transformers backend is supported on this host.")
+        return redirect("deployments:llm_detail",pk=pk)
     # Only allow backend changes for pending or failed deployments
     if deployment.status not in ['pending', 'failed']:
         messages.error(request, 'Cannot change backend for a running or building deployment.')
