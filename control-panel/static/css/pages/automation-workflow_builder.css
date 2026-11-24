@@ -676,7 +676,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
     box-shadow: none;
     transition: none;
 }
@@ -1092,7 +1092,7 @@
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-2);
     cursor: pointer;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
     transition: none;
 }
 

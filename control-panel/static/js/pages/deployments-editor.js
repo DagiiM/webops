@@ -157,7 +157,7 @@ class WebOpsCodeEditor {
         folderDiv.innerHTML = `
             <span class="material-icons chevron">chevron_right</span>
             <span class="material-icons folder-icon">folder</span>
-            <span>${folder.name}</span>
+            <span>${webopsEscape(folder.name)}</span>
         `;
 
         const childrenDiv = document.createElement('div');
@@ -195,7 +195,7 @@ class WebOpsCodeEditor {
         const icon = this.getFileIcon(file.name);
         fileDiv.innerHTML = `
             <span class="material-icons">${icon}</span>
-            <span>${file.name}</span>
+            <span>${webopsEscape(file.name)}</span>
         `;
 
         fileDiv.addEventListener('click', () => {
@@ -300,7 +300,7 @@ class WebOpsCodeEditor {
         const fileName = path.split('/').pop();
 
         tab.innerHTML = `
-            <span class="editor-tab-name">${fileName}</span>
+            <span class="editor-tab-name">${webopsEscape(fileName)}</span>
             <div class="editor-tab-close">
                 <span class="material-icons">close</span>
             </div>

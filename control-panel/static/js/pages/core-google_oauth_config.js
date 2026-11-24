@@ -204,7 +204,7 @@ function testConnection() {
             statusBox.className = 'webops-oauth-config__status-box webops-oauth-config__status-box--warning';
             statusDetails.innerHTML = `
                 <p><strong>⚠ Connection failed</strong></p>
-                <p>${data.error || 'Unable to connect to Google OAuth service.'}</p>
+                <p>${webopsEscape(data.error || 'Unable to connect to Google OAuth service.')}</p>
                 <p><small>Please check your credentials and try again.</small></p>
             `;
         }

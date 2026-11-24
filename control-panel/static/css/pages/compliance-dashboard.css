@@ -20,6 +20,7 @@
 
 .webops-header-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--webops-space-2);
 }
 

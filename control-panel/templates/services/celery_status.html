@@ -11,11 +11,11 @@
         <p class="webops-text-muted">Monitor and manage background task workers</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button type="button" data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
-        <button data-on-click="refreshStatus()" class="webops-btn webops-btn-info">
+        <button type="button" data-on-click="refreshStatus()" class="webops-btn webops-btn-info">
             <span class="material-icons">refresh</span>
             Refresh
         </button>
@@ -99,7 +99,7 @@
                     <td>{{ worker.concurrency|default:4 }}</td>
                     <td>
                         <div class="webops-btn-group">
-                            <button data-on-click="inspectWorker('{{ worker.name }}')"
+                            <button type="button" data-on-click="inspectWorker('{{ worker.name }}')"
                                     class="webops-btn webops-btn-xs webops-btn-info"
                                     title="Inspect">
                                 <span class="material-icons">visibility</span>

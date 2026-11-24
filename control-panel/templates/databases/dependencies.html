@@ -12,7 +12,7 @@
         <h2 class="webops-page-title">Database Dependencies</h2>
         <p class="webops-text-muted">Install required dependencies for {{ db_type|title }}</p>
     </div>
-    <button data-on-click="history.back()" class="webops-btn webops-btn-secondary">
+    <button type="button" data-on-click="history.back()" class="webops-btn webops-btn-secondary">
         <span class="material-icons">arrow_back</span>
         Back
     </button>
@@ -26,7 +26,7 @@
             Dependency Status
         </h3>
         {% if not all_installed %}
-        <button data-on-click="installAllDependencies()" class="webops-btn webops-btn-primary">
+        <button type="button" data-on-click="installAllDependencies()" class="webops-btn webops-btn-primary">
             <span class="material-icons">download</span>
             Install All
         </button>

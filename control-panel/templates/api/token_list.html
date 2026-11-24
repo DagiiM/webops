@@ -10,7 +10,7 @@
         <h2 class="webops-page-title">API Tokens</h2>
         <p class="webops-text-muted">Manage API authentication tokens for programmatic access</p>
     </div>
-    <button data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
+    <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
         <span class="material-icons">add</span>
         Create Token
     </button>
@@ -67,7 +67,7 @@
     </div>
     <div class="webops-alert__content">
         <strong>API Access:</strong> Use these tokens to authenticate API requests. Include the token in the <code class="webops-text-sm webops-s-fc08816">Authorization: Bearer &lt;token&gt;</code> header.
-        <a href="/api/status/" target="_blank" class="webops-text-info webops-font-semibold webops-s-234c8c7">View API Docs</a>
+        <a href="/api/status/" target="_blank" rel="noopener noreferrer" class="webops-text-info webops-font-semibold webops-s-234c8c7">View API Docs</a>
     </div>
 </div>
 
@@ -127,7 +127,7 @@
         <span class="material-icons webops-empty-state-icon webops-s-5d5c186">vpn_key</span>
         <h3 class="webops-empty-state-title">No API tokens yet</h3>
         <p class="webops-empty-state-description">Create your first API token to start using the WebOps API</p>
-        <button data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
+        <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
             <span class="material-icons">add</span>
             Create Token
         </button>
@@ -140,7 +140,7 @@
     <div class="webops-modal__content">
         <div class="webops-modal__header">
             <h3 class="webops-h3">Create API Token</h3>
-            <button class="webops-modal__close" data-on-click="closeCreateModal()">
+            <button aria-label="Close dialog" type="button" class="webops-modal__close" data-on-click="closeCreateModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>

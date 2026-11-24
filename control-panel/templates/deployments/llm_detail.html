@@ -12,7 +12,7 @@
     </div>
     <div class="webops-s-f2cdaea">
         {% if deployment.status == 'running' %}
-            <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-primary">
+            <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-primary">
                 <span class="material-icons">api</span>
                 API Docs
             </a>
@@ -249,7 +249,7 @@
 
             <div>
                 <label class="webops-label">Interactive API Documentation</label>
-                <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary webops-s-592c9bd">
+                <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-sm webops-btn-primary webops-s-592c9bd">
                     <span class="material-icons">open_in_new</span>
                     Open Swagger UI
                 </a>
@@ -301,7 +301,7 @@
             </div>
         </div>
 
-        <button data-on-click="testModel()" class="webops-btn webops-btn-primary" id="test-btn">
+        <button type="button" data-on-click="testModel()" class="webops-btn webops-btn-primary" id="test-btn">
             <span class="material-icons">send</span>
             Generate
         </button>
@@ -318,7 +318,7 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">Deployment Logs</h3>
-        <button data-on-click="location.reload()" class="webops-btn webops-btn-sm webops-btn-secondary">
+        <button type="button" data-on-click="location.reload()" class="webops-btn webops-btn-sm webops-btn-secondary">
             <span class="material-icons">refresh</span>
             Refresh
         </button>
@@ -342,8 +342,8 @@
                 <input type="checkbox" id="auto-scroll-toggle" checked>
                 Auto-scroll
             </label>
-            <button class="webops-btn webops-btn-sm" id="pause-resume-btn">Pause</button>
-            <button class="webops-btn webops-btn-sm" id="clear-logs-btn">Clear</button>
+            <button type="button" class="webops-btn webops-btn-sm" id="pause-resume-btn">Pause</button>
+            <button type="button" class="webops-btn webops-btn-sm" id="clear-logs-btn">Clear</button>
         </div>
     </div>
 </div>

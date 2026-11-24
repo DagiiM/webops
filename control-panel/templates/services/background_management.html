@@ -12,16 +12,16 @@
         <div class="webops-text-sm webops-text-secondary">Processor: <strong>{{ backend_type|title }}</strong></div>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button type="button" data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
-        <button data-on-click="refreshStatus()" class="webops-btn webops-btn-info">
+        <button type="button" data-on-click="refreshStatus()" class="webops-btn webops-btn-info">
             <span class="material-icons">refresh</span>
             Refresh
         </button>
         {% if backend_type == 'celery' %}
-        <button data-on-click="restartWorkers()" class="webops-btn webops-btn-warning" id="restartBtn">
+        <button type="button" data-on-click="restartWorkers()" class="webops-btn webops-btn-warning" id="restartBtn">
             <span class="material-icons">restart_alt</span>
             Restart Workers
         </button>
@@ -105,11 +105,11 @@
                 <table class="webops-table webops-table-sm">
                     <tbody>
                         <tr>
-                            <td><strong>Backend Type:</strong></td>
+                            <th scope="row">Backend Type:</th>
                             <td><code>{{ backend_type|title }}</code></td>
                         </tr>
                         <tr>
-                            <td><strong>Health Status:</strong></td>
+                            <th scope="row">Health Status:</th>
                             <td>
                                 <span class="webops-badge webops-badge-{% if processor_status.healthy %}success{% else %}danger{% endif %}">
                                     {{ processor_status.healthy|yesno:"Healthy,Unhealthy" }}
@@ -118,11 +118,11 @@
                         </tr>
                         {% if backend_type == 'celery' %}
                         <tr>
-                            <td><strong>Broker:</strong></td>
+                            <th scope="row">Broker:</th>
                             <td><code>{{ processor_status.broker|default:"Unknown" }}</code></td>
                         </tr>
                         <tr>
-                            <td><strong>Beat Scheduler:</strong></td>
+                            <th scope="row">Beat Scheduler:</th>
                             <td>
                                 <span class="webops-badge webops-badge-{% if processor_status.beat_running %}success{% else %}secondary{% endif %}">
                                     {{ processor_status.beat_running|yesno:"Running,Stopped" }}
@@ -139,38 +139,38 @@
                     <tbody>
                         {% if backend_type == 'celery' %}
                         <tr>
-                            <td><strong>Active Workers:</strong></td>
+                            <th scope="row">Active Workers:</th>
                             <td>{{ processor_status.worker_count|default:0 }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Scheduled Tasks:</strong></td>
+                            <th scope="row">Scheduled Tasks:</th>
                             <td>{{ processor_status.scheduled_tasks|length|default:0 }}</td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td><strong>Active Tasks:</strong></td>
+                            <th scope="row">Active Tasks:</th>
                             <td>{{ processor_status.active_tasks|default:0 }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Queued Tasks:</strong></td>
+                            <th scope="row">Queued Tasks:</th>
                             <td>{{ processor_status.queued_tasks|default:0 }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Completed Tasks:</strong></td>
+                            <th scope="row">Completed Tasks:</th>
                             <td>{{ processor_status.completed_tasks|default:0 }}</td>
                         </tr>
                         {% endif %}
                         {% if queue_stats %}
                         <tr>
-                            <td><strong>Pending (24h):</strong></td>
+                            <th scope="row">Pending (24h):</th>
                             <td>{{ queue_stats.pending|default:0 }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Completed (24h):</strong></td>
+                            <th scope="row">Completed (24h):</th>
                             <td>{{ queue_stats.completed_24h|default:0 }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Failed (24h):</strong></td>
+                            <th scope="row">Failed (24h):</th>
                             <td>{{ queue_stats.failed_24h|default:0 }}</td>
                         </tr>
                         {% endif %}
@@ -223,7 +223,7 @@
                     <td>{{ worker.concurrency|default:4 }}</td>
                     <td>
                         <div class="webops-btn-group">
-                            <button data-on-click="inspectWorker('{{ worker.name }}')"
+                            <button type="button" data-on-click="inspectWorker('{{ worker.name }}')"
                                     class="webops-btn webops-btn-xs webops-btn-info"
                                     title="Inspect">
                                 <span class="material-icons">visibility</span>

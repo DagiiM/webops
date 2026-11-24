@@ -79,7 +79,7 @@
                     <td><code class="webops-text-sm">{{ deployment.repo_url|truncatechars:50 }}</code></td>
                     <td>
                         {% if deployment.domain %}
-                            <a href="http://{{ deployment.domain }}" target="_blank" class="webops-text-primary">
+                            <a href="http://{{ deployment.domain }}" target="_blank" rel="noopener noreferrer" class="webops-text-primary">
                                 {{ deployment.domain }}
                             </a>
                         {% else %}

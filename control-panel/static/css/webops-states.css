@@ -20,7 +20,7 @@
 .webops-bg-tint-muted { background: rgba(128, 128, 128, 0.1); } /* literal: matches former inline status tint */
 .webops-bg-tint-warning { background: rgba(255, 191, 0, 0.1); } /* literal: matches former inline status tint */
 .webops-bg-tint-caution { background: rgba(255, 170, 0, 0.1); } /* literal: matches former inline alert tint */
-.webops-bg-tint-info { background: rgba(0, 170, 255, 0.1); } /* literal: matches former inline alert tint */
+.webops-bg-tint-info { background: var(--webops-color-primary-alpha-10); }
 
 .webops-alert-row { border-radius: var(--webops-radius-md); border-left: 4px solid transparent; }
 .webops-alert-row--error { border-left-color: var(--webops-color-error); }

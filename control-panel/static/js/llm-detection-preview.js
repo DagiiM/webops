@@ -116,7 +116,7 @@
                         <div>
                             <h4 class="webops-h4 webops-m-0 webops-flex webops-items-center webops-gap-2">
                                 Auto-Detected Configuration
-                                <span class="webops-badge webops-badge-${confidenceColor}">${confidence}% Confidence</span>
+                                <span class="webops-badge webops-badge-${confidenceColor}">${webopsEscape(confidence)}% Confidence</span>
                             </h4>
                             <p class="webops-text-sm webops-text-muted webops-m-0">Railway-style zero-configuration deployment</p>
                         </div>
@@ -132,15 +132,15 @@
                     <div class="webops-detection-grid">
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Type:</span>
-                            <span class="webops-font-medium">${modelInfo.type || 'Unknown'}</span>
+                            <span class="webops-font-medium">${webopsEscape(modelInfo.type || 'Unknown')}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Architecture:</span>
-                            <span class="webops-font-medium">${modelInfo.architecture || 'Unknown'}</span>
+                            <span class="webops-font-medium">${webopsEscape(modelInfo.architecture || 'Unknown')}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Parameters:</span>
-                            <span class="webops-font-medium">${modelInfo.parameters_billions}</span>
+                            <span class="webops-font-medium">${webopsEscape(modelInfo.parameters_billions)}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Model Size:</span>
@@ -152,14 +152,14 @@
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">License:</span>
-                            <span class="webops-font-medium">${modelInfo.license || 'Unknown'}</span>
+                            <span class="webops-font-medium">${webopsEscape(modelInfo.license || 'Unknown')}</span>
                         </div>
                     </div>
 
                     ${modelInfo.author ? `
                     <div class="webops-mt-3">
                         <div class="webops-flex webops-items-center webops-gap-4 webops-text-sm">
-                            <span><strong>Author:</strong> ${modelInfo.author}</span>
+                            <span><strong>Author:</strong> ${webopsEscape(modelInfo.author)}</span>
                             ${modelInfo.downloads ? `<span><strong>Downloads:</strong> ${modelInfo.downloads.toLocaleString()}</span>` : ''}
                             ${modelInfo.likes ? `<span><strong>Likes:</strong> ${modelInfo.likes.toLocaleString()}</span>` : ''}
                         </div>
@@ -173,15 +173,15 @@
                     <div class="webops-detection-grid">
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Backend:</span>
-                            <span class="webops-font-medium webops-text-primary">${config.backend}</span>
+                            <span class="webops-font-medium webops-text-primary">${webopsEscape(config.backend)}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Data Type:</span>
-                            <span class="webops-font-medium">${config.dtype}</span>
+                            <span class="webops-font-medium">${webopsEscape(config.dtype)}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Quantization:</span>
-                            <span class="webops-font-medium">${config.quantization}</span>
+                            <span class="webops-font-medium">${webopsEscape(config.quantization)}</span>
                         </div>
                         <div class="webops-detection-item">
                             <span class="webops-text-muted">Est. Memory:</span>
@@ -203,7 +203,7 @@
                         <div class="webops-flex webops-gap-2 webops-s-714f345" >
                             <span class="material-icons webops-text-info webops-s-b39dc14" >lightbulb</span>
                             <div class="webops-text-sm">
-                                <strong>${config.backend_confidence}% confident:</strong> ${config.backend_reasoning}
+                                <strong>${webopsEscape(config.backend_confidence)}% confident:</strong> ${webopsEscape(config.backend_reasoning)}
                             </div>
                         </div>
                     </div>
@@ -214,7 +214,7 @@
                 <div class="webops-detection-section">
                     <h5 class="webops-h5">⚠️ Warnings</h5>
                     <ul class="webops-m-0 webops-pl-4">
-                        ${data.warnings.map(warning => `<li class="webops-text-warning webops-text-sm">${warning}</li>`).join('')}
+                        ${data.warnings.map(warning => `<li class="webops-text-warning webops-text-sm">${webopsEscape(warning)}</li>`).join('')}
                     </ul>
                 </div>
                 ` : ''}
@@ -224,7 +224,7 @@
                 <div class="webops-detection-section">
                     <h5 class="webops-h5">💬 Additional Information</h5>
                     <ul class="webops-m-0 webops-pl-4">
-                        ${data.info_messages.map(info => `<li class="webops-text-info webops-text-sm">${info}</li>`).join('')}
+                        ${data.info_messages.map(info => `<li class="webops-text-info webops-text-sm">${webopsEscape(info)}</li>`).join('')}
                     </ul>
                 </div>
                 ` : ''}
@@ -254,7 +254,7 @@
                     <span class="material-icons webops-text-danger webops-s-8507053" >error</span>
                     <div>
                         <h4 class="webops-h4 webops-m-0">Detection Failed</h4>
-                        <p class="webops-text-sm webops-text-muted webops-m-0">${error}</p>
+                        <p class="webops-text-sm webops-text-muted webops-m-0">${webopsEscape(error)}</p>
                     </div>
                     <button type="button" class="webops-btn webops-btn-sm webops-btn-ghost" data-on-click="hideDetectionPreview()">
                         <span class="material-icons">close</span>

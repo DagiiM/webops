@@ -1,6 +1,6 @@
 <header class="webops-header">
                 <!-- Mobile Sidebar Toggle -->
-                <button class="webops-sidebar-toggle" id="sidebar-toggle">
+                <button aria-label="Toggle navigation menu" type="button" class="webops-sidebar-toggle" id="sidebar-toggle">
                     <span class="webops-icon webops-icon--menu">menu</span>
                 </button>
 
@@ -10,7 +10,7 @@
                     
                     <!-- Unified Theme Switcher -->
                     <div class="webops-theme-switcher">
-                        <button 
+                        <button type="button" 
                             class="webops-theme-toggle" 
                             id="themeToggle"
                             aria-label="Switch theme"
@@ -35,15 +35,15 @@
                         </button>
                         
                         <div class="webops-theme-dropdown" id="themeDropdown" role="menu" aria-labelledby="themeToggle">
-                            <button class="webops-theme-option webops-theme-option--active" data-theme="dark" role="menuitem">
+                            <button type="button" class="webops-theme-option webops-theme-option--active" data-theme="dark" role="menuitem">
                                 <span class="webops-theme-option__preview webops-theme-option__preview--dark"></span>
                                 <span class="webops-theme-option__label">Dark</span>
                             </button>
-                            <button class="webops-theme-option" data-theme="light" role="menuitem">
+                            <button type="button" class="webops-theme-option" data-theme="light" role="menuitem">
                                 <span class="webops-theme-option__preview webops-theme-option__preview--light"></span>
                                 <span class="webops-theme-option__label">Light</span>
                             </button>
-                            <button class="webops-theme-option" data-theme="high-contrast" role="menuitem">
+                            <button type="button" class="webops-theme-option" data-theme="high-contrast" role="menuitem">
                                 <span class="webops-theme-option__preview webops-theme-option__preview--high-contrast"></span>
                                 <span class="webops-theme-option__label">High Contrast</span>
                             </button>
@@ -54,7 +54,7 @@
 
                     <!-- User Menu -->
                     <div class="webops-user-menu">
-                        <button 
+                        <button type="button" 
                             class="webops-user-menu__trigger" 
                             id="userMenuTrigger"
                             aria-label="Open user menu"

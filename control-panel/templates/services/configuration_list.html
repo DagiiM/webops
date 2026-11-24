@@ -11,11 +11,11 @@
         <p class="webops-text-muted">Manage monitoring intervals, thresholds, and system settings</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button type="button" data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
-        <button data-on-click="resetToDefaults()" class="webops-btn webops-btn-warning">
+        <button type="button" data-on-click="resetToDefaults()" class="webops-btn webops-btn-warning">
             <span class="material-icons">restore</span>
             Reset to Defaults
         </button>

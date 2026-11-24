@@ -67,3 +67,19 @@ Measured in headless Chrome on all 63 pages (text elements against their effecti
 4. **Token model.** The panel keeps `--webops-*` tokens and the `webops-` BEM prefix, which `check.py --brownfield` accepts.
 5. **Not verified at runtime.** Django is not installed in the review environment, so visual parity of the extracted rules, icon rendering, the chart and editor, and `ui-actions` were checked with the gates and Node unit tests only. Run the app and click through before merging.
 6. **Human review.** `human/designs.json` reviews are pending; `human_check.py --release` will fail until a real reviewer fills them in.
+
+## Page, CSS and JS audit
+
+Per-file static audits of all 74 templates (64 pages), 64 CSS files and 74 JS files.
+
+Fixed:
+- Templates: `rel="noopener noreferrer"` on all 15 `target="_blank"` links; explicit `type` on 132 buttons; `aria-label` on icon-only controls; `autocomplete` on password and token fields; row headers (`th scope="row"`) in key/value tables; workflow builder data emitted with `json_script` instead of `|safe` (a `</script>` in a node label could break out).
+- JS: `webopsEscape` and `webopsSafeUrl` in `page-config.js`; untrusted text (file names, error messages, notification text, model metadata, API docs) escaped before `innerHTML`; file breadcrumb built with DOM APIs; notification `action_url` limited to same-origin http(s); Enter/Space activate `role="button"` elements.
+- CSS: exact-match z-index literals use the z tokens; database badges and sky-blue tints use neutral primary tokens; fixed-width grid columns use `min(Npx, 100%)`; page-header actions wrap.
+
+Not changed (known):
+- `http://{{ deployment.domain }}` links: the scheme depends on whether the deployment has TLS.
+- About 400 physical-property declarations, about 630 `px` literals and about 340 duplicate selectors in legacy CSS: mechanical rewrite deferred.
+- `console.log` leftovers (71) and `fetch` calls without an `.ok` check (38).
+- Residual 320px clips: dashboard card (11px), integrations badge (32px).
+- `Delete Account` and `Export Data` buttons in user settings have no handler yet.

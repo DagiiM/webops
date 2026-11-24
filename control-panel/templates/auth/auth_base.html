@@ -8,7 +8,7 @@
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888' aria-hidden="true" focusable="false"><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
     {% endif %}
 
 
@@ -41,13 +41,13 @@
     <!-- Theme Switcher -->
     <div class="webops-theme-switcher">
         <div class="theme-switcher-container">
-            <button class="theme-switcher-toggle" id="theme-switcher-toggle" aria-label="Switch theme">
+            <button type="button" class="theme-switcher-toggle" id="theme-switcher-toggle" aria-label="Switch theme">
                 <span class="theme-switcher-icon material-icons">brightness_6</span>
             </button>
             <div class="theme-switcher-dropdown" id="theme-switcher-dropdown">
                 <div class="theme-switcher-header">
                     <span class="theme-switcher-title">Theme</span>
-                    <button class="theme-switcher-close" id="theme-switcher-close">
+                    <button aria-label="Close theme switcher" type="button" class="theme-switcher-close" id="theme-switcher-close">
                         <span class="material-icons">close</span>
                     </button>
                 </div>

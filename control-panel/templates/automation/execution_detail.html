@@ -236,12 +236,12 @@
     <div class="webops-card-header">
         <h3 class="webops-h3">Execution Logs</h3>
         <div class="webops-flex webops-gap-sm">
-            <button id="btn-auto-refresh" class="webops-btn webops-btn-sm webops-btn-secondary" 
+            <button type="button" id="btn-auto-refresh" class="webops-btn webops-btn-sm webops-btn-secondary" 
                     {% if execution.status == 'running' %}data-auto-refresh="true"{% endif %}>
                 <span class="material-icons">refresh</span>
                 Auto Refresh
             </button>
-            <button id="btn-download-logs" class="webops-btn webops-btn-sm webops-btn-secondary">
+            <button type="button" id="btn-download-logs" class="webops-btn webops-btn-sm webops-btn-secondary">
                 <span class="material-icons">download</span>
                 Download
             </button>

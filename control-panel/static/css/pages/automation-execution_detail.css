@@ -113,7 +113,7 @@
 }
 
 .webops-timeline__item--running .webops-timeline__marker {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-info);
     border: 2px solid var(--webops-color-info);
 }

@@ -62,7 +62,7 @@
 
 .webops-hsl-controls {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: var(--webops-space-3);
 }
 
@@ -304,7 +304,7 @@
 
 .webops-simulation-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100px, 100%), 1fr));
     gap: var(--webops-space-2);
 }
 

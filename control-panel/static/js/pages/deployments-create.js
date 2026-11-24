@@ -347,7 +347,7 @@ function showNotification(message, type) {
     notification.style.zIndex = '9999';
     notification.style.minWidth = '300px';
     notification.innerHTML = `
-        ${message}
+        ${webopsEscape(message)}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>

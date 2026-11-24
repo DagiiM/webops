@@ -236,7 +236,7 @@ animation: none;
 /* Info grid */
 .rate-limit-info {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
     gap: var(--webops-space-4);
     margin-bottom: var(--webops-space-8);
     animation: none;

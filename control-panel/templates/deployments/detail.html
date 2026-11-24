@@ -106,7 +106,7 @@
                 <label class="webops-label">Repository</label>
                 <div class="webops-info-value">
                     <code class="webops-text-sm">{{ deployment.repo_url }}</code>
-                    <a href="{{ deployment.repo_url }}" target="_blank" class="webops-btn webops-btn-sm webops-s-8ce609a">
+                    <a aria-label="Open repository" href="{{ deployment.repo_url }}" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-sm webops-s-8ce609a">
                         <span class="material-icons webops-s-7da4e82">open_in_new</span>
                     </a>
                 </div>
@@ -131,7 +131,7 @@
                 <label class="webops-label">Domain</label>
                 <div class="webops-info-value">
                     <code class="webops-text-sm">{{ deployment.domain }}</code>
-                    <a href="http://{{ deployment.domain }}" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary webops-s-8ce609a">
+                    <a href="http://{{ deployment.domain }}" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-sm webops-btn-primary webops-s-8ce609a">
                         <span class="material-icons webops-s-7da4e82">language</span>
                         Visit
                     </a>
@@ -144,7 +144,7 @@
                 <label class="webops-label">Port</label>
                 <div class="webops-info-value">
                     <code class="webops-text-sm">{{ deployment.port }}</code>
-                    <a href="http://localhost:{{ deployment.port }}" target="_blank" class="webops-btn webops-btn-sm webops-s-8ce609a">
+                    <a aria-label="Open local app" href="http://localhost:{{ deployment.port }}" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-sm webops-s-8ce609a">
                         <span class="material-icons webops-s-7da4e82">open_in_new</span>
                     </a>
                 </div>
@@ -182,7 +182,7 @@
             <span class="material-icons webops-s-7bfd575">settings</span>
             Environment Variables
         </h3>
-        <button data-on-click="toggleEnvEditor()" class="webops-btn webops-btn-sm webops-btn-primary" id="edit-env-btn">
+        <button type="button" data-on-click="toggleEnvEditor()" class="webops-btn webops-btn-sm webops-btn-primary" id="edit-env-btn">
             <span class="material-icons webops-s-7da4e82">edit</span>
             Edit
         </button>
@@ -205,15 +205,15 @@
 
         <div id="env-editor" class="webops-s-5790ffb">
             <div class="webops-env-editor-controls">
-                <button data-on-click="addEnvVar()" class="webops-btn webops-btn-sm">
+                <button type="button" data-on-click="addEnvVar()" class="webops-btn webops-btn-sm">
                     <span class="material-icons webops-s-7da4e82">add</span>
                     Add Variable
                 </button>
-                <button data-on-click="saveEnvVars()" class="webops-btn webops-btn-sm webops-btn-primary">
+                <button type="button" data-on-click="saveEnvVars()" class="webops-btn webops-btn-sm webops-btn-primary">
                     <span class="material-icons webops-s-7da4e82">save</span>
                     Save & Restart
                 </button>
-                <button data-on-click="cancelEnvEdit()" class="webops-btn webops-btn-sm btn-outline">
+                <button type="button" data-on-click="cancelEnvEdit()" class="webops-btn webops-btn-sm btn-outline">
                     <span class="material-icons webops-s-7da4e82">close</span>
                     Cancel
                 </button>
@@ -242,11 +242,11 @@
             Project Files & Validation
         </h3>
         <div class="webops-s-b378622">
-            <button data-on-click="runValidation()" class="webops-btn webops-btn-sm webops-btn-primary" id="validate-btn">
+            <button type="button" data-on-click="runValidation()" class="webops-btn webops-btn-sm webops-btn-primary" id="validate-btn">
                 <span class="material-icons webops-s-7da4e82">verified</span>
                 Validate
             </button>
-            <button data-on-click="loadEnvWizard()" class="webops-btn btn-sm" id="env-wizard-btn">
+            <button type="button" data-on-click="loadEnvWizard()" class="webops-btn btn-sm" id="env-wizard-btn">
                 <span class="material-icons webops-s-7da4e82">settings_suggest</span>
                 .env Wizard
             </button>
@@ -255,8 +255,8 @@
     <div class="webops-card-body">
         <!-- Tabs -->
         <div class="webops-tabs">
-            <button class="webops-tab active" data-on-click="switchTab('files', this)">Files</button>
-            <button class="webops-tab" data-on-click="switchTab('validation', this)">Validation</button>
+            <button type="button" class="webops-tab active" data-on-click="switchTab('files', this)">Files</button>
+            <button type="button" class="webops-tab" data-on-click="switchTab('validation', this)">Validation</button>
         </div>
 
         <!-- Files Tab -->
@@ -264,7 +264,7 @@
             <div id="file-browser" class="webops-file-browser">
                 <div class="webops-browser-toolbar">
                     <div class="webops-breadcrumb" id="breadcrumb">
-                        <span data-on-click="navigateTo('')" class="webops-breadcrumb-item">Root</span>
+                        <span role="button" tabindex="0" data-on-click="navigateTo('')" class="webops-breadcrumb-item">Root</span>
                     </div>
                 </div>
                 <div id="file-list" class="webops-file-list">
@@ -273,7 +273,7 @@
                 <div id="file-viewer" class="webops-file-viewer webops-s-5790ffb">
                     <div class="webops-file-viewer-header">
                         <span id="file-name"></span>
-                        <button data-on-click="closeFileViewer()" class="webops-btn webops-btn-sm">
+                        <button type="button" data-on-click="closeFileViewer()" class="webops-btn webops-btn-sm">
                             <span class="material-icons webops-s-7da4e82">close</span>
                             Close
                         </button>
@@ -300,7 +300,7 @@
             <span class="material-icons webops-s-7bfd575">article</span>
             Deployment Logs
         </h3>
-        <button data-on-click="refreshLogs()" class="webops-btn webops-btn-sm">
+        <button type="button" data-on-click="refreshLogs()" class="webops-btn webops-btn-sm">
             <span class="material-icons webops-s-7da4e82">refresh</span>
             Refresh
         </button>

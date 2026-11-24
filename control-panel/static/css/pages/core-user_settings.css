@@ -344,7 +344,7 @@
 
 .webops-toggle-group--radio {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
     gap: var(--webops-space-2);
 }
 

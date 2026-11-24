@@ -132,12 +132,12 @@ class APIDocumentation {
                 ${parameters.map(param => `
                     <tr>
                         <td>
-                            <code>${param.name}</code>
+                            <code>${webopsEscape(param.name)}</code>
                             ${param.required ? '<span class="webops-required-badge">Required</span>' : ''}
                         </td>
-                        <td><code>${param.type}</code></td>
-                        <td>${param.in}</td>
-                        <td>${param.description || ''}</td>
+                        <td><code>${webopsEscape(param.type)}</code></td>
+                        <td>${webopsEscape(param.in)}</td>
+                        <td>${webopsEscape(param.description || '')}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -169,11 +169,11 @@ class APIDocumentation {
                 ${Object.entries(requestBody).map(([key, field]) => `
                     <tr>
                         <td>
-                            <code>${key}</code>
+                            <code>${webopsEscape(key)}</code>
                             ${field.required ? '<span class="webops-required-badge">Required</span>' : ''}
                         </td>
-                        <td><code>${field.type}</code></td>
-                        <td>${field.description || ''}</td>
+                        <td><code>${webopsEscape(field.type)}</code></td>
+                        <td>${webopsEscape(field.description || '')}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -255,10 +255,10 @@ class APIDocumentation {
 
             errorDiv.innerHTML = `
                 <div class="webops-s-1dd87e7">
-                    <span class="webops-method-badge webops-method-badge--delete">${error.status}</span>
-                    <strong class="webops-s-62105ae">${error.title}</strong>
+                    <span class="webops-method-badge webops-method-badge--delete">${webopsEscape(error.status)}</span>
+                    <strong class="webops-s-62105ae">${webopsEscape(error.title)}</strong>
                 </div>
-                <p class="webops-s-773ba08">${error.description}</p>
+                <p class="webops-s-773ba08">${webopsEscape(error.description)}</p>
                 ${this.createCodeBlock(JSON.stringify(error.example, null, 2)).outerHTML}
             `;
 
@@ -297,7 +297,7 @@ class APIDocumentation {
 
         if (req.headers) {
             Object.entries(req.headers).forEach(([key, value]) => {
-                curl += ` \\\n  -H '${key}: ${value}'`;
+                curl += ` \\\n  -H '${webopsEscape(key)}: ${value}'`;
             });
         }
 

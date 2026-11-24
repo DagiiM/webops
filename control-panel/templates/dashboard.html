@@ -232,7 +232,7 @@
                     <td data-label="Type">{{ deployment.get_project_type_display }}</td>
                     <td data-label="Domain">
                         {% if deployment.domain %}
-                            <a href="http://{{ deployment.domain }}" target="_blank" class="webops-text-primary">
+                            <a href="http://{{ deployment.domain }}" target="_blank" rel="noopener noreferrer" class="webops-text-primary">
                                 {{ deployment.domain }}
                             </a>
                         {% else %}

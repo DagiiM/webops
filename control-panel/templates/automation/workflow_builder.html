@@ -19,59 +19,59 @@
             </div>
         </div>
         <div class="webops-toolbar-right">
-            <button id="btn-undo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Undo">
+            <button type="button" id="btn-undo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Undo">
                 <span class="material-icons" aria-hidden="true">undo</span>
                 <span class="toolbar-text">Undo</span>
             </button>
-            <button id="btn-redo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Redo">
+            <button type="button" id="btn-redo" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" disabled aria-label="Redo">
                 <span class="material-icons" aria-hidden="true">redo</span>
                 <span class="toolbar-text">Redo</span>
             </button>
-            <button id="btn-zoom-out" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom out">
+            <button type="button" id="btn-zoom-out" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom out">
                 <span class="material-icons" aria-hidden="true">zoom_out</span>
                 <span class="toolbar-text">Zoom Out</span>
             </button>
             <span id="zoom-level" class="webops-zoom-indicator toolbar-item" role="status" aria-live="polite">100%</span>
-            <button id="btn-zoom-in" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom in">
+            <button type="button" id="btn-zoom-in" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Zoom in">
                 <span class="material-icons" aria-hidden="true">zoom_in</span>
                 <span class="toolbar-text">Zoom In</span>
             </button>
-            <button id="btn-fit-view" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Fit view">
+            <button type="button" id="btn-fit-view" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="Fit view">
                 <span class="material-icons" aria-hidden="true">fit_screen</span>
                 <span class="toolbar-text">Fit View</span>
             </button>
             <div class="webops-toolbar-divider"></div>
-            <button id="btn-save" class="webops-btn webops-btn-sm webops-btn-primary toolbar-item" aria-label="Save workflow">
+            <button type="button" id="btn-save" class="webops-btn webops-btn-sm webops-btn-primary toolbar-item" aria-label="Save workflow">
                 <span class="material-icons" aria-hidden="true">save</span>
                 <span class="toolbar-text">Save</span>
             </button>
-            <button id="btn-execute" class="webops-btn webops-btn-sm webops-btn-success toolbar-item" aria-label="Execute workflow">
+            <button type="button" id="btn-execute" class="webops-btn webops-btn-sm webops-btn-success toolbar-item" aria-label="Execute workflow">
                 <span class="material-icons" aria-hidden="true">play_arrow</span>
                 <span class="toolbar-text">Run</span>
             </button>
             <div class="webops-toolbar-more">
-                <button id="btn-more" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="More options" aria-expanded="false">
+                <button type="button" id="btn-more" class="webops-btn webops-btn-sm webops-btn-secondary toolbar-item" aria-label="More options" aria-expanded="false">
                     <span class="material-icons" aria-hidden="true">more_vert</span>
                 </button>
                 <div class="webops-toolbar-dropdown" id="toolbar-dropdown">
-                    <button id="btn-export" class="webops-toolbar-dropdown-item" aria-label="Export workflow">
+                    <button type="button" id="btn-export" class="webops-toolbar-dropdown-item" aria-label="Export workflow">
                         <span class="material-icons">download</span>
                         <span>Export</span>
                     </button>
-                    <button id="btn-import" class="webops-toolbar-dropdown-item" aria-label="Import workflow">
+                    <button type="button" id="btn-import" class="webops-toolbar-dropdown-item" aria-label="Import workflow">
                         <span class="material-icons">upload</span>
                         <span>Import</span>
                     </button>
-                    <button id="btn-duplicate" class="webops-toolbar-dropdown-item" aria-label="Duplicate workflow">
+                    <button type="button" id="btn-duplicate" class="webops-toolbar-dropdown-item" aria-label="Duplicate workflow">
                         <span class="material-icons">content_copy</span>
                         <span>Duplicate</span>
                     </button>
                     <div class="webops-toolbar-dropdown-divider"></div>
-                    <button id="btn-clear" class="webops-toolbar-dropdown-item" aria-label="Clear canvas">
+                    <button type="button" id="btn-clear" class="webops-toolbar-dropdown-item" aria-label="Clear canvas">
                         <span class="material-icons">clear_all</span>
                         <span>Clear Canvas</span>
                     </button>
-                    <button id="btn-settings" class="webops-toolbar-dropdown-item" aria-label="Workflow settings">
+                    <button type="button" id="btn-settings" class="webops-toolbar-dropdown-item" aria-label="Workflow settings">
                         <span class="material-icons">settings</span>
                         <span>Settings</span>
                     </button>
@@ -88,7 +88,7 @@
                 <h3>Nodes</h3>
                 <div class="webops-palette-header-actions">
                     <input type="text" id="node-search" placeholder="Search nodes..." class="webops-palette-search" aria-label="Search nodes">
-                    <button id="btn-toggle-palette" class="webops-btn-icon webops-palette-toggle" aria-label="Toggle palette size">
+                    <button type="button" id="btn-toggle-palette" class="webops-btn-icon webops-palette-toggle" aria-label="Toggle palette size">
                         <span class="material-icons">chevron_left</span>
                     </button>
                 </div>
@@ -238,7 +238,7 @@
 
         <!-- Canvas Area -->
         <div class="webops-canvas-container">
-            <button id="btn-toggle-grid" class="webops-grid-toggle" aria-label="Toggle grid">
+            <button type="button" id="btn-toggle-grid" class="webops-grid-toggle" aria-label="Toggle grid">
                 <span class="material-icons">grid_on</span>
             </button>
             <canvas id="workflow-canvas" role="application" aria-label="Workflow canvas"></canvas>
@@ -255,10 +255,10 @@
             <div class="webops-properties-header">
                 <h3 id="properties-title">Properties</h3>
                 <div class="webops-properties-header-actions">
-                    <button id="btn-toggle-properties-size" class="webops-btn-icon" aria-label="Toggle properties panel size">
+                    <button type="button" id="btn-toggle-properties-size" class="webops-btn-icon" aria-label="Toggle properties panel size">
                         <span class="material-icons">chevron_right</span>
                     </button>
-                    <button id="btn-close-properties" class="webops-btn-icon" aria-label="Close properties panel">
+                    <button type="button" id="btn-close-properties" class="webops-btn-icon" aria-label="Close properties panel">
                         <span class="material-icons" aria-hidden="true">close</span>
                     </button>
                 </div>
@@ -271,13 +271,7 @@
 </div>
 
 <!-- Hidden Data -->
-<script id="workflow-data" type="application/json">
-{
-    "workflow_id": {{ workflow.id }},
-    "nodes": {{ nodes|safe }},
-    "connections": {{ connections|safe }}
-}
-</script>
+{{ workflow_data|json_script:"workflow-data" }}
 
 <link rel="stylesheet" href="{% static 'css/pages/automation-workflow_builder.css' %}">
 

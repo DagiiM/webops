@@ -29,23 +29,23 @@
             <div class="webops-template-list__filter-group">
                 <label class="webops-label">Category</label>
                 <div class="webops-template-list__filter-buttons">
-                    <button class="webops-template-list__filter-btn webops-template-list__filter-btn--active" data-category="all">
+                    <button type="button" class="webops-template-list__filter-btn webops-template-list__filter-btn--active" data-category="all">
                         <span class="material-icons">apps</span>
                         All Templates
                     </button>
-                    <button class="webops-template-list__filter-btn" data-category="data_processing">
+                    <button type="button" class="webops-template-list__filter-btn" data-category="data_processing">
                         <span class="material-icons">transform</span>
                         Data Processing
                     </button>
-                    <button class="webops-template-list__filter-btn" data-category="notifications">
+                    <button type="button" class="webops-template-list__filter-btn" data-category="notifications">
                         <span class="material-icons">notifications</span>
                         Notifications
                     </button>
-                    <button class="webops-template-list__filter-btn" data-category="integrations">
+                    <button type="button" class="webops-template-list__filter-btn" data-category="integrations">
                         <span class="material-icons">integration_instructions</span>
                         Integrations
                     </button>
-                    <button class="webops-template-list__filter-btn" data-category="reporting">
+                    <button type="button" class="webops-template-list__filter-btn" data-category="reporting">
                         <span class="material-icons">assessment</span>
                         Reporting
                     </button>
@@ -61,7 +61,7 @@
             </div>
             
             <div class="webops-template-list__filter-actions">
-                <button class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="clearFilters()">
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="clearFilters()">
                     <span class="material-icons">clear</span>
                     Clear Filters
                 </button>
@@ -99,7 +99,7 @@
             </div>
             
             <div class="webops-template-card__footer">
-                <button class="webops-btn webops-btn-sm webops-btn-secondary webops-template-card__preview-btn" 
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary webops-template-card__preview-btn" 
                          data-template-id="{{ template.id }}">
                     <span class="material-icons webops-icon-sm">visibility</span>
                     Preview
@@ -134,14 +134,14 @@
 
 <!-- Template Preview Modal -->
 <div class="webops-modal webops-s-5790ffb" id="template-preview-modal" >
-    <div class="webops-modal-backdrop" data-on-click="closePreviewModal()"></div>
+    <div class="webops-modal-backdrop" aria-hidden="true" data-on-click="closePreviewModal()"></div>
     <div class="webops-modal__content">
         <div class="webops-modal-header">
             <div class="webops-modal-title-section">
                 <h3 class="webops-modal-title" id="preview-title">Template Preview</h3>
                 <p class="webops-modal-subtitle" id="preview-subtitle">Loading template details...</p>
             </div>
-            <button class="webops-modal-close" data-on-click="closePreviewModal()">
+            <button aria-label="Close preview" type="button" class="webops-modal-close" data-on-click="closePreviewModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>
@@ -152,11 +152,11 @@
             </div>
         </div>
         <div class="webops-modal-footer">
-            <button class="webops-btn webops-btn-secondary" data-on-click="closePreviewModal()">
+            <button type="button" class="webops-btn webops-btn-secondary" data-on-click="closePreviewModal()">
                 <span class="material-icons">close</span>
                 Close
             </button>
-            <button class="webops-btn webops-btn-primary" id="use-template-btn">
+            <button type="button" class="webops-btn webops-btn-primary" id="use-template-btn">
                 <span class="material-icons">copy</span>
                 Use This Template
             </button>

@@ -6,7 +6,7 @@
 .webops-theme-switcher {
     position: relative;
     display: inline-block;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
 }
 
 .webops-theme-switcher-floating {

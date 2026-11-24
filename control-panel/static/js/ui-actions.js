@@ -127,6 +127,17 @@
     }
     ['click', 'change', 'submit'].forEach(dispatch);
 
+    /* Elements that act as buttons but are not <button>/<a> (role="button" tabindex="0")
+       need Enter and Space, like a native button. */
+    document.addEventListener('keydown', function (ev) {
+        var el = ev.target;
+        if (!el || el.nodeType !== 1 || el.getAttribute('role') !== 'button' || !el.hasAttribute('data-on-click')) { return; }
+        if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            el.click();
+        }
+    }, false);
+
     /* data-confirm: ask before a click (links, buttons) or a submit (forms). Capture
        phase, so a refusal also stops data-on-* actions and navigation. */
     document.addEventListener('click', function (ev) {
