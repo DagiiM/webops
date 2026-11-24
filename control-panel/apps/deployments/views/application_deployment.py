@@ -57,11 +57,35 @@ def deployment_detail(request, pk):
     })
 
 
+def _create_form_context(request, errors=None, values=None):
+    """Context for deployments/create.html (GET, and a re-render after a rejected POST)."""
+    from apps.core.integrations.services import GitHubIntegrationService
+    from ..shared import ServiceManager
+
+    github_connected = False
+    github_repos = []
+    github_service = GitHubIntegrationService()
+    if github_service.get_connection(request.user):
+        github_connected = True
+        github_repos = github_service.list_repositories(request.user) or []
+    core_status = ServiceManager().get_core_services_status()
+    return {
+        'github_connected': github_connected,
+        'github_repos': github_repos,
+        'core_status': core_status,
+        'approval_required': requires_review(request.user) or restricted(),
+        'restricted_workloads': restricted(),
+        'form_errors': errors or [],
+        'values': values or {},
+    }
+
+
 @login_required
 def deployment_create(request):
     """Create new deployment and trigger background task."""
     from apps.api.rate_limiting import deployment_rate_limit
     from apps.core.utils import sanitize_deployment_name, validate_repo_url, validate_domain
+    from apps.core.common.utils.validators import parse_github_repo
 
     @deployment_rate_limit
     def _handle_post(request):
@@ -76,45 +100,55 @@ def deployment_create(request):
         dockerfile_path = request.POST.get('dockerfile_path', 'Dockerfile').strip()
         docker_network_mode = request.POST.get('docker_network_mode', 'bridge').strip()
 
-        # Validation
-        if not name:
-            messages.error(request, "Deployment name is required.")
-            return redirect('deployments:deployment_list')
+        values = {'name': name, 'repo_url': repo_url, 'branch': branch, 'domain': domain,
+                  'static_only': request.POST.get('static_only') == 'on', 'use_docker': use_docker}
 
+        def reject(message):
+            """Show the form again with what was typed and a message that stays on screen."""
+            return render(request, 'deployments/create.html',
+                          _create_form_context(request, errors=[message], values=values), status=400)
+
+        # Validation
         if not repo_url:
-            messages.error(request, "Repository URL is required.")
-            return redirect('deployments:deployment_list')
+            return reject("Enter the repository URL. Example: https://github.com/owner/repository")
+
+        # Accept the common ways of writing a GitHub repository (trailing slash, .git, /tree/<branch>,
+        # no scheme, owner/repo) and store the canonical form. SSH URLs are kept as typed.
+        parsed = parse_github_repo(repo_url)
+        if parsed is None or not validate_repo_url(parsed['url']):
+            return reject("That does not look like a GitHub repository. Use https://github.com/owner/repository "
+                          "(or owner/repository). Other hosts are not supported.")
+        repo_url = parsed['url']
+        values['repo_url'] = repo_url
+        if parsed['branch'] and (not branch or branch == 'main'):
+            branch = parsed['branch']
+            values['branch'] = branch
+
+        # A missing name is filled from the repository, as the form does when a repo card is clicked.
+        if not name:
+            name = parsed['repo']
+            values['name'] = name
 
         # Sanitize and validate name
         try:
             sanitized_name = sanitize_deployment_name(name)
         except ValueError as e:
-            messages.error(request, f"Invalid deployment name: {e}")
-            return redirect('deployments:deployment_list')
+            return reject(f"Invalid deployment name: {e}")
 
         # Check if name already exists
         if ApplicationDeployment.objects.filter(name=sanitized_name).exists():
-            messages.error(request, f"Deployment '{sanitized_name}' already exists.")
-            return redirect('deployments:deployment_list')
-
-        # Validate repository URL
-        if not validate_repo_url(repo_url):
-            messages.error(request, "Invalid repository URL. Only GitHub repositories are supported.")
-            return redirect('deployments:deployment_list')
+            return reject(f"A deployment named '{sanitized_name}' already exists. Choose another name.")
 
         # Validate domain if provided
         if domain and not validate_domain(domain):
-            messages.error(request, "Invalid domain name format.")
-            return redirect('deployments:deployment_list')
+            return reject("Invalid domain name. Use a name like example.com, or leave it empty.")
 
         from apps.services.runtime import portable_runtime
         static_only = request.POST.get('static_only') == 'on' and portable_runtime() is not None
         if static_only and (not repo_url.startswith('https://github.com/') or use_docker):
-            messages.error(request, "Static publication requires a public HTTPS GitHub repository without Docker.")
-            return redirect('deployments:deployment_list')
+            return reject("Static publication requires a public HTTPS GitHub repository without Docker.")
         if requires_review(request.user) and ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False).count() >= 5:
-            messages.error(request, "Preview limit: five active deployment requests or applications.")
-            return redirect('deployments:deployment_list')
+            return reject("Preview limit: five active deployment requests or applications.")
         # Create deployment
         try:
             deployment = ApplicationDeployment.objects.create(
@@ -140,33 +174,13 @@ def deployment_create(request):
             return redirect('deployments:deployment_detail', pk=deployment.id)
 
         except Exception as e:
-            messages.error(request, f"Failed to create deployment: {str(e)}")
-            return redirect('deployments:deployment_list')
+            return reject(f"Could not create the deployment: {e}")
 
     if request.method == 'POST':
         return _handle_post(request)
 
     # GET request - show form with GitHub repositories
-    from apps.core.integrations.services import GitHubIntegrationService
-
-    github_connected = False
-    github_repos = []
-
-    # Check if user has GitHub connection
-    github_service = GitHubIntegrationService()
-    if github_service.get_connection(request.user):
-        github_connected = True
-        github_repos = github_service.list_repositories(request.user) or []
-
-    # Core services status (read-only)
-    from ..shared import ServiceManager
-    core_status = ServiceManager().get_core_services_status()
-
-    return render(request, 'deployments/create.html', {
-        'github_connected': github_connected,
-        'github_repos': github_repos,
-        'core_status': core_status, 'approval_required': requires_review(request.user) or restricted(), 'restricted_workloads': restricted(),
-    })
+    return render(request, 'deployments/create.html', _create_form_context(request))
 
 
 @login_required

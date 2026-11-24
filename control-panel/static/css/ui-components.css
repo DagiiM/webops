@@ -597,3 +597,8 @@ pre code, .webops-code-block code { padding: 0; background: none; }
 .ui-secret { display: grid; gap: var(--webops-space-2); margin-bottom: var(--ui-gap); padding: var(--ui-pad); background: var(--ui-ok-tint); border: 1px solid var(--ui-ok); border-radius: var(--webops-radius-lg); }
 .ui-secret__title { font-size: var(--webops-font-size-base); font-weight: var(--webops-font-weight-bold); color: var(--ui-text); }
 .ui-secret__value { font-family: var(--webops-font-family-mono); font-size: var(--webops-font-size-sm); }
+
+/* A rejected form: stays on screen (not .webops-alert, which toast.js turns into a vanishing toast) */
+.ui-formerror { margin-bottom: var(--ui-gap); padding: var(--ui-pad); background: var(--ui-bad-tint); border: 1px solid var(--ui-bad); border-radius: var(--webops-radius-lg); }
+.ui-formerror__title { margin-bottom: var(--webops-space-1); font-size: var(--webops-font-size-base); font-weight: var(--webops-font-weight-bold); color: var(--ui-text); }
+.ui-formerror ul { padding-inline-start: 1.1em; color: var(--ui-text); }

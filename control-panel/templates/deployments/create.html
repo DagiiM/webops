@@ -266,6 +266,12 @@
 
 {% endif %}
 <!-- Manual Deployment Form -->
+{% if form_errors %}
+<section class="ui-formerror" role="alert" aria-labelledby="form-err-h">
+    <h3 class="ui-formerror__title" id="form-err-h">The deployment was not created</h3>
+    <ul>{% for e in form_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">Deployment Configuration</h3>
@@ -280,6 +286,7 @@
                        pattern="^[a-z0-9][a-z0-9\-_]*[a-z0-9]$"
                        maxlength="100"
                        placeholder="my-app"
+                       value="{{ values.name|default:'' }}"
                        autocomplete="off">
                 <small class="webops-input-help">Lowercase letters, numbers, hyphens, and underscores. Must start/end with alphanumeric. Max 100 chars.</small>
                 <div id="namePreview" class="webops-text-xs webops-text-tertiary webops-s-d7ea74b">
@@ -289,16 +296,17 @@
 
             <div class="webops-form-group">
                 <label for="repo_url" class="webops-label webops-label-required">Repository URL</label>
-                <input type="url" id="repo_url" name="repo_url" class="webops-input" required
-                       placeholder="https://github.com/username/repository or git@github.com:username/repository.git"
-                       autocomplete="off">
-                <small class="webops-input-help">GitHub repository URL (HTTPS or SSH). Private repos require connected GitHub account.</small>
+                <input type="text" inputmode="url" id="repo_url" name="repo_url" class="webops-input" required
+                       placeholder="https://github.com/username/repository"
+                       value="{{ values.repo_url|default:'' }}"
+                       autocomplete="off" autocapitalize="off" spellcheck="false">
+                <small class="webops-input-help">Paste any form: the full URL, <code>owner/repository</code>, a link ending in <code>/tree/branch</code> or <code>.git</code>, or the SSH address. Private repos need a connected GitHub account.</small>
             </div>
 
             <div class="webops-form-group">
                 <label for="branch" class="webops-label">Branch</label>
                 <div class="webops-s-a8a9035">
-                    <input type="text" id="branch" name="branch" class="webops-input" value="main"
+                    <input type="text" id="branch" name="branch" class="webops-input" value="{{ values.branch|default:'main' }}"
                            placeholder="main"
                            autocomplete="off">
                     <div id="branchLoader" class="webops-s-7f4021e">
@@ -316,6 +324,7 @@
             <div class="webops-form-group">
                 <label for="domain" class="webops-label">Domain (optional)</label>
                 <input type="text" id="domain" name="domain" class="webops-input"
+                       value="{{ values.domain|default:'' }}"
                        pattern="^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
                        placeholder="example.com"
                        autocomplete="off">
@@ -400,7 +409,7 @@
 
             {% if core_status.runtime == 'supervisor' %}
             <div class="webops-card webops-mb-lg"><div class="webops-card-body">
-                <label><input type="checkbox" name="static_only" id="static_only" {% if approval_required %}checked{% endif %}> Publish static assets only (no build scripts or executable code)</label>
+                <label><input type="checkbox" name="static_only" id="static_only" {% if values %}{% if values.static_only %}checked{% endif %}{% elif approval_required %}checked{% endif %}> Publish static assets only (no build scripts or executable code)</label>
                 <p class="webops-text-sm">Static assets from a public GitHub repository with index.html are published automatically on a local port. {% if approval_required %}{% if restricted_workloads %}Uncheck to save a request for a future isolated worker; executable builds cannot run on this host.{% else %}Uncheck to submit an executable deployment request for operator review.{% endif %}{% endif %}</p>
             </div></div>
             {% endif %}

@@ -100,33 +100,47 @@ if (nameInput) {
     });
 }
 
+// Understand whatever form of GitHub address was pasted (mirrors the server's parser).
+function parseGithubRepo(raw) {
+    let t = (raw || '').trim();
+    if (!t || /\s/.test(t)) return null;
+    let m = t.match(/^git@github\.com:([^\/]+)\/([^\/]+?)(?:\.git)?\/?$/i);
+    if (m) return { owner: m[1], repo: m[2], branch: null, ssh: true };
+    t = t.replace(/[?#].*$/, '').replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+    if (/^github\.com\//i.test(t)) t = t.slice('github.com/'.length);
+    else if ((t.split('/')[0] || '').includes('.')) return null;
+    const parts = t.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+    if (parts.length < 2) return null;
+    const owner = parts[0], repo = parts[1].replace(/\.git$/i, '');
+    if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,38}$/.test(owner) || !/^[\w.-]{1,100}$/.test(repo)) return null;
+    const rest = parts.slice(2);
+    let branch = null;
+    if (rest.length) {
+        if (!['tree', 'blob', 'commits', 'commit', 'releases', 'issues', 'pull', 'pulls', 'actions', 'wiki', 'tags'].includes(rest[0].toLowerCase())) return null;
+        if (rest[0].toLowerCase() === 'tree' && rest.length > 1) branch = rest.slice(1).join('/');
+    }
+    return { owner: owner, repo: repo, branch: branch, ssh: false };
+}
+
 // Fetch branches when repo URL changes
 let currentRepo = null;
 
 const repoUrlInput = document.getElementById('repo_url');
-if (repoUrlInput && webopsPage().githubConnected === 'true') repoUrlInput.addEventListener('blur', function() {
-    const url = this.value.trim();
-    if (url.includes('github.com/')) {
-        // Extract owner/repo from URL
-        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
-        if (match) {
-            const fullName = match[1].replace(/\.git$/, '');
-            if (fullName !== currentRepo) {
-// Disable submit if prerequisites not met (progressive enhancement)
-(function(){
-    try {
-        const submitBtn = document.querySelector('#deploymentForm button[type="submit"]');
-        const allOk = webopsPage().allOk === 'true';
-        if (!allOk && submitBtn) {
-            submitBtn.setAttribute('disabled', 'disabled');
-            submitBtn.setAttribute('aria-disabled', 'true');
-        }
-    } catch(e) {}
-})();
-                currentRepo = fullName;
-                fetchBranches(fullName);
-            }
-        }
+if (repoUrlInput) repoUrlInput.addEventListener('blur', function() {
+    const parsed = parseGithubRepo(this.value);
+    if (!parsed) return;
+    if (!parsed.ssh) this.value = 'https://github.com/' + parsed.owner + '/' + parsed.repo;
+    const branchInput = document.getElementById('branch');
+    if (parsed.branch && branchInput && (!branchInput.value || branchInput.value === 'main')) branchInput.value = parsed.branch;
+    const nameInput = document.getElementById('name');
+    if (nameInput && !nameInput.value.trim()) {   // a pasted URL used to leave the name empty
+        nameInput.value = sanitizeNameClient(parsed.repo);
+        showSanitizedPreview(parsed.repo);
+    }
+    const fullName = parsed.owner + '/' + parsed.repo;
+    if (webopsPage().githubConnected === 'true' && fullName !== currentRepo) {
+        currentRepo = fullName;
+        fetchBranches(fullName);
     }
 });
 

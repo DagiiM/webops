@@ -109,3 +109,62 @@ def sanitize_deployment_name(name: str) -> str:
         raise ValueError(f"Invalid deployment name format: '{name}'")
     
     return sanitized
+
+_GH_OWNER = re.compile(r'^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$')
+_GH_REPO = re.compile(r'^[\w.-]{1,100}$')
+_GH_BRANCH = re.compile(r'^[\w./-]{1,200}$')
+_GH_SUBPAGES = {'tree', 'blob', 'commits', 'commit', 'releases', 'issues', 'pull', 'pulls', 'actions', 'wiki', 'tags'}
+
+
+def parse_github_repo(raw: str):
+    """Parse the many ways people write a GitHub repository.
+
+    Accepts https://github.com/o/r, with or without a trailing slash, ``.git``, ``www.``, a
+    ``/tree/<branch>`` (or other sub-page) suffix, a query string, no scheme (``github.com/o/r``),
+    a bare ``owner/repo``, and the SSH form ``git@github.com:o/r.git``.
+
+    Returns ``{'owner', 'repo', 'branch', 'ssh', 'url'}`` or ``None``. ``url`` is canonical
+    (``https://github.com/o/r``) except for SSH input, which is returned unchanged so existing SSH
+    deployments keep working. ``branch`` is set only for ``/tree/<branch>`` URLs.
+    """
+    if not isinstance(raw, str):
+        return None
+    text = raw.strip()
+    if not text or len(text) > 400 or any(ch.isspace() for ch in text):
+        return None
+    m = re.match(r'^git@github\.com:([^/]+)/([^/]+?)(?:\.git)?/?$', text, re.I)
+    if m:
+        owner, repo = m.group(1), m.group(2)
+        if _GH_OWNER.match(owner) and _GH_REPO.match(repo) and repo not in ('.', '..'):
+            return {'owner': owner, 'repo': repo, 'branch': None, 'ssh': True, 'url': text}
+        return None
+    text = re.sub(r'[?#].*$', '', text)
+    text = re.sub(r'^https?://', '', text, flags=re.I)
+    text = re.sub(r'^www\.', '', text, flags=re.I)
+    if text.lower().startswith('github.com/'):
+        text = text[len('github.com/'):]
+    elif '.' in text.split('/')[0]:
+        return None  # some other host
+    parts = [p for p in text.strip('/').split('/') if p != '']
+    if len(parts) < 2:
+        return None
+    owner, repo = parts[0], re.sub(r'\.git$', '', parts[1], flags=re.I)
+    if not _GH_OWNER.match(owner) or not _GH_REPO.match(repo) or repo in ('.', '..'):
+        return None
+    rest = parts[2:]
+    branch = None
+    if rest:
+        if rest[0].lower() not in _GH_SUBPAGES:
+            return None  # e.g. owner/repo/extra: not a repository reference
+        if rest[0].lower() == 'tree' and len(rest) > 1:
+            candidate = '/'.join(rest[1:])
+            if _GH_BRANCH.match(candidate) and '..' not in candidate:
+                branch = candidate
+    return {'owner': owner, 'repo': repo, 'branch': branch, 'ssh': False,
+            'url': f'https://github.com/{owner}/{repo}'}
+
+
+def normalize_github_repo_url(raw: str):
+    """Canonical repository URL for any accepted spelling, or None."""
+    parsed = parse_github_repo(raw)
+    return parsed['url'] if parsed else None
