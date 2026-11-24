@@ -192,7 +192,7 @@ class DependencyStatusManager {
     createDependencyItem(dep) {
         const item = document.createElement('div');
         item.className = `dependency-item ${dep.installed ? 'installed' : 'missing'}`;
-        item.id = `dep-${dep.name}`;
+        item.id = `dep-${webopsEscape(dep.name)}`;
 
         item.innerHTML = `
             <div class="dependency-info">
@@ -200,8 +200,8 @@ class DependencyStatusManager {
                     ${dep.installed ? 'check_circle' : 'warning'}
                 </span>
                 <div class="dependency-details">
-                    <div class="dependency-name">${dep.name}</div>
-                    <div class="dependency-description">${dep.description || 'Required dependency'}</div>
+                    <div class="dependency-name">${webopsEscape(dep.name)}</div>
+                    <div class="dependency-description">${webopsEscape(dep.description || 'Required dependency')}</div>
                 </div>
             </div>
             <div class="dependency-status ${dep.installed ? 'installed' : 'missing'}">
@@ -213,7 +213,7 @@ class DependencyStatusManager {
             <div class="dependency-actions">
                 ${dep.installed ? 
                     '<button class="dependency-install-btn installed" disabled><span class="material-icons">check</span>Installed</button>' :
-                    `<button class="dependency-install-btn missing" data-on-click="dependencyManager.installDependency('${dep.name}', '${this.currentDbType}')">
+                    `<button class="dependency-install-btn missing" data-on-click="dependencyManager.installDependency('${webopsEscape(dep.name)}', '${this.currentDbType}')">
                         <span class="material-icons">download</span>Install
                     </button>`
                 }

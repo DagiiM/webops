@@ -5,7 +5,7 @@
 
 {% block header_title %}
     <span class="d-flex align-center gap-2">
-        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm btn-outline">
+        <a aria-label="Back to deployment" href="{% url 'deployments:deployment_detail' deployment.pk %}" class="webops-btn webops-btn-sm btn-outline">
             <span class="material-icons webops-s-ebd2c73">arrow_back</span>
         </a>
         <span>{{ deployment.name }}</span>
@@ -20,10 +20,10 @@
         <div class="editor-sidebar-header">
             <h3>Explorer</h3>
             <div class="sidebar-actions">
-                <button class="sidebar-icon-btn" id="refreshFiles" title="Refresh">
+                <button type="button" class="sidebar-icon-btn" id="refreshFiles" title="Refresh">
                     <span class="material-icons">refresh</span>
                 </button>
-                <button class="sidebar-icon-btn" id="collapseAll" title="Collapse All">
+                <button type="button" class="sidebar-icon-btn" id="collapseAll" title="Collapse All">
                     <span class="material-icons">unfold_less</span>
                 </button>
             </div>
@@ -46,7 +46,7 @@
                 </div>
                 <p class="state-message">Failed to load files</p>
                 <p class="state-hint" id="errorMessage">An error occurred</p>
-                <button class="webops-btn webops-btn-sm webops-btn-primary" id="retryLoad">
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" id="retryLoad">
                     <span class="material-icons">refresh</span>
                     Retry
                 </button>

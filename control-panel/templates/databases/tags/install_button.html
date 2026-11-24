@@ -1,6 +1,6 @@
 {% load static %}
 {% load installer_tags %}
-<button class="{{ css_class }} webops-install-btn" data-db-type="{{ db_type }}" data-install-url="{{ install_url }}" {% if dep %}data-dep="{{ dep }}"{% endif %}>
+<button type="button" class="{{ css_class }} webops-install-btn" data-db-type="{{ db_type }}" data-install-url="{{ install_url }}" {% if dep %}data-dep="{{ dep }}"{% endif %}>
     <span class="material-icons">download</span>
     {{ text }}
 </button>

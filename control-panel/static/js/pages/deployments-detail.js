@@ -48,8 +48,8 @@ function addEnvVarRow(key = '', value = '') {
     const row = document.createElement('div');
     row.className = 'webops-env-input-row';
     row.innerHTML = `
-        <input type="text" placeholder="KEY" value="${key}" class="env-key-input">
-        <input type="text" placeholder="value" value="${value}" class="env-value-input">
+        <input type="text" placeholder="KEY" value="${webopsEscape(key)}" class="env-key-input">
+        <input type="text" placeholder="value" value="${webopsEscape(value)}" class="env-value-input">
         <button data-on-click="removeEnvVarRow(this)" title="Remove">
             <span class="material-icons webops-s-7da4e82" >delete</span>
         </button>
@@ -208,7 +208,7 @@ function displayDirectory(data) {
         itemDiv.innerHTML = `
             <span class="material-icons">${item.type === 'directory' ? 'folder' : 'description'}</span>
             <div class="file-info">
-                <div class="file-name">${item.name}</div>
+                <div class="file-name">${webopsEscape(item.name)}</div>
                 ${item.type === 'file' ? `<div class="file-size">${formatFileSize(item.size)}</div>` : ''}
             </div>
         `;
@@ -242,8 +242,21 @@ function closeFileViewer() {
 
 function updateBreadcrumb(path) {
     const breadcrumb = document.getElementById('breadcrumb');
-    breadcrumb.innerHTML = '<span data-on-click="navigateTo(\'\')" class="breadcrumb-item">Root</span>';
+    breadcrumb.textContent = '';
 
+    // Built with DOM APIs: file names come from the repository and are untrusted.
+    const addCrumb = (label, target) => {
+        const crumb = document.createElement('span');
+        crumb.className = 'breadcrumb-item';
+        crumb.setAttribute('role', 'button');
+        crumb.tabIndex = 0;
+        crumb.dataset.path = target;
+        crumb.setAttribute('data-on-click', 'navigateTo(this.dataset.path)');
+        crumb.textContent = label;
+        breadcrumb.appendChild(crumb);
+    };
+
+    addCrumb('Root', '');
     if (!path) return;
 
     const parts = path.split('/').filter(p => p);
@@ -251,10 +264,11 @@ function updateBreadcrumb(path) {
 
     parts.forEach((part, index) => {
         currentPath += (index > 0 ? '/' : '') + part;
-        const pathCopy = currentPath;
-
-        breadcrumb.innerHTML += '<span class="breadcrumb-separator">/</span>';
-        breadcrumb.innerHTML += `<span data-on-click="navigateTo('${pathCopy}')" class="breadcrumb-item">${part}</span>`;
+        const separator = document.createElement('span');
+        separator.className = 'breadcrumb-separator';
+        separator.textContent = '/';
+        breadcrumb.appendChild(separator);
+        addCrumb(part, currentPath);
     });
 }
 
@@ -349,10 +363,10 @@ function displayValidationResults(data) {
         item.innerHTML = `
             <span class="material-icons">${icon}</span>
             <div class="validation-message">
-                <div class="webops-s-81595a9">${result.message}</div>
+                <div class="webops-s-81595a9">${webopsEscape(result.message)}</div>
                 ${result.details && result.details.suggestion ?
                     `<div class="webops-s-e1394aa">
-                        💡 ${result.details.suggestion}
+                        💡 ${webopsEscape(result.details.suggestion)}
                     </div>` : ''
                 }
             </div>
@@ -423,7 +437,7 @@ function showEnvWizardModal(data) {
                 <input type="${variable.is_secret ? 'password' : 'text'}"
                        class="form-input env-wizard-input"
                        data-key="${variable.key}"
-                       value="${value}"
+                       value="${webopsEscape(value)}"
                        placeholder="${variable.suggested_value}"
                        ${variable.required ? 'required' : ''}>
             </div>

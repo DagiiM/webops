@@ -20,4 +20,20 @@
         var m = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
         return m ? decodeURIComponent(m[1]) : '';
     };
+    /** Escape text for safe use inside an HTML string (innerHTML templates). */
+    window.webopsEscape = function (value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+    /** Same-origin http(s) or relative URL, else '#': blocks javascript:/data: navigation from server or user data. */
+    window.webopsSafeUrl = function (url) {
+        try {
+            var u = new URL(String(url), window.location.origin);
+            if ((u.protocol === 'http:' || u.protocol === 'https:') && u.origin === window.location.origin) {
+                return u.pathname + u.search + u.hash;
+            }
+        } catch (e) { /* fall through */ }
+        return '#';
+    };
 })();

@@ -15,7 +15,7 @@
                 Manage webhook endpoints for deployment notifications
             </p>
         </div>
-        <button data-on-click="showCreateModal()"
+        <button type="button" data-on-click="showCreateModal()"
                 class="webops-s-4cdeb7a">
             <span class="material-icons webops-s-ec5c425">add</span>
             Add Webhook
@@ -53,15 +53,15 @@
                             </p>
                         </div>
                         <div class="webops-s-c055fe4">
-                            <button data-on-click="testWebhook('{{ webhook.id }}')"
+                            <button aria-label="Test webhook" type="button" data-on-click="testWebhook('{{ webhook.id }}')"
                                     class="webops-s-2cbe4cc">
                                 <span class="material-icons webops-s-7da4e82">send</span>
                             </button>
-                            <button data-on-click="editWebhook('{{ webhook.id }}')"
+                            <button aria-label="Edit webhook" type="button" data-on-click="editWebhook('{{ webhook.id }}')"
                                     class="webops-s-2cbe4cc">
                                 <span class="material-icons webops-s-7da4e82">edit</span>
                             </button>
-                            <button data-on-click="deleteWebhook('{{ webhook.id }}')"
+                            <button aria-label="Delete webhook" type="button" data-on-click="deleteWebhook('{{ webhook.id }}')"
                                     class="webops-s-6bbba10">
                                 <span class="material-icons webops-s-7da4e82">delete</span>
                             </button>

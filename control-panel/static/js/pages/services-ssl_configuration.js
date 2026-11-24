@@ -53,7 +53,7 @@ function showNotification(message, type) {
     notification.className = `webops-notification webops-notification-${type}`;
     notification.innerHTML = `
         <span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span>
-        <span>${message}</span>
+        <span>${webopsEscape(message)}</span>
     `;
 
     // Add to page

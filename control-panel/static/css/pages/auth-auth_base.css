@@ -14,7 +14,7 @@
     max-width: 420px;
     padding: 2rem;
     position: relative;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
 }
 
 .webops-theme-switcher {
@@ -283,7 +283,7 @@
 }
 
 .auth-alert-info {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-left: 4px solid var(--webops-color-info);
     color: var(--webops-color-info);
 }

@@ -67,7 +67,7 @@
             <span class="material-icons webops-s-7bfd575">key</span>
             Token Value
         </h3>
-        <button data-on-click="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
+        <button type="button" data-on-click="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
             <span class="material-icons webops-s-7da4e82">content_copy</span>
             Copy Token
         </button>
@@ -76,11 +76,11 @@
         <div class="webops-token-display">
             <code id="token-value" class="webops-token-display__value webops-token-display__value--hidden">{{ token.token }}</code>
             <div class="webops-token-display__controls">
-                <button data-on-click="toggleToken()" class="webops-btn webops-btn-sm webops-token-display__toggle" id="toggle-btn">
+                <button type="button" data-on-click="toggleToken()" class="webops-btn webops-btn-sm webops-token-display__toggle" id="toggle-btn">
                     <span class="material-icons webops-s-7da4e82">visibility</span>
                     Show Token
                 </button>
-                <button data-on-click="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
+                <button type="button" data-on-click="copyToken()" class="webops-btn webops-btn-sm webops-btn-primary">
                     <span class="material-icons webops-s-7da4e82">content_copy</span>
                     Copy
                 </button>
@@ -169,7 +169,7 @@
                 <h4 class="webops-code-example__header">cURL</h4>
                 <pre class="webops-code-example__code"><code>curl -H "Authorization: Bearer {{ token.token }}" \
      http://{{ request.get_host }}/api/deployments/</code></pre>
-                <button data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                <button type="button" data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
                     <span class="material-icons">content_copy</span>
                     Copy
                 </button>
@@ -190,7 +190,7 @@ response = requests.get(
 
 deployments = response.json()
 print(deployments)</code></pre>
-                <button data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                <button type="button" data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
                     <span class="material-icons">content_copy</span>
                     Copy
                 </button>
@@ -206,7 +206,7 @@ print(deployments)</code></pre>
 .then(response => response.json())
 .then(deployments => console.log(deployments))
 .catch(error => console.error('Error:', error));</code></pre>
-                <button data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
+                <button type="button" data-on-click="copyCode(this.previousElementSibling.querySelector('code').textContent)" class="webops-code-example__copy-button">
                     <span class="material-icons">content_copy</span>
                     Copy
                 </button>

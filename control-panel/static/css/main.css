@@ -391,7 +391,7 @@ select:focus {
 /* WebOps Stats Grid */
 .webops-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);
 }
@@ -448,7 +448,7 @@ select:focus {
 /* WebOps Responsive Breakpoints */
 @media (max-width: 1024px) {
     .webops-stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
     }
 
     .webops-page-header {
@@ -496,7 +496,7 @@ select:focus {
     max-width: 800px;
     margin: 0 auto;
     position: relative;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
 }
 
 .webops-oauth-config__header {
@@ -969,7 +969,7 @@ margin-bottom: var(--webops-space-1);
     width: 100%;
     max-width: 420px;
     position: relative;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
 }
 
 .login-page .webops-app-background {
@@ -2041,23 +2041,23 @@ input:-internal-autofill-selected{
 }
 
 .webops-badge-mysql {
-    background: rgba(0, 122, 204, 0.1);
-    color: #007acc;
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
 }
 
 .webops-badge-mongodb {
-    background: rgba(76, 175, 80, 0.1);
-    color: #4caf50;
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
 }
 
 .webops-badge-sqlite {
-    background: rgba(0, 188, 212, 0.1);
-    color: #00bcd4;
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
 }
 
 .webops-badge-redis {
-    background: rgba(244, 67, 54, 0.1);
-    color: #f44336;
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-primary);
 }
 
 /* WebOps Text Ellipsis Utilities */
@@ -2666,7 +2666,7 @@ input:-internal-autofill-selected{
     visibility: hidden;
     transform: none;
     transition: none;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
     padding: var(--webops-space-1-5);
 }
 
@@ -2831,7 +2831,7 @@ input:-internal-autofill-selected{
     visibility: hidden;
     transform: none;
     transition: none;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
     padding: var(--webops-space-3);
 }
 
@@ -3455,7 +3455,7 @@ input:-internal-autofill-selected{
     left: 0;
     height: 100vh;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
     transition: none;
     transform: translateX(0);
 }
@@ -3795,7 +3795,7 @@ input:-internal-autofill-selected{
 /* Responsive adjustments for theme previews */
 @media (max-width: 768px) {
     .webops-theme-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
         gap: var(--webops-space-3);
     }
     
@@ -3909,9 +3909,9 @@ input:-internal-autofill-selected{
     
     .webops-header {
         padding: var(--webops-space-1-5) var(--webops-space-2);
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--webops-space-2);
-        text-align: center;
     }
     
     .webops-card {
@@ -3960,7 +3960,7 @@ input:-internal-autofill-selected{
     width: 100%;
     max-width: 420px;
     position: relative;
-    z-index: 10;
+    z-index: var(--webops-z-docked);
 }
 
 .login-page .webops-app-background {
@@ -4997,7 +4997,7 @@ text-align: center;
 /* Radio Toggle Group */
 .webops-toggle-group--radio {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
     gap: var(--webops-space-2);
 }
 

@@ -22,11 +22,11 @@
                 ← Back
             </a>
             {% if env_example_exists %}
-            <button id="generateEnvBtn" class="webops-btn webops-btn-success">
+            <button type="button" id="generateEnvBtn" class="webops-btn webops-btn-success">
                 Generate from .env.example
             </button>
             {% endif %}
-            <button id="addVariableBtn" class="webops-btn webops-btn-primary">
+            <button type="button" id="addVariableBtn" class="webops-btn webops-btn-primary">
                 + Add Variable
             </button>
         </div>
@@ -106,10 +106,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="webops-btn webops-btn-sm webops-btn-secondary edit-var" title="Edit">
+                        <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary edit-var" title="Edit">
                             <span class="material-icons">edit</span>
                         </button>
-                        <button class="webops-btn webops-btn-sm webops-btn-danger delete-var" title="Delete">
+                        <button type="button" class="webops-btn webops-btn-sm webops-btn-danger delete-var" title="Delete">
                             <span class="material-icons">delete</span>
                         </button>
                     </td>
@@ -123,7 +123,7 @@
         <span class="material-icons webops-empty-state-icon webops-s-5d5c186">settings</span>
         <h3 class="webops-empty-state-title">No environment variables yet</h3>
         <p class="webops-empty-state-description">Add your first environment variable to configure your deployment</p>
-        <button data-on-click="openVariableModal()" class="webops-btn webops-btn-primary">
+        <button type="button" data-on-click="openVariableModal()" class="webops-btn webops-btn-primary">
             <span class="material-icons">add</span>
             Add Variable
         </button>
@@ -136,7 +136,7 @@
     <div class="webops-modal-content">
         <div class="webops-modal-header">
             <h2 class="webops-modal-title" id="modalTitle">Add Variable</h2>
-            <button class="webops-modal-close" id="closeModal">×</button>
+            <button type="button" class="webops-modal-close" id="closeModal">×</button>
         </div>
         <form id="variableForm">
             <div class="form-group">
@@ -165,7 +165,7 @@
     <div class="webops-modal-content webops-s-90eb10a">
         <div class="webops-modal-header">
             <h2 class="webops-modal-title">Generate from .env.example</h2>
-            <button class="webops-modal-close" id="closeWizard">×</button>
+            <button type="button" class="webops-modal-close" id="closeWizard">×</button>
         </div>
         <div id="wizardContent">
             <p  class="webops-text-muted webops-s-65f9d5a">

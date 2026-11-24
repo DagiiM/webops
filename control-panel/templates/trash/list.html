@@ -76,15 +76,15 @@
             <span>items selected</span>
         </div>
         <div class="webops-trash-bulk-buttons">
-            <button class="webops-btn webops-btn-success" data-on-click="bulkRestore()">
+            <button type="button" class="webops-btn webops-btn-success" data-on-click="bulkRestore()">
                 <span class="material-icons">restore</span>
                 Restore Selected
             </button>
-            <button class="webops-btn webops-btn-danger" data-on-click="bulkDelete()">
+            <button type="button" class="webops-btn webops-btn-danger" data-on-click="bulkDelete()">
                 <span class="material-icons">delete_forever</span>
                 Delete Selected
             </button>
-            <button class="webops-btn webops-btn-secondary" data-on-click="clearSelection()">
+            <button type="button" class="webops-btn webops-btn-secondary" data-on-click="clearSelection()">
                 <span class="material-icons">clear</span>
                 Clear Selection
             </button>
@@ -151,13 +151,13 @@
 
             <!-- Actions -->
             <div class="webops-trash-item-actions">
-                <button class="webops-btn webops-btn-success webops-btn-sm"
+                <button type="button" class="webops-btn webops-btn-success webops-btn-sm"
                         data-on-click="restoreItem({{ item.id }}, event)"
                         title="Restore this item">
                     <span class="material-icons">restore</span>
                     Restore
                 </button>
-                <button class="webops-btn webops-btn-danger webops-btn-sm"
+                <button type="button" class="webops-btn webops-btn-danger webops-btn-sm"
                         data-on-click="deleteItem({{ item.id }}, event)"
                         title="Permanently delete this item">
                     <span class="material-icons">delete_forever</span>

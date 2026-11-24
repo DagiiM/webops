@@ -102,9 +102,9 @@
 }
 
 .webops-method-badge--get {
-    background: rgba(0, 170, 255, 0.2);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-primary);
-    border: 1px solid rgba(0, 170, 255, 0.3);
+    border: 1px solid var(--webops-color-primary-alpha-30);
 }
 
 .webops-method-badge--post {

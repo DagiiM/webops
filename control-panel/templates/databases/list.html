@@ -11,7 +11,7 @@
         <h2 class="webops-page-title">Databases</h2>
         <p class="webops-text-muted">Manage databases and credentials for multiple database engines</p>
     </div>
-    <button data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
+    <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
         <span class="material-icons">add</span>
         Create Database
     </button>
@@ -109,7 +109,7 @@
                                         <span class="material-icons webops-icon webops-icon--small webops-icon--align-middle">warning</span>
                                         Missing: {{ dep_status.missing|length }}
                                     </span>
-                                    <button class="webops-btn webops-btn-xs webops-btn-primary install-deps-btn webops-ml-sm" 
+                                    <button type="button" class="webops-btn webops-btn-xs webops-btn-primary install-deps-btn webops-ml-sm" 
                                             data-db-type="{{ db.db_type }}" 
                                             data-db-id="{{ db.pk }}">
                                         Install
@@ -135,7 +135,7 @@
         <span class="material-icons webops-empty-state-icon webops-icon--xl webops-text-muted webops-opacity-30">storage</span>
         <h3 class="webops-empty-state-title">No databases yet</h3>
         <p class="webops-empty-state-description">Create your first database to get started</p>
-        <button data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
+        <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
             <span class="material-icons webops-icon">add</span>
             Create Database
         </button>
@@ -148,7 +148,7 @@
     <div class="webops-modal-content">
         <div class="webops-modal-header">
             <h3 class="webops-h3">Create Database</h3>
-            <button class="webops-modal-close" data-on-click="closeCreateModal()">
+            <button aria-label="Close dialog" type="button" class="webops-modal-close" data-on-click="closeCreateModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>
@@ -249,6 +249,7 @@
                             id="password_postgresql"
                             name="password"
                             class="webops-input"
+                   autocomplete="new-password"
                             placeholder="Auto-generated if left blank"
                         >
                         <small class="webops-input-help">
@@ -316,6 +317,7 @@
                             id="password_mysql"
                             name="password"
                             class="webops-input"
+                   autocomplete="new-password"
                             placeholder="Auto-generated if left blank"
                         >
                         <small class="webops-input-help">
@@ -380,6 +382,7 @@
                             id="password_mongodb"
                             name="password"
                             class="webops-input"
+                   autocomplete="new-password"
                             placeholder="Auto-generated if left blank"
                         >
                     </div>
@@ -449,6 +452,7 @@
                             id="password_redis"
                             name="password"
                             class="webops-input"
+                   autocomplete="new-password"
                             placeholder="Redis password (if required)"
                         >
                     </div>

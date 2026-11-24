@@ -215,7 +215,7 @@ function openSSLModal(deploymentId, deploymentName) {
                                 <span class="material-icons webops-alert-icon">warning</span>
                                 <div class="webops-alert-text">
                                     <div class="webops-alert-title">Certificate Invalid</div>
-                                    <div class="webops-alert-description">${data.message}</div>
+                                    <div class="webops-alert-description">${webopsEscape(data.message)}</div>
                                 </div>
                             </div>
                         </div>
@@ -310,7 +310,7 @@ function saveSSLConfig() {
                         <span class="material-icons webops-alert-icon">check_circle</span>
                         <div class="webops-alert-text">
                             <div class="webops-alert-title">Configuration Saved</div>
-                            <div class="webops-alert-description">${data.message}</div>
+                            <div class="webops-alert-description">${webopsEscape(data.message)}</div>
                         </div>
                     </div>
                 </div>
@@ -329,7 +329,7 @@ function saveSSLConfig() {
                         <span class="material-icons webops-alert-icon">error</span>
                         <div class="webops-alert-text">
                             <div class="webops-alert-title">Configuration Failed</div>
-                            <div class="webops-alert-description">${data.message || 'Unknown error occurred'}</div>
+                            <div class="webops-alert-description">${webopsEscape(data.message || 'Unknown error occurred')}</div>
                         </div>
                     </div>
                 </div>

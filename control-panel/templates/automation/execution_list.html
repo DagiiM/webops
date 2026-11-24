@@ -235,10 +235,10 @@
 <div class="webops-pagination-container webops-mt-lg">
     <div class="webops-pagination">
         {% if page_obj.has_previous %}
-            <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+            <a aria-label="First page" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
                 <span class="material-icons">first_page</span>
             </a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+            <a aria-label="Previous page" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
                 <span class="material-icons">chevron_left</span>
             </a>
         {% endif %}
@@ -248,10 +248,10 @@
         </span>
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+            <a aria-label="Next page" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
                 <span class="material-icons">chevron_right</span>
             </a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
+            <a aria-label="Last page" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.trigger_type %}&trigger_type={{ request.GET.trigger_type }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" class="webops-pagination-link">
                 <span class="material-icons">last_page</span>
             </a>
         {% endif %}

@@ -286,7 +286,7 @@
 .webops-left-6 { left: var(--webops-space-6) !important; }
 
 .webops-z-0 { z-index: 0 !important; }
-.webops-z-10 { z-index: 10 !important; }
+.webops-z-10 { z-index: var(--webops-z-docked) !important; }
 .webops-z-20 { z-index: 20 !important; }
 .webops-z-30 { z-index: 30 !important; }
 .webops-z-40 { z-index: 40 !important; }

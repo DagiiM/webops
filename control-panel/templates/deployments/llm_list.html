@@ -72,7 +72,7 @@
                     </td>
                     <td>
                         {% if deployment.port and deployment.status == 'running' %}
-                            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-text-primary">
+                            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-text-primary">
                                 :{{ deployment.port }}
                             </a>
                         {% else %}

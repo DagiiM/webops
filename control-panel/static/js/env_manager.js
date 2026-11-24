@@ -237,7 +237,7 @@ async function loadWizardData() {
             wizardContent.innerHTML = `
                 <div class="alert alert-warning">
                     <strong>Wizard not available.</strong><br>
-                    ${data.error || 'No .env.example file found in repository.'}
+                    ${webopsEscape(data.error || 'No .env.example file found in repository.')}
                 </div>
             `;
             return;
@@ -250,7 +250,7 @@ async function loadWizardData() {
         wizardContent.innerHTML = `
             <div class="alert alert-danger">
                 <strong>Error loading wizard.</strong><br>
-                ${error.message}
+                ${webopsEscape(error.message)}
             </div>
         `;
     }

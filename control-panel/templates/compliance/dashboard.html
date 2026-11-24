@@ -9,10 +9,10 @@
     <div class="webops-page-header">
         <h2 class="webops-h1">Compliance & Security Dashboard</h2>
         <div class="webops-header-actions">
-            <button class="webops-btn webops-btn-primary" data-on-click="triggerScan()">
+            <button type="button" class="webops-btn webops-btn-primary" data-on-click="triggerScan()">
                 <i class="fas fa-shield-alt"></i> Run Security Scan
             </button>
-            <button class="webops-btn webops-btn-secondary" data-on-click="generateReport()">
+            <button type="button" class="webops-btn webops-btn-secondary" data-on-click="generateReport()">
                 <i class="fas fa-file-alt"></i> Generate Report
             </button>
         </div>
@@ -145,7 +145,7 @@
                     <p>{{ alert.description|truncatewords:20 }}</p>
                     <div class="webops-alert-actions">
                         <a href="{% url 'compliance:alert_detail' alert.alert_id %}" class="webops-btn webops-btn-sm webops-btn-outline">View</a>
-                        <button class="webops-btn webops-btn-sm webops-btn-success" data-on-click="resolveAlert('{{ alert.alert_id }}')">Resolve</button>
+                        <button type="button" class="webops-btn webops-btn-sm webops-btn-success" data-on-click="resolveAlert('{{ alert.alert_id }}')">Resolve</button>
                     </div>
                 </div>
                 {% empty %}

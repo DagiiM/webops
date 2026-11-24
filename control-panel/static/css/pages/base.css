@@ -19,7 +19,7 @@
     bottom: 0;
     overflow-y: auto;
     transition: none;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
 }
 
 .webops-sidebar-header {
@@ -206,7 +206,7 @@
     visibility: hidden;
     transform: none;
     transition: none;
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
 }
 
 .webops-user-dropdown.active {

@@ -1139,7 +1139,7 @@ window.webopsFillModel = function(modelId, deploymentName) {
         notification.setAttribute('aria-live', 'polite');
         notification.innerHTML = `
             <span class="material-icons">check_circle</span>
-            <span>Selected model: ${modelId}</span>
+            <span>Selected model: ${webopsEscape(modelId)}</span>
         `;
         
         document.body.appendChild(notification);

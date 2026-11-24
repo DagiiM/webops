@@ -314,7 +314,7 @@
 /* Stats Grid */
 .webops-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: var(--webops-space-4);
   margin-bottom: var(--webops-space-6);
 }
@@ -1453,4 +1453,56 @@ canvas { height: auto; }
 a.webops-btn:not([class*="webops-btn-"]):not([class*="btn-outline"]) {
   color: var(--webops-color-text-primary);
   text-decoration: none;
+}
+
+/* Phone header: one calm row. The page title is repeated by the heading right below
+   the header, so it stays in the DOM as the page's h1 but is visually hidden. */
+@media (max-width: 767px) {
+  html header.webops-header {
+    height: auto;
+    min-height: var(--webops-header-height-mobile);
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  html .webops-header__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  html .webops-header__actions {
+    flex: 0 0 auto;
+    margin-left: auto;
+    gap: var(--webops-space-1);
+  }
+}
+
+/* Small phones: only two controls in the header, the menu button and the user menu. */
+@media (max-width: 480px) {
+  html header.webops-header .webops-theme-switcher,
+  html header.webops-header .webops-notifications-center__toggle,
+  html .webops-user-menu__name,
+  html .webops-user-menu__arrow {
+    display: none;
+  }
+}
+
+/* Row headers in key/value tables (th scope="row") read like the old bold label cells. */
+.webops-table tbody th[scope="row"] {
+  text-align: start;
+  font-weight: var(--webops-font-weight-semibold, 600);
+}
+
+/* Page-header action groups wrap instead of clipping on narrow screens. */
+.webops-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--webops-space-2);
 }

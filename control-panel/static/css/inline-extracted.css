@@ -32,20 +32,20 @@ html .webops-s-030c05e.webops-s-030c05e {
 html .webops-s-0342b16.webops-s-0342b16 {
     margin-top: var(--webops-space-3);
     padding: var(--webops-space-3);
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--webops-color-info);
 }
 
 html .webops-s-0468a6a.webops-s-0468a6a {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     border-left: 3px solid var(--webops-color-info);
 }
 
 html .webops-s-04a6aed.webops-s-04a6aed {
     display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+    grid-template-columns: repeat(auto-fit,minmax(min(200px, 100%),1fr));
     gap: 12px;
 }
 
@@ -96,7 +96,7 @@ html .webops-s-0d6541c.webops-s-0d6541c {
 }
 
 html .webops-s-0e38164.webops-s-0e38164 {
-    background: rgba(0, 170, 255, 0.05);
+    background: var(--webops-color-primary-alpha-05);
     border-left: 3px solid var(--webops-color-info);
     border-radius: var(--webops-radius-md);
 }
@@ -308,7 +308,7 @@ html .webops-s-2d11e92.webops-s-2d11e92 {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: var(--webops-z-dropdown);
 }
 
 html .webops-s-2dd555c.webops-s-2dd555c {
@@ -350,7 +350,7 @@ html .webops-s-3161c30.webops-s-3161c30 {
 }
 
 html .webops-s-31e84b7.webops-s-31e84b7 {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     color: var(--webops-color-info);
 }
 
@@ -755,7 +755,7 @@ html .webops-s-66c0dd6.webops-s-66c0dd6 {
 }
 
 html .webops-s-66e229c.webops-s-66e229c {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
 }
 
 html .webops-s-66fb080.webops-s-66fb080 {
@@ -1182,7 +1182,7 @@ html .webops-s-8d25eff.webops-s-8d25eff {
 }
 
 html .webops-s-8d6285b.webops-s-8d6285b {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-left: 4px solid var(--webops-color-info);
     border-radius: var(--webops-radius-md);
 }
@@ -1318,7 +1318,7 @@ html .webops-s-9d68033.webops-s-9d68033 {
 
 html .webops-s-9dbd8e6.webops-s-9dbd8e6 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
     gap: var(--webops-space-3);
 }
 
@@ -1736,7 +1736,7 @@ html .webops-s-cf9c173.webops-s-cf9c173 {
 }
 
 html .webops-s-d0963fe.webops-s-d0963fe {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
 }
 
@@ -1842,7 +1842,7 @@ html .webops-s-da604c8.webops-s-da604c8 {
 }
 
 html .webops-s-dac9fb0.webops-s-dac9fb0 {
-    background: rgba(0, 170, 255, 0.1);
+    background: var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--webops-color-info);
 }
@@ -1925,7 +1925,7 @@ html .webops-s-e63c09e.webops-s-e63c09e {
 }
 
 html .webops-s-e6b68c6.webops-s-e6b68c6 {
-    background: rgba(0, 170, 255, 0.2);
+    background: var(--webops-color-primary-alpha-20);
     color: var(--webops-color-info);
     font-size: 11px;
 }
@@ -2026,8 +2026,8 @@ html .webops-s-f47f2b6.webops-s-f47f2b6 {
 }
 
 html .webops-s-f49f0e6.webops-s-f49f0e6 {
-    background: rgba(0, 170, 255, 0.1);
-    border: 1px solid rgba(0, 170, 255, 0.3);
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);

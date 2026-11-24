@@ -68,7 +68,7 @@
                         text: n.action_text || 'View',
                         handler: () => {
                             if (n.action_url) {
-                                window.location.href = n.action_url;
+                                window.location.href = window.webopsSafeUrl(n.action_url);
                             }
                         }
                     }] : [],
@@ -224,7 +224,7 @@
                                 text: n.action_text || 'View',
                                 handler: () => {
                                     if (n.action_url) {
-                                        window.location.href = n.action_url;
+                                        window.location.href = window.webopsSafeUrl(n.action_url);
                                     }
                                 }
                             }] : [],

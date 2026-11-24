@@ -139,8 +139,11 @@ def workflow_builder(request, workflow_id):
 
     context = {
         'workflow': workflow,
-        'nodes': json.dumps(nodes_data),
-        'connections': json.dumps(connections_data),
+        'workflow_data': {
+            'workflow_id': workflow.id,
+            'nodes': nodes_data,
+            'connections': connections_data,
+        },
         'node_types': WorkflowNode.NodeType.choices,
     }
 

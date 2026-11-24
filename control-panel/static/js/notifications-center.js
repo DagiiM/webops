@@ -431,7 +431,7 @@ class NotificationsCenter {
         if (notification.actions && notification.actions.length > 0) {
             actionsHtml = '<div class="webops-notifications-center__item-actions">';
             notification.actions.forEach(action => {
-                actionsHtml += `<button class="webops-notifications-center__item-action" data-action="${action.id}">${action.text}</button>`;
+                actionsHtml += `<button class="webops-notifications-center__item-action" data-action="${webopsEscape(action.id)}">${webopsEscape(action.text)}</button>`;
             });
             actionsHtml += '</div>';
             
@@ -457,8 +457,8 @@ class NotificationsCenter {
                     ${iconHtml}
                 </div>
                 <div class="webops-notifications-center__item-content">
-                    <div class="webops-notifications-center__item-title">${notification.title}</div>
-                    <div class="webops-notifications-center__item-message">${notification.message}</div>
+                    <div class="webops-notifications-center__item-title">${webopsEscape(notification.title)}</div>
+                    <div class="webops-notifications-center__item-message">${webopsEscape(notification.message)}</div>
                 </div>
                 <div class="webops-notifications-center__item-time">${timeAgo}</div>
             </div>
