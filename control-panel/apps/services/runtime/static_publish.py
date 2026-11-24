@@ -69,4 +69,7 @@ def download_static_repository(deployment, destination):
             if time.monotonic() > limit or len(chunks) + len(chunk) > MAX_ARCHIVE:
                 raise ValueError("GitHub archive exceeded time or size limit")
             chunks.extend(chunk)
+    # Re-run the safety rules on the exact bytes about to be published (the branch may have moved since review).
+    from apps.deployments.services.safety_review import assert_publishable
+    assert_publishable(bytes(chunks), deployment)
     extract_static_archive(chunks, destination)

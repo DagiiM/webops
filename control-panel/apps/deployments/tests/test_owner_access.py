@@ -55,7 +55,10 @@ class OwnerAccessTests(TestCase):
             self.assertEqual(self.client.post(reverse("deployments:"+name,args=[d.pk])).status_code,404,name)
 
     def test_static_publication_queues_for_nonstaff(self):
-        with patch("apps.deployments.views.application_deployment.queue_deployment") as queue:
+        clean=io.BytesIO()
+        with zipfile.ZipFile(clean,"w") as archive: archive.writestr("repo-main/index.html","<h1>hello</h1>")
+        with patch("apps.deployments.services.safety_review.fetch_archive",return_value=clean.getvalue()), \
+             patch("apps.deployments.views.application_deployment.queue_deployment") as queue:
             r=self.client.post(reverse("deployments:deployment_create"),{"name":"static-owner","repo_url":"https://github.com/example/repo","static_only":"on"})
             self.assertEqual(r.status_code,302)
             d=ApplicationDeployment.objects.get(name="static-owner")

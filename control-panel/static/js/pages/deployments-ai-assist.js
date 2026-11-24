@@ -32,10 +32,22 @@
 
   function render(data) {
     var a = data.analysis, nodes = [];
+    if (data.safety) {
+      var sf = data.safety, dec = sf.decision;
+      var banner = el('p', 'ui-assist__verdict ui-assist__verdict--' + (dec === 'auto_approved' ? 'can_deploy' : dec === 'blocked' ? 'blocked' : 'request_only'));
+      banner.appendChild(el('strong', null, dec === 'auto_approved' ? 'Safety review passed. ' : dec === 'blocked' ? 'Safety review blocked this. ' : 'Safety review: an operator must approve. '));
+      banner.appendChild(document.createTextNode(dec === 'auto_approved' ? 'This site would be published automatically.' : dec === 'blocked' ? 'It cannot be deployed until these are fixed.' : 'It will wait for approval.'));
+      nodes.push(banner);
+      var shown = (sf.findings || []).filter(function (f) { return f.severity === 'block' || f.severity === 'review' || f.severity === 'warn'; });
+      if (shown.length) nodes.push(list(shown.map(function (f) { return f.severity.toUpperCase() + ': ' + f.title + (f.detail ? ' - ' + f.detail : ''); })));
+      if (sf.ai && sf.ai.status === 'ran' && sf.ai.summary) nodes.push(el('p', 'webops-help-text', 'AI second opinion: ' + sf.ai.summary));
+    }
+
     var head = el('p', 'ui-assist__verdict ui-assist__verdict--' + a.verdict);
     head.appendChild(el('strong', null, a.verdict === 'can_deploy' ? 'Can be deployed here. ' : a.verdict === 'request_only' ? 'Request only on this server. ' : 'Cannot be deployed. '));
     head.appendChild(document.createTextNode(a.reason));
-    nodes.push(head);
+
+    if (!(data.safety && data.safety.decision === 'blocked')) nodes.push(head);
 
     var facts = [];
     facts.push('Detected: ' + a.kind + (a.details && a.details.frameworks && a.details.frameworks.length ? ' (' + a.details.frameworks.join(', ') + ')' : ''));

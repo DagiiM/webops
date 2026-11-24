@@ -266,6 +266,18 @@ def assist(user, repo_url, branch="", *, provider=None):
     facts = fetch_repo(parsed["owner"], parsed["repo"], branch or parsed.get("branch") or "", token)
     analysis = analyse(parsed["owner"], parsed["repo"], facts)
     notices, plan = [], None
+    safety = None
+    try:
+        from . import safety_review as sr
+        review_provider = provider
+        if provider is not None and provider.kind == provider.EXTERNAL and facts["private"] and not provider.allow_private_repos:
+            review_provider = None
+        if analysis["static_candidate"] and not facts["private"]:
+            safety = sr.review_static(parsed["owner"], parsed["repo"], facts["ref"], review_provider)
+        else:
+            safety = sr.review_executable(parsed["owner"], parsed["repo"], facts, review_provider)
+    except sr.ReviewError as exc:
+        notices.append("The safety review could not be completed: %s" % exc)
     if provider is None:
         notices.append("No AI provider is set up, so this is the automatic analysis only. Add one under AI providers for a written plan.")
     else:
@@ -275,5 +287,5 @@ def assist(user, repo_url, branch="", *, provider=None):
                 notices.append("%d step(s) from the model were removed because they looked like shell commands." % plan["filtered"])
         except AssistError as exc:
             notices.append(str(exc))
-    return {"analysis": analysis, "plan": plan, "notices": notices,
+    return {"analysis": analysis, "plan": plan, "notices": notices, "safety": safety,
             "provider": {"name": provider.name, "kind": provider.kind} if provider and plan else None}

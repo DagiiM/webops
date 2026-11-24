@@ -61,6 +61,7 @@ class ApplicationDeployment(BaseDeployment):
 
     # Auto-detection fields (Railway-style)
     static_only = models.BooleanField(default=False, help_text='Publish static assets without executing repository code')
+    safety_report = models.JSONField(default=dict, blank=True, help_text='Result of the pre-deployment safety review and the decision taken')
     auto_detected = models.BooleanField(default=False, help_text='Project type auto-detected')
     detected_framework = models.CharField(max_length=100, blank=True, help_text='Detected framework (e.g., nextjs, fastapi)')
     detected_version = models.CharField(max_length=50, blank=True, help_text='Detected language/framework version')

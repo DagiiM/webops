@@ -82,6 +82,31 @@ def _create_form_context(request, errors=None, values=None):
     }
 
 
+
+def _safety_review(user, parsed, branch, static_only):
+    """Run the pre-deployment safety review. Returns a report dict, or None for an advisory review that could not run.
+
+    Static requests fail closed: if the review cannot be completed, the caller must not deploy.
+    """
+    from apps.api.models import AIProvider
+    from ..services import safety_review as sr
+    from ..services.ai_assist import AssistError, fetch_repo
+    provider = AIProvider.objects.filter(user=user, is_default=True).first()
+    if static_only:
+        return sr.review_static(parsed['owner'], parsed['repo'], branch or 'main', provider)
+    if parsed.get('ssh'):
+        return None
+    try:
+        from apps.core.integrations.services import GitHubIntegrationService
+        token = GitHubIntegrationService().get_access_token(user)
+        facts = fetch_repo(parsed['owner'], parsed['repo'], branch or '', token)
+    except (AssistError, Exception):
+        return None
+    if provider is not None and provider.kind == provider.EXTERNAL and facts['private'] and not provider.allow_private_repos:
+        provider = None            # never send a private repository to a provider that was not allowed it
+    return sr.review_executable(parsed['owner'], parsed['repo'], facts, provider)
+
+
 @login_required
 def deployment_create(request):
     """Create new deployment and trigger background task."""
@@ -105,10 +130,10 @@ def deployment_create(request):
         values = {'name': name, 'repo_url': repo_url, 'branch': branch, 'domain': domain,
                   'static_only': request.POST.get('static_only') == 'on', 'use_docker': use_docker}
 
-        def reject(message):
+        def reject(message, more=None):
             """Show the form again with what was typed and a message that stays on screen."""
             return render(request, 'deployments/create.html',
-                          _create_form_context(request, errors=[message], values=values), status=400)
+                          _create_form_context(request, errors=[message] + list(more or []), values=values), status=400)
 
         # Validation
         if not repo_url:
@@ -151,16 +176,37 @@ def deployment_create(request):
             return reject("Static publication requires a public HTTPS GitHub repository without Docker.")
         if requires_review(request.user) and ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False).count() >= 5:
             return reject("Preview limit: five active deployment requests or applications.")
+        # Safety review: rules decide, the AI can only add concerns. A static site whose review passes is
+        # completed without a person; anything else is blocked or waits for an operator.
+        from ..services import safety_review as sr
+        from ..services.ai_assist import AssistError
+        try:
+            report = _safety_review(request.user, parsed, branch, static_only)
+        except (sr.ReviewError, AssistError) as exc:
+            if static_only:
+                return reject(f"The safety review could not be completed, so nothing was deployed. {exc} Try again in a moment.")
+            report = None
+        if report and report['decision'] == 'blocked':
+            return reject("The safety review blocked this deployment.",
+                          [f"{f['title']}: {f['detail']}" for f in report['findings'] if f['severity'] == 'block'])
+
+        auto = bool(report) and static_only and report['decision'] == 'auto_approved'
+        if report:
+            report['approved_by'] = 'automatic review' if auto else ''
         # Create deployment
         try:
+            needs_person = (requires_review(request.user) or restricted()) and not auto
+            if static_only and report and report['decision'] == 'needs_operator':
+                needs_person = True
             deployment = ApplicationDeployment.objects.create(
                 name=sanitized_name,
                 repo_url=repo_url,
                 branch=branch or 'main',
                 domain=domain,
                 deployed_by=request.user,
-                status=BaseDeployment.Status.REQUESTED if (requires_review(request.user) or restricted()) and not static_only else BaseDeployment.Status.PENDING,
+                status=BaseDeployment.Status.REQUESTED if needs_person else BaseDeployment.Status.PENDING,
                 static_only=static_only,
+                safety_report=report or {},
                 use_docker=use_docker,
                 auto_generate_dockerfile=auto_generate_dockerfile,
                 dockerfile_path=dockerfile_path if use_docker else 'Dockerfile',
@@ -168,11 +214,17 @@ def deployment_create(request):
             )
 
             if deployment.status == BaseDeployment.Status.REQUESTED:
-                messages.success(request, executable_block_reason() + " Request saved." if restricted() else "Deployment request submitted for operator approval.")
+                if static_only:
+                    messages.success(request, "The safety review found items an operator must check before this is published. Request saved.")
+                else:
+                    messages.success(request, executable_block_reason() + " Request saved." if restricted() else "Deployment request submitted for operator approval.")
                 return redirect('deployments:deployment_detail', pk=deployment.id)
             queue_deployment(deployment)
-
-            messages.success(request, f"Deployment '{sanitized_name}' created and queued successfully.")
+            if auto:
+                logger.info("Deployment auto-approved after safety review", extra={'deployment_id': deployment.id, 'user_id': request.user.id})
+                messages.success(request, f"Safety review passed. '{sanitized_name}' is being published automatically.")
+            else:
+                messages.success(request, f"Deployment '{sanitized_name}' created and queued successfully.")
             return redirect('deployments:deployment_detail', pk=deployment.id)
 
         except Exception as e:
