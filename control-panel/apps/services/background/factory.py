@@ -56,11 +56,11 @@ def get_background_processor() -> BackgroundProcessor:
                 return _processor_instance
             # If Celery import fails, fallback
 
-        if choice == "memory":
+        if choice in ("memory", "sqlite"):
             from apps.deployments.tasks.application import deploy_application, delete_deployment, restart_deployment, stop_deployment
             from apps.deployments.tasks.llm import deploy_llm_model
             from apps.services.tasks import start_service_task, stop_service_task, restart_service_task
-            _processor_instance = InMemoryBackgroundProcessor(registry={
+            registry={
                 "apps.deployments.tasks.llm.deploy_llm_model": deploy_llm_model.run,
                 "services.start_service_task": start_service_task.run,
                 "services.stop_service_task": stop_service_task.run,
@@ -69,7 +69,14 @@ def get_background_processor() -> BackgroundProcessor:
                 "apps.deployments.tasks.application.delete_deployment": delete_deployment.run,
                 "apps.deployments.tasks.application.restart_deployment": restart_deployment.run,
                 "apps.deployments.tasks.application.stop_deployment": stop_deployment.run,
-            })
+            }
+            if choice == "sqlite":
+                from pathlib import Path
+                from .sqlite_adapter import SQLiteBackgroundProcessor
+                path = getattr(settings, "WEBOPS_QUEUE_PATH", Path(settings.WEBOPS_INSTALL_PATH) / "queue" / "jobs.sqlite3")
+                _processor_instance = SQLiteBackgroundProcessor(path, registry)
+            else:
+                _processor_instance = InMemoryBackgroundProcessor(registry=registry)
             return _processor_instance
 
         # Default fallback

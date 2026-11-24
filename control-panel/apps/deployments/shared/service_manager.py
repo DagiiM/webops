@@ -116,10 +116,14 @@ class ServiceManager:
         if self.runtime:
             import os
             ready = self.runtime.ready()
-            memory = os.getenv("WEBOPS_BG_PROCESSOR") == "memory"
+            choice = os.getenv("WEBOPS_BG_PROCESSOR")
+            queue_ready = choice == "memory"
+            if choice == "sqlite":
+                from apps.services.background import get_background_processor
+                queue_ready = get_background_processor().healthcheck()
             return {"systemctl": False, "runtime": self.runtime.name, "runtime_ready": ready,
                     "services": {"nginx": False, "postgresql": False, "redis": False, "celery": False, "web": True},
-                    "all_ok": ready and memory}
+                    "background_processor": choice, "queue_ready": queue_ready, "all_ok": ready and queue_ready}
         # Test if systemd is actually functional (not just if systemctl exists)
         systemctl_ok = False
         try:
@@ -911,6 +915,10 @@ class ServiceManager:
         Uses sudo -n to avoid interactive prompts.
         """
         import os
+        if os.getenv("WEBOPS_BG_PROCESSOR") == "sqlite":
+            from apps.services.background import get_background_processor
+            ok = get_background_processor().healthcheck()
+            return ok, "Durable queue worker ready" if ok else "Durable queue worker unavailable"
         if os.getenv("WEBOPS_BG_PROCESSOR") == "memory":
             return True, "In-memory task processor selected"
         unit = 'webops-celery.service'

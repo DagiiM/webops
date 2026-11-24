@@ -28,6 +28,7 @@
     </div>
 </div>
 
+{% if backend_type == 'sqlite' %}<p>Jobs persist on the local queue disk. Interrupted operations require reconciliation. Worker recovery is managed by the process supervisor.</p>{% endif %}
 <!-- Background Processor Health Overview -->
 <div class="webops-stats-grid webops-mb-lg">
     <div class="webops-stat-card">

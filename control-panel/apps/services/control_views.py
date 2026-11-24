@@ -133,6 +133,8 @@ def background_management(request):
         backend_name = processor.__class__.__name__.lower()
         if 'celery' in backend_name:
             backend_type = 'celery'
+        elif 'sqlite' in backend_name:
+            backend_type = 'sqlite'
         elif 'memory' in backend_name:
             backend_type = 'memory'
         else:
@@ -707,12 +709,16 @@ def background_management(request):
         if backend_type == 'celery':
             worker_status = service_controller.check_celery_workers()
         else:
-            # For in-memory processor, create mock worker status
+            # Report actual processor readiness, never invent an online worker.
+            healthy = processor_status.get('status') == 'healthy'
+            processor_status['healthy'] = healthy
+            processor_status['active_tasks'] = processor_status.get('running_tasks', 0)
+            processor_status['queued_tasks'] = processor_status.get('pending_tasks', 0)
             worker_status = {
-                'status': 'healthy',
+                'status': 'healthy' if healthy else 'unavailable',
                 'workers': [{
-                    'name': 'in-memory-worker',
-                    'status': 'online',
+                    'name': backend_type + '-worker',
+                    'status': 'online' if healthy else 'offline',
                     'active': processor_status.get('running_tasks', 0),
                     'scheduled': processor_status.get('pending_tasks', 0),
                 }]

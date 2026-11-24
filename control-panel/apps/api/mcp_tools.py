@@ -53,7 +53,7 @@ def capabilities(user,args):
         "hardware":hardware() if rt else None,"background_processor":get_background_processor().name,
         "cpu_model_catalog":list(SUPPORTED) if rt else [],"application_limit":5,
         "policy":"MCP executable application submissions require operator review. Public reviewed CPU models and bounded static publishing only. No host operations or arbitrary code.",
-        "routing":"Managed processes use local ports; do not claim public URLs.","queue_durable":get_background_processor().name!="memory"}
+        "routing":"Managed processes use local ports; do not claim public URLs.","queue_durable":get_background_processor().name in ("sqlite","celery"), "queue_status":get_background_processor().get_status().get("status","unknown")}
 
 @tool("list_deployments","List your own deployments, newest first. Paginate with before_id.",{"limit":integer(1,50),"before_id":ID})
 def list_deployments(user,args):

@@ -85,6 +85,11 @@ def check_model(model, backend="transformers", dtype="auto", quantization="", ex
     envpath = Path(getattr(settings,"WEBOPS_CPU_LLM_ENV",Path(settings.WEBOPS_INSTALL_PATH)/"llm-cpu-env"))
     if not (envpath / ".ready").is_file():
         errors.append("CPU inference dependencies are not installed. Contact an operator.")
+    import os
+    if os.getenv("WEBOPS_BG_PROCESSOR") == "sqlite":
+        from apps.services.background import get_background_processor
+        if not get_background_processor().healthcheck():
+            errors.append("Durable queue worker is unavailable. Contact an operator before deploying.")
     busy = LLMDeployment.objects.filter(is_deleted=False,status__in=["building","running","stopped"]).exclude(pk=exclude_id)
     if busy.exists():
         errors.append("The shared CPU preview already has a reserved model slot. Stop and delete your unused model, or request another worker.")
