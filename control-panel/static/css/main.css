@@ -2609,7 +2609,6 @@ input:-internal-autofill-selected{
 
 /* Theme-specific icon visibility */
 .webops-theme-toggle__icon--light,
-.webops-theme-toggle__icon--custom,
 .webops-theme-toggle__icon--high-contrast {
     display: none;
 }
@@ -2622,24 +2621,17 @@ input:-internal-autofill-selected{
 /* Show appropriate icon based on current theme */
 [data-theme="dark"] .webops-theme-toggle__icon--dark,
 [data-theme="light"] .webops-theme-toggle__icon--light,
-[data-theme="custom"] .webops-theme-toggle__icon--custom,
 [data-theme="high-contrast"] .webops-theme-toggle__icon--high-contrast {
     display: block;
 }
 
 /* Hide all other icons when a specific theme is active */
 [data-theme="dark"] .webops-theme-toggle__icon--light,
-[data-theme="dark"] .webops-theme-toggle__icon--custom,
 [data-theme="dark"] .webops-theme-toggle__icon--high-contrast,
 [data-theme="light"] .webops-theme-toggle__icon--dark,
-[data-theme="light"] .webops-theme-toggle__icon--custom,
 [data-theme="light"] .webops-theme-toggle__icon--high-contrast,
-[data-theme="custom"] .webops-theme-toggle__icon--dark,
-[data-theme="custom"] .webops-theme-toggle__icon--light,
-[data-theme="custom"] .webops-theme-toggle__icon--high-contrast,
 [data-theme="high-contrast"] .webops-theme-toggle__icon--dark,
-[data-theme="high-contrast"] .webops-theme-toggle__icon--light,
-[data-theme="high-contrast"] .webops-theme-toggle__icon--custom {
+[data-theme="high-contrast"] .webops-theme-toggle__icon--light {
     display: none;
 }
 
@@ -2722,10 +2714,6 @@ input:-internal-autofill-selected{
 
 .webops-theme-option__preview--light {
     background: #ffffff;
-}
-
-.webops-theme-option__preview--custom {
-    background: #1a1a2e;
 }
 
 .webops-theme-option__preview--high-contrast {

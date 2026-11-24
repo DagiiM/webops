@@ -53,46 +53,6 @@
     --webops-shadow-glow: 0 0 24px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
 }
 
-/* Custom Theme (Purple/Pink Gradient) - Vibrant and modern */
-[data-theme="custom"] {
-    /* Purple/pink theme */
-    --webops-hue-primary: 300;       /* Magenta primary */
-    --webops-sat-primary: 100%;
-    --webops-light-primary: 60%;
-
-    /* Custom theme specific dark background */
-    --webops-color-bg-primary: #1a0033;
-    --webops-color-bg-secondary: #2d0055;
-    --webops-color-bg-tertiary: #400077;
-    --webops-color-bg-elevated: #330066;
-
-    --webops-color-surface: #2d0055;
-    --webops-color-surface-hover: #400077;
-    --webops-color-surface-active: #4d0099;
-
-    --webops-color-text-primary: #f0e6ff;
-    --webops-color-text-secondary: #c299ff;
-    --webops-color-text-tertiary: #9966cc;
-    --webops-color-text-disabled: #663399;
-
-    /* Status colors for custom theme */
-    --webops-color-success: #f0e6ff;
-    --webops-color-warning: #ffaa00;
-    --webops-color-error: #ff4466;
-    --webops-color-info: #c299ff;
-
-    /* Graph colors use primary theme color */
-    --webops-color-graph-node: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary));
-    --webops-color-graph-edge: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 15%);
-    --webops-color-graph-grid: hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 5%);
-
-    /* Custom theme shadows with primary color */
-    --webops-shadow-sm: 0 2px 8px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 20%);
-    --webops-shadow-md: 0 4px 16px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
-    --webops-shadow-lg: 0 8px 32px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 40%);
-    --webops-shadow-glow: 0 0 24px hsl(var(--webops-hue-primary) var(--webops-sat-primary) var(--webops-light-primary) / 30%);
-}
-
 /* High Contrast Theme (Accessibility) - WCAG AA compliant */
 [data-theme="high-contrast"] {
     /* Cyan theme for high contrast */
@@ -152,20 +112,6 @@
 
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 204, 106, 0.35);
-}
-
-[data-theme="custom"] ::-webkit-scrollbar-track {
-    background: var(--webops-color-bg-secondary);
-    border-left: 1px solid rgba(255, 0, 170, 0.1);
-}
-
-[data-theme="custom"] ::-webkit-scrollbar-thumb {
-    background: rgba(255, 0, 170, 0.2);
-    border: 2px solid var(--webops-color-bg-secondary);
-}
-
-[data-theme="custom"] ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 0, 170, 0.35);
 }
 
 [data-theme="high-contrast"] ::-webkit-scrollbar-track {
