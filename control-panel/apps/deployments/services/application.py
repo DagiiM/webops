@@ -1676,6 +1676,13 @@ LOG_DIR={logs_dir}
             Tuple of (success, error_message)
         """
         try:
+            from apps.services.runtime.policy import application_allowed, executable_block_reason, restricted, sandbox_ready
+            if not application_allowed(deployment):
+                self.log(deployment, executable_block_reason(), DeploymentLog.Level.ERROR)
+                return False, executable_block_reason()
+            if restricted() and not sandbox_ready():
+                self.log(deployment, "Restricted workload sandbox unavailable", DeploymentLog.Level.ERROR)
+                return False, "Restricted workload sandbox unavailable"
             # Update status
             deployment.status = ApplicationDeployment.Status.BUILDING
             deployment.save(update_fields=['status'])

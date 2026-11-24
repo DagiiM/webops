@@ -31,7 +31,7 @@ Read-only: get_capabilities, list_deployments, get_deployment, get_deployment_lo
 
 Control: request_application, deploy_model, control_deployment, generate_text.
 
-All resources are owner-scoped, including for staff tokens. No shell, arbitrary code, host administration, credentials, arbitrary file access or physical database deletion is exposed. Executable repository requests always await operator review. Static-only publication and reviewed CPU models use the existing portable runtime checks. Mutation tools require explicit confirm=true after obtaining the user's consent (inference uses the explicit control scope). The server cannot independently establish that an assistant actually asked a human; configure approval behavior in the client as well.
+All resources are owner-scoped, including for staff tokens. No shell, arbitrary code, host administration, credentials, arbitrary file access or physical database deletion is exposed. Executable repository requests await operator review, or an isolated worker when the restricted workload policy is enabled. Inspect workload_policy, sandbox_ready and executable_builds_allowed before proposing execution. Static-only publication and reviewed CPU models use the existing portable runtime checks. Mutation tools require explicit confirm=true after obtaining the user's consent (inference uses the explicit control scope). The server cannot independently establish that an assistant actually asked a human; configure approval behavior in the client as well.
 
 ## Assistant workflow
 

@@ -29,3 +29,11 @@ Readiness is heartbeat-based. A stopped worker does not erase queued jobs. Job h
 ## Release discipline
 
 For each gate: audit source and live behavior, implement changes on a branch, add regression and adversarial tests, test real integration on isolated resources, merge only verified changes, deploy the matching commit, verify live health and document remaining gaps. Never advertise production readiness until the gates have objective evidence.
+
+## Restricted Supervisor workload policy
+
+Set WEBOPS_WORKLOAD_POLICY=restricted in the web process and worker (or set the Django setting of the same name). On Linux x86_64/aarch64 with Landlock ABI 4 or newer and libseccomp, static-only GitHub publications and reviewed CPU LLM inference processes run under an explicit filesystem allowlist, no-new-privileges, TCP bind-port restrictions and syscall filtering. The static server has bounded concurrency and no directory indexes. Legacy unconfined process registrations cannot be started or restarted in restricted mode. Executable builds are rejected before repository checkout or dependency installation, even for staff; requests remain saved until an isolated worker exists.
+
+This is defense in depth for fixed, reviewed server code, NOT a hostile-code tenant sandbox. The trusted control-plane worker downloads and validates assets/models before launching the confined process. The same host UID, shared kernel, file metadata visibility and incomplete kernel/resource isolation remain limitations. Never enable arbitrary repositories based on this policy alone. Do not expose static content on the control-panel origin. Full isolation requires separate workload identities plus independently isolated workers (containers/VMs) with resource/network controls. On a kernel lacking the required sandbox, new confined workloads fail closed.
+
+Verified acceptance: real restricted static GitHub deployment lifecycle including crash recovery and deletion; real SmolLM2 CPU inference and lifecycle; canary file read/write, outbound connection and cross-process signal denial; cross-account access denial; executable approval/queue/build refusal. The test suite skips the kernel probe on hosts lacking the required kernel support.

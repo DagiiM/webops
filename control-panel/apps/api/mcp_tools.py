@@ -37,7 +37,8 @@ def describe(d):
     if kind=="llm":
         data.update(model=d.llmdeployment.model_name,backend=d.llmdeployment.backend)
     if kind=="application": data["static_only"]=d.applicationdeployment.static_only
-    data["next_action"]={"requested":"Await operator review; you may cancel the request.",
+    from apps.services.runtime.policy import restricted
+    data["next_action"]={"requested":"Await an isolated worker; you may cancel the request." if restricted() else "Await operator review; you may cancel the request.",
       "pending":"Not started; check status or start the deployment if supported.",
       "building":"Deployment in progress; poll status/logs instead of submitting again.",
       "running":"Ready according to last recorded status; check runtime for current health.",
@@ -49,10 +50,11 @@ def capabilities(user,args):
     from apps.deployments.services.llm_preflight import hardware, SUPPORTED
     from apps.services.background import get_background_processor
     rt=portable_runtime()
-    return {"runtime":rt.name if rt else "systemd","runtime_ready":rt.ready() if rt else None,
+    from apps.services.runtime.policy import restricted, sandbox_ready
+    return {"workload_policy":"restricted" if restricted() else "trusted","sandbox_ready":sandbox_ready(),"executable_builds_allowed":not restricted(),"runtime":rt.name if rt else "systemd","runtime_ready":rt.ready() if rt else None,
         "hardware":hardware() if rt else None,"background_processor":get_background_processor().name,
         "cpu_model_catalog":list(SUPPORTED) if rt else [],"application_limit":5,
-        "policy":"MCP executable application submissions require operator review. Public reviewed CPU models and bounded static publishing only. No host operations or arbitrary code.",
+        "policy":"Executable builds blocked pending an isolated worker. Static publication and reviewed CPU models only." if restricted() else "Executable submissions require operator review. No arbitrary code or host operations via MCP.",
         "routing":"Managed processes use local ports; do not claim public URLs.","queue_durable":get_background_processor().name in ("sqlite","celery"), "queue_status":get_background_processor().get_status().get("status","unknown")}
 
 @tool("list_deployments","List your own deployments, newest first. Paginate with before_id.",{"limit":integer(1,50),"before_id":ID})
@@ -110,7 +112,8 @@ def request_app(user,args):
     if ApplicationDeployment.objects.filter(deployed_by=user,is_deleted=False).count()>=5:raise ToolError("Five-application preview limit reached.")
     static=args.get("static_only",False)
     rt=portable_runtime()
-    if static and (not rt or not rt.ready()):raise ToolError("Static publication runtime unavailable.")
+    from apps.services.runtime.policy import restricted, sandbox_ready
+    if static and (not rt or not rt.ready() or (restricted() and not sandbox_ready())):raise ToolError("Static publication runtime or required sandbox unavailable.")
     d=create_unique(ApplicationDeployment,name=clean_name(args["name"]),repo_url=repo,branch=branch,deployed_by=user,static_only=static,status="pending" if static else "requested")
     if static:
         from apps.core.security.access import queue_deployment
@@ -119,7 +122,8 @@ def request_app(user,args):
             d.status="failed";d.save(update_fields=["status"])
             DeploymentLog.objects.create(deployment=d,level="error",message="Task queue unavailable; request not executed.")
             return {"success":False,"deployment":describe(d),"error":"Task queue unavailable."}
-    return {"success":True,"deployment":describe(d),"message":"Queued; poll status." if static else "Submitted for operator review; no code executed."}
+    from apps.services.runtime.policy import restricted, executable_block_reason
+    return {"success":True,"deployment":describe(d),"message":"Queued; poll status." if static else executable_block_reason() if restricted() else "Submitted for operator review; no code executed."}
 
 @tool("deploy_model","Deploy a reviewed public CPU model after server-side compatibility checks. Requires explicit user consent. Returns queued status; poll get_deployment.",{"name":string(100),"model":string(200),"confirm":CONFIRM},["name","model","confirm"],write=True,idempotent=False)
 def deploy_model(user,args):

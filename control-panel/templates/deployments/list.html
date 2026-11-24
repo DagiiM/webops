@@ -8,11 +8,11 @@
 <section class="webops-card webops-mb-lg">
 <div class="webops-card-header"><h3>Deployment requests awaiting review</h3></div>
 <div class="webops-card-body">
-<p>Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.</p>
+<p>{% if restricted_workloads %}Executable builds are blocked until a separate isolated worker is available. Requests are preserved.{% else %}Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.{% endif %}</p>
 {% for item in review_requests %}
 <div class="webops-flex webops-gap-sm webops-mb-md" style="align-items:center;flex-wrap:wrap">
 <strong>{{ item.name }}</strong> · {{ item.deployed_by.username }} · <code>{{ item.repo_url }}</code> · Branch: {{ item.branch }}
-<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>
+{% if restricted_workloads and not item.static_only %}<span>Awaiting isolated worker</span>{% else %}<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>{% endif %}
 </div>
 {% endfor %}
 </div></section>

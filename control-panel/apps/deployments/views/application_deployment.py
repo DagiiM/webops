@@ -13,6 +13,7 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from apps.core.security.access import requires_review, queue_deployment
+from apps.services.runtime.policy import restricted, executable_block_reason
 from django.views.decorators.http import require_POST
 from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
 
@@ -26,7 +27,7 @@ def deployment_list(request):
     # Only show deployments created by the current user
     deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     return render(request, 'deployments/list.html', {
-        'deployments': deployments, 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
+        'deployments': deployments, 'restricted_workloads': restricted(), 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
     })
 
 
@@ -122,7 +123,7 @@ def deployment_create(request):
                 branch=branch or 'main',
                 domain=domain,
                 deployed_by=request.user,
-                status=BaseDeployment.Status.REQUESTED if requires_review(request.user) and not static_only else BaseDeployment.Status.PENDING,
+                status=BaseDeployment.Status.REQUESTED if (requires_review(request.user) or restricted()) and not static_only else BaseDeployment.Status.PENDING,
                 static_only=static_only,
                 use_docker=use_docker,
                 auto_generate_dockerfile=auto_generate_dockerfile,
@@ -131,7 +132,7 @@ def deployment_create(request):
             )
 
             if deployment.status == BaseDeployment.Status.REQUESTED:
-                messages.success(request, "Deployment request submitted for operator approval.")
+                messages.success(request, executable_block_reason() + " Request saved." if restricted() else "Deployment request submitted for operator approval.")
                 return redirect('deployments:deployment_detail', pk=deployment.id)
             queue_deployment(deployment)
 
@@ -164,7 +165,7 @@ def deployment_create(request):
     return render(request, 'deployments/create.html', {
         'github_connected': github_connected,
         'github_repos': github_repos,
-        'core_status': core_status, 'approval_required': requires_review(request.user),
+        'core_status': core_status, 'approval_required': requires_review(request.user) or restricted(), 'restricted_workloads': restricted(),
     })
 
 
@@ -1053,6 +1054,8 @@ def deployment_approve(request, pk):
     if not request.user.is_staff:
         return HttpResponseForbidden("Operator approval required.")
     deployment = get_object_or_404(ApplicationDeployment, pk=pk, is_deleted=False, status="requested")
+    if restricted() and not deployment.static_only:
+        return HttpResponseForbidden(executable_block_reason())
     if not BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(status="building"):
         return HttpResponseForbidden("Request already processed.")
     try:

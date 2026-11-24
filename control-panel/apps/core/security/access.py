@@ -9,6 +9,11 @@ def requires_review(user):
         getattr(settings, "WEBOPS_RUNTIME", os.getenv("WEBOPS_RUNTIME", "systemd")) == "supervisor")
 
 def queue_deployment(deployment):
+    from apps.services.runtime.policy import application_allowed, executable_block_reason, restricted, sandbox_ready
+    if not application_allowed(deployment):
+        raise ValueError(executable_block_reason())
+    if restricted() and not sandbox_ready():
+        raise ValueError("Restricted workload sandbox unavailable; contact an operator.")
     from apps.deployments.shared import ServiceManager
     from apps.services.background import get_background_processor
     ServiceManager().ensure_celery_running()
