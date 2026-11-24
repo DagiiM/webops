@@ -316,70 +316,19 @@ def llm_search_models(request):
     """
     Search Hugging Face models (AJAX endpoint).
     """
-    query = request.GET.get('q', '').strip()
-
-    if not query:
-        return JsonResponse({
-            'models': []
-        })
-
-    # Popular LLM models to suggest
-    popular_models = [
-        {
-            'id': 'meta-llama/Llama-2-7b-chat-hf',
-            'name': 'Llama 2 7B Chat',
-            'size': '7B',
-            'description': 'Meta\'s Llama 2 7B chat model',
-            'vram': '~14GB'
-        },
-        {
-            'id': 'meta-llama/Llama-2-13b-chat-hf',
-            'name': 'Llama 2 13B Chat',
-            'size': '13B',
-            'description': 'Meta\'s Llama 2 13B chat model',
-            'vram': '~26GB'
-        },
-        {
-            'id': 'mistralai/Mistral-7B-Instruct-v0.2',
-            'name': 'Mistral 7B Instruct',
-            'size': '7B',
-            'description': 'Mistral AI\'s 7B instruction-tuned model',
-            'vram': '~14GB'
-        },
-        {
-            'id': 'microsoft/phi-2',
-            'name': 'Phi-2',
-            'size': '2.7B',
-            'description': 'Microsoft\'s small but powerful model',
-            'vram': '~6GB'
-        },
-        {
-            'id': 'TheBloke/Llama-2-7B-Chat-AWQ',
-            'name': 'Llama 2 7B Chat (AWQ)',
-            'size': '7B',
-            'description': 'Quantized version - reduced VRAM usage',
-            'vram': '~7GB'
-        },
-        {
-            'id': 'gpt2',
-            'name': 'GPT-2',
-            'size': '124M',
-            'description': 'OpenAI GPT-2 (good for testing)',
-            'vram': '~1GB'
-        },
-    ]
-
-    # Filter based on query
-    query_lower = query.lower()
-    filtered_models = [
-        m for m in popular_models
-        if query_lower in m['id'].lower() or query_lower in m['name'].lower()
-    ]
-
-    return JsonResponse({
-        'models': filtered_models,
-        'query': query
-    })
+    import requests
+    from apps.api.rate_limiting import RateLimiter
+    from ..services.llm_catalog import discover
+    query = request.GET.get("q", "").strip()
+    if len(query)>100 or (query and len(query)<2):
+        return JsonResponse({"error":"Enter 2–100 characters to search."},status=400)
+    allowed,_=RateLimiter(max_requests=60,window_seconds=3600,burst_requests=10,namespace="hf-model-discovery").is_allowed(str(request.user.pk))
+    if not allowed:
+        return JsonResponse({"error":"Model search rate limit reached. Try again later."},status=429)
+    try:
+        return JsonResponse(discover(query))
+    except (requests.RequestException,RuntimeError,ValueError,TypeError,AttributeError):
+        return JsonResponse({"error":"Hugging Face model catalog is temporarily unavailable. Retry or enter a model ID manually."},status=503)
 
 
 @login_required
