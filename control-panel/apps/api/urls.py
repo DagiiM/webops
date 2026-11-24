@@ -1,9 +1,12 @@
 """URL configuration for API app."""
 
 from django.urls import path
-from . import views, token_views, doc_views
+from . import views, token_views, doc_views, mcp_views
 
 urlpatterns = [
+    path('mcp/', mcp_views.mcp_endpoint, name='mcp_endpoint'),
+    path('mcp/access/', mcp_views.mcp_access, name='mcp_access'),
+    path('mcp/access/<int:pk>/revoke/', mcp_views.mcp_revoke, name='mcp_revoke'),
     # API Documentation
     path('docs/', doc_views.api_documentation, name='api_docs'),
     path('docs/data/', doc_views.api_documentation_data, name='api_docs_data'),
