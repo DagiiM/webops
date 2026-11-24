@@ -49,13 +49,17 @@ def database_list(request):
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
     # Only show databases owned by the current user (through deployment)
     # Note: Standalone databases (no deployment) will need a user field in future
-    databases = _databases_visible_to(request.user)
+    databases = list(_databases_visible_to(request.user))
+    from . import provisioner
+    for db in databases:
+        if db.managed:
+            db.live_status = provisioner.status(db)
 
     # Get statistics
     stats = {
-        'total': databases.count(),
-        'with_deployment': databases.exclude(deployment__isnull=True).count(),
-        'standalone': databases.filter(deployment__isnull=True).count(),
+        'total': len(databases),
+        'with_deployment': sum(1 for d in databases if d.deployment_id),
+        'standalone': sum(1 for d in databases if not d.deployment_id),
     }
 
     return render(request, 'databases/list.html', {
@@ -91,11 +95,17 @@ def database_detail(request, pk):
         }
     )
 
-    return render(request, 'databases/detail.html', {
+    context = {
         'database': database,
         'decrypted_password': decrypted_password,
-        'connection_string': connection_string
-    })
+        'connection_string': connection_string,
+    }
+    if database.managed:
+        from . import provisioner
+        context['managed_status'] = provisioner.status(database)
+        context['connection_url'] = provisioner.connection_url(database)
+        context['env_name'] = {'postgresql': 'DATABASE_URL', 'redis': 'REDIS_URL', 'sqlite': 'DATABASE_URL'}.get(database.db_type, 'DATABASE_URL')
+    return render(request, 'databases/detail.html', context)
 
 
 class DatabaseCreateView(LoginRequiredMixin, CreateView):
@@ -286,6 +296,20 @@ def database_delete(request, pk):
         if request.POST.get('confirm') != 'yes':
             messages.error(request, "Deletion must be explicitly confirmed.")
             return render(request, 'databases/delete_confirm.html', {'database': database}, status=400)
+        if database.managed:
+            from . import provisioner
+            from .managed_views import remove_row
+            if request.POST.get('confirm_name', '') != database.name:
+                messages.error(request, "Type the database name to confirm.")
+                return render(request, 'databases/delete_confirm.html', {'database': database}, status=400)
+            try:
+                provisioner.destroy(database)
+            except provisioner.ProvisionError as exc:
+                messages.error(request, f"The database could not be removed: {exc}")
+                return render(request, 'databases/delete_confirm.html', {'database': database}, status=502)
+            remove_row(database)
+            messages.success(request, f"{database.name} and its data were deleted.")
+            return redirect("database_list")
         if database.deployment_id is None or database.db_type != "postgresql" or not request.user.is_staff:
             database.delete(user=request.user)
             messages.success(request, f"Connection {database.name} removed. No external database was dropped.")

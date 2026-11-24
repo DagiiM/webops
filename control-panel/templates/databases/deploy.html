@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Deploy a database - {{ branding.site_name }}{% endblock %}
+{% block header_title %}Deploy a database{% endblock %}
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Deploy a database</h2>
+        <p class="webops-text-muted">Pick an engine and a name. WebOps creates it on this server, generates the credentials and starts it. Nothing else to configure.</p>
+    </div>
+    <a href="{% url 'database_list' %}" class="webops-btn webops-btn-secondary">Back to databases</a>
+</div>
+
+{% if errors %}<section class="ui-formerror" role="alert"><h3 class="ui-formerror__title">The database was not deployed</h3><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></section>{% endif %}
+{% if not can_deploy %}<section class="ui-formerror" role="status"><p>{{ limit_reason }}</p></section>{% endif %}
+
+<form method="post" id="deployForm" class="ui-panel">{% csrf_token %}
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="eng-h">Engine</h3></div>
+    <div class="webops-card-body">
+        <div class="ui-engines" role="radiogroup" aria-labelledby="eng-h">
+            {% for e in engines %}
+            <label class="ui-engine{% if not e.available %} ui-engine--off{% endif %}">
+                <input type="radio" name="engine" value="{{ e.key }}" {% if not e.available %}disabled{% elif values.engine == e.key or not values.engine and e.key == 'postgresql' and e.available %}checked{% endif %}>
+                <span class="ui-engine__name">{{ e.label }}{% if e.version %} <span class="ui-engine__ver">{{ e.version }}</span>{% endif %}</span>
+                <span class="ui-engine__blurb">{{ e.blurb }}</span>
+                {% if not e.available %}<span class="ui-engine__hint">{{ e.hint }}</span>{% endif %}
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="webops-form-group">
+            <label class="webops-label" for="db-name">Name</label>
+            <input id="db-name" name="name" class="webops-input" required maxlength="30" autocomplete="off" spellcheck="false" placeholder="shop" value="{{ values.name|default:'' }}">
+            <p class="webops-help-text">2 to 30 characters, a letter first. Letters, digits, hyphens and underscores.</p>
+        </div>
+
+        <ul class="ui-assist__list">
+            <li>It listens on this server only (127.0.0.1) on its own port. Apps on this server connect to it directly.</li>
+            <li>The password is generated for you and stored encrypted. You will find the connection string on the next page.</li>
+            <li>Your data lives on this server's disk. Keep your own backups of anything important.</li>
+        </ul>
+        <button class="webops-btn webops-btn-primary" type="submit" id="deployBtn" {% if not can_deploy %}disabled{% endif %}>Deploy database</button>
+    </div>
+</form>
+<script src="{% static 'js/pages/databases-deploy.js' %}"></script>
+{% endblock %}

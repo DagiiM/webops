@@ -3,16 +3,15 @@
 const confirmCheckbox = document.getElementById('confirm-checkbox');
 const deleteBtn = document.getElementById('delete-btn');
 
-confirmCheckbox.addEventListener('change', function() {
-    deleteBtn.disabled = !this.checked;
-    if (this.checked) {
-        deleteBtn.classList.remove('webops-opacity-50');
-        deleteBtn.classList.add('webops-cursor-pointer');
-    } else {
-        deleteBtn.classList.add('webops-opacity-50');
-        deleteBtn.classList.remove('webops-cursor-pointer');
-    }
-});
+const confirmName = document.getElementById('confirm-name');
+function syncDeleteButton() {
+    const ok = confirmCheckbox.checked && (!confirmName || confirmName.value === confirmName.dataset.expect);
+    deleteBtn.disabled = !ok;
+    deleteBtn.classList.toggle('webops-opacity-50', !ok);
+    deleteBtn.classList.toggle('webops-cursor-pointer', ok);
+}
+confirmCheckbox.addEventListener('change', syncDeleteButton);
+if (confirmName) confirmName.addEventListener('input', syncDeleteButton);
 
 // Handle form submission
 document.getElementById('delete-form').addEventListener('submit', function(e) {
@@ -22,9 +21,8 @@ document.getElementById('delete-form').addEventListener('submit', function(e) {
     deleteText.classList.add('webops-hidden');
     deleteLoading.classList.remove('webops-hidden');
 
-    // Disable form inputs
-    const inputs = this.querySelectorAll('input, button');
-    inputs.forEach(input => input.disabled = true);
+    // Disable the button only: disabled inputs are not submitted, and the confirmation must be.
+    deleteBtn.disabled = true;
 });
 
 // Warn if user tries to leave page

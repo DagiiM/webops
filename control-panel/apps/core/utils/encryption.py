@@ -60,6 +60,8 @@ def decrypt_password(encrypted: str) -> str:
     Returns:
         Plain text password
     """
+    if not encrypted:
+        return ""          # nothing stored (e.g. SQLite): not an error
     if not settings.ENCRYPTION_KEY:
         raise ValueError("ENCRYPTION_KEY not configured in settings. Set a valid Fernet key in .env")
 

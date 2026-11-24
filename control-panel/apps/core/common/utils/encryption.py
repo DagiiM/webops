@@ -61,6 +61,8 @@ def decrypt_value(encrypted: str) -> str:
     Returns:
         Plain text value
     """
+    if not encrypted:
+        return ""          # nothing stored (e.g. SQLite): not an error
     if not settings.ENCRYPTION_KEY:
         raise ValueError("ENCRYPTION_KEY not configured in settings")
         

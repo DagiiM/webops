@@ -63,6 +63,9 @@ class Database(BaseModel):
         related_name='standalone_databases', null=True, blank=True
     )
 
+    # True when WebOps provisioned and runs this database itself (see provisioner.py).
+    managed = models.BooleanField(default=False)
+
     # Dependency Info (JSON field for storing install commands, etc.)
     metadata = models.JSONField(default=dict, blank=True)
     

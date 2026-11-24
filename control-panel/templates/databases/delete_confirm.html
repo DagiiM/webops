@@ -111,12 +111,19 @@
 
                 <div class="checkbox-group">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="confirm-checkbox" required>
+                        <input type="checkbox" id="confirm-checkbox" name="confirm" value="yes" required>
                         <span class="checkbox-text">
                             I understand that this action is permanent and cannot be undone
                         </span>
                     </label>
                 </div>
+
+                {% if database.managed %}
+                <div class="webops-form-group">
+                    <label class="webops-label" for="confirm-name">This permanently deletes the server and all of its data. Type <strong>{{ database.name }}</strong> to confirm.</label>
+                    <input id="confirm-name" name="confirm_name" class="webops-input" autocomplete="off" spellcheck="false" data-expect="{{ database.name }}">
+                </div>
+                {% endif %}
 
                 <div class="form-actions webops-flex webops-gap-sm">
                     <button type="submit" class="webops-btn webops-btn-danger btn-large" id="delete-btn" disabled>

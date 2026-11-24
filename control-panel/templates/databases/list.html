@@ -11,10 +11,16 @@
         <h2 class="webops-page-title">Databases</h2>
         <p class="webops-text-muted">Manage databases and credentials for multiple database engines</p>
     </div>
-    <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
-        <span class="material-icons">add</span>
-        Create Database
-    </button>
+    <div class="webops-flex webops-gap-sm">
+        <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-secondary">
+            <span class="material-icons">link</span>
+            Connect existing
+        </button>
+        <a href="{% url 'database_deploy' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Deploy database
+        </a>
+    </div>
 </div>
 
 <!-- Statistics Cards -->
@@ -68,7 +74,7 @@
                     <th>Host</th>
                     <th>Port</th>
                     <th>Deployment</th>
-                    <th>Dependencies</th>
+                    <th>Status</th>
                     <th>Created</th>
                     <th>Actions</th>
                 </tr>
@@ -84,7 +90,7 @@
                     </td>
                     <td><code class="webops-text-sm">{{ db.username }}</code></td>
                     <td>{{ db.host }}</td>
-                    <td>{{ db.port }}</td>
+                    <td>{{ db.port|default_if_none:"" }}</td>
                     <td>
                         {% if db.deployment %}
                             {% if db.deployment.llmdeployment %}
@@ -97,6 +103,11 @@
                         {% endif %}
                     </td>
                     <td>
+                        {% if db.managed %}
+                            {% if db.live_status == 'running' %}<span class="webops-badge webops-badge-success">Running</span>
+                            {% elif db.live_status == 'stopped' %}<span class="webops-badge webops-badge-warning">Stopped</span>
+                            {% else %}<span class="webops-badge webops-badge-danger">Files missing</span>{% endif %}
+                        {% else %}
                         {% with dep_status=db.get_dependency_status %}
                             {% if dep_status.all_installed %}
                                 <span class="webops-badge webops-badge-success" title="All dependencies installed">
@@ -119,6 +130,7 @@
                                 {% endif %}
                             {% endif %}
                         {% endwith %}
+                                            {% endif %}
                     </td>
                     <td>{{ db.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
@@ -134,11 +146,11 @@
     <div class="webops-empty-state">
         <span class="material-icons webops-empty-state-icon webops-icon--xl webops-text-muted webops-opacity-30">storage</span>
         <h3 class="webops-empty-state-title">No databases yet</h3>
-        <p class="webops-empty-state-description">Create your first database to get started</p>
-        <button type="button" data-on-click="openCreateModal()" class="webops-btn webops-btn-primary">
+        <p class="webops-empty-state-description">Deploy your first database in one click, or connect one you already run.</p>
+        <a href="{% url 'database_deploy' %}" class="webops-btn webops-btn-primary">
             <span class="material-icons webops-icon">add</span>
-            Create Database
-        </button>
+            Deploy database
+        </a>
     </div>
     {% endif %}
 </div>

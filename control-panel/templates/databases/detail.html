@@ -31,6 +31,32 @@
     </div>
 </div>
 
+{% if database.managed %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="managed-h">
+    <div class="ui-panel__head">
+        <h3 class="ui-panel__title" id="managed-h">Managed by WebOps</h3>
+        {% if managed_status == 'running' %}<span class="webops-badge webops-badge-success">Running</span>
+        {% elif managed_status == 'stopped' %}<span class="webops-badge webops-badge-warning">Stopped</span>
+        {% else %}<span class="webops-badge webops-badge-danger">Files missing</span>{% endif %}
+    </div>
+    <div class="webops-card-body">
+        <p class="webops-help-text">Use this in your app's environment settings as <code>{{ env_name }}</code>. It only works from this server.</p>
+        <code class="ui-url">{{ connection_url }}</code>
+        <div class="ui-actions ui-panel--spaced">
+            <form method="post" action="{% url 'database_action' database.pk 'check' %}">{% csrf_token %}<button class="webops-btn webops-btn-sm" type="submit">Test connection</button></form>
+            {% if database.db_type != 'sqlite' %}
+                {% if managed_status == 'running' %}
+                <form method="post" action="{% url 'database_action' database.pk 'restart' %}">{% csrf_token %}<button class="webops-btn webops-btn-sm" type="submit">Restart</button></form>
+                <form method="post" action="{% url 'database_action' database.pk 'stop' %}">{% csrf_token %}<button class="webops-btn webops-btn-sm" type="submit">Stop</button></form>
+                {% else %}
+                <form method="post" action="{% url 'database_action' database.pk 'start' %}">{% csrf_token %}<button class="webops-btn webops-btn-sm webops-btn-primary" type="submit">Start</button></form>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- Connection Info Card -->
 <div class="webops-card">
     <div class="webops-card-header">
