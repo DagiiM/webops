@@ -1,0 +1,21 @@
+{% if deployment.safety_report.verdict %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="safety-h">
+    <div class="ui-panel__head">
+        <h3 class="ui-panel__title" id="safety-h">Safety review</h3>
+        {% if deployment.safety_report.decision == 'auto_approved' %}<span class="webops-badge webops-badge-success">Passed, approved automatically</span>
+        {% elif deployment.safety_report.decision == 'needs_operator' %}<span class="webops-badge webops-badge-warning">Needs an operator</span>
+        {% else %}<span class="webops-badge webops-badge-danger">Blocked</span>{% endif %}
+    </div>
+    <div class="webops-card-body">
+        {% if deployment.safety_report.findings %}
+        <ul class="ui-assist__list">
+            {% for f in deployment.safety_report.findings %}
+            <li><strong>{{ f.severity|upper }}</strong> {{ f.title }}{% if f.detail %}: {{ f.detail }}{% endif %}{% if f.source == 'ai' %} <em>(AI)</em>{% endif %}</li>
+            {% endfor %}
+        </ul>
+        {% else %}<p class="webops-help-text">No findings.</p>{% endif %}
+        {% if deployment.safety_report.ai.summary %}<p class="webops-help-text">AI second opinion ({{ deployment.safety_report.ai.provider }}): {{ deployment.safety_report.ai.summary }}</p>{% endif %}
+        <p class="webops-help-text">Reviewed {{ deployment.safety_report.reviewed_at }}. This is a check for known risks, not a guarantee. The same rules run again on the exact files at publish time.</p>
+    </div>
+</section>
+{% endif %}
