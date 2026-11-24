@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 from .models import APIToken
+from apps.databases.views import _databases_visible_to
 from apps.core.security.decorators import api_require_ownership
 from apps.deployments.models import ApplicationDeployment
 
@@ -227,7 +228,7 @@ def deployment_files_tree(request, deployment_id):
         from apps.deployments.services import DeploymentService
 
         # SECURITY FIX: Ownership verified by decorator
-        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user, is_deleted=False)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -241,7 +242,7 @@ def deployment_files_tree(request, deployment_id):
         else:
             # Ensure the path is within the repo
             requested_path = repo_path / requested_path.lstrip('/')
-            if not requested_path.exists() or not str(requested_path).startswith(str(repo_path)):
+            if not requested_path.exists() or not requested_path.resolve().is_relative_to(repo_path.resolve()):
                 return JsonResponse({'error': 'Invalid path'}, status=400)
         
         # Build file tree
@@ -250,7 +251,7 @@ def deployment_files_tree(request, deployment_id):
             try:
                 for item in path.iterdir():
                     # Skip hidden files and directories
-                    if item.name.startswith('.'):
+                    if item.name.startswith('.') or item.is_symlink():
                         continue
                         
                     node = {
@@ -294,7 +295,7 @@ def deployment_file_read(request, deployment_id):
         from apps.deployments.services import DeploymentService
 
         # SECURITY FIX: Ownership verified by decorator
-        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user, is_deleted=False)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -308,7 +309,7 @@ def deployment_file_read(request, deployment_id):
         
         # Ensure the path is within the repo and is a file
         full_path = repo_path / file_path.lstrip('/')
-        if not full_path.exists() or not full_path.is_file() or not str(full_path).startswith(str(repo_path)):
+        if not full_path.exists() or not full_path.is_file() or not full_path.resolve().is_relative_to(repo_path.resolve()):
             return JsonResponse({'error': 'Invalid file path'}, status=400)
         
         # Read file content with size limit
@@ -360,7 +361,7 @@ def deployment_file_write(request, deployment_id):
         from apps.deployments.services import DeploymentService
 
         # SECURITY FIX: Ownership verified by decorator
-        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, deployed_by=request.user, is_deleted=False)
         service = DeploymentService()
         repo_path = service.get_repo_path(deployment)
         
@@ -382,7 +383,7 @@ def deployment_file_write(request, deployment_id):
         
         # Ensure the path is within the repo
         full_path = repo_path / file_path.lstrip('/')
-        if not str(full_path).startswith(str(repo_path)):
+        if not full_path.resolve().is_relative_to(repo_path.resolve()):
             return JsonResponse({'error': 'Invalid file path'}, status=400)
         
         # Create parent directories if needed
@@ -424,7 +425,7 @@ def database_list(request):
 
         # SECURITY FIX: Filter by user to prevent IDOR vulnerability
         # Only show databases owned by the current user (through deployment)
-        databases = Database.objects.filter(deployment__deployed_by=request.user)
+        databases = _databases_visible_to(request.user)
         db_list = []
         
         for db in databases:
@@ -477,7 +478,7 @@ def database_detail(request, name):
 
         # SECURITY FIX: Filter by user ownership to prevent IDOR vulnerability
         try:
-            database = Database.objects.get(name=name, deployment__deployed_by=request.user)
+            database = _databases_visible_to(request.user).get(name=name)
         except Database.DoesNotExist:
             # Return generic error (don't reveal if database exists for security)
             return JsonResponse({'error': f'Database {name} not found'}, status=404)

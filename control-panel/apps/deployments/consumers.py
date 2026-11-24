@@ -31,7 +31,7 @@ class DeploymentConsumer(AsyncWebsocketConsumer):
             await self.close(code=4001)
             return
 
-        self.room_group_name = 'deployments'
+        self.room_group_name = f'deployments_user_{user.pk}'
 
         # Join room group
         await self.channel_layer.group_add(
@@ -247,7 +247,7 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def check_deployment_exists(self, deployment_id: str) -> bool:
         """Check if deployment exists in database."""
         try:
-            BaseDeployment.objects.get(id=deployment_id)
+            BaseDeployment.objects.get(id=deployment_id, is_deleted=False)
             return True
         except BaseDeployment.DoesNotExist:
             return False
@@ -256,7 +256,7 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def get_deployment_data(self, deployment_id: str) -> Dict[str, Any] | None:
         """Get deployment data from database."""
         try:
-            deployment = BaseDeployment.objects.get(id=deployment_id)
+            deployment = BaseDeployment.objects.get(id=deployment_id, is_deleted=False)
             return {
                 'id': str(deployment.id),
                 'name': deployment.name,
@@ -273,7 +273,7 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def user_can_access_deployment(self, deployment_id: str, user: User) -> bool:
         """Check if user can access specific deployment."""
         try:
-            deployment = BaseDeployment.objects.get(id=deployment_id)
+            deployment = BaseDeployment.objects.get(id=deployment_id, is_deleted=False)
             if getattr(user, 'is_superuser', False):
                 return True
             return deployment.deployed_by_id == user.id
@@ -284,6 +284,6 @@ class DeploymentStatusConsumer(AsyncWebsocketConsumer):
     def get_deployment_name(self, deployment_id: str) -> str | None:
         """Resolve deployment name by id."""
         try:
-            return BaseDeployment.objects.get(id=deployment_id).name
+            return BaseDeployment.objects.get(id=deployment_id, is_deleted=False).name
         except BaseDeployment.DoesNotExist:
             return None

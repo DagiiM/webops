@@ -38,7 +38,7 @@
         <div id="repoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--webops-space-3); max-height: 500px; overflow-y: auto; padding: 2px;">
             {% for repo in github_repos %}
             <div class="repo-card" data-repo-name="{{ repo.name|lower }}" data-repo-desc="{{ repo.description|lower }}" data-repo-fullname="{{ repo.full_name }}">
-                <div style="padding: var(--webops-space-3); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: all var(--webops-transition-fast); height: 100%;">
+                <div style="padding: var(--webops-space-3); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: none; height: 100%;">
                     <!-- Header -->
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
                         <div style="flex: 1; min-width: 0;">
@@ -124,7 +124,7 @@
 <!-- GitHub not connected -->
 <div class="webops-card" style="margin-bottom: var(--webops-space-3);">
     <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-3);">
-        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: linear-gradient(135deg, #24292e, #6e5494); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
+        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: #24292e; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
             <span class="material-icons" style="font-size: 36px; color: white;">code</span>
         </div>
         <h3 class="webops-h3" style="margin-bottom: var(--webops-space-1-5);">Connect GitHub for Quick Deploy</h3>
@@ -138,6 +138,13 @@
 {% endif %}
 
 <!-- Core Services Status -->
+{% if core_status.runtime == 'supervisor' %}
+<div class="webops-card webops-mb-lg"><div class="webops-card-body">
+<h3>Portable runtime: Supervisor</h3>
+<p>{% if core_status.runtime_ready %}Process supervisor connected{% else %}Process supervisor unavailable{% endif %}. Systemd and Nginx are not required in direct mode.</p>
+<p>In-memory task queue. Application ports are local to this host. Static-only publication is self-service. Executable repositories require review on this shared host.</p>
+</div></div>
+{% else %}
 <div class="webops-card webops-mb-lg">
     <div class="webops-card-header" style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
         <div class="webops-flex webops-gap-sm" style="align-items:center;">
@@ -256,6 +263,7 @@
     </div>
 </div>
 
+{% endif %}
 <!-- Manual Deployment Form -->
 <div class="webops-card">
     <div class="webops-card-header">
@@ -389,10 +397,16 @@
                 </div>
             </div>
 
+            {% if core_status.runtime == 'supervisor' %}
+            <div class="webops-card webops-mb-lg"><div class="webops-card-body">
+                <label><input type="checkbox" name="static_only" id="static_only" {% if approval_required %}checked{% endif %}> Publish static assets only (no build scripts or executable code)</label>
+                <p class="webops-text-sm">Static assets from a public GitHub repository with index.html are published automatically on a local port. {% if approval_required %}Uncheck to submit an executable deployment request for operator review.{% endif %}</p>
+            </div></div>
+            {% endif %}
             <div class="webops-flex webops-gap-sm">
-                <button type="submit" class="webops-btn webops-btn-primary" {% if not core_status.all_ok %}disabled aria-disabled="true"{% endif %}>
+                <button type="submit" class="webops-btn webops-btn-primary" {% if not core_status.all_ok and not approval_required %}disabled aria-disabled="true"{% endif %}>
                     <span class="material-icons">rocket_launch</span>
-                    Create Deployment
+                    {% if approval_required %}Submit deployment{% else %}Create Deployment{% endif %}
                 </button>
                 <a href="{% url 'deployments:deployment_list' %}" class="webops-btn webops-btn-secondary">Cancel</a>
             </div>
@@ -518,7 +532,7 @@ document.getElementById('repo_url').addEventListener('blur', function() {
 (function(){
     try {
         const submitBtn = document.querySelector('#deploymentForm button[type="submit"]');
-        const allOk = {{ core_status.all_ok|yesno:'true,false' }};
+        const allOk = {% if approval_required %}true{% else %}{{ core_status.all_ok|yesno:'true,false' }}{% endif %};
         if (!allOk && submitBtn) {
             submitBtn.setAttribute('disabled', 'disabled');
             submitBtn.setAttribute('aria-disabled', 'true');

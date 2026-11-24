@@ -165,10 +165,10 @@ body {
 }
 
 .brand-text {
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--color-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-primary);
+
+    -webkit-text-fill-color: currentColor;
+
 }
 
 .nav-links {
@@ -182,7 +182,7 @@ body {
     text-decoration: none;
     font-size: var(--text-sm);
     font-weight: var(--font-medium);
-    transition: color 0.2s;
+    transition: none;
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -246,7 +246,7 @@ body {
     text-decoration: none;
     font-size: var(--text-sm);
     border-radius: var(--radius-md);
-    transition: all 0.2s;
+    transition: none;
     display: block;
 }
 
@@ -286,7 +286,7 @@ body {
 .badge {
     display: inline-block;
     padding: var(--space-1) var(--space-3);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--color-secondary) 100%);
+    background: var(--webops-color-primary);
     color: white;
     border-radius: var(--radius-full);
     font-size: var(--text-xs);
@@ -299,10 +299,10 @@ body {
     font-weight: var(--font-bold);
     line-height: 1.2;
     margin-bottom: var(--space-4);
-    background: linear-gradient(135deg, var(--webops-color-text-primary) 0%, var(--webops-color-text-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-text-primary);
+
+    -webkit-text-fill-color: currentColor;
+
 }
 
 .hero-description {
@@ -331,20 +331,20 @@ body {
     font-weight: var(--font-medium);
     text-decoration: none;
     border-radius: var(--radius-lg);
-    transition: all 0.2s;
+    transition: none;
     cursor: pointer;
     border: none;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--color-secondary) 100%);
+    background: var(--webops-color-primary);
     color: white;
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .btn-primary:hover {
-    box-shadow: var(--webops-shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .btn-secondary {
@@ -389,7 +389,7 @@ body {
     background: white;
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-xl);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .step-number {
@@ -399,7 +399,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--color-secondary) 100%);
+    background: var(--webops-color-primary);
     color: white;
     font-size: var(--text-xl);
     font-weight: var(--font-bold);
@@ -429,7 +429,7 @@ body {
     border-radius: var(--radius-lg);
     overflow: hidden;
     margin: var(--space-4) 0;
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .code-block.compact {
@@ -464,7 +464,7 @@ body {
     font-size: var(--text-xs);
     font-weight: var(--font-medium);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: none;
 }
 
 .copy-btn:hover {
@@ -517,7 +517,7 @@ code {
     font-size: var(--text-sm);
     font-weight: var(--font-medium);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: none;
 }
 
 .tab-btn:hover {
@@ -709,11 +709,11 @@ code {
     border-radius: var(--radius-xl);
     margin-bottom: var(--space-4);
     overflow: hidden;
-    transition: box-shadow 0.2s;
+    transition: none;
 }
 
 .endpoint-card:hover {
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .endpoint-header {
@@ -896,7 +896,7 @@ code {
 
 .rate-limit-card {
     padding: var(--space-6);
-    background: linear-gradient(135deg, var(--webops-color-primary) 0%, var(--color-secondary) 100%);
+    background: var(--webops-color-primary);
     border-radius: var(--radius-xl);
     text-align: center;
     color: white;
@@ -928,12 +928,12 @@ code {
     background: white;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    transition: all 0.2s;
+    transition: none;
 }
 
 .sdk-card:hover {
-    box-shadow: var(--webops-shadow-lg);
-    transform: translateY(-4px);
+    box-shadow: none;
+    transform: none;
 }
 
 .sdk-icon {
@@ -999,7 +999,7 @@ code {
     color: var(--webops-color-text-secondary);
     text-decoration: none;
     font-size: var(--text-sm);
-    transition: color 0.2s;
+    transition: none;
 }
 
 .footer-right a:hover {
@@ -1012,7 +1012,7 @@ code {
 @media (max-width: 1024px) {
     .sidebar {
         transform: translateX(-100%);
-        transition: transform 0.3s;
+        transition: none;
     }
 
     .main-content {
@@ -1087,7 +1087,7 @@ code {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: none;
     }
     to {
         opacity: 1;
@@ -1096,7 +1096,7 @@ code {
 }
 
 .doc-section {
-    animation: fadeIn 0.4s ease-out;
+    animation: none;
 }
 
 /* ============================================================================

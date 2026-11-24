@@ -75,7 +75,9 @@ class ServiceController:
             logger.info(f"Starting service for deployment: {deployment.name}")
 
             # Use ServiceManager to start
-            self.service_manager.start_service(deployment)
+            ok, message = self.service_manager.start_service(deployment)
+            if not ok:
+                raise ServiceControlError(message)
 
             # Wait a moment for service to stabilize
             import time
@@ -120,7 +122,9 @@ class ServiceController:
         try:
             logger.info(f"Stopping service for deployment: {deployment.name}")
 
-            self.service_manager.stop_service(deployment)
+            ok, message = self.service_manager.stop_service(deployment)
+            if not ok:
+                raise ServiceControlError(message)
 
             # Update deployment status
             deployment.status = BaseDeployment.Status.STOPPED
@@ -157,7 +161,9 @@ class ServiceController:
         try:
             logger.info(f"Restarting service for deployment: {deployment.name}")
 
-            self.service_manager.restart_service(deployment)
+            ok, message = self.service_manager.restart_service(deployment)
+            if not ok:
+                raise ServiceControlError(message)
 
             # Wait for service to stabilize
             import time
@@ -345,7 +351,7 @@ class ServiceController:
     # BULK OPERATIONS
     # =========================================================================
 
-    def start_all_services(self) -> Dict[str, Any]:
+    def start_all_services(self, user=None) -> Dict[str, Any]:
         """
         Start all stopped deployment services.
 
@@ -356,6 +362,9 @@ class ServiceController:
             status__in=[BaseDeployment.Status.STOPPED, BaseDeployment.Status.FAILED]
         )
 
+        deployments = deployments.filter(is_deleted=False)
+        if user is not None:
+            deployments = deployments.filter(deployed_by=user)
         results = []
         for deployment in deployments:
             result = self.start_service(deployment)
@@ -374,7 +383,7 @@ class ServiceController:
             'results': results
         }
 
-    def stop_all_services(self) -> Dict[str, Any]:
+    def stop_all_services(self, user=None) -> Dict[str, Any]:
         """
         Stop all running deployment services.
 
@@ -383,6 +392,9 @@ class ServiceController:
         """
         deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
 
+        deployments = deployments.filter(is_deleted=False)
+        if user is not None:
+            deployments = deployments.filter(deployed_by=user)
         results = []
         for deployment in deployments:
             result = self.stop_service(deployment)
@@ -401,7 +413,7 @@ class ServiceController:
             'results': results
         }
 
-    def restart_all_services(self) -> Dict[str, Any]:
+    def restart_all_services(self, user=None) -> Dict[str, Any]:
         """
         Restart all running deployment services.
 
@@ -410,6 +422,9 @@ class ServiceController:
         """
         deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
 
+        deployments = deployments.filter(is_deleted=False)
+        if user is not None:
+            deployments = deployments.filter(deployed_by=user)
         results = []
         for deployment in deployments:
             result = self.restart_service(deployment)
@@ -432,7 +447,7 @@ class ServiceController:
     # HEALTH CHECK & AUTO-RECOVERY
     # =========================================================================
 
-    def perform_health_checks(self, auto_restart: bool = False) -> Dict[str, Any]:
+    def perform_health_checks(self, auto_restart: bool = False, user=None) -> Dict[str, Any]:
         """
         Perform health checks on all running services.
 
@@ -442,7 +457,9 @@ class ServiceController:
         Returns:
             Health check results
         """
-        deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING)
+        deployments = ApplicationDeployment.objects.filter(status=ApplicationDeployment.Status.RUNNING, is_deleted=False)
+        if user is not None:
+            deployments = deployments.filter(deployed_by=user)
 
         results = []
         unhealthy = []
@@ -497,7 +514,7 @@ class ServiceController:
             'restart_results': restart_results
         }
 
-    def check_system_health(self) -> Dict[str, Any]:
+    def check_system_health(self, user=None) -> Dict[str, Any]:
         """
         Comprehensive system health check.
 
@@ -513,11 +530,12 @@ class ServiceController:
         celery_status = self.check_celery_workers()
 
         # Check deployment services
-        deployment_health = self.perform_health_checks(auto_restart=False)
+        deployment_health = self.perform_health_checks(auto_restart=False, user=user)
 
         # Count unacknowledged alerts
-        alert_count = Alert.objects.filter(is_acknowledged=False).count()
-        critical_alerts = Alert.objects.filter(
+        alerts = Alert.objects.all() if user is None else Alert.objects.filter(deployment__deployed_by=user)
+        alert_count = alerts.filter(is_acknowledged=False).count()
+        critical_alerts = alerts.filter(
             is_acknowledged=False,
             severity=Alert.Severity.CRITICAL
         ).count()

@@ -13,7 +13,7 @@
 
 <!-- Warning Card -->
 <div class="webops-card webops-card--warning" style="max-width: 700px; margin: 0 auto;">
-    <div class="webops-card-header" style="background: linear-gradient(135deg, var(--webops-color-error) 0%, #dc2626 100%); color: white; border: none;">
+    <div class="webops-card-header" style="background: var(--webops-color-error); color: white; border: none;">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span style="font-size: 32px;">⚠️</span>
             <div>
@@ -147,7 +147,7 @@
 <style>
 .webops-card--warning {
     border: 3px solid var(--webops-color-error);
-    box-shadow: 0 4px 20px var(--webops-color-error-light);
+    box-shadow: none;
 }
 
 .webops-token-info {
@@ -181,7 +181,7 @@
 
 .webops-impact-section {
     padding: var(--webops-space-3);
-    background: linear-gradient(135deg, var(--webops-color-error-lighter) 0%, var(--webops-color-error-light) 100%);
+    background: var(--webops-color-error-lighter);
     border-radius: var(--webops-radius-md);
     border: 2px solid var(--webops-color-error-light);
     margin-bottom: var(--webops-space-3);
@@ -231,7 +231,7 @@
     background: var(--webops-color-background-secondary);
     border-radius: var(--webops-radius-md);
     border: 2px solid var(--webops-color-border);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-checkbox-label:hover {
@@ -269,7 +269,7 @@
 
 .webops-btn-danger:hover:not(:disabled) {
     background: var(--webops-color-error-dark);
-    transform: scale(1.02);
+    transform: none;
 }
 
 .webops-btn-danger:disabled {

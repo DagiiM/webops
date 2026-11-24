@@ -47,10 +47,8 @@
             content: '';
             position: absolute;
             inset: 0;
-            background-image:
-                repeating-linear-gradient(0deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px),
-                repeating-linear-gradient(90deg, transparent, transparent 49px, var(--webops-color-graph-grid) 49px, var(--webops-color-graph-grid) 50px);
-            animation: gridSlide 20s linear infinite;
+            background-image: none;
+            animation: none;
         }
 
         .rate-limit-bg::after {
@@ -60,9 +58,9 @@
             left: 50%;
             width: 1000px;
             height: 1000px;
-            background: radial-gradient(circle, var(--webops-color-warning-alpha-30) 0%, transparent 70%);
+            background: var(--webops-color-warning-alpha-30);
             transform: translate(-50%, -50%);
-            animation: pulseGlow 4s ease-in-out infinite;
+            animation: none;
         }
 
         @keyframes gridSlide {
@@ -86,16 +84,14 @@
             padding: var(--webops-space-12);
             max-width: 640px;
             width: 100%;
-            box-shadow:
-                var(--webops-shadow-2xl),
-                0 0 60px var(--webops-color-warning-alpha-30);
-            animation: cardSlideIn 0.6s var(--webops-ease-out);
+            box-shadow: none;
+            animation: none;
         }
 
         @keyframes cardSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(40px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -109,12 +105,12 @@
             height: 120px;
             margin: 0 auto var(--webops-space-8);
             position: relative;
-            animation: iconFloat 3s ease-in-out infinite;
+            animation: none;
         }
 
         @keyframes iconFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: none; }
         }
 
         .rate-limit-icon svg {
@@ -129,7 +125,7 @@
             fill: none;
             stroke-dasharray: 283;
             stroke-dashoffset: 283;
-            animation: progressFill 2s ease-out forwards;
+            animation: none;
             transform-origin: center;
             transform: rotate(-90deg);
         }
@@ -142,7 +138,7 @@
 
         .rate-limit-icon path {
             fill: var(--webops-color-warning);
-            animation: iconPulse 2s ease-in-out infinite;
+            animation: none;
         }
 
         @keyframes iconPulse {
@@ -156,20 +152,17 @@
             font-weight: var(--webops-font-weight-bold);
             text-align: center;
             margin-bottom: var(--webops-space-4);
-            background: linear-gradient(135deg,
-                var(--webops-color-warning),
-                var(--webops-color-warning-light)
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: titleSlide 0.8s var(--webops-ease-out) 0.2s backwards;
+            background: var(--webops-color-warning);
+
+            -webkit-text-fill-color: currentColor;
+
+            animation: none;
         }
 
         @keyframes titleSlide {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -183,13 +176,13 @@
             text-align: center;
             margin-bottom: var(--webops-space-10);
             line-height: var(--webops-line-height-relaxed);
-            animation: messageSlide 0.8s var(--webops-ease-out) 0.3s backwards;
+            animation: none;
         }
 
         @keyframes messageSlide {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -206,13 +199,13 @@
             margin-bottom: var(--webops-space-8);
             position: relative;
             overflow: hidden;
-            animation: timerSlide 0.8s var(--webops-ease-out) 0.4s backwards;
+            animation: none;
         }
 
         @keyframes timerSlide {
             from {
                 opacity: 0;
-                transform: scale(0.95);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -227,12 +220,8 @@
             left: 0;
             right: 0;
             height: 100%;
-            background: linear-gradient(90deg,
-                transparent,
-                var(--webops-color-warning-alpha-10),
-                transparent
-            );
-            animation: shimmer 3s ease-in-out infinite;
+            background: transparent;
+            animation: none;
         }
 
         @keyframes shimmer {
@@ -256,7 +245,7 @@
             font-family: var(--webops-font-family-mono);
             text-align: center;
             color: var(--webops-color-warning);
-            text-shadow: 0 0 30px var(--webops-color-warning-alpha-50);
+            text-shadow: none;
             letter-spacing: var(--webops-letter-spacing-tight);
             position: relative;
             z-index: 1;
@@ -275,13 +264,13 @@
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: var(--webops-space-4);
             margin-bottom: var(--webops-space-8);
-            animation: infoSlide 0.8s var(--webops-ease-out) 0.5s backwards;
+            animation: none;
         }
 
         @keyframes infoSlide {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -295,13 +284,13 @@
             border-radius: var(--webops-radius-lg);
             padding: var(--webops-space-4);
             text-align: center;
-            transition: all var(--webops-transition-medium);
+            transition: none;
         }
 
         .info-item:hover {
             border-color: var(--webops-color-primary-alpha-30);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--webops-color-primary-alpha-20);
+            transform: none;
+            box-shadow: none;
         }
 
         .info-label {
@@ -336,7 +325,7 @@
             overflow: hidden;
             margin-bottom: var(--webops-space-8);
             position: relative;
-            animation: progressSlide 0.8s var(--webops-ease-out) 0.6s backwards;
+            animation: none;
         }
 
         @keyframes progressSlide {
@@ -352,21 +341,17 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg,
-                var(--webops-color-warning-dark),
-                var(--webops-color-warning),
-                var(--webops-color-warning-light)
-            );
+            background: var(--webops-color-warning-dark);
             border-radius: var(--webops-radius-full);
-            transition: width var(--webops-transition-slow);
+            transition: none;
             position: relative;
             overflow: hidden;
-            animation: progressPulse 2s ease-in-out infinite;
+            animation: none;
         }
 
         @keyframes progressPulse {
-            0%, 100% { box-shadow: 0 0 10px var(--webops-color-warning-alpha-30); }
-            50% { box-shadow: 0 0 20px var(--webops-color-warning-alpha-50); }
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: none; }
         }
 
         .progress-fill::before {
@@ -376,12 +361,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
-            animation: progressShine 2s ease-in-out infinite;
+            background: transparent;
+            animation: none;
         }
 
         @keyframes progressShine {
@@ -393,13 +374,13 @@
         .rate-limit-actions {
             display: flex;
             gap: var(--webops-space-4);
-            animation: actionsSlide 0.8s var(--webops-ease-out) 0.7s backwards;
+            animation: none;
         }
 
         @keyframes actionsSlide {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: none;
             }
             to {
                 opacity: 1;
@@ -415,7 +396,7 @@
             font-weight: var(--webops-font-weight-semibold);
             text-align: center;
             text-decoration: none;
-            transition: all var(--webops-transition-medium);
+            transition: none;
             cursor: pointer;
             border: none;
             position: relative;
@@ -432,7 +413,7 @@
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
             transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+            transition: none;
         }
 
         .webops-btn:active::before {
@@ -447,8 +428,8 @@
 
         .webops-btn-primary:hover {
             background: var(--webops-color-primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px var(--webops-color-primary-alpha-30);
+            transform: none;
+            box-shadow: none;
         }
 
         .webops-btn-secondary {
@@ -460,7 +441,7 @@
         .webops-btn-secondary:hover {
             background: var(--webops-color-surface-hover);
             border-color: var(--webops-color-primary-alpha-35);
-            transform: translateY(-2px);
+            transform: none;
         }
 
         /* Responsive design */
@@ -495,8 +476,8 @@
             height: 8px;
             border-radius: 50%;
             background: var(--webops-color-success);
-            box-shadow: 0 0 10px var(--webops-color-success);
-            animation: blink 2s ease-in-out infinite;
+            box-shadow: none;
+            animation: none;
         }
 
         @keyframes blink {
@@ -504,6 +485,7 @@
             50% { opacity: 0.3; }
         }
     </style>
+    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
 </head>
 <body>
     <!-- Animated background -->

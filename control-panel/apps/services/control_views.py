@@ -42,7 +42,7 @@ def service_control_dashboard(request):
     """Main service control dashboard."""
     # Get all deployments with status
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user)
+    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     service_statuses = []
 
     for deployment in deployments:
@@ -61,7 +61,7 @@ def service_control_dashboard(request):
         })
 
     # System health
-    system_health = service_controller.check_system_health()
+    system_health = service_controller.check_system_health(user=request.user if not request.user.is_staff else None)
 
     # Celery status
     celery_status = service_controller.check_celery_workers()
@@ -81,7 +81,7 @@ def service_control_dashboard(request):
 def start_service(request, deployment_id):
     """Start a specific service."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     # Check if background task requested
     use_task = request.POST.get('background', 'false') == 'true'
@@ -206,7 +206,7 @@ def celery_restart_redirect(request):
 def stop_service(request, deployment_id):
     """Stop a specific service."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     use_task = request.POST.get('background', 'false') == 'true'
 
@@ -238,7 +238,7 @@ def stop_service(request, deployment_id):
 def restart_service(request, deployment_id):
     """Restart a specific service."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     use_task = request.POST.get('background', 'false') == 'true'
 
@@ -268,7 +268,7 @@ def restart_service(request, deployment_id):
 @require_POST
 def bulk_start_services(request):
     """Start all stopped services."""
-    result = service_controller.start_all_services()
+    result = service_controller.start_all_services(user=request.user)
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse(result)
@@ -285,7 +285,7 @@ def bulk_start_services(request):
 @require_POST
 def bulk_stop_services(request):
     """Stop all running services."""
-    result = service_controller.stop_all_services()
+    result = service_controller.stop_all_services(user=request.user)
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse(result)
@@ -302,7 +302,7 @@ def bulk_stop_services(request):
 @require_POST
 def bulk_restart_services(request):
     """Restart all running services."""
-    result = service_controller.restart_all_services()
+    result = service_controller.restart_all_services(user=request.user)
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse(result)
@@ -321,7 +321,7 @@ def bulk_restart_services(request):
 @login_required
 def restart_policy_list(request):
     """List all restart policies."""
-    policies = RestartPolicy.objects.select_related('deployment').all()
+    policies = RestartPolicy.objects.select_related('deployment').filter(deployment__deployed_by=request.user, deployment__is_deleted=False)
 
     # Get statistics for each
     policy_stats = []
@@ -347,7 +347,7 @@ def restart_policy_list(request):
 def restart_policy_edit(request, deployment_id):
     """Edit restart policy for a deployment."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     try:
         policy = RestartPolicy.objects.get(deployment=deployment)
@@ -402,7 +402,7 @@ def restart_policy_edit(request, deployment_id):
 def restart_policy_delete(request, deployment_id):
     """Delete restart policy."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     try:
         policy = RestartPolicy.objects.get(deployment=deployment)
@@ -618,7 +618,7 @@ def celery_restart_workers(request):
 def api_service_status(request, deployment_id):
     """API: Get service status."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     status = service_controller.get_service_status(deployment)
     return JsonResponse(status)
 
@@ -627,7 +627,7 @@ def api_service_status(request, deployment_id):
 @require_http_methods(["GET"])
 def api_system_health(request):
     """API: Get complete system health."""
-    health = service_controller.check_system_health()
+    health = service_controller.check_system_health(user=request.user if not request.user.is_staff else None)
     return JsonResponse(health)
 
 
@@ -779,7 +779,7 @@ def celery_restart_redirect(request):
 def ssl_configuration(request, deployment_id):
     """SSL configuration management page."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     # Get or create SSL configuration
     from .models import SSLConfiguration
@@ -803,7 +803,7 @@ def ssl_configuration(request, deployment_id):
 def ssl_toggle(request, deployment_id):
     """Toggle SSL enable/disable for a deployment."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     from .models import SSLConfiguration
     ssl_config, created = SSLConfiguration.objects.get_or_create(
@@ -874,7 +874,7 @@ def ssl_toggle(request, deployment_id):
 def ssl_upload_certificate(request, deployment_id):
     """Upload SSL certificate files."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     from .models import SSLConfiguration
     ssl_config, created = SSLConfiguration.objects.get_or_create(
@@ -939,7 +939,7 @@ def ssl_upload_certificate(request, deployment_id):
 def ssl_update_configuration(request, deployment_id):
     """Update SSL configuration settings."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     from .models import SSLConfiguration
     ssl_config, created = SSLConfiguration.objects.get_or_create(
@@ -994,7 +994,7 @@ def ssl_update_configuration(request, deployment_id):
 def ssl_status(request, deployment_id):
     """Get SSL status for a deployment (JSON endpoint)."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     from .models import SSLConfiguration
     try:
@@ -1032,7 +1032,7 @@ def ssl_status(request, deployment_id):
 def ssl_validate(request, deployment_id):
     """Validate current SSL certificate."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
     
     from .models import SSLConfiguration
     try:

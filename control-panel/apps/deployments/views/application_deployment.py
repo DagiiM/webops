@@ -9,6 +9,11 @@ import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
+from django.http import HttpResponseForbidden
+from django.utils import timezone
+from apps.core.security.access import requires_review, queue_deployment
+from django.views.decorators.http import require_POST
 from ..models import BaseDeployment, DeploymentLog, ApplicationDeployment
 
 logger = logging.getLogger(__name__)
@@ -19,9 +24,9 @@ def deployment_list(request):
     """List all deployments for the current user."""
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
     # Only show deployments created by the current user
-    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user)
+    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     return render(request, 'deployments/list.html', {
-        'deployments': deployments
+        'deployments': deployments, 'review_requests': ApplicationDeployment.objects.filter(status='requested', is_deleted=False) if request.user.is_staff else ApplicationDeployment.objects.none()
     })
 
 
@@ -30,7 +35,7 @@ def deployment_detail(request, pk):
     """Show deployment details and logs."""
     # SECURITY FIX: Verify ownership to prevent IDOR vulnerability
     # Only allow access to deployments owned by the current user
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
     logs = deployment.logs.all()[:100]  # Last 100 logs
 
     # Get service status
@@ -101,6 +106,14 @@ def deployment_create(request):
             messages.error(request, "Invalid domain name format.")
             return redirect('deployments:deployment_list')
 
+        from apps.services.runtime import portable_runtime
+        static_only = request.POST.get('static_only') == 'on' and portable_runtime() is not None
+        if static_only and (not repo_url.startswith('https://github.com/') or use_docker):
+            messages.error(request, "Static publication requires a public HTTPS GitHub repository without Docker.")
+            return redirect('deployments:deployment_list')
+        if requires_review(request.user) and ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False).count() >= 5:
+            messages.error(request, "Preview limit: five active deployment requests or applications.")
+            return redirect('deployments:deployment_list')
         # Create deployment
         try:
             deployment = ApplicationDeployment.objects.create(
@@ -109,20 +122,18 @@ def deployment_create(request):
                 branch=branch or 'main',
                 domain=domain,
                 deployed_by=request.user,
+                status=BaseDeployment.Status.REQUESTED if requires_review(request.user) and not static_only else BaseDeployment.Status.PENDING,
+                static_only=static_only,
                 use_docker=use_docker,
                 auto_generate_dockerfile=auto_generate_dockerfile,
                 dockerfile_path=dockerfile_path if use_docker else 'Dockerfile',
                 docker_network_mode=docker_network_mode if use_docker else 'bridge'
             )
 
-            # Ensure Celery worker is running (non-interactive)
-            from ..shared import ServiceManager
-            ServiceManager().ensure_celery_running()
-
-            # Queue deployment task via background processor
-            from apps.services.background import get_background_processor
-            processor = get_background_processor()
-            processor.submit('apps.deployments.tasks.application.deploy_application', deployment.id)
+            if deployment.status == BaseDeployment.Status.REQUESTED:
+                messages.success(request, "Deployment request submitted for operator approval.")
+                return redirect('deployments:deployment_detail', pk=deployment.id)
+            queue_deployment(deployment)
 
             messages.success(request, f"Deployment '{sanitized_name}' created and queued successfully.")
             return redirect('deployments:deployment_detail', pk=deployment.id)
@@ -153,7 +164,7 @@ def deployment_create(request):
     return render(request, 'deployments/create.html', {
         'github_connected': github_connected,
         'github_repos': github_repos,
-        'core_status': core_status,
+        'core_status': core_status, 'approval_required': requires_review(request.user),
     })
 
 
@@ -333,44 +344,47 @@ def get_core_services_status_detailed(request):
 @login_required
 def dashboard(request):
     """Main dashboard view with comprehensive statistics."""
-    from apps.databases.models import Database
+    from apps.databases.views import _databases_visible_to
     from apps.api.models import APIToken
     from django.db.models import Count
     from django.utils import timezone
 
-    deployments = BaseDeployment.objects.all().order_by('-created_at')[:10]
+    owned_deployments = BaseDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
+    deployments = owned_deployments.order_by('-created_at')[:10]
 
     # Deployment stats
     deployment_stats = {
-        'total': BaseDeployment.objects.count(),
-        'running': BaseDeployment.objects.filter(status='running').count(),
-        'stopped': BaseDeployment.objects.filter(status='stopped').count(),
-        'failed': BaseDeployment.objects.filter(status='failed').count(),
-        'pending': BaseDeployment.objects.filter(status='pending').count(),
+        'total': owned_deployments.count(),
+        'running': owned_deployments.filter(status='running').count(),
+        'stopped': owned_deployments.filter(status='stopped').count(),
+        'failed': owned_deployments.filter(status='failed').count(),
+        'pending': owned_deployments.filter(status='pending').count(),
     }
 
     # Database stats
+    databases = _databases_visible_to(request.user)
+    tokens = APIToken.objects.filter(user=request.user)
     database_stats = {
-        'total': Database.objects.count(),
-        'with_deployment': Database.objects.exclude(deployment__isnull=True).count(),
-        'standalone': Database.objects.filter(deployment__isnull=True).count(),
+        'total': databases.count(),
+        'with_deployment': databases.exclude(deployment__isnull=True).count(),
+        'standalone': databases.filter(deployment__isnull=True).count(),
     }
 
     # API token stats
     token_stats = {
-        'total': APIToken.objects.count(),
-        'active': APIToken.objects.filter(is_active=True).count(),
-        'expired': APIToken.objects.filter(expires_at__lt=timezone.now()).count(),
+        'total': tokens.count(),
+        'active': tokens.filter(is_active=True).count(),
+        'expired': tokens.filter(expires_at__lt=timezone.now()).count(),
     }
 
     # Project type breakdown
-    project_types = ApplicationDeployment.objects.values('project_type').annotate(
+    project_types = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False).values('project_type').annotate(
         count=Count('id')
     )
 
     # Recent activity (last 7 days)
     seven_days_ago = timezone.now() - timezone.timedelta(days=7)
-    recent_deployments = BaseDeployment.objects.filter(
+    recent_deployments = owned_deployments.filter(
         created_at__gte=seven_days_ago
     ).count()
 
@@ -385,10 +399,13 @@ def dashboard(request):
 
 
 @login_required
+@require_POST
 def deployment_start(request, pk):
     """Start a deployment service."""
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
+    if deployment.status == BaseDeployment.Status.REQUESTED:
+        return HttpResponseForbidden("Awaiting deployment approval.")
     # Check if this is a pending LLM deployment that needs initial setup
     from ..models import LLMDeployment
     is_llm_deployment = False
@@ -437,10 +454,13 @@ def deployment_start(request, pk):
 
 
 @login_required
+@require_POST
 def deployment_stop(request, pk):
     """Stop a deployment service."""
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
+    if deployment.status == BaseDeployment.Status.REQUESTED:
+        return HttpResponseForbidden("Awaiting deployment approval.")
     from ..shared import ServiceManager
     from ..models import LLMDeployment
 
@@ -460,10 +480,13 @@ def deployment_stop(request, pk):
 
 
 @login_required
+@require_POST
 def deployment_restart(request, pk):
     """Restart a deployment service."""
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
+    if deployment.status == BaseDeployment.Status.REQUESTED:
+        return HttpResponseForbidden("Awaiting deployment approval.")
     from ..shared import ServiceManager
     from ..models import LLMDeployment
 
@@ -486,14 +509,20 @@ def deployment_restart(request, pk):
 def deployment_delete(request, pk):
     """Delete a deployment and all its resources."""
     try:
-        deployment = BaseDeployment.objects.get(pk=pk)
+        deployment = BaseDeployment.objects.get(pk=pk, deployed_by=request.user, is_deleted=False)
     except BaseDeployment.DoesNotExist:
         messages.error(request, f'Deployment with ID {pk} not found. It may have already been deleted.')
         return redirect('deployments:deployment_list')
 
     if request.method == 'POST':
         deployment_name = deployment.name
-
+        if deployment.status == BaseDeployment.Status.REQUESTED:
+            if BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(is_deleted=True, deleted_by=request.user, status="stopped", deleted_at=timezone.now()):
+                messages.success(request, "Deployment request cancelled.")
+                return redirect('deployments:deployment_list')
+            return HttpResponseForbidden("Request is no longer awaiting approval.")
+        if deployment.status == BaseDeployment.Status.BUILDING:
+            return HttpResponseForbidden("Wait until the build completes before deleting.")
         # Handle different deployment types
         if hasattr(deployment, 'applicationdeployment'):
             # Application deployment - use background task
@@ -554,7 +583,7 @@ def deployment_env_update(request, pk):
     import json
     from django.http import JsonResponse
 
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     if request.method == 'POST':
         try:
@@ -589,7 +618,7 @@ def deployment_validate(request, pk):
     from ..shared.validators import validate_project
     from ..services import DeploymentService
 
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
@@ -625,7 +654,7 @@ def deployment_env_wizard(request, pk):
     from apps.core.managers.env_manager import EnvParser
     from ..services import DeploymentService
 
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
@@ -702,7 +731,7 @@ def deployment_env_manage(request, pk):
     """Manage environment variables for a deployment."""
     from ..services import DeploymentService
 
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
 
@@ -756,7 +785,7 @@ def deployment_files(request, pk):
     from ..services import DeploymentService
     import os
 
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
     service = DeploymentService()
     repo_path = service.get_repo_path(deployment)
 
@@ -778,6 +807,8 @@ def deployment_files(request, pk):
 
     target_path = repo_path / rel_path if rel_path else repo_path
 
+    if not target_path.resolve().is_relative_to(repo_path.resolve()) or target_path.is_symlink():
+        return JsonResponse({"success":False,"error":"Invalid path"}, status=400)
     if not target_path.exists():
         return JsonResponse({
             'success': False,
@@ -825,7 +856,7 @@ def deployment_files(request, pk):
 
             for item in sorted(target_path.iterdir(), key=lambda x: (not x.is_dir(), x.name)):
                 # Skip hidden files and common ignore patterns
-                if item.name.startswith('.') and item.name not in ['.env.example', '.gitignore']:
+                if item.is_symlink() or (item.name.startswith('.') and item.name not in ['.env.example', '.gitignore']):
                     continue
                 if item.name in ['__pycache__', 'node_modules', '.git', 'venv', '.venv']:
                     continue
@@ -856,7 +887,7 @@ def deployment_files(request, pk):
 @login_required
 def deployment_editor(request, pk):
     """Open code editor for deployment."""
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk)
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
     return render(request, 'deployments/editor.html', {
         'deployment': deployment
     })
@@ -868,7 +899,7 @@ def deployment_health_check(request, pk):
     from django.http import JsonResponse
     from .health_check import perform_health_check
 
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     try:
         # Run health check (without auto-restart for manual checks)
@@ -892,7 +923,7 @@ def deployment_health_history(request, pk):
     from django.http import JsonResponse
     from .models import HealthCheckRecord
 
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     # Get limit from query parameters (default 24)
     limit = int(request.GET.get('limit', 24))
@@ -933,7 +964,7 @@ def deployment_monitoring(request, pk):
     from django.utils import timezone
     from datetime import timedelta
 
-    deployment = get_object_or_404(BaseDeployment, pk=pk)
+    deployment = get_object_or_404(BaseDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
 
     # Get latest health check
     latest_health_check = deployment.health_check_records.first()
@@ -1014,3 +1045,21 @@ def github_repo_branches(request):
         'success': True,
         'branches': [branch['name'] for branch in branches]
     })
+
+
+@login_required
+@require_POST
+def deployment_approve(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Operator approval required.")
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, is_deleted=False, status="requested")
+    if not BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(status="building"):
+        return HttpResponseForbidden("Request already processed.")
+    try:
+        queue_deployment(deployment)
+    except Exception:
+        BaseDeployment.objects.filter(pk=pk, status="building").update(status="requested")
+        messages.error(request, "Unable to queue request; try again.")
+    else:
+        messages.success(request, "Deployment request approved and queued.")
+    return redirect("deployments:deployment_list")

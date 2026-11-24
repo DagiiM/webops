@@ -162,12 +162,12 @@
     --webops-shadow-primary: 0 4px 14px 0 rgba(0, 255, 136, 0.39);
 
     /* Gradient Colors */
-    --webops-gradient-primary: linear-gradient(135deg, var(--webops-color-primary-400), var(--webops-color-primary-600));
-    --webops-gradient-secondary: linear-gradient(135deg, var(--webops-color-secondary-400), var(--webops-color-secondary-600));
-    --webops-gradient-success: linear-gradient(135deg, var(--webops-color-success-400), var(--webops-color-success-600));
-    --webops-gradient-warning: linear-gradient(135deg, var(--webops-color-warning-400), var(--webops-color-warning-600));
-    --webops-gradient-error: linear-gradient(135deg, var(--webops-color-error-400), var(--webops-color-error-600));
-    --webops-gradient-surface: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+    --webops-gradient-primary: var(--webops-color-primary-400);
+    --webops-gradient-secondary: var(--webops-color-secondary-400);
+    --webops-gradient-success: var(--webops-color-success-400);
+    --webops-gradient-warning: var(--webops-color-warning-400);
+    --webops-gradient-error: var(--webops-color-error-400);
+    --webops-gradient-surface: rgba(0, 255, 136, 0.1);
 
     /* Component-specific Colors */
     --webops-card-bg: var(--webops-color-bg-secondary);
@@ -209,7 +209,7 @@
 
     /* Animation & Transition Colors */
     --webops-loading-bg: var(--webops-color-neutral-700);
-    --webops-loading-shimmer: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    --webops-loading-shimmer: transparent;
     --webops-progress-bg: var(--webops-color-neutral-700);
     --webops-progress-fill: var(--webops-color-primary);
 }
@@ -290,7 +290,7 @@
 /* Focus State Utilities */
 .webops-focus-primary:focus { 
     outline: none;
-    box-shadow: var(--webops-focus-ring);
+    box-shadow: none;
 }
 
 .webops-focus-visible:focus-visible {
@@ -307,12 +307,12 @@
 .webops-gradient-surface { background: var(--webops-gradient-surface); }
 
 /* Shadow Utilities */
-.webops-shadow-sm { box-shadow: var(--webops-shadow-sm); }
-.webops-shadow-md { box-shadow: var(--webops-shadow-md); }
-.webops-shadow-lg { box-shadow: var(--webops-shadow-lg); }
-.webops-shadow-xl { box-shadow: var(--webops-shadow-xl); }
-.webops-shadow-glow { box-shadow: var(--webops-shadow-glow); }
-.webops-shadow-primary { box-shadow: var(--webops-shadow-primary); }
+.webops-shadow-sm { box-shadow: none; }
+.webops-shadow-md { box-shadow: none; }
+.webops-shadow-lg { box-shadow: none; }
+.webops-shadow-xl { box-shadow: none; }
+.webops-shadow-glow { box-shadow: none; }
+.webops-shadow-primary { box-shadow: none; }
 
 /* Component State Utilities */
 .webops-disabled {
@@ -326,7 +326,7 @@
     background: var(--webops-loading-bg);
     background-image: var(--webops-loading-shimmer);
     background-size: 200% 100%;
-    animation: webops-shimmer 1.5s infinite;
+    animation: none;
 }
 
 @keyframes webops-shimmer {

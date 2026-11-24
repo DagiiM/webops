@@ -47,7 +47,9 @@
                     Start
                 </button>
             </form>
-        {% elif deployment.status == 'pending' %}
+        {% elif deployment.status == 'requested' %}
+            <span class="webops-badge webops-badge-warning">Awaiting operator approval</span>
+        {% elif deployment.status == 'pending' or deployment.status == 'building' %}
             <span class="webops-badge webops-badge-warning">Building...</span>
         {% elif deployment.status == 'failed' %}
             <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
@@ -69,7 +71,7 @@
         
         <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="webops-btn webops-btn-danger">
             <span class="material-icons">delete</span>
-            Delete
+            {% if deployment.status == "requested" %}Cancel request{% else %}Delete{% endif %}
         </a>
     </div>
 </div>
@@ -83,7 +85,7 @@
         <strong class="webops-text-primary">Status: {{ deployment.get_status_display }}</strong>
         {% if service_status %}
             <p class="webops-text-secondary" style="margin: 4px 0 0 0; font-size: var(--webops-font-size-sm);">
-                Service is {{ service_status.active_state }} and {{ service_status.sub_state }}
+                {% if service_status.runtime %}Runtime: {{ service_status.runtime }} · {{ service_status.state }}{% else %}Service is {{ service_status.active_state }} and {{ service_status.sub_state }}{% endif %}
             </p>
         {% endif %}
     </div>
@@ -330,22 +332,22 @@
 }
 
 .webops-alert--running {
-    background: linear-gradient(135deg, var(--success-light) 0%, #d1fae5 100%);
+    background: var(--success-light);
     border-left: 4px solid var(--success);
 }
 
 .webops-alert--stopped {
-    background: linear-gradient(135deg, var(--webops-gray-200) 0%, var(--webops-gray-100) 100%);
+    background: var(--webops-gray-200);
     border-left: 4px solid var(--webops-gray-400);
 }
 
 .webops-alert--failed {
-    background: linear-gradient(135deg, var(--danger-light) 0%, #fee2e2 100%);
+    background: var(--danger-light);
     border-left: 4px solid var(--danger);
 }
 
 .webops-alert--pending {
-    background: linear-gradient(135deg, var(--warning-light) 0%, #fef3c7 100%);
+    background: var(--warning-light);
     border-left: 4px solid var(--warning);
 }
 
@@ -562,7 +564,7 @@
     color: var(--webops-gray-600);
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
-    transition: all 0.2s;
+    transition: none;
 }
 
 .webops-tab:hover {
@@ -607,7 +609,7 @@
     cursor: pointer;
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    transition: background 0.2s;
+    transition: none;
 }
 
 .webops-breadcrumb-item:hover {
@@ -633,7 +635,7 @@
     border: 1px solid var(--webops-gray-200);
     border-radius: var(--webops-radius-md);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: none;
 }
 
 .webops-file-item:hover {
@@ -890,9 +892,9 @@ function showNotification(message, type = 'success') {
         color: white;
         padding: 1rem 1.5rem;
         border-radius: var(--webops-radius-md);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: none;
         z-index: 10000;
-        animation: slideIn 0.3s ease;
+        animation: none;
     `;
 
     document.body.appendChild(notification);

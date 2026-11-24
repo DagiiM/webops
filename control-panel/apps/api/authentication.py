@@ -69,7 +69,7 @@ def api_authentication_required(view_func):
         token = auth_header.replace('Bearer ', '')
         user = get_user_from_token(token)
 
-        if not user:
+        if not user or not user.is_active:
             return JsonResponse({
                 'error': 'Invalid token',
                 'message': 'Token is invalid or expired'
@@ -77,6 +77,10 @@ def api_authentication_required(view_func):
 
         # Attach user to request
         request.user = user
+        from apps.core.security.access import deny_for_user
+        denied = deny_for_user(request, user)
+        if denied is not None:
+            return denied
 
         return view_func(request, *args, **kwargs)
 

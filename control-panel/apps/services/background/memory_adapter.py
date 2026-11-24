@@ -96,7 +96,11 @@ class InMemoryBackgroundProcessor(BackgroundProcessor):
                 return
             entry.status = TaskStatus.STARTED
         try:
+            from django.db import close_old_connections
+            close_old_connections()
             result = entry.fn(*entry.args, **entry.kwargs)
+            if isinstance(result, dict) and result.get("success") is False:
+                raise RuntimeError(result.get("error", "Task failed"))
             with self._lock:
                 entry.result = result
                 entry.status = TaskStatus.SUCCESS
@@ -104,3 +108,6 @@ class InMemoryBackgroundProcessor(BackgroundProcessor):
             with self._lock:
                 entry.error = exc
                 entry.status = TaskStatus.FAILED
+        finally:
+            from django.db import close_old_connections
+            close_old_connections()

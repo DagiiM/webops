@@ -18,7 +18,7 @@
     border-radius: var(--webops-radius-xl);
     overflow: hidden;
     background: var(--webops-color-bg-elevated);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
 }
 
 .webops-addon-detail__header-background {
@@ -53,15 +53,15 @@
     text-decoration: none;
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-medium);
-    transition: all var(--webops-transition-fast);
-    box-shadow: var(--webops-shadow-sm);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-addon-detail__back-button:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-30);
     transform: translateX(-2px) translateY(-1px);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-addon-detail__back-button--icon {
@@ -86,14 +86,14 @@
     position: relative;
     width: var(--webops-avatar-size-2xl);
     height: var(--webops-avatar-size-2xl);
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-dark));
+    background: var(--webops-color-primary);
     border-radius: var(--webops-radius-xl);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--webops-color-bg-primary);
     flex-shrink: 0;
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
 }
 
 .webops-addon-detail__icon-glow {
@@ -102,7 +102,7 @@
     left: -4px;
     right: -4px;
     bottom: -4px;
-    background: linear-gradient(135deg, var(--webops-color-primary-alpha-30), transparent);
+    background: var(--webops-color-primary-alpha-30);
     border-radius: var(--webops-radius-xl);
     filter: blur(8px);
     z-index: 1;
@@ -116,10 +116,10 @@
     margin: 0 0 var(--webops-space-2) 0;
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-bold);
-    background: linear-gradient(135deg, var(--webops-color-text-primary), var(--webops-color-primary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: var(--webops-color-text-primary);
+
+    -webkit-text-fill-color: currentColor;
+
 }
 
 .webops-addon-detail__meta {
@@ -152,7 +152,7 @@
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-semibold);
     backdrop-filter: blur(10px);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-detail__status--active {
@@ -175,7 +175,7 @@
 
 .webops-addon-detail__status-indicator--active {
     background: var(--webops-color-success);
-    animation: webops-pulse 2s ease-in-out infinite;
+    animation: none;
 }
 
 .webops-addon-detail__status-indicator--inactive {
@@ -190,7 +190,7 @@
     background: var(--webops-color-surface);
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-lg);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-detail__quick-stat {
@@ -248,14 +248,14 @@
     border: 1px solid var(--webops-color-primary-alpha-10);
     border-radius: var(--webops-radius-lg);
     overflow: hidden;
-    transition: all var(--webops-transition-base);
-    box-shadow: var(--webops-shadow-sm);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-addon-detail__card:hover {
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: var(--webops-shadow-md);
-    transform: translateY(-2px);
+    box-shadow: none;
+    transform: none;
 }
 
 .webops-addon-detail__card-header {
@@ -340,12 +340,10 @@
     align-items: flex-start;
     gap: var(--webops-space-3);
     padding: var(--webops-space-4);
-    background: linear-gradient(135deg, 
-        var(--webops-color-success-alpha-05) 0%, 
-        var(--webops-color-primary-alpha-05) 100%);
+    background: var(--webops-color-success-alpha-05);
     border: 1px solid var(--webops-color-success-alpha-20);
     border-radius: var(--webops-radius-lg);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -360,22 +358,22 @@
 }
 
 .webops-addon-detail__capability-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--webops-shadow-lg);
+    transform: none;
+    box-shadow: none;
     border-color: var(--webops-color-primary-alpha-30);
 }
 
 .webops-addon-detail__capability-icon {
     width: var(--webops-avatar-size-xl);
     height: var(--webops-avatar-size-xl);
-    background: linear-gradient(135deg, var(--webops-color-success), var(--webops-color-success));
+    background: var(--webops-color-success);
     border-radius: var(--webops-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--webops-color-bg-primary);
     flex-shrink: 0;
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-addon-detail__capability-content {
@@ -490,13 +488,13 @@
     border-radius: var(--webops-radius-md);
     padding: var(--webops-space-4);
     margin-bottom: var(--webops-space-3);
-    transition: all var(--webops-transition-fast);
+    transition: none;
 }
 
 .webops-addon-detail__hook-item:hover {
     background: var(--webops-color-surface-hover);
     border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-detail__hook-item:last-child {
@@ -610,36 +608,36 @@
     font-weight: var(--webops-font-weight-semibold);
     border: none;
     cursor: pointer;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     margin-bottom: var(--webops-space-3);
 }
 
 .webops-addon-detail__action-button:hover {
-    transform: translateY(-1px);
+    transform: none;
 }
 
 .webops-addon-detail__action-button--success {
     background: var(--webops-color-success);
     color: var(--webops-color-bg-primary);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-addon-detail__action-button--success:hover {
     background: var(--webops-color-success);
     filter: brightness(0.95);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
 }
 
 .webops-addon-detail__action-button--danger {
     background: var(--webops-color-error);
     color: var(--webops-color-bg-primary);
-    box-shadow: var(--webops-shadow-md);
+    box-shadow: none;
 }
 
 .webops-addon-detail__action-button--danger:hover {
     background: var(--webops-color-error);
     filter: brightness(0.95);
-    box-shadow: var(--webops-shadow-lg);
+    box-shadow: none;
 }
 
 .webops-addon-detail__action-note {
@@ -673,7 +671,7 @@
     padding: var(--webops-space-3);
     border-radius: var(--webops-radius-lg);
     border: 1px solid;
-    transition: all var(--webops-transition-fast);
+    transition: none;
     position: relative;
     overflow: hidden;
 }
@@ -690,8 +688,8 @@
 }
 
 .webops-addon-detail__stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--webops-shadow-md);
+    transform: none;
+    box-shadow: none;
 }
 
 .webops-addon-detail__stat-card--primary {
@@ -726,7 +724,7 @@
     align-items: center;
     justify-content: center;
     margin-bottom: var(--webops-space-2);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-detail__stat-content {
@@ -792,10 +790,10 @@
 
 .webops-addon-detail__success-rate-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--webops-color-success), var(--webops-color-success-light, #4ade80));
+    background: var(--webops-color-success);
     border-radius: var(--webops-radius-full);
     position: relative;
-    transition: width var(--webops-transition-medium) var(--webops-ease-out);
+    transition: none;
     width: 0%; /* Default width, will be overridden by JavaScript */
 }
 
@@ -805,8 +803,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    animation: webops-shimmer 2s infinite;
+    background: transparent;
+    animation: none;
 }
 
 .webops-addon-detail__success-rate-markers {
@@ -837,26 +835,26 @@
     border-radius: var(--webops-radius-full);
     font-size: var(--webops-font-size-sm);
     font-weight: var(--webops-font-weight-semibold);
-    box-shadow: var(--webops-shadow-sm);
+    box-shadow: none;
 }
 
 .webops-addon-detail__performance-badge--excellent {
-    background: linear-gradient(135deg, var(--webops-color-success), var(--webops-color-success-light));
+    background: var(--webops-color-success);
     color: var(--webops-color-bg-primary);
 }
 
 .webops-addon-detail__performance-badge--good {
-    background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
+    background: var(--webops-color-primary);
     color: var(--webops-color-bg-primary);
 }
 
 .webops-addon-detail__performance-badge--fair {
-    background: linear-gradient(135deg, var(--webops-color-warning), var(--webops-color-warning-light));
+    background: var(--webops-color-warning);
     color: var(--webops-color-bg-primary);
 }
 
 .webops-addon-detail__performance-badge--poor {
-    background: linear-gradient(135deg, var(--webops-color-error), var(--webops-color-error-light));
+    background: var(--webops-color-error);
     color: var(--webops-color-bg-primary);
 }
 

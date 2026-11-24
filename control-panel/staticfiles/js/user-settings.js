@@ -681,8 +681,8 @@ const additionalStyles = `
     font-weight: 500;
     z-index: 10000;
     transform: translateX(100%);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: none;
+    box-shadow: none;
 }
 
 .webops-notification--show {
@@ -719,7 +719,7 @@ const additionalStyles = `
     border: 2px solid transparent;
     border-top: 2px solid currentColor;
     border-radius: 50%;
-    animation: webops-spin 1s linear infinite;
+    animation: none;
 }
 
 @keyframes webops-spin {
@@ -728,15 +728,15 @@ const additionalStyles = `
 }
 
 .webops-form--saved {
-    animation: webops-success-pulse 2s ease-in-out;
+    animation: none;
 }
 
 @keyframes webops-success-pulse {
     0%, 100% { 
-        box-shadow: var(--webops-shadow-md);
+        box-shadow: none;
     }
     50% { 
-        box-shadow: 0 0 20px var(--webops-color-success-glow);
+        box-shadow: none;
     }
 }
 
@@ -749,12 +749,12 @@ const additionalStyles = `
 
 .webops-form-control--error {
     border-color: var(--webops-color-error) !important;
-    box-shadow: 0 0 0 3px var(--webops-color-error-alpha-20) !important;
+    box-shadow: none !important;
 }
 
 .webops-form-control--success {
     border-color: var(--webops-color-success) !important;
-    box-shadow: 0 0 0 3px var(--webops-color-success-alpha-20) !important;
+    box-shadow: none !important;
 }
 
 @media (max-width: 768px) {

@@ -86,9 +86,7 @@ class ToastManager {
         this.container.appendChild(toastElement);
         
         // Trigger animation
-        requestAnimationFrame(() => {
-            toastElement.classList.add('webops-toast--show');
-        });
+        toastElement.classList.add('webops-toast--show');
         
         // Set auto-hide timeout
         if (config.duration > 0) {

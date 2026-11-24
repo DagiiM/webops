@@ -8,14 +8,14 @@
 /* Model Card Focus State */
 .webops-model-card--focused {
   border-color: var(--webops-color-primary);
-  box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-20);
-  transform: translateY(-2px);
+  box-shadow: none;
+  transform: none;
 }
 
 /* Model Card Selected State */
 .webops-model-card--selected {
   border-color: var(--webops-color-primary);
-  background: linear-gradient(135deg, var(--webops-color-primary-alpha-10) 0%, var(--webops-color-bg-elevated) 100%);
+  background: var(--webops-color-primary-alpha-10);
 }
 
 .webops-model-card__selected-indicator {
@@ -54,11 +54,11 @@
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-20);
   border-radius: var(--webops-radius-lg);
-  box-shadow: var(--webops-shadow-lg);
+  box-shadow: none;
   z-index: var(--webops-z-toast);
-  transform: translateY(-100px);
+  transform: none;
   opacity: 0;
-  transition: all var(--webops-transition-base);
+  transition: none;
   max-width: 400px;
 }
 
@@ -124,7 +124,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--webops-transition-fast);
+  transition: none;
   margin-left: var(--webops-space-2);
 }
 
@@ -156,9 +156,9 @@
   height: 100vh;
   background: var(--webops-color-bg-elevated);
   border-left: 1px solid var(--webops-color-primary-alpha-20);
-  box-shadow: var(--webops-shadow-xl);
+  box-shadow: none;
   z-index: var(--webops-z-modal);
-  transition: right var(--webops-transition-medium);
+  transition: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -194,7 +194,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--webops-transition-fast);
+  transition: none;
 }
 
 .webops-compare-close:hover {
@@ -219,13 +219,13 @@
   border: 1px solid var(--webops-color-primary-alpha-15);
   border-radius: var(--webops-radius-lg);
   padding: var(--webops-space-4);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-compare-card:hover {
   border-color: var(--webops-color-primary-alpha-35);
-  transform: translateY(-2px);
-  box-shadow: var(--webops-shadow-md);
+  transform: none;
+  box-shadow: none;
 }
 
 .webops-compare-card__title {
@@ -303,7 +303,7 @@
   bottom: var(--webops-space-6);
   right: var(--webops-space-6);
   z-index: var(--webops-z-sticky);
-  box-shadow: var(--webops-shadow-lg);
+  box-shadow: none;
 }
 
 /* Responsive Design for Model Browser */

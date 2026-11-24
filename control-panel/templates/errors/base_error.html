@@ -40,13 +40,13 @@
         .error-code {
             font-size: 120px;
             font-weight: var(--webops-font-weight-bold);
-            background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            background: var(--webops-color-primary);
+
+            -webkit-text-fill-color: currentColor;
+
             line-height: 1;
             margin-bottom: var(--webops-space-3);
-            animation: errorPulse 2s ease-in-out infinite;
+            animation: none;
         }
 
         @keyframes errorPulse {
@@ -89,6 +89,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
 </head>
 <body>
     <div class="app-background"></div>

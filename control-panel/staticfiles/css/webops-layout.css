@@ -30,7 +30,7 @@
   top: 0;
   bottom: 0;
   overflow-y: auto;
-  transition: width var(--webops-transition-base), transform var(--webops-transition-base);
+  transition: none;
   z-index: var(--webops-z-fixed);
 }
 
@@ -53,7 +53,7 @@
   letter-spacing: 0.05em;
   margin-bottom: var(--webops-space-3);
   padding-left: var(--webops-space-4);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 /* Sidebar Toggle Button */
@@ -67,7 +67,7 @@
   border-radius: var(--webops-radius-md);
   color: var(--webops-color-primary);
   cursor: pointer;
-  transition: all var(--webops-transition-fast);
+  transition: none;
   margin: 0;
   padding: 0;
 }
@@ -75,24 +75,24 @@
 .webops-sidebar-toggle:hover {
   background: var(--webops-color-primary-alpha-20);
   border-color: var(--webops-color-primary-alpha-30);
-  box-shadow: var(--webops-shadow-sm);
-  transform: scale(1.05);
+  box-shadow: none;
+  transform: none;
 }
 
 .webops-sidebar-toggle:active {
-  transform: scale(0.95);
+  transform: none;
 }
 
 .webops-sidebar-toggle .material-icons {
   font-size: 20px;
-  transition: transform var(--webops-transition-base);
+  transition: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .webops-sidebar-toggle:hover .material-icons {
-  transform: scale(1.1);
+  transform: none;
 }
 
 /* Navigation items */
@@ -106,7 +106,7 @@
   text-decoration: none;
   border-radius: var(--webops-radius-md);
   font-size: var(--webops-font-size-sm);
-  transition: all var(--webops-transition-fast);
+  transition: none;
   white-space: nowrap;
   min-height: 44px;
   position: relative;
@@ -137,7 +137,7 @@
 }
 
 .webops-nav-item__text {
-  transition: opacity var(--webops-transition-base);
+  transition: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,7 +227,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left var(--webops-transition-base);
+  transition: none;
 }
 
 /* Expanded main content when sidebar is minimized */
@@ -252,10 +252,10 @@
 .webops-header__title {
   font-size: var(--webops-font-size-2xl);
   font-weight: var(--webops-font-weight-bold);
-  background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: var(--webops-color-primary);
+
+  -webkit-text-fill-color: currentColor;
+
   margin: 0;
 }
 
@@ -298,12 +298,12 @@
   border: 1px solid var(--webops-color-primary-alpha-15);
   border-radius: var(--webops-radius-xl);
   padding: var(--webops-space-6);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-page-section:hover {
   border-color: var(--webops-color-primary-alpha-35);
-  box-shadow: var(--webops-shadow-sm);
+  box-shadow: none;
 }
 
 .webops-page-section__header {
@@ -613,7 +613,7 @@
   background: var(--webops-color-modal-backdrop);
   z-index: calc(var(--webops-z-modal-backdrop) - 10);
   opacity: 0;
-  transition: opacity var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-sidebar-header .webops-sidebar-overlay.active {
@@ -627,7 +627,7 @@
    border-radius: var(--webops-radius-lg);
    padding: var(--webops-space-2);
    cursor: pointer;
-   transition: all var(--webops-transition-base);
+   transition: none;
    z-index: 1;
    display: flex;
    align-items: center;
@@ -641,24 +641,24 @@
 .webops-sidebar-header .webops-sidebar-toggle:hover {
    background: var(--webops-color-primary-alpha-5);
    border-color: var(--webops-color-primary-alpha-35);
-   transform: scale(1.05);
-   box-shadow: var(--webops-shadow-sm);
+   transform: none;
+   box-shadow: none;
 }
 
 .webops-sidebar-header .webops-sidebar-toggle:active {
-   transform: scale(0.95);
+   transform: none;
 }
 
 /* Toggle button icon transitions */
 .webops-sidebar-header .webops-sidebar-toggle .material-icons {
   font-size: 20px;
   color: var(--webops-color-text-secondary);
-  transition: transform var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-sidebar-header .webops-sidebar-toggle:hover .material-icons {
   color: var(--webops-color-primary);
-  transform: scale(1.1);
+  transform: none;
 }
 
 @media (max-width: 767px) {
@@ -767,7 +767,7 @@
   text-decoration: none;
   border-radius: var(--webops-radius-md);
   font-size: var(--webops-font-size-sm);
-  transition: all var(--webops-transition-fast);
+  transition: none;
 }
 
 .webops-settings-nav__item:hover {
@@ -877,7 +877,7 @@
   justify-content: center;
   font-size: var(--webops-font-size-sm);
   font-weight: var(--webops-font-weight-semibold);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-wizard-step--completed .webops-wizard-step__number {
@@ -888,7 +888,7 @@
 .webops-wizard-step--current .webops-wizard-step__number {
   background: var(--webops-color-primary);
   color: var(--webops-color-bg-primary);
-  box-shadow: 0 0 0 4px var(--webops-color-primary-alpha-20);
+  box-shadow: none;
 }
 
 .webops-wizard-step__title {
@@ -937,7 +937,7 @@
   border: 3px solid var(--webops-color-primary-alpha-20);
   border-top: 3px solid var(--webops-color-primary);
   border-radius: 50%;
-  animation: webops-spin 1s linear infinite;
+  animation: none;
   margin-bottom: var(--webops-space-4);
 }
 
@@ -969,13 +969,13 @@
 .webops-error-code {
   font-size: 120px;
   font-weight: var(--webops-font-weight-bold);
-  background: linear-gradient(135deg, var(--webops-color-primary), var(--webops-color-primary-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: var(--webops-color-primary);
+
+  -webkit-text-fill-color: currentColor;
+
   line-height: 1;
   margin-bottom: var(--webops-space-4);
-  animation: webops-error-pulse 2s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes webops-error-pulse {

@@ -458,7 +458,7 @@ body {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  box-shadow: 0 0 0 4px var(--webops-color-primary-glow);
+  box-shadow: none;
   outline: 3px solid var(--webops-color-primary);
   outline-offset: 2px;
 }

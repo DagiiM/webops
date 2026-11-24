@@ -84,7 +84,7 @@ def user_settings(request):
             if theme:
                 preferences.theme = theme
             
-            animations = request.POST.get('animations') == 'on'
+            animations = False
             preferences.animations_enabled = animations
             
             compact_view = request.POST.get('compact_view') == 'on'

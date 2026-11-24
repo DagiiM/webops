@@ -617,7 +617,7 @@
                 <h4 class="webops-preview-title">Theme Previews</h4>
                 <div class="webops-theme-grid">
                     <div class="webops-theme-card" data-theme="forest">
-                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #2D5016, #4A7C59);">
+                        <div class="webops-theme-header" style="background: #2D5016;">
                             <div class="webops-theme-logo">Forest</div>
                         </div>
                         <div class="webops-theme-content">
@@ -631,7 +631,7 @@
                     </div>
                     
                     <div class="webops-theme-card" data-theme="ocean">
-                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #1E3A8A, #3B82F6);">
+                        <div class="webops-theme-header" style="background: #1E3A8A;">
                             <div class="webops-theme-logo">Ocean</div>
                         </div>
                         <div class="webops-theme-content">
@@ -645,7 +645,7 @@
                     </div>
                     
                     <div class="webops-theme-card" data-theme="dark">
-                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #111827, #374151);">
+                        <div class="webops-theme-header" style="background: #111827;">
                             <div class="webops-theme-logo">Dark</div>
                         </div>
                         <div class="webops-theme-content">
@@ -659,7 +659,7 @@
                     </div>
                     
                     <div class="webops-theme-card" data-theme="premium">
-                        <div class="webops-theme-header" style="background: linear-gradient(135deg, #1F2937, #7C3AED);">
+                        <div class="webops-theme-header" style="background: #1F2937;">
                             <div class="webops-theme-logo">Premium</div>
                         </div>
                         <div class="webops-theme-content">
@@ -799,7 +799,7 @@
         border-radius: var(--webops-radius-md);
         color: var(--webops-color-text-primary);
         font-size: var(--webops-font-size-sm);
-        transition: all var(--webops-transition-fast);
+        transition: none;
     }
 
     .webops-input[type="color"] {
@@ -829,10 +829,7 @@
     }
 
     .webops-hue-slider {
-        background: linear-gradient(to right, 
-            hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), 
-            hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), 
-            hsl(360, 100%, 50%));
+        background: hsl(0, 100%, 50%);
     }
 
     .webops-checkbox-group {
@@ -904,7 +901,7 @@
         font-size: var(--webops-font-size-sm);
         font-weight: var(--webops-font-weight-medium);
         cursor: pointer;
-        transition: all var(--webops-transition-fast);
+        transition: none;
         border: none;
     }
 
@@ -920,7 +917,7 @@
 
     .webops-btn-primary:hover {
         opacity: 0.9;
-        transform: translateY(-1px);
+        transform: none;
     }
 
     .webops-btn-secondary {
@@ -978,7 +975,7 @@
         font-size: var(--webops-font-size-xs);
         font-weight: var(--webops-font-weight-medium);
         color: white;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: none;
     }
 
     .webops-contrast-checks {
@@ -1089,7 +1086,7 @@
         border-radius: var(--webops-radius-sm);
         font-size: var(--webops-font-size-sm);
         cursor: pointer;
-        transition: all var(--webops-transition-fast);
+        transition: none;
     }
 
     .webops-preview-nav-item.active {
@@ -1124,7 +1121,7 @@
         font-size: var(--webops-font-size-sm);
         font-weight: var(--webops-font-weight-medium);
         cursor: pointer;
-        transition: all var(--webops-transition-fast);
+        transition: none;
         border: none;
         margin-right: var(--webops-space-2);
     }
@@ -1439,15 +1436,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const lightnessSlider = document.getElementById('lightnessSlider');
         
         // Update saturation slider background
-        saturationSlider.style.background = `linear-gradient(to right, 
-            hsl(${hue}, 0%, ${lightness}%), 
-            hsl(${hue}, 100%, ${lightness}%))`;
+        saturationSlider.style.background = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         
         // Update lightness slider background
-        lightnessSlider.style.background = `linear-gradient(to right, 
-            hsl(${hue}, ${saturation}%, 0%), 
-            hsl(${hue}, ${saturation}%, 50%), 
-            hsl(${hue}, ${saturation}%, 100%))`;
+        lightnessSlider.style.background = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
     
     // Event listeners

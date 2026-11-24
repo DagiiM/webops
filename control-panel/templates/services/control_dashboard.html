@@ -4,6 +4,7 @@
 {% block header_title %}Service Control{% endblock %}
 
 {% block content %}
+{% if not user.is_staff %}<p class="webops-text-muted">You can manage your own services and records. Shared host infrastructure is managed by operators.</p>{% endif %}
 <div class="webops-page-header">
     <div>
         <h2 class="webops-page-title">Service Control Dashboard</h2>

@@ -38,6 +38,8 @@ class DeploymentService:
 
         # Set up Jinja2 for template rendering
         template_path = Path(settings.WEBOPS_INSTALL_PATH).parent / "system-templates"
+        if not (template_path / "template_registry.py").is_file():
+            template_path = Path(__file__).resolve().parents[4] / "cli" / "webops_cli" / "system-templates"
         self.jinja_env = Environment(loader=FileSystemLoader(str(template_path)))
         
         # Import template registry
@@ -689,6 +691,11 @@ class DeploymentService:
 
         self.log(deployment, "Setting up Django environment")
 
+        from apps.services.runtime import portable_runtime
+        if portable_runtime():
+            # Application-level settings are passed explicitly; do not create a
+            # fictional PostgreSQL database or assume Redis is installed.
+            return True
         # Generate database credentials
         from apps.databases.models import Database
         from apps.core.utils import generate_password, encrypt_password
@@ -931,6 +938,10 @@ LOG_DIR={logs_dir}
         deployment_name = deployment.name
         repo_path = self.get_repo_path(deployment)
 
+        from apps.services.runtime import portable_runtime
+        if portable_runtime():
+            (repo_path / "logs").mkdir(parents=True, exist_ok=True, mode=0o700)
+            return True
         # System log directory (requires sudo)
         system_log_dir = Path(f"/var/log/{deployment_name}")
 
@@ -1038,11 +1049,14 @@ LOG_DIR={logs_dir}
             settings_module = self.detect_django_settings_module(deployment)
 
         # Enhanced environment variables
+        from apps.services.runtime import portable_runtime
         env = {
             **os.environ,
             "PYTHONPATH": str(project_root),
             "DJANGO_SETTINGS_MODULE": settings_module,
         }
+        if portable_runtime():
+            env = self.portable_application_env(deployment, settings_module)
 
         try:
             result = subprocess.run(
@@ -1147,6 +1161,24 @@ LOG_DIR={logs_dir}
                 )
             return False
 
+    def portable_application_env(self, deployment, settings_module=None):
+        """Keep control panel configuration out of application subprocesses."""
+        from decouple import RepositoryEnv
+        base = self.get_deployment_path(deployment)
+        repo = self.get_repo_path(deployment)
+        venv = self.get_venv_path(deployment) / "bin"
+        env = {"PATH": str(venv) + ":/usr/local/bin:/usr/bin:/bin",
+               "HOME": str(base), "LANG": "C.UTF-8", "PYTHONUNBUFFERED": "1"}
+        env.update({k: str(v) for k, v in (deployment.env_vars or {}).items()})
+        if (repo / ".env").is_file():
+            env.update(RepositoryEnv(str(repo / ".env")).data)
+        env["PORT"] = str(deployment.port)
+        env["HOST"] = "127.0.0.1"
+        if settings_module:
+            env["DJANGO_SETTINGS_MODULE"] = settings_module
+            env["PYTHONPATH"] = str(self.get_project_root(deployment))
+        return env
+
     def collect_static_files(self, deployment: ApplicationDeployment) -> bool:
         """
         Collect Django static files.
@@ -1164,6 +1196,11 @@ LOG_DIR={logs_dir}
         python_path = venv_path / "bin" / "python"
 
         self.log(deployment, "Collecting static files")
+        from apps.services.runtime import portable_runtime
+        env = {**os.environ, "PYTHONPATH": str(project_root)}
+        if portable_runtime():
+            module = deployment.configuration.get_settings_for_environment() if hasattr(deployment, "configuration") and deployment.configuration.settings_module else self.detect_django_settings_module(deployment)
+            env = self.portable_application_env(deployment, module)
 
         try:
             result = subprocess.run(
@@ -1172,7 +1209,7 @@ LOG_DIR={logs_dir}
                 capture_output=True,
                 text=True,
                 cwd=str(project_root),
-                env={**os.environ, "PYTHONPATH": str(project_root)}
+                env=env
             )
             self.log(
                 deployment,
@@ -1589,6 +1626,13 @@ LOG_DIR={logs_dir}
             existing_env=deployment.env_vars
         )
 
+        from apps.services.runtime import portable_runtime
+        if portable_runtime() and result.project_type == "django":
+            # Do not synthesize credentials for unavailable infrastructure.
+            template_env["DATABASE_URL"] = "sqlite:///" + str(self.get_deployment_path(deployment) / "app.sqlite3")
+            template_env["ALLOWED_HOSTS"] = "localhost,127.0.0.1"
+            template_env.pop("REDIS_URL", None)
+            template_env.pop("CELERY_BROKER_URL", None)
         # Merge: template < detected < user-provided (user has highest precedence)
         final_env = {**template_env, **result.env_vars, **deployment.env_vars}
         deployment.env_vars = final_env
@@ -1632,6 +1676,28 @@ LOG_DIR={logs_dir}
             Tuple of (success, error_message)
         """
         try:
+            # Update status
+            deployment.status = ApplicationDeployment.Status.BUILDING
+            deployment.save(update_fields=['status'])
+
+            if deployment.static_only:
+                from apps.services.runtime import portable_runtime
+                if not portable_runtime():
+                    return False, "Static-only publication requires portable runtime"
+                from apps.services.runtime.static_publish import download_static_repository
+                download_static_repository(deployment, self.get_repo_path(deployment))
+                deployment.project_type = ApplicationDeployment.ProjectType.STATIC
+                deployment.detected_framework = "static-html"
+                deployment.auto_detected = True
+                deployment.start_command = ""
+                deployment.build_command = ""
+                deployment.install_command = ""
+                deployment.env_vars = {}
+                deployment.use_docker = False
+                deployment.save()
+                self.allocate_port(deployment)
+                self.log(deployment, "Static assets retrieved; no repository code executed", DeploymentLog.Level.SUCCESS)
+                return True, ""
             # Trigger pre-deployment hooks
             try:
                 from apps.addons.manager import addon_manager, HookContext
@@ -1645,10 +1711,6 @@ LOG_DIR={logs_dir}
                 addon_manager.trigger('pre_deployment', ctx, fail_fast=False)
             except Exception:
                 pass
-
-            # Update status
-            deployment.status = ApplicationDeployment.Status.BUILDING
-            deployment.save(update_fields=['status'])
 
             # Clone repository
             repo_path = self.clone_repository(deployment)
@@ -1679,11 +1741,16 @@ LOG_DIR={logs_dir}
                         deployment.project_type = project_type
                         deployment.save(update_fields=['project_type'])
 
+            from apps.services.runtime import portable_runtime
+            if portable_runtime() and deployment.use_docker:
+                return False, "Docker deployment requires Docker runtime"
             # Allocate port
             self.allocate_port(deployment)
 
             # Handle different project types
             if deployment.project_type == ApplicationDeployment.ProjectType.DJANGO:
+                if portable_runtime():
+                    self.detect_and_store_structure(deployment)
                 # Django-specific setup
                 self.create_virtualenv(deployment)
 
@@ -1701,7 +1768,10 @@ LOG_DIR={logs_dir}
             elif deployment.project_type == ApplicationDeployment.ProjectType.PYTHON:
                 # Generic Python (FastAPI, Flask, etc.)
                 self.create_virtualenv(deployment)
-                if deployment.install_command:
+                if portable_runtime() and deployment.package_manager == "pip":
+                    if not self.install_dependencies(deployment):
+                        return False, "Failed to install dependencies"
+                elif deployment.install_command:
                     if not self._run_install_command(deployment):
                         return False, "Failed to install dependencies"
 
@@ -1774,6 +1844,8 @@ LOG_DIR={logs_dir}
         success, error = self.prepare_deployment(deployment)
 
         if not success:
+            deployment.status = BaseDeployment.Status.FAILED
+            deployment.save(update_fields=["status"])
             return {
                 'success': False,
                 'error': error,
@@ -1814,6 +1886,18 @@ LOG_DIR={logs_dir}
         # Create service manager
         service_manager = ServiceManager()
 
+        if service_manager.runtime:
+            ok, message = service_manager.runtime.install_application(deployment, self)
+            if ok:
+                ok, message = service_manager.start_service(deployment)
+            if not ok:
+                deployment.status = BaseDeployment.Status.FAILED
+                deployment.save(update_fields=["status"])
+                self.log(deployment, message, DeploymentLog.Level.ERROR)
+                return {"success": False, "deployment_id": deployment.id, "error": message}
+            self.log(deployment, "Application running via Supervisor (direct local routing)", DeploymentLog.Level.SUCCESS)
+            return {"success": True, "deployment_id": deployment.id,
+                    "port": deployment.port, "status": deployment.status}
         # For Django projects, create and start services
         if deployment.project_type == ApplicationDeployment.ProjectType.DJANGO:
             # Create Nginx configuration

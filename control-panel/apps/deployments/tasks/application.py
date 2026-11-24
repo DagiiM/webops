@@ -32,7 +32,9 @@ def deploy_application(
     from ..services import DeploymentService
 
     try:
-        deployment = ApplicationDeployment.objects.get(id=deployment_id)
+        deployment = ApplicationDeployment.objects.get(id=deployment_id, is_deleted=False)
+        if deployment.status == "requested":
+            return {"success": False, "error": "Awaiting operator approval"}
         logger.info(f"Starting deployment {deployment.name} (ID: {deployment_id})")
 
         service = DeploymentService()
@@ -92,6 +94,11 @@ def restart_deployment(
         deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Restarting deployment {deployment.name}")
 
+        from ..shared import ServiceManager
+        manager = ServiceManager()
+        if manager.runtime:
+            ok, msg = manager.restart_service(deployment)
+            return {"success": ok, "deployment_id": deployment.id, "message": msg, "error": "" if ok else msg}
         # TODO #9: Implement service restart logic
         # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just log it
@@ -138,6 +145,11 @@ def stop_deployment(
         deployment = ApplicationDeployment.objects.get(id=deployment_id)
         logger.info(f"Stopping deployment {deployment.name}")
 
+        from ..shared import ServiceManager
+        manager = ServiceManager()
+        if manager.runtime:
+            ok, msg = manager.stop_service(deployment)
+            return {"success": ok, "deployment_id": deployment.id, "message": msg, "error": "" if ok else msg}
         # TODO #10: Implement service stop logic
         # See: docs/TODO_TRACKING.md for details and acceptance criteria
         # For now, just update status
@@ -195,8 +207,13 @@ def delete_deployment(
         service_manager = ServiceManager()
 
         # Stop and remove service
-        service_manager.stop_service(deployment)
-        service_manager.remove_service(deployment)
+        if service_manager.runtime:
+            ok, message = service_manager.remove_service(deployment)
+            if not ok:
+                return {"success": False, "error": message}
+        else:
+            service_manager.stop_service(deployment)
+            service_manager.remove_service(deployment)
 
         # Remove Nginx config
         service_manager.remove_nginx_config(deployment)
@@ -207,8 +224,11 @@ def delete_deployment(
             shutil.rmtree(deployment_path)
             logger.info(f"Removed deployment directory: {deployment_path}")
 
-        # Delete from database
-        deployment.delete()
+        # Preserve the existing soft-delete/trash semantics.
+        if service_manager.runtime:
+            deployment.status = ApplicationDeployment.Status.STOPPED
+            deployment.save(update_fields=["status"])
+        deployment.delete(user=deployment.deployed_by)
 
         logger.info(f"Deployment {deployment_name} deleted successfully")
 

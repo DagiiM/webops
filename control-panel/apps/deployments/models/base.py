@@ -18,6 +18,7 @@ class BaseDeployment(BaseModel):
     """
 
     class Status(models.TextChoices):
+        REQUESTED = 'requested', 'Awaiting approval'
         PENDING = 'pending', 'Pending'
         BUILDING = 'building', 'Building'
         RUNNING = 'running', 'Running'

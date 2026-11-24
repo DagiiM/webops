@@ -29,17 +29,17 @@ def monitoring_dashboard(request):
         latest_metrics = monitor.collect_metrics()
 
     # Get system summary
-    summary = monitor.get_system_summary()
+    summary = monitor.get_system_summary(user=request.user)
 
     # Get recent alerts
-    recent_alerts = Alert.objects.filter(is_acknowledged=False)[:5]
+    recent_alerts = Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False, is_acknowledged=False)[:5]
 
     # Get historical data for charts (last 24 hours)
     history = monitor.get_metrics_history(hours=24)
 
     # Service statuses
     # SECURITY FIX: Filter by user to prevent IDOR vulnerability
-    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user)
+    deployments = ApplicationDeployment.objects.filter(deployed_by=request.user, is_deleted=False)
     service_statuses = []
     for deployment in deployments:
         status = ServiceStatus.objects.filter(deployment=deployment).first()
@@ -77,7 +77,7 @@ def alerts_list(request):
     alert_type = request.GET.get('type')
     acknowledged = request.GET.get('acknowledged')
 
-    alerts = Alert.objects.all()
+    alerts = Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False)
 
     if severity:
         alerts = alerts.filter(severity=severity)
@@ -90,10 +90,10 @@ def alerts_list(request):
 
     # Stats
     stats = {
-        'total': Alert.objects.count(),
-        'unacknowledged': Alert.objects.filter(is_acknowledged=False).count(),
-        'critical': Alert.objects.filter(severity=Alert.Severity.CRITICAL, is_acknowledged=False).count(),
-        'by_type': Alert.objects.filter(is_acknowledged=False).values('alert_type').annotate(count=Count('id'))
+        'total': Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False).count(),
+        'unacknowledged': Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False, is_acknowledged=False).count(),
+        'critical': Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False, severity=Alert.Severity.CRITICAL, is_acknowledged=False).count(),
+        'by_type': Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False, is_acknowledged=False).values('alert_type').annotate(count=Count('id'))
     }
 
     context = {
@@ -110,7 +110,7 @@ def alerts_list(request):
 def alert_acknowledge(request, pk):
     """Acknowledge an alert."""
     if request.method == 'POST':
-        alert = get_object_or_404(Alert, pk=pk)
+        alert = get_object_or_404(Alert, pk=pk, deployment__deployed_by=request.user, deployment__is_deleted=False)
         alert.acknowledge()
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -125,7 +125,7 @@ def alert_acknowledge(request, pk):
 def alert_acknowledge_all(request):
     """Acknowledge all unacknowledged alerts."""
     if request.method == 'POST':
-        count = Alert.objects.filter(is_acknowledged=False).update(
+        count = Alert.objects.filter(deployment__deployed_by=request.user, deployment__is_deleted=False, is_acknowledged=False).update(
             is_acknowledged=True,
             acknowledged_at=timezone.now()
         )
@@ -165,7 +165,7 @@ def metrics_history(request):
 def service_status_detail(request, deployment_id):
     """Get detailed service status."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)
@@ -202,7 +202,7 @@ def service_status_detail(request, deployment_id):
 def refresh_service_status(request, deployment_id):
     """Manually refresh service status."""
     # SECURITY FIX: Ownership verified by decorator
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     monitor = SystemMonitor()
     status = monitor.check_service_status(deployment)
@@ -263,7 +263,7 @@ def current_metrics_api(request):
 def system_summary_api(request):
     """Get complete system summary as JSON."""
     monitor = SystemMonitor()
-    summary = monitor.get_system_summary()
+    summary = monitor.get_system_summary(user=request.user)
 
     # Convert alert objects to dict
     summary['alerts']['recent'] = [
@@ -286,7 +286,7 @@ def health_check_history(request, deployment_id):
     """Get health check history for a deployment."""
     # SECURITY FIX: Ownership verified by decorator
     # BUG FIX: Changed from "Deployment" to "ApplicationDeployment"
-    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user)
+    deployment = get_object_or_404(ApplicationDeployment, pk=deployment_id, deployed_by=request.user, is_deleted=False)
 
     hours = int(request.GET.get('hours', 24))
     cutoff = timezone.now() - timedelta(hours=hours)

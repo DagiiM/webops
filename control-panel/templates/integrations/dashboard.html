@@ -15,10 +15,10 @@
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--webops-space-3);">
     <!-- GitHub Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: all var(--webops-transition-base);">
+    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
         <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
             <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #6e5494, #24292e); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #6e5494; display: flex; align-items: center; justify-content: center;">
                     <span class="material-icons" style="font-size: 28px; color: white;">code</span>
                 </div>
                 <div>
@@ -54,11 +54,11 @@
         <div style="display: flex; gap: var(--webops-space-1-5);">
             <form method="post" action="{% url 'github_disconnect' %}" style="flex: 1;">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testGitHub()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+            <button type="button" onclick="testGitHub()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                 Test Connection
             </button>
         </div>
@@ -80,17 +80,17 @@
                 Simple token-based authentication
             </li>
         </ul>
-        <a href="{% url 'github_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: all var(--webops-transition-fast);">
+        <a href="{% url 'github_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: none;">
             Connect GitHub Account
         </a>
         {% endif %}
     </div>
 
     <!-- Hugging Face Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: all var(--webops-transition-base);">
+    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
         <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
             <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #ffbe00, #ff6b00); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #ffbe00; display: flex; align-items: center; justify-content: center;">
                     <span class="material-icons" style="font-size: 28px; color: white;">hub</span>
                 </div>
                 <div>
@@ -126,11 +126,11 @@
         <div style="display: flex; gap: var(--webops-space-1-5);">
             <form method="post" action="{% url 'huggingface_disconnect' %}" style="flex: 1;">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testHF()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+            <button type="button" onclick="testHF()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                 Test Connection
             </button>
         </div>
@@ -152,7 +152,7 @@
                 Browse model library
             </li>
         </ul>
-        <a href="{% url 'huggingface_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); transition: all var(--webops-transition-fast);">
+        <a href="{% url 'huggingface_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); transition: none;">
             Connect Hugging Face
         </a>
         {% endif %}
@@ -160,10 +160,10 @@
 </div>
 
     <!-- Google Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: all var(--webops-transition-base);">
+    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
         <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
             <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #4285F4, #34A853); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #4285F4; display: flex; align-items: center; justify-content: center;">
                     <span class="material-icons" style="font-size: 28px; color: white;">account_circle</span>
                 </div>
                 <div>
@@ -199,16 +199,16 @@
         <div style="display: flex; gap: var(--webops-space-1-5);">
             <form method="post" action="{% url 'google_disconnect' %}" style="flex: 1;">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testGoogle()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: all var(--webops-transition-fast);">
+            <button type="button" onclick="testGoogle()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
                 Test Connection
             </button>
         </div>
         <div style="margin-top: var(--webops-space-2);">
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: all var(--webops-transition-fast);">
+            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: none;">
                 <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
                 Configure OAuth Settings
             </a>
@@ -232,11 +232,11 @@
             </li>
         </ul>
         <div style="display: flex; flex-direction: column; gap: var(--webops-space-2);">
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-2) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: all var(--webops-transition-fast);">
+            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-2) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: none;">
                 <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
                 Configure OAuth Settings
             </a>
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: all var(--webops-transition-fast);">
+            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: none;">
                 Connect Google Account
             </a>
         </div>
@@ -254,7 +254,7 @@
         <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
                 <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #667eea; display: flex; align-items: center; justify-content: center;">
                         <span class="material-icons" style="font-size: 28px; color: white;">webhook</span>
                     </div>
                     <div>
@@ -290,7 +290,7 @@
                 </li>
             </ul>
 
-            <a href="{% url 'webhook_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(102, 126, 234, 0.2); color: #667eea; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #667eea; transition: all var(--webops-transition-fast);">
+            <a href="{% url 'webhook_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(102, 126, 234, 0.2); color: #667eea; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #667eea; transition: none;">
                 Manage Webhooks
             </a>
         </div>
@@ -299,7 +299,7 @@
         <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
                 <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: linear-gradient(135deg, #f093fb, #f5576c); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #f093fb; display: flex; align-items: center; justify-content: center;">
                         <span class="material-icons" style="font-size: 28px; color: white;">notifications</span>
                     </div>
                     <div>
@@ -335,7 +335,7 @@
                 </li>
             </ul>
 
-            <a href="{% url 'notification_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(245, 87, 108, 0.2); color: #f5576c; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #f5576c; transition: all var(--webops-transition-fast);">
+            <a href="{% url 'notifications:notification_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(245, 87, 108, 0.2); color: #f5576c; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #f5576c; transition: none;">
                 Manage Notifications
             </a>
         </div>

@@ -26,7 +26,7 @@
   border: 1px solid transparent;
   border-radius: var(--webops-radius-md);
   cursor: pointer;
-  transition: all var(--webops-transition-base);
+  transition: none;
   user-select: none;
   white-space: nowrap;
 }
@@ -46,8 +46,8 @@
 .webops-btn--primary:hover:not(:disabled) {
   background: var(--webops-color-primary-dark);
   border-color: var(--webops-color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--webops-shadow-primary-sm);
+  transform: none;
+  box-shadow: none;
 }
 
 .webops-btn--secondary {
@@ -59,7 +59,7 @@
 .webops-btn--secondary:hover:not(:disabled) {
   background: var(--webops-color-primary-alpha-10);
   border-color: var(--webops-color-primary-light);
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .webops-btn--danger {
@@ -71,8 +71,8 @@
 .webops-btn--danger:hover:not(:disabled) {
   background: var(--webops-color-error-light);
   border-color: var(--webops-color-error-light);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--webops-color-error-alpha-30);
+  transform: none;
+  box-shadow: none;
 }
 
 /* Button Sizes */
@@ -116,7 +116,7 @@
   border: 2px solid currentColor;
   border-radius: 50%;
   border-top-color: transparent;
-  animation: webops-spin 1s linear infinite;
+  animation: none;
 }
 
 @keyframes webops-spin {
@@ -131,14 +131,14 @@
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-15);
   border-radius: var(--webops-radius-xl);
-  box-shadow: var(--webops-shadow-sm);
-  transition: all var(--webops-transition-base);
+  box-shadow: none;
+  transition: none;
   overflow: hidden;
 }
 
 .webops-card:hover {
   border-color: var(--webops-color-primary-alpha-35);
-  box-shadow: var(--webops-shadow-md);
+  box-shadow: none;
 }
 
 .webops-card__header {
@@ -201,7 +201,7 @@
   background: var(--webops-color-bg-tertiary);
   border: 1px solid var(--webops-color-primary-alpha-20);
   border-radius: var(--webops-radius-md);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-input:focus,
@@ -209,7 +209,7 @@
 .webops-textarea:focus {
   outline: none;
   border-color: var(--webops-color-primary);
-  box-shadow: 0 0 0 3px var(--webops-color-primary-alpha-20);
+  box-shadow: none;
 }
 
 .webops-input::placeholder,
@@ -328,13 +328,13 @@
   background: var(--webops-color-bg-secondary);
   border: 1px solid var(--webops-color-primary-alpha-10);
   border-radius: var(--webops-radius-lg);
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-stat-card:hover {
   border-color: var(--webops-color-primary-alpha-20);
-  transform: translateY(-2px);
-  box-shadow: var(--webops-shadow-md);
+  transform: none;
+  box-shadow: none;
 }
 
 .webops-stat-icon {
@@ -424,7 +424,7 @@
   color: var(--webops-color-text-secondary);
   text-decoration: none;
   border-radius: var(--webops-radius-md);
-  transition: all var(--webops-transition-fast);
+  transition: none;
   margin-bottom: var(--webops-space-1);
   font-size: var(--webops-font-size-sm);
   font-weight: var(--webops-font-weight-medium);
@@ -545,7 +545,7 @@
   z-index: var(--webops-z-modal);
   opacity: 0;
   visibility: hidden;
-  transition: all var(--webops-transition-base);
+  transition: none;
 }
 
 .webops-modal-overlay--active,
@@ -558,13 +558,13 @@
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-20);
   border-radius: var(--webops-radius-2xl);
-  box-shadow: var(--webops-shadow-primary-lg);
+  box-shadow: none;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow: hidden;
-  transform: scale(0.9);
-  transition: transform var(--webops-transition-base);
+  transform: none;
+  transition: none;
 }
 
 .webops-modal-overlay--active .webops-modal,
@@ -598,7 +598,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--webops-transition-fast);
+  transition: none;
 }
 
 .webops-modal__close:hover {
@@ -665,7 +665,7 @@
   right: 0;
   bottom: 0;
   background-color: var(--webops-color-bg-tertiary);
-  transition: var(--webops-transition-base);
+  transition: none;
   border-radius: var(--webops-radius-full);
   border: 1px solid var(--webops-color-primary-alpha-20);
 }
@@ -678,7 +678,7 @@
   left: 3px;
   bottom: 3px;
   background-color: var(--webops-color-text-primary);
-  transition: var(--webops-transition-base);
+  transition: none;
   border-radius: 50%;
 }
 
@@ -704,7 +704,7 @@
   cursor: pointer;
   padding: var(--webops-space-2);
   border-radius: var(--webops-radius-md);
-  transition: all var(--webops-transition-fast);
+  transition: none;
 }
 
 .webops-dropdown__trigger:hover {
@@ -719,13 +719,13 @@
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-20);
   border-radius: var(--webops-radius-lg);
-  box-shadow: var(--webops-shadow-lg);
+  box-shadow: none;
   padding: var(--webops-space-2);
   margin-top: var(--webops-space-2);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
-  transition: all var(--webops-transition-base);
+  transform: none;
+  transition: none;
   z-index: var(--webops-z-dropdown);
 }
 
@@ -745,7 +745,7 @@
   border: none;
   border-radius: var(--webops-radius-md);
   cursor: pointer;
-  transition: all var(--webops-transition-fast);
+  transition: none;
   font-size: var(--webops-font-size-sm);
 }
 
@@ -766,19 +766,14 @@
   border: 2px solid var(--webops-color-primary-alpha-20);
   border-radius: 50%;
   border-top-color: var(--webops-color-primary);
-  animation: webops-spin 1s linear infinite;
+  animation: none;
 }
 
 /* Skeleton Loader */
 .webops-skeleton-loader {
-  background: linear-gradient(
-    90deg,
-    var(--webops-color-bg-secondary) 25%,
-    var(--webops-color-primary-alpha-10) 50%,
-    var(--webops-color-bg-secondary) 75%
-  );
+  background: var(--webops-color-bg-secondary);
   background-size: 200% 100%;
-  animation: webops-skeleton-loading 1.5s infinite;
+  animation: none;
   border-radius: var(--webops-radius-md);
 }
 
@@ -800,7 +795,7 @@
   height: 100%;
   background: var(--webops-color-primary);
   border-radius: var(--webops-radius-full);
-  transition: width var(--webops-transition-base);
+  transition: none;
   position: relative;
 }
 
@@ -811,13 +806,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--webops-color-primary-light),
-    transparent
-  );
-  animation: webops-progress-shine 2s infinite;
+  background: transparent;
+  animation: none;
 }
 
 @keyframes webops-progress-shine {
@@ -930,10 +920,10 @@
 
 /* Shadow Utilities */
 .webops-shadow-none { box-shadow: none; }
-.webops-shadow-sm { box-shadow: var(--webops-shadow-sm); }
-.webops-shadow-md { box-shadow: var(--webops-shadow-md); }
-.webops-shadow-lg { box-shadow: var(--webops-shadow-lg); }
-.webops-shadow-primary { box-shadow: var(--webops-shadow-primary); }
+.webops-shadow-sm { box-shadow: none; }
+.webops-shadow-md { box-shadow: none; }
+.webops-shadow-lg { box-shadow: none; }
+.webops-shadow-primary { box-shadow: none; }
 
 /* Responsive Utilities */
 @media (min-width: 640px) {
@@ -1100,15 +1090,15 @@
   background: var(--webops-color-bg-elevated);
   border: 1px solid var(--webops-color-primary-alpha-15);
   border-radius: var(--webops-radius-lg);
-  transition: all var(--webops-transition-base);
+  transition: none;
   overflow: hidden;
   height: 100%;
 }
 
 .webops-model-card:hover {
   border-color: var(--webops-color-primary-alpha-35);
-  transform: translateY(-2px);
-  box-shadow: var(--webops-shadow-md);
+  transform: none;
+  box-shadow: none;
 }
 
 .webops-model-card__header {
@@ -1216,7 +1206,7 @@
 /* Model Card Variants */
 .webops-model-card--featured {
   border-color: var(--webops-color-primary-alpha-30);
-  background: linear-gradient(135deg, var(--webops-color-primary-alpha-05) 0%, var(--webops-color-bg-elevated) 100%);
+  background: var(--webops-color-primary-alpha-05);
 }
 
 .webops-model-card--featured .webops-model-card__name {
@@ -1245,17 +1235,17 @@
 /* Compatibility-based Model Card Variants */
 .webops-model-card--recommended {
   border-color: var(--webops-color-success-alpha-40);
-  background: linear-gradient(135deg, var(--webops-color-success-alpha-05) 0%, var(--webops-color-bg-elevated) 100%);
+  background: var(--webops-color-success-alpha-05);
 }
 
 .webops-model-card--caution {
   border-color: var(--webops-color-warning-alpha-40);
-  background: linear-gradient(135deg, var(--webops-color-warning-alpha-05) 0%, var(--webops-color-bg-elevated) 100%);
+  background: var(--webops-color-warning-alpha-05);
 }
 
 .webops-model-card--incompatible {
   border-color: var(--webops-color-error-alpha-40);
-  background: linear-gradient(135deg, var(--webops-color-error-alpha-05) 0%, var(--webops-color-bg-elevated) 100%);
+  background: var(--webops-color-error-alpha-05);
   opacity: 0.9;
 }
 
@@ -1348,7 +1338,7 @@
   border: 3px solid var(--webops-color-primary-alpha-20);
   border-top: 3px solid var(--webops-color-primary);
   border-radius: 50%;
-  animation: webops-spin 1s linear infinite;
+  animation: none;
 }
 
 /* Enhanced Form Row for Model Browser */

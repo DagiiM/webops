@@ -143,7 +143,7 @@ print(response.json())</code></pre>
     border: 2px solid var(--webops-color-border);
     border-radius: var(--webops-radius-md);
     font-size: var(--webops-font-size-base);
-    transition: all var(--webops-transition-fast);
+    transition: none;
     background: var(--webops-color-background);
     color: var(--webops-color-text-primary);
 }
@@ -151,7 +151,7 @@ print(response.json())</code></pre>
 .webops-form-input:focus {
     outline: none;
     border-color: var(--webops-color-primary);
-    box-shadow: 0 0 0 3px var(--webops-color-primary-light);
+    box-shadow: none;
 }
 
 .webops-form-help {
@@ -163,7 +163,7 @@ print(response.json())</code></pre>
 
 .webops-info-box {
     padding: var(--webops-space-3);
-    background: linear-gradient(135deg, var(--webops-color-primary-light) 0%, var(--webops-color-primary-lighter) 100%);
+    background: var(--webops-color-primary-light);
     border-radius: var(--webops-radius-md);
     border-left: 4px solid var(--webops-color-primary);
     margin-bottom: var(--webops-space-3);

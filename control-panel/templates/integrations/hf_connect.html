@@ -6,7 +6,7 @@
 {% block content %}
 <div style="max-width: 600px; margin: 0 auto;">
     <div style="text-align: center; margin-bottom: var(--webops-space-3);">
-        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: linear-gradient(135deg, #ffbe00, #ff6b00); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
+        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: #ffbe00; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
             <span class="material-icons" style="font-size: 36px; color: white;">hub</span>
         </div>
         <h1 style="font-size: var(--webops-font-size-3xl); font-weight: var(--webops-font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-1-5);">
@@ -66,11 +66,11 @@
 
         <div style="display: flex; gap: var(--webops-space-3);">
             <a href="{% url 'integrations_dashboard' %}"
-               style="flex: 1; text-align: center; padding: var(--webops-space-3); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--webops-radius-md); color: var(--webops-color-text-secondary); text-decoration: none; transition: all var(--webops-transition-fast);">
+               style="flex: 1; text-align: center; padding: var(--webops-space-3); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--webops-radius-md); color: var(--webops-color-text-secondary); text-decoration: none; transition: none;">
                 Cancel
             </a>
             <button type="submit"
-                    style="flex: 2; padding: var(--webops-space-3); background: var(--webops-color-primary); border: none; border-radius: var(--webops-radius-md); color: var(--webops-color-bg-primary); font-weight: var(--font-weight-semibold); cursor: pointer; transition: all var(--webops-transition-fast);">
+                    style="flex: 2; padding: var(--webops-space-3); background: var(--webops-color-primary); border: none; border-radius: var(--webops-radius-md); color: var(--webops-color-bg-primary); font-weight: var(--font-weight-semibold); cursor: pointer; transition: none;">
                 Connect Account
             </button>
         </div>
