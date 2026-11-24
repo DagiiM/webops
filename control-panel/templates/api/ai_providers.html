@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}AI providers - {{ branding.site_name }}{% endblock %}
+{% block header_title %}AI providers{% endblock %}
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">AI providers</h2>
+        <p class="webops-text-muted">Connect an OpenAI-compatible model for WebOps' AI features: one of your own local models, or any external provider with your API key.</p>
+    </div>
+</div>
+
+{# Persistent result/error panels use their own classes: toast.js hides every .webops-alert #}
+{% if result %}<section class="{% if result.ok %}ui-secret{% else %}ui-formerror{% endif %}" role="status"><p>{{ result.text }}</p></section>{% endif %}
+{% if errors %}<section class="ui-formerror" role="alert"><h3 class="ui-formerror__title">The provider was not saved</h3><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></section>{% endif %}
+
+<section class="ui-panel ui-panel--spaced" aria-labelledby="list-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="list-h">Your providers</h3><span class="ui-panel__meta">{{ providers|length }} of {{ max_providers }}</span></div>
+    {% if providers %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col" class="webops-col-sec">Model</th><th scope="col" class="webops-col-opt">Key</th><th scope="col">Status</th><th scope="col"><span class="webops-sr-only">Actions</span></th></tr></thead>
+            <tbody>
+            {% for p in providers %}
+                <tr>
+                    <td class="webops-cell-name">{{ p.name }}{% if p.is_default %} <span class="webops-badge webops-badge-primary">Default</span>{% endif %}</td>
+                    <td>{{ p.get_kind_display }}</td>
+                    <td class="webops-col-sec webops-cell-id">{{ p.model }}</td>
+                    <td class="webops-col-opt webops-cell-id">{% if p.kind == 'external' %}{% if p.key_hint %}••••{{ p.key_hint }}{% else %}none{% endif %}{% else %}n/a{% endif %}</td>
+                    <td>{% if p.last_ok is None %}<span class="webops-badge webops-badge-info">Not tested</span>{% elif p.last_ok %}<span class="webops-badge webops-badge-success">Working</span>{% else %}<span class="webops-badge webops-badge-danger" title="{{ p.last_error }}">Failing</span>{% endif %}</td>
+                    <td>
+                        <form method="post" action="{% url 'ai_provider_test' p.pk %}" class="ui-inline-form">{% csrf_token %}<button class="webops-btn webops-btn-sm" type="submit">Test</button></form>
+                        {% if not p.is_default %}<form method="post" action="{% url 'ai_provider_default' p.pk %}" class="ui-inline-form">{% csrf_token %}<button class="webops-btn webops-btn-sm" type="submit">Make default</button></form>{% endif %}
+                        <form method="post" action="{% url 'ai_provider_delete' p.pk %}" class="ui-inline-form">{% csrf_token %}<button class="webops-btn webops-btn-sm webops-btn-danger" type="submit">Delete</button></form>
+                    </td>
+                </tr>
+                {% if p.kind == 'external' %}
+                <tr><td colspan="6"><form method="post" action="{% url 'ai_provider_key' p.pk %}" class="ui-inline-form"><span class="webops-help-text">Replace the key for {{ p.name }}:</span> {% csrf_token %}<input type="password" name="api_key" class="webops-input ui-key-input" autocomplete="off" aria-label="New API key for {{ p.name }}" placeholder="New API key"> <button class="webops-btn webops-btn-sm" type="submit">Save key</button></form>{% if p.last_error %}<p class="webops-help-text">Last error: {{ p.last_error }}</p>{% endif %}</td></tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="ui-empty"><strong>No AI provider yet.</strong>Add one below. Without a provider the deploy assistant still analyses your repository, but cannot write a plan.</div>
+    {% endif %}
+</section>
+
+<section class="ui-panel" aria-labelledby="add-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="add-h">Add a provider</h3></div>
+    <div class="webops-card-body">
+        <form method="post">{% csrf_token %}
+            <div class="webops-form-group">
+                <span class="webops-label" id="kind-l">Type</span>
+                <div role="radiogroup" aria-labelledby="kind-l" class="ui-radios">
+                    <label><input type="radio" name="kind" value="external" {% if values.kind != 'local' %}checked{% endif %}> External OpenAI-compatible (OpenAI, OpenRouter, Groq, your own vLLM...)</label>
+                    <label><input type="radio" name="kind" value="local" {% if values.kind == 'local' %}checked{% endif %}> Local model on this server</label>
+                </div>
+            </div>
+            <div class="webops-form-group"><label class="webops-label" for="p-name">Name</label><input id="p-name" name="name" class="webops-input" maxlength="100" required placeholder="OpenAI" value="{{ values.name|default:'' }}"></div>
+
+            <fieldset class="ui-fieldset" aria-label="External provider settings" data-kind="external"{% if values.kind == 'local' %} hidden{% endif %}>
+                <div class="webops-form-group"><label class="webops-label" for="p-url">Base URL</label>
+                    <input id="p-url" name="base_url" class="webops-input" list="presets" inputmode="url" placeholder="https://api.openai.com/v1" value="{{ values.base_url|default:'' }}" autocomplete="off" spellcheck="false">
+                    <datalist id="presets">{% for label, url in presets %}<option value="{{ url }}">{{ label }}</option>{% endfor %}</datalist>
+                    <p class="webops-help-text">Must be public HTTPS. WebOps calls <code>{base URL}/chat/completions</code>. Addresses inside your network are refused.</p></div>
+                <div class="webops-form-group"><label class="webops-label" for="p-model">Model</label><input id="p-model" name="model" class="webops-input" maxlength="200" placeholder="gpt-4o-mini" value="{{ values.model|default:'' }}" autocomplete="off"></div>
+                <div class="webops-form-group"><label class="webops-label" for="p-key">API key</label><input id="p-key" name="api_key" type="password" class="webops-input" autocomplete="off" placeholder="Stored encrypted; never shown again">
+                    <p class="webops-help-text">Leave empty for endpoints that need no key.</p></div>
+                <div class="webops-form-group"><label><input type="checkbox" name="allow_private" {% if values.allow_private %}checked{% endif %}> Allow sending excerpts of <strong>private</strong> repositories to this provider</label>
+                    <p class="webops-help-text">Off by default. The deploy assistant sends file names and short excerpts of the repository to the provider.</p></div>
+            </fieldset>
+
+            <fieldset class="ui-fieldset" aria-label="Local model settings" data-kind="local"{% if values.kind != 'local' %} hidden{% endif %}>
+                <div class="webops-form-group"><label class="webops-label" for="p-local">Local model</label>
+                    <select id="p-local" name="local_model" class="webops-input">
+                        {% for m in local_models %}<option value="{{ m }}">{{ m }}</option>{% empty %}<option value="">No running local model</option>{% endfor %}
+                    </select>
+                    <p class="webops-help-text">Your reviewed CPU models run on this server and nothing leaves it. They are small: good for simple tasks, not for planning a deployment.</p></div>
+            </fieldset>
+
+            <div class="webops-form-group"><label><input type="checkbox" name="make_default"> Use as my default provider</label></div>
+            <button class="webops-btn webops-btn-primary" type="submit">Add provider</button>
+        </form>
+    </div>
+</section>
+<script src="{% static 'js/pages/ai-providers.js' %}"></script>
+{% endblock %}

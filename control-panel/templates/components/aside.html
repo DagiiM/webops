@@ -64,6 +64,9 @@
             <a href="{% url 'integrations_dashboard' %}" class="webops-nav-item" {% if nav_active == 'integrations' %}aria-current="page"{% endif %}>
                 <span class="webops-nav-item__icon material-icons">link</span><span class="webops-nav-item__text">Integrations</span>
             </a>
+            <a href="{% url 'ai_providers' %}" class="webops-nav-item" {% if nav_active == 'ai' %}aria-current="page"{% endif %}>
+                <span class="webops-nav-item__icon material-icons">psychology</span><span class="webops-nav-item__text">AI providers</span>
+            </a>
             <a href="{% url 'addons:addons_list' %}" class="webops-nav-item" {% if nav_active == 'addons' %}aria-current="page"{% endif %}>
                 <span class="webops-nav-item__icon material-icons">extension</span><span class="webops-nav-item__text">Addons</span>
             </a>

@@ -59,6 +59,7 @@ def deployment_detail(request, pk):
 
 def _create_form_context(request, errors=None, values=None):
     """Context for deployments/create.html (GET, and a re-render after a rejected POST)."""
+    from apps.api.models import AIProvider
     from apps.core.integrations.services import GitHubIntegrationService
     from ..shared import ServiceManager
 
@@ -77,6 +78,7 @@ def _create_form_context(request, errors=None, values=None):
         'restricted_workloads': restricted(),
         'form_errors': errors or [],
         'values': values or {},
+        'ai_providers': list(AIProvider.objects.filter(user=request.user)),
     }
 
 

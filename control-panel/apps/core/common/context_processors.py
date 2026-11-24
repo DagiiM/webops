@@ -39,6 +39,7 @@ _NAV_RULES = (
     ('/compliance', 'compliance'),
     ('/api/tokens', 'tokens'),
     ('/api/mcp', 'assistants'),
+    ('/api/ai', 'ai'),
     ('/api/docs', 'docs'),
     ('/auth/2fa', 'two_factor'),
     ('/auth/settings/branding', 'branding'),

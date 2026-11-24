@@ -1,7 +1,7 @@
 """URL configuration for API app."""
 
 from django.urls import path
-from . import views, token_views, doc_views, mcp_views, llm_public
+from . import views, token_views, doc_views, mcp_views, llm_public, ai_views
 
 urlpatterns = [
     path('mcp/', mcp_views.mcp_endpoint, name='mcp_endpoint'),
@@ -12,6 +12,12 @@ urlpatterns = [
     path('llm/v1/completions', llm_public.completions_view, name='llm_public_completions'),
     path('llm/keys/', llm_public.keys_view, name='llm_keys'),
     path('llm/keys/<int:pk>/revoke/', llm_public.key_revoke, name='llm_key_revoke'),
+    # AI providers (OpenAI-compatible: local model or external endpoint)
+    path('ai/providers/', ai_views.providers_view, name='ai_providers'),
+    path('ai/providers/<int:pk>/test/', ai_views.provider_test, name='ai_provider_test'),
+    path('ai/providers/<int:pk>/default/', ai_views.provider_default, name='ai_provider_default'),
+    path('ai/providers/<int:pk>/delete/', ai_views.provider_delete, name='ai_provider_delete'),
+    path('ai/providers/<int:pk>/key/', ai_views.provider_key, name='ai_provider_key'),
     # API Documentation
     path('docs/', doc_views.api_documentation, name='api_docs'),
     path('docs/data/', doc_views.api_documentation_data, name='api_docs_data'),

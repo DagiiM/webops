@@ -303,6 +303,25 @@
                 <small class="webops-input-help">Paste any form: the full URL, <code>owner/repository</code>, a link ending in <code>/tree/branch</code> or <code>.git</code>, or the SSH address. Private repos need a connected GitHub account.</small>
             </div>
 
+            <section class="ui-assist" id="aiAssist" aria-labelledby="aiAssistTitle" data-url="{% url 'deployments:ai_assist' %}">
+                <div class="ui-assist__head">
+                    <h4 class="ui-assist__title" id="aiAssistTitle"><span class="material-icons" aria-hidden="true">psychology</span>Analyse with AI</h4>
+                    <button type="button" class="webops-btn webops-btn-sm" id="aiAssistRun">Analyse repository</button>
+                </div>
+                {% if ai_providers %}
+                <label class="ui-assist__row" for="aiAssistProvider"><span>Provider</span>
+                    <select id="aiAssistProvider" class="webops-input">
+                        <option value="">Analysis only, no AI</option>
+                        {% for p in ai_providers %}<option value="{{ p.pk }}"{% if p.is_default %} selected{% endif %}>{{ p.name }} ({{ p.get_kind_display }})</option>{% endfor %}
+                    </select>
+                </label>
+                <p class="webops-help-text">With a provider selected, file names and short excerpts of the repository are sent to it. Excerpts of private repositories go only to providers you allowed for that.</p>
+                {% else %}
+                <p class="webops-help-text">Reads the repository and tells you what this server can do with it. <a href="{% url 'ai_providers' %}">Add an AI provider</a> to also get a written plan.</p>
+                {% endif %}
+                <div class="ui-assist__out" id="aiAssistOut" role="status" aria-live="polite" hidden></div>
+            </section>
+
             <div class="webops-form-group">
                 <label for="branch" class="webops-label">Branch</label>
                 <div class="webops-s-a8a9035">
@@ -426,4 +445,5 @@
 
 <div id="page-config" hidden data-github-connected="{% if github_connected %}true{% else %}false{% endif %}" data-all-ok="{% if approval_required %}true{% else %}{{ core_status.all_ok|yesno:'true,false' }}{% endif %}" data-url-branches="{% url 'deployments:github_repo_branches' %}" data-url-core-status="{% url 'deployments:core_services_status_detailed' %}" data-url-restart-service="{% url 'deployments:restart_core_service' 'SERVICE_NAME' %}"></div>
 <script src="{% static 'js/pages/deployments-create.js' %}"></script>
+<script src="{% static 'js/pages/deployments-ai-assist.js' %}"></script>
 {% endblock %}

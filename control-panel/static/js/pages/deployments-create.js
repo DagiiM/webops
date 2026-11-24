@@ -82,8 +82,10 @@ function sanitizeNameClient(name) {
 function showSanitizedPreview(raw) {
     const preview = document.getElementById('namePreview');
     const code = document.getElementById('nameSanitized');
-    const sanitized = sanitizeNameClient(raw || document.getElementById('name').value);
-    if (!sanitized) {
+    const typed = (raw || document.getElementById('name').value || '').trim();
+    const sanitized = sanitizeNameClient(typed);
+    // Only worth showing when sanitising changed something; an unchanged hint just shifts the layout.
+    if (!sanitized || sanitized === typed) {
         preview.style.display = 'none';
         code.textContent = '';
         return;

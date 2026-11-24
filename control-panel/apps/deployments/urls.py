@@ -2,6 +2,7 @@
 
 from django.urls import path, include
 from .views.application_deployment import deployment_approve
+from .views.ai_assist import ai_assist
 from .views import (
     # Legacy/Application views
     deployment_list,
@@ -45,6 +46,7 @@ urlpatterns = [
     path('<int:pk>/approve/', deployment_approve, name='deployment_approve'),
     path('create/', deployment_create, name='deployment_create'),
     path('github/branches/', github_repo_branches, name='github_repo_branches'),
+    path('ai-assist/', ai_assist, name='ai_assist'),
     path('<int:pk>/', deployment_detail, name='deployment_detail'),
     path('<int:pk>/start/', deployment_start, name='deployment_start'),
     path('<int:pk>/stop/', deployment_stop, name='deployment_stop'),
