@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Build job #{{ job.pk }} - {{ branding.site_name }}{% endblock %}
+{% block header_title %}Build job #{{ job.pk }}{% endblock %}
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Build job #{{ job.pk }}</h2>
+        <p class="webops-text-muted">{{ job.deployment.name }} · {{ job.kind }} · commit <code>{{ job.commit|slice:":10" }}</code></p>
+    </div>
+    <div class="ui-actions">
+        {% if can_cancel %}<form method="post" action="{% url 'deployments:job_cancel' job.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-danger" type="submit">Cancel job</button></form>{% endif %}
+        <a href="{% url 'deployments:deployment_detail' job.deployment.pk %}" class="webops-btn">Deployment</a>
+    </div>
+</div>
+<section class="ui-panel ui-panel--spaced">
+    <div class="ui-panel__head"><h3 class="ui-panel__title">Status</h3><span class="webops-badge">{{ job.get_status_display }}</span></div>
+    <div class="webops-card-body">
+        <p>Worker: {{ job.worker.name|default:"not assigned" }} · attempt {{ job.attempts }} of {{ job.MAX_ATTEMPTS }}</p>
+        {% if job.result.summary %}<p>{{ job.result.summary }}</p>{% endif %}
+        {% if job.result.artifacts %}<p class="webops-help-text">Produced: {{ job.result.artifacts|join:", " }}</p>{% endif %}
+        {% if job.status == 'succeeded' %}<p class="webops-help-text">The project built. Serving applications from workers is not enabled yet, so it is not running.</p>{% endif %}
+    </div>
+</section>
+<section class="ui-panel" aria-labelledby="log-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="log-h">Build log</h3></div>
+    <pre class="webops-code-block">{{ job.log|default:"No output yet." }}</pre>
+</section>
+{% endblock %}

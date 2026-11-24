@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Build workers - {{ branding.site_name }}{% endblock %}
+{% block header_title %}Build workers{% endblock %}
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">Build workers</h2>
+        <p class="webops-text-muted">Separate machines that build approved projects, so repository code never runs on this server. A worker connects out to this panel; nothing connects in.</p>
+    </div>
+    <a href="{% url 'deployments:deployment_list' %}" class="webops-btn">Back to deployments</a>
+</div>
+
+{% if error %}<section class="ui-formerror" role="alert"><p>{{ error }}</p></section>{% endif %}
+{# Dedicated element, not .webops-alert: toast.js would hide the one-time token. #}
+{% if issued %}
+<section class="ui-secret" role="status" aria-labelledby="secret-h">
+    <h3 class="ui-secret__title" id="secret-h">Copy the token for {{ name }} now. It cannot be shown again.</h3>
+    <input class="webops-input ui-secret__value" type="text" readonly value="{{ issued }}" aria-label="New worker token" autocomplete="off" spellcheck="false">
+    <p class="webops-help-text">On the worker, save it to <code>/etc/webops-worker/token</code> (mode 0600, root only) and set <code>WEBOPS_PANEL_URL={{ panel_url }}</code>. See <code>worker/README.md</code>.</p>
+</section>
+{% endif %}
+
+<section class="ui-panel ui-panel--spaced" aria-labelledby="w-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="w-h">Workers</h3><span class="ui-panel__meta">{{ workers|length }}</span></div>
+    {% if workers %}
+    <div class="webops-table-responsive"><table class="webops-table">
+        <thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col" class="webops-col-sec">Machine</th><th scope="col" class="webops-col-opt">Last seen</th><th scope="col"><span class="webops-sr-only">Actions</span></th></tr></thead>
+        <tbody>{% for w in workers %}
+            <tr>
+                <td class="webops-cell-name">{{ w.name }}</td>
+                <td>{% if w.revoked_at %}<span class="webops-badge webops-badge-danger">Revoked</span>{% elif w.is_online %}<span class="webops-badge webops-badge-success">Online</span>{% else %}<span class="webops-badge webops-badge-warning">Offline</span>{% endif %}</td>
+                <td class="webops-col-sec webops-cell-id">{% if w.info.cpus %}{{ w.info.cpus|floatformat:0 }} CPU{% endif %}{% if w.info.memory_gb %}, {{ w.info.memory_gb|floatformat:0 }} GB{% endif %}{% if w.info.isolation %}<br><span class="webops-help-text">{{ w.info.isolation }}</span>{% endif %}</td>
+                <td class="webops-col-opt">{{ w.last_seen|timesince|default:"never" }}{% if w.last_seen %} ago{% endif %}</td>
+                <td>{% if not w.revoked_at %}<form method="post" action="{% url 'deployments:worker_revoke' w.pk %}" class="ui-inline-form">{% csrf_token %}<button class="webops-btn webops-btn-sm webops-btn-danger" type="submit">Revoke</button></form>{% endif %}</td>
+            </tr>{% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}<div class="ui-empty"><strong>No worker yet.</strong>Add one below, then run the agent on a separate machine.</div>{% endif %}
+</section>
+
+<section class="ui-panel ui-panel--spaced" aria-labelledby="add-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="add-h">Add a worker</h3></div>
+    <div class="webops-card-body">
+        <form method="post">{% csrf_token %}
+            <div class="webops-form-group"><label class="webops-label" for="w-name">Name</label><input id="w-name" name="name" class="webops-input" maxlength="60" required placeholder="build-1" value="{{ name }}" autocomplete="off"></div>
+            <ul class="ui-assist__list">
+                <li>Only repositories owned by a trusted owner are ever built: the requester's own GitHub account, plus owners listed in <code>WEBOPS_WORKER_TRUSTED_OWNERS</code>.</li>
+                <li>Each job runs as a throw-away unprivileged user with resource limits and a time limit. The worker should hold nothing but the agent: jobs can reach the internet.</li>
+            </ul>
+            <button class="webops-btn webops-btn-primary" type="submit">Create token</button>
+        </form>
+    </div>
+</section>
+
+<section class="ui-panel" aria-labelledby="j-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="j-h">Recent jobs</h3></div>
+    {% if jobs %}
+    <div class="webops-table-responsive"><table class="webops-table">
+        <thead><tr><th scope="col">Job</th><th scope="col">Deployment</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col" class="webops-col-opt">Worker</th><th scope="col" class="webops-col-opt">Created</th></tr></thead>
+        <tbody>{% for j in jobs %}
+            <tr>
+                <td><a href="{% url 'deployments:job_detail' j.pk %}">#{{ j.pk }}</a></td>
+                <td>{{ j.deployment.name }}</td><td>{{ j.kind }}</td>
+                <td>{% if j.status == 'succeeded' %}<span class="webops-badge webops-badge-success">Succeeded</span>{% elif j.status == 'failed' %}<span class="webops-badge webops-badge-danger">Failed</span>{% elif j.status == 'cancelled' %}<span class="webops-badge">Cancelled</span>{% else %}<span class="webops-badge webops-badge-info">{{ j.get_status_display }}</span>{% endif %}</td>
+                <td class="webops-col-opt">{{ j.worker.name|default:"-" }}</td><td class="webops-col-opt">{{ j.created_at|timesince }} ago</td>
+            </tr>{% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}<div class="ui-empty">No jobs yet.</div>{% endif %}
+</section>
+{% endblock %}
