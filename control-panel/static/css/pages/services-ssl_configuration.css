@@ -1,0 +1,104 @@
+/* Moved from templates/services/ssl_configuration.html (ui-skill rule 17: no inline <style>). */
+.webops-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.webops-status-item {
+    text-align: center;
+}
+
+.webops-status-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.webops-status-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.webops-file-upload-group {
+    margin-bottom: 1rem;
+}
+
+.webops-file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--background-light);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.webops-actions-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.webops-action-form {
+    display: inline-block;
+}
+
+.webops-help-section h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.webops-help-list {
+    list-style: none;
+    padding: 0;
+}
+
+.webops-help-list li {
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.webops-help-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.webops-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1000;
+    animation: none;
+}
+
+.webops-notification-success {
+    background-color: var(--success-color);
+}
+
+.webops-notification-error {
+    background-color: var(--error-color);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -25,7 +25,7 @@
                         <div class="webops-addon-detail__icon-glow"></div>
                     </div>
                     <div class="webops-addon-detail__title-content">
-                        <h1 class="webops-addon-detail__title">{{ addon.name }}</h1>
+                        <h2 class="webops-addon-detail__title">{{ addon.name }}</h2>
                         <div class="webops-addon-detail__meta">
                             <span class="webops-addon-detail__meta-item">
                                 <span class="material-icons">info</span>
@@ -74,7 +74,7 @@
 
     <!-- Messages -->
     {% if messages %}
-    <div style="margin-bottom: var(--webops-space-4);">
+    <div class="webops-s-d143d33">
         {% for message in messages %}
         <div class="webops-addon-detail__alert
             {% if message.tags == 'success' %}webops-addon-detail__alert--success{% elif message.tags == 'warning' %}webops-addon-detail__alert--warning{% elif message.tags == 'error' %}webops-addon-detail__alert--error{% else %}webops-addon-detail__alert--info{% endif %}">
@@ -286,7 +286,7 @@
                 </div>
                 <div class="webops-addon-detail__card-body">
                     <form method="POST" action="{% url 'addons:addon_toggle' addon.name %}"
-                          onsubmit="return confirm('This will {% if addon.enabled %}disable{% else %}enable{% endif %} the {{ addon.name }} addon. A restart is required for changes to take effect. Continue?');">
+                          data-confirm="This will {% if addon.enabled %}disable{% else %}enable{% endif %} the {{ addon.name }} addon. A restart is required for changes to take effect. Continue?">
                         {% csrf_token %}
                         {% if addon.enabled %}
                         <button type="submit" class="webops-addon-detail__action-button webops-addon-detail__action-button--danger">
@@ -376,10 +376,10 @@
                                 </div>
                             </div>
                             <div class="webops-addon-detail__success-rate-markers">
-                                <span class="webops-addon-detail__rate-marker" style="left: 25%">25%</span>
-                                <span class="webops-addon-detail__rate-marker" style="left: 50%">50%</span>
-                                <span class="webops-addon-detail__rate-marker" style="left: 75%">75%</span>
-                                <span class="webops-addon-detail__rate-marker" style="left: 100%">100%</span>
+                                <span class="webops-addon-detail__rate-marker webops-s-19d2985">25%</span>
+                                <span class="webops-addon-detail__rate-marker webops-s-66682c1">50%</span>
+                                <span class="webops-addon-detail__rate-marker webops-s-fe1b052">75%</span>
+                                <span class="webops-addon-detail__rate-marker webops-s-bc8b5b1">100%</span>
                             </div>
                         </div>
                     </div>
@@ -491,9 +491,9 @@
                             <span class="webops-addon-detail__metadata-label">Status</span>
                             <span class="webops-addon-detail__metadata-value">
                                 {% if addon.enabled %}
-                                    <span style="color: var(--webops-color-success);">Active</span>
+                                    <span class="webops-s-361c4d3">Active</span>
                                 {% else %}
-                                    <span style="color: var(--webops-color-error);">Inactive</span>
+                                    <span class="webops-s-cab2384">Inactive</span>
                                 {% endif %}
                             </span>
                         </div>
@@ -506,18 +506,7 @@
 
                 {% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Set the width of success rate fill bars based on data-width attribute
-    const successRateFills = document.querySelectorAll('.webops-addon-detail__success-rate-fill');
-    successRateFills.forEach(function(fill) {
-        const width = fill.getAttribute('data-width');
-        if (width) {
-            fill.style.width = width + '%';
-        }
-    });
-});
-</script>
+<script src="{% static 'js/pages/addons-detail.js' %}"></script>
 
 <!-- Load test script (only in development) -->
 {% if debug %}

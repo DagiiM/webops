@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Automation Workflows - WebOps{% endblock %}
 {% block header_title %}Automation{% endblock %}
 
@@ -24,7 +25,7 @@
 <!-- Statistics Cards -->
 <div class="webops-stats-grid webops-mb-lg">
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+        <div class="webops-stat-icon webops-s-31e84b7">
             <span class="material-icons">account_tree</span>
         </div>
         <div class="webops-stat-value">{{ total_workflows }}</div>
@@ -32,7 +33,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+        <div class="webops-stat-icon webops-s-3b11233">
             <span class="material-icons">check_circle</span>
         </div>
         <div class="webops-stat-value">{{ active_workflows }}</div>
@@ -40,7 +41,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+        <div class="webops-stat-icon webops-s-5651be3">
             <span class="material-icons">play_arrow</span>
         </div>
         <div class="webops-stat-value">
@@ -50,7 +51,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(156, 39, 176, 0.1); color: #9c27b0;">
+        <div class="webops-stat-icon webops-s-609e623">
             <span class="material-icons">schedule</span>
         </div>
         <div class="webops-stat-value">
@@ -109,22 +110,22 @@
         <div class="webops-card-body">
             <!-- Workflow Statistics -->
             <div class="webops-grid webops-grid--cols-4 webops-mb-md">
-                <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-d0963fe">
                     <div class="webops-text-2xl webops-font-bold">{{ item.node_count }}</div>
                     <div class="webops-text-sm webops-text-secondary">Nodes</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-d1187f1">
                     <div class="webops-text-2xl webops-font-bold webops-text-success">{{ item.workflow.successful_executions }}</div>
                     <div class="webops-text-sm webops-text-secondary">Successful</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-3566339">
                     <div class="webops-text-2xl webops-font-bold webops-text-error">{{ item.workflow.failed_executions }}</div>
                     <div class="webops-text-sm webops-text-secondary">Failed</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-aca0584">
                     <div class="webops-text-2xl webops-font-bold">
                         {% if item.workflow.total_executions > 0 %}
                             {% widthratio item.workflow.successful_executions item.workflow.total_executions 100 %}%
@@ -177,7 +178,7 @@
                     History
                 </a>
                 <form method="post" action="{% url 'automation:workflow_delete' item.workflow.id %}" class="webops-form webops-form--inline"
-                      onsubmit="return confirm('Delete workflow \'{{ item.workflow.name }}\'? This cannot be undone.');">
+                      data-confirm="Delete workflow '{{ item.workflow.name }}'? This cannot be undone.">
                     {% csrf_token %}
                     <button type="submit" class="webops-btn webops-btn-sm webops-btn-danger">
                         <span class="material-icons">delete</span>
@@ -192,7 +193,7 @@
 {% else %}
 <div class="webops-card">
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">account_tree</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">account_tree</span>
         <h3 class="webops-empty-state-title">No workflows yet</h3>
         <p class="webops-empty-state-description">Create your first automation workflow to get started</p>
         <div class="webops-flex webops-gap-sm webops-justify-center webops-mt-md">
@@ -209,26 +210,5 @@
 </div>
 {% endif %}
 
-<style>
-.webops-form--inline {
-    display: inline-block;
-    margin: 0;
-}
-
-.webops-icon-xs {
-    font-size: 14px;
-}
-
-.webops-grid--cols-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-
-@media (max-width: 768px) {
-    .webops-grid--cols-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/automation-workflow_list.css' %}">
 {% endblock %}

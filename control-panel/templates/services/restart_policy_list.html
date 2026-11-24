@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Restart Policies - WebOps{% endblock %}
 {% block header_title %}Restart Policies{% endblock %}
 
@@ -10,7 +11,7 @@
         <p class="webops-text-muted">Automated service recovery configuration</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
@@ -43,22 +44,22 @@
         <div class="webops-card-body">
             <div class="webops-grid webops-grid-4 webops-mb-md">
                 <!-- Restart Statistics -->
-                <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-d0963fe">
                     <div class="webops-text-2xl webops-font-bold">{{ item.stats.total_attempts }}</div>
                     <div class="webops-text-sm webops-text-secondary">Total Restarts (24h)</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-d1187f1">
                     <div class="webops-text-2xl webops-font-bold webops-text-success">{{ item.stats.successful }}</div>
                     <div class="webops-text-sm webops-text-secondary">Successful</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-3566339">
                     <div class="webops-text-2xl webops-font-bold webops-text-error">{{ item.stats.failed }}</div>
                     <div class="webops-text-sm webops-text-secondary">Failed</div>
                 </div>
 
-                <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+                <div class="webops-text-center webops-p-md webops-s-aca0584">
                     <div class="webops-text-2xl webops-font-bold">{{ item.stats.success_rate|floatformat:0 }}%</div>
                     <div class="webops-text-sm webops-text-secondary">Success Rate</div>
                 </div>
@@ -92,7 +93,7 @@
             </div>
 
             {% if item.policy.policy_type == 'backoff' %}
-            <div class="webops-p-md webops-mb-md" style="background: rgba(0, 170, 255, 0.05); border-left: 3px solid var(--webops-color-info); border-radius: var(--webops-radius-md);">
+            <div class="webops-p-md webops-mb-md webops-s-0e38164">
                 <div class="webops-flex webops-items-center webops-gap-sm">
                     <span class="material-icons webops-text-info">trending_up</span>
                     <div class="webops-text-sm">
@@ -104,7 +105,7 @@
 
             <!-- Health Check Requirements -->
             {% if item.policy.require_health_check %}
-            <div class="webops-p-md webops-mb-md" style="background: rgba(0, 255, 136, 0.05); border-left: 3px solid var(--webops-color-success); border-radius: var(--webops-radius-md);">
+            <div class="webops-p-md webops-mb-md webops-s-a122bed">
                 <div class="webops-flex webops-items-center webops-gap-sm">
                     <span class="material-icons webops-text-success">health_and_safety</span>
                     <div class="webops-text-sm">
@@ -120,7 +121,7 @@
                     <span class="material-icons">edit</span>
                     Edit Policy
                 </a>
-                <form method="post" action="{% url 'monitoring:restart_policy_delete' item.policy.deployment.id %}" class="inline-form" onsubmit="return confirm('Delete restart policy for {{ item.policy.deployment.name }}?');">
+                <form method="post" action="{% url 'monitoring:restart_policy_delete' item.policy.deployment.id %}" class="inline-form" data-confirm="Delete restart policy for {{ item.policy.deployment.name }}?">
                     {% csrf_token %}
                     <button type="submit" class="webops-btn webops-btn-danger">
                         <span class="material-icons">delete</span>
@@ -135,7 +136,7 @@
 {% else %}
 <div class="webops-card">
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">policy</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">policy</span>
         <h3 class="webops-empty-state-title">No restart policies configured</h3>
         <p class="webops-empty-state-description">Create restart policies to enable automated service recovery</p>
         <a href="{% url 'monitoring:service_control_dashboard' %}" class="webops-btn webops-btn-primary">
@@ -146,10 +147,5 @@
 </div>
 {% endif %}
 
-<style>
-.inline-form {
-    display: inline-block;
-    margin: 0;
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/services-restart_policy_list.css' %}">
 {% endblock %}

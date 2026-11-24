@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}New Deployment - WebOps{% endblock %}
 {% block header_title %}New Deployment{% endblock %}
 
@@ -17,44 +18,44 @@
 
 {% if github_connected and github_repos %}
 <!-- GitHub Repository Browser -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
-    <div class="webops-card-header" style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-            <span class="material-icons" style="color: var(--webops-color-primary);">folder_special</span>
-            <h3 class="webops-h3" style="margin: 0;">Select from Your GitHub Repositories</h3>
+<div class="webops-card webops-s-74c7834">
+    <div class="webops-card-header webops-s-5c527fc">
+        <div class="webops-s-74cd148">
+            <span class="material-icons webops-s-d8eb29e">folder_special</span>
+            <h3 class="webops-h3 webops-s-2a0ca83">Select from Your GitHub Repositories</h3>
         </div>
         <span class="webops-badge webops-badge-success">{{ github_repos|length }} repos</span>
     </div>
     <div class="webops-card-body">
         <!-- Search Box -->
-        <div class="webops-form-group" style="margin-bottom: var(--webops-space-3);">
-            <div style="position: relative;">
-                <span class="material-icons" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--webops-color-text-tertiary); font-size: 20px;">search</span>
-                <input type="text" id="repoSearch" class="webops-input" placeholder="Search repositories..." style="padding-left: 40px;" autocomplete="off">
+        <div class="webops-form-group webops-s-74c7834">
+            <div class="webops-s-a8a9035">
+                <span class="material-icons webops-s-160ce1a">search</span>
+                <input type="text" id="repoSearch" aria-label="Search repositories..." class="webops-input webops-s-94b01b5" placeholder="Search repositories..."  autocomplete="off">
             </div>
         </div>
 
         <!-- Repository Grid -->
-        <div id="repoGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--webops-space-3); max-height: 500px; overflow-y: auto; padding: 2px;">
+        <div id="repoGrid" class="webops-s-169353b">
             {% for repo in github_repos %}
             <div class="repo-card" data-repo-name="{{ repo.name|lower }}" data-repo-desc="{{ repo.description|lower }}" data-repo-fullname="{{ repo.full_name }}">
-                <div style="padding: var(--webops-space-3); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-md); background: var(--webops-color-bg-secondary); cursor: pointer; transition: none; height: 100%;">
+                <div class="webops-s-e63c09e">
                     <!-- Header -->
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-                        <div style="flex: 1; min-width: 0;">
-                            <h4 class="webops-h4" style="margin: 0 0 var(--webops-space-0-5) 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div class="webops-s-5bffbf9">
+                        <div class="webops-s-8b4ab7f">
+                            <h4 class="webops-h4 webops-s-4ced75a">
                                 {{ repo.name }}
                             </h4>
-                            <p class="webops-text-xs webops-text-tertiary" style="margin: 0;">{{ repo.full_name }}</p>
+                            <p class="webops-text-xs webops-text-tertiary webops-s-2a0ca83">{{ repo.full_name }}</p>
                         </div>
                         {% if repo.private %}
-                        <span class="webops-badge" style="background: rgba(255, 191, 0, 0.2); color: var(--webops-color-warning); font-size: 11px;">
-                            <span class="material-icons" style="font-size: 12px;">lock</span>
+                        <span class="webops-badge webops-s-e1cda3d">
+                            <span class="material-icons webops-s-11fcdc5">lock</span>
                             Private
                         </span>
                         {% else %}
-                        <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); font-size: 11px;">
-                            <span class="material-icons" style="font-size: 12px;">public</span>
+                        <span class="webops-badge webops-s-da25434">
+                            <span class="material-icons webops-s-11fcdc5">public</span>
                             Public
                         </span>
                         {% endif %}
@@ -62,35 +63,35 @@
 
                     <!-- Description -->
                     {% if repo.description %}
-                    <p class="webops-text-sm webops-text-secondary" style="margin: 0 0 var(--webops-space-3) 0; height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                    <p class="webops-text-sm webops-text-secondary webops-s-4ff77f6">
                         {{ repo.description }}
                     </p>
                     {% else %}
-                    <p class="webops-text-sm webops-text-tertiary" style="margin: 0 0 var(--webops-space-3) 0; height: 40px; font-style: italic;">
+                    <p class="webops-text-sm webops-text-tertiary webops-s-bc8bf74">
                         No description provided
                     </p>
                     {% endif %}
 
                     <!-- Metadata -->
-                    <div style="display: flex; align-items: center; gap: var(--webops-space-3); flex-wrap: wrap; margin-bottom: var(--webops-space-3);">
+                    <div class="webops-s-ec3f0a2">
                         {% if repo.language %}
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
-                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">code</span>
+                        <div class="webops-s-9a97678">
+                            <span class="material-icons webops-text-tertiary webops-s-7da4e82">code</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.language }}</span>
                         </div>
                         {% endif %}
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
-                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">star</span>
+                        <div class="webops-s-9a97678">
+                            <span class="material-icons webops-text-tertiary webops-s-7da4e82">star</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.stargazers_count }}</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: var(--webops-space-0-5);">
-                            <span class="material-icons webops-text-tertiary" style="font-size: 16px;">call_split</span>
+                        <div class="webops-s-9a97678">
+                            <span class="material-icons webops-text-tertiary webops-s-7da4e82">call_split</span>
                             <span class="webops-text-xs webops-text-secondary">{{ repo.forks_count }}</span>
                         </div>
                     </div>
 
                     <!-- Select Button -->
-                    <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" style="width: 100%;" onclick="selectRepository('{{ repo.html_url }}', '{{ repo.full_name }}', '{{ repo.default_branch }}', '{{ repo.name }}')">
+                    <button type="button" class="webops-btn webops-btn-sm webops-btn-primary webops-s-16000cc"  data-on-click="selectRepository('{{ repo.html_url }}', '{{ repo.full_name }}', '{{ repo.default_branch }}', '{{ repo.name }}')">
                         <span class="material-icons">check_circle</span>
                         Use This Repository
                     </button>
@@ -99,36 +100,36 @@
             {% endfor %}
         </div>
 
-        <div id="noResults" style="display: none; text-align: center; padding: var(--webops-space-3); color: var(--webops-color-text-tertiary);">
-            <span class="material-icons" style="font-size: 48px; opacity: 0.5;">search_off</span>
-            <p class="webops-text-secondary" style="margin-top: var(--webops-space-3);">No repositories match your search</p>
+        <div id="noResults" class="webops-s-8b943f3">
+            <span class="material-icons webops-s-bdf611f">search_off</span>
+            <p class="webops-text-secondary webops-s-a92b13d">No repositories match your search</p>
         </div>
     </div>
 </div>
 
-<div class="webops-flex webops-gap-sm" style="align-items: center; margin-bottom: var(--webops-space-3); padding: var(--webops-space-3); background: rgba(0, 255, 136, 0.05); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.2);">
+<div class="webops-flex webops-gap-sm webops-s-b08cf9f">
     <span class="material-icons webops-text-success">check_circle</span>
     <span class="webops-text-sm webops-text-secondary">Select a repository above or manually enter repository details below</span>
 </div>
 {% elif github_connected %}
 <!-- No repositories found -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
-    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-3);">
-        <span class="material-icons" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.5;">folder_off</span>
-        <h3 class="webops-h3" style="margin-top: var(--webops-space-3); color: var(--webops-color-text-secondary);">No Repositories Found</h3>
+<div class="webops-card webops-s-74c7834">
+    <div class="webops-card-body webops-s-d20af97">
+        <span class="material-icons webops-s-38e951a">folder_off</span>
+        <h3 class="webops-h3 webops-s-27d0f0e">No Repositories Found</h3>
         <p class="webops-text-secondary">Your GitHub account doesn't have any repositories yet, or they couldn't be fetched.</p>
-        <p class="webops-text-sm webops-text-tertiary" style="margin-top: var(--webops-space-3);">You can still manually enter a repository URL below.</p>
+        <p class="webops-text-sm webops-text-tertiary webops-s-a92b13d">You can still manually enter a repository URL below.</p>
     </div>
 </div>
 {% else %}
 <!-- GitHub not connected -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
-    <div class="webops-card-body" style="text-align: center; padding: var(--webops-space-3);">
-        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: #24292e; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
-            <span class="material-icons" style="font-size: 36px; color: white;">code</span>
+<div class="webops-card webops-s-74c7834">
+    <div class="webops-card-body webops-s-d20af97">
+        <div class="webops-s-ce03111">
+            <span class="material-icons webops-s-825120f">code</span>
         </div>
-        <h3 class="webops-h3" style="margin-bottom: var(--webops-space-1-5);">Connect GitHub for Quick Deploy</h3>
-        <p class="webops-text-secondary" style="margin-bottom: var(--webops-space-3);">Connect your GitHub account to browse and select repositories directly from this page.</p>
+        <h3 class="webops-h3 webops-s-c32c278">Connect GitHub for Quick Deploy</h3>
+        <p class="webops-text-secondary webops-s-74c7834">Connect your GitHub account to browse and select repositories directly from this page.</p>
         <a href="{% url 'integrations_dashboard' %}" class="webops-btn webops-btn-primary">
             <span class="material-icons">link</span>
             Connect GitHub
@@ -146,83 +147,83 @@
 </div></div>
 {% else %}
 <div class="webops-card webops-mb-lg">
-    <div class="webops-card-header" style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
-        <div class="webops-flex webops-gap-sm" style="align-items:center;">
+    <div class="webops-card-header webops-s-574a022">
+        <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
             <span class="material-icons">health_and_safety</span>
-            <h3 class="webops-h3" style="margin:0;">Prerequisites</h3>
+            <h3 class="webops-h3 webops-s-2a0ca83">Prerequisites</h3>
         </div>
-        <div class="webops-flex webops-gap-sm" style="align-items:center;">
+        <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
             {% if core_status.all_ok %}
                 <span class="webops-badge webops-badge-success">All services healthy</span>
             {% else %}
-                <span class="webops-badge" style="background: rgba(255,191,0,0.2); color: var(--webops-color-warning);">Attention required</span>
+                <span class="webops-badge webops-s-95a96f2">Attention required</span>
             {% endif %}
-            <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="refreshServiceStatus()" title="Refresh service status">
+            <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="refreshServiceStatus()" title="Refresh service status">
                 <span class="material-icons">refresh</span>
             </button>
         </div>
     </div>
     <div class="webops-card-body">
-        <div class="webops-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-            <div class="webops-flex webops-gap-sm" style="align-items:center;justify-content:space-between;">
-                <div class="webops-flex webops-gap-sm" style="align-items:center;">
-                    <span class="material-icons" style="color: {{ core_status.systemctl|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+        <div class="webops-grid webops-s-04a6aed">
+            <div class="webops-flex webops-gap-sm webops-s-2161d3d">
+                <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
+                    <span class="material-icons {% if core_status.systemctl %}webops-fg-success{% else %}webops-fg-danger{% endif %}">
                         {{ core_status.systemctl|yesno:'check_circle,error' }}
                     </span>
                     <span class="webops-text-sm">systemctl</span>
                 </div>
             </div>
-            <div class="webops-flex webops-gap-sm" style="align-items:center;justify-content:space-between;">
-                <div class="webops-flex webops-gap-sm" style="align-items:center;">
-                    <span class="material-icons" id="redis-status-icon" style="color: {{ core_status.services.redis|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+            <div class="webops-flex webops-gap-sm webops-s-2161d3d">
+                <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
+                    <span class="material-icons {% if core_status.services.redis %}webops-fg-success{% else %}webops-fg-danger{% endif %}" id="redis-status-icon">
                         {{ core_status.services.redis|yesno:'check_circle,error' }}
                     </span>
                     <span class="webops-text-sm">Redis</span>
                 </div>
                 {% if not core_status.services.redis %}
-                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" onclick="restartService('redis')" id="redis-restart-btn">
+                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" data-on-click="restartService('redis')" id="redis-restart-btn">
                         <span class="material-icons">refresh</span>
                         Restart
                     </button>
                 {% endif %}
             </div>
-            <div class="webops-flex webops-gap-sm" style="align-items:center;justify-content:space-between;">
-                <div class="webops-flex webops-gap-sm" style="align-items:center;">
-                    <span class="material-icons" id="postgresql-status-icon" style="color: {{ core_status.services.postgresql|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+            <div class="webops-flex webops-gap-sm webops-s-2161d3d">
+                <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
+                    <span class="material-icons {% if core_status.services.postgresql %}webops-fg-success{% else %}webops-fg-danger{% endif %}" id="postgresql-status-icon">
                         {{ core_status.services.postgresql|yesno:'check_circle,error' }}
                     </span>
                     <span class="webops-text-sm">PostgreSQL</span>
                 </div>
                 {% if not core_status.services.postgresql %}
-                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" onclick="restartService('postgresql')" id="postgresql-restart-btn">
+                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" data-on-click="restartService('postgresql')" id="postgresql-restart-btn">
                         <span class="material-icons">refresh</span>
                         Restart
                     </button>
                 {% endif %}
             </div>
-            <div class="webops-flex webops-gap-sm" style="align-items:center;justify-content:space-between;">
-                <div class="webops-flex webops-gap-sm" style="align-items:center;">
-                    <span class="material-icons" id="nginx-status-icon" style="color: {{ core_status.services.nginx|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+            <div class="webops-flex webops-gap-sm webops-s-2161d3d">
+                <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
+                    <span class="material-icons {% if core_status.services.nginx %}webops-fg-success{% else %}webops-fg-danger{% endif %}" id="nginx-status-icon">
                         {{ core_status.services.nginx|yesno:'check_circle,error' }}
                     </span>
                     <span class="webops-text-sm">Nginx</span>
                 </div>
                 {% if not core_status.services.nginx %}
-                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" onclick="restartService('nginx')" id="nginx-restart-btn">
-                        <span="material-icons">refresh</span>
+                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" data-on-click="restartService('nginx')" id="nginx-restart-btn">
+                        <span class="material-icons">refresh</span>
                         Restart
                     </button>
                 {% endif %}
             </div>
-            <div class="webops-flex webops-gap-sm" style="align-items:center;justify-content:space-between;">
-                <div class="webops-flex webops-gap-sm" style="align-items:center;">
-                    <span class="material-icons" id="celery-status-icon" style="color: {{ core_status.services.celery|yesno:'var(--webops-color-success),var(--webops-color-danger)' }};">
+            <div class="webops-flex webops-gap-sm webops-s-2161d3d">
+                <div class="webops-flex webops-gap-sm webops-s-6a4ecdf">
+                    <span class="material-icons {% if core_status.services.celery %}webops-fg-success{% else %}webops-fg-danger{% endif %}" id="celery-status-icon">
                         {{ core_status.services.celery|yesno:'check_circle,error' }}
                     </span>
                     <span class="webops-text-sm">Celery worker</span>
                 </div>
                 {% if not core_status.services.celery %}
-                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" onclick="restartService('celery')" id="celery-restart-btn">
+                    <button type="button" class="webops-btn webops-btn-xs webops-btn-warning" data-on-click="restartService('celery')" id="celery-restart-btn">
                         <span class="material-icons">refresh</span>
                         Restart
                     </button>
@@ -230,14 +231,14 @@
             </div>
         </div>
         
-        <div id="serviceStatus" style="margin-top: 16px;">
+        <div id="serviceStatus" class="webops-s-4c0544d">
             {% if not core_status.all_ok %}
-                <div class="webops-alert webops-alert-warning" style="margin-bottom: 12px;">
-                    <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
+                <div class="webops-alert webops-alert-warning webops-s-5beb8fb">
+                    <div class="webops-flex webops-gap-sm webops-s-714f345">
                         <span class="material-icons">warning</span>
                         <div>
                             <strong>Service Issues Detected</strong>
-                            <p class="webops-text-sm" style="margin-top: 4px;">
+                            <p class="webops-text-sm webops-s-6b1f0d9">
                                 Some required services are not running. You can try restarting them using the buttons above, or start them manually and refresh this page.
                             </p>
                         </div>
@@ -245,21 +246,21 @@
                 </div>
             {% endif %}
             
-            <div id="serviceActions" class="webops-flex webops-gap-sm" style="flex-wrap: wrap;">
+            <div id="serviceActions" class="webops-flex webops-gap-sm webops-s-8d25eff">
                 {% if not core_status.all_ok %}
-                    <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" onclick="restartAllServices()">
+                    <button type="button" class="webops-btn webops-btn-sm webops-btn-primary" data-on-click="restartAllServices()">
                         <span class="material-icons">autorenew</span>
                         Restart All Failed Services
                     </button>
                 {% endif %}
-                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" onclick="refreshServiceStatus()">
+                <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="refreshServiceStatus()">
                     <span class="material-icons">refresh</span>
                     Refresh Status
                 </button>
             </div>
         </div>
         
-        <div id="serviceMessages" style="margin-top: 12px;"></div>
+        <div id="serviceMessages" class="webops-s-4bb9003"></div>
     </div>
 </div>
 
@@ -281,7 +282,7 @@
                        placeholder="my-app"
                        autocomplete="off">
                 <small class="webops-input-help">Lowercase letters, numbers, hyphens, and underscores. Must start/end with alphanumeric. Max 100 chars.</small>
-                <div id="namePreview" class="webops-text-xs webops-text-tertiary" style="margin-top: 4px; display: none;">
+                <div id="namePreview" class="webops-text-xs webops-text-tertiary webops-s-d7ea74b">
                     Sanitized: <code id="nameSanitized"></code>
                 </div>
             </div>
@@ -296,16 +297,16 @@
 
             <div class="webops-form-group">
                 <label for="branch" class="webops-label">Branch</label>
-                <div style="position: relative;">
+                <div class="webops-s-a8a9035">
                     <input type="text" id="branch" name="branch" class="webops-input" value="main"
                            placeholder="main"
                            autocomplete="off">
-                    <div id="branchLoader" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);">
-                        <div class="webops-spinner" style="width: 20px; height: 20px;"></div>
+                    <div id="branchLoader" class="webops-s-7f4021e">
+                        <div class="webops-spinner webops-s-ea19a84"></div>
                     </div>
                 </div>
-                <div id="branchSelector" style="display: none; margin-top: var(--webops-space-1-5);">
-                    <select id="branchSelect" class="webops-input" style="cursor: pointer;">
+                <div id="branchSelector" class="webops-s-4d6af1f">
+                    <select id="branchSelect" aria-label="Branch" class="webops-input webops-s-74fa97c">
                         <option value="">Select a branch...</option>
                     </select>
                 </div>
@@ -323,26 +324,26 @@
 
             <!-- Docker Options (only shown if docker addon is enabled) -->
             {% if 'docker' in enabled_addon_names %}
-            <div class="webops-card" style="margin-bottom: var(--webops-space-3); background: var(--webops-color-bg-secondary);">
-                <div class="webops-card-header" style="display: flex; align-items: center; gap: var(--webops-space-2);">
-                    <span class="material-icons" style="color: var(--webops-color-info);">widgets</span>
-                    <h4 class="webops-h4" style="margin: 0;">Docker Containerization</h4>
-                    <span class="webops-badge" style="background: rgba(0, 170, 255, 0.2); color: var(--webops-color-info); font-size: 11px;">Optional</span>
+            <div class="webops-card webops-s-0ed82f3">
+                <div class="webops-card-header webops-s-86d3cca">
+                    <span class="material-icons webops-s-4fe7a62">widgets</span>
+                    <h4 class="webops-h4 webops-s-2a0ca83">Docker Containerization</h4>
+                    <span class="webops-badge webops-s-e6b68c6">Optional</span>
                 </div>
                 <div class="webops-card-body">
                     <div class="webops-form-group">
-                        <label class="webops-flex webops-gap-sm" style="align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="use_docker" name="use_docker" style="width: auto;">
-                            <span class="webops-label" style="margin: 0;">Use Docker containerization</span>
+                        <label class="webops-flex webops-gap-sm webops-s-e849e7b">
+                            <input type="checkbox" id="use_docker" name="use_docker" class="webops-s-7e375a9">
+                            <span class="webops-label webops-s-2a0ca83">Use Docker containerization</span>
                         </label>
                         <small class="webops-input-help">Deploy this application in a Docker container for better isolation and portability</small>
                     </div>
 
-                    <div id="dockerOptions" style="display: none; margin-top: var(--webops-space-3); padding-top: var(--webops-space-3); border-top: 1px solid rgba(0, 255, 136, 0.1);">
+                    <div id="dockerOptions" class="webops-s-7634ea0">
                         <div class="webops-form-group">
-                            <label class="webops-flex webops-gap-sm" style="align-items: center; cursor: pointer;">
-                                <input type="checkbox" id="auto_generate_dockerfile" name="auto_generate_dockerfile" checked style="width: auto;">
-                                <span class="webops-label" style="margin: 0;">Auto-generate Dockerfile if not present</span>
+                            <label class="webops-flex webops-gap-sm webops-s-e849e7b">
+                                <input type="checkbox" id="auto_generate_dockerfile" name="auto_generate_dockerfile" checked class="webops-s-7e375a9">
+                                <span class="webops-label webops-s-2a0ca83">Auto-generate Dockerfile if not present</span>
                             </label>
                             <small class="webops-input-help">WebOps will create an optimized Dockerfile based on your project type</small>
                         </div>
@@ -365,12 +366,12 @@
                             <small class="webops-input-help">Docker network mode for the container</small>
                         </div>
 
-                        <div class="webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 3px solid var(--webops-color-info);">
-                            <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
-                                <span class="material-icons webops-text-info" style="font-size: 18px;">info</span>
+                        <div class="webops-p-md webops-s-0468a6a">
+                            <div class="webops-flex webops-gap-sm webops-s-714f345">
+                                <span class="material-icons webops-text-info webops-s-ebd2c73">info</span>
                                 <div class="webops-text-xs">
                                     <strong>Docker Benefits:</strong>
-                                    <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                                    <ul class="webops-s-6fa1182">
                                         <li>Consistent runtime environment</li>
                                         <li>Better resource isolation</li>
                                         <li>Easy scaling and updates</li>
@@ -384,12 +385,12 @@
             </div>
             {% endif %}
 
-            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
-                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
-                    <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
+            <div class="webops-p-md webops-mb-lg webops-s-dac9fb0">
+                <div class="webops-flex webops-gap-sm webops-s-714f345">
+                    <span class="material-icons webops-text-info webops-s-b39dc14">info</span>
                     <div class="webops-text-sm">
                         <strong class="webops-font-semibold">Deployment Process</strong>
-                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                        <p class="webops-text-secondary webops-s-9a9e62c">
                             The deployment will automatically clone your repository, install dependencies, and start your application.
                             You can monitor the progress in the deployment details page.
                         </p>
@@ -414,401 +415,6 @@
     </div>
 </div>
 
-<script>
-// Repository search
-const searchInput = document.getElementById('repoSearch');
-if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const repoCards = document.querySelectorAll('.repo-card');
-        let visibleCount = 0;
-
-        repoCards.forEach(card => {
-            const name = card.dataset.repoName;
-            const desc = card.dataset.repoDesc;
-
-            if (name.includes(searchTerm) || desc.includes(searchTerm)) {
-                card.style.display = '';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        // Show/hide no results message
-        const noResults = document.getElementById('noResults');
-        const repoGrid = document.getElementById('repoGrid');
-        if (visibleCount === 0) {
-            repoGrid.style.display = 'none';
-            noResults.style.display = 'block';
-        } else {
-            repoGrid.style.display = 'grid';
-            noResults.style.display = 'none';
-        }
-    });
-}
-
-// Select repository
-function selectRepository(repoUrl, fullName, defaultBranch, repoName) {
-    // Auto-fill form fields
-    document.getElementById('repo_url').value = repoUrl;
-    document.getElementById('branch').value = defaultBranch || 'main';
-
-    // Auto-generate app name from repo name and show sanitized preview
-    const rawName = repoName || '';
-    const sanitized = sanitizeNameClient(rawName);
-    document.getElementById('name').value = sanitized;
-    showSanitizedPreview(rawName);
-
-    // Scroll to form
-    const form = document.getElementById('deploymentForm');
-    if (form) {
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // Highlight form briefly - fix null reference
-    const cards = document.querySelectorAll('.webops-card');
-    const lastCard = cards[cards.length - 1];
-    if (lastCard) {
-        lastCard.style.boxShadow = '0 0 0 3px rgba(0, 255, 136, 0.3)';
-        setTimeout(() => {
-            lastCard.style.boxShadow = '';
-        }, 2000);
-    }
-
-    // Fetch branches
-    fetchBranches(fullName);
-}
-
-// Basic client-side sanitization that mirrors server rules
-function sanitizeNameClient(name) {
-    if (!name) return '';
-    let s = name.trim().toLowerCase();
-    s = s.replace(/[^a-z0-9-_]/g, '-');
-    s = s.replace(/-+/g, '-');
-    s = s.replace(/(^-+|-+$)/g, '');
-    if (!s) return '';
-    if (!/^[a-z0-9]/.test(s)) s = 'app-' + s;
-    if (!/[a-z0-9]$/.test(s)) s = s + '-app';
-    // Enforce max length 100
-    if (s.length > 100) s = s.slice(0, 100);
-    return s;
-}
-
-function showSanitizedPreview(raw) {
-    const preview = document.getElementById('namePreview');
-    const code = document.getElementById('nameSanitized');
-    const sanitized = sanitizeNameClient(raw || document.getElementById('name').value);
-    if (!sanitized) {
-        preview.style.display = 'none';
-        code.textContent = '';
-        return;
-    }
-    code.textContent = sanitized;
-    preview.style.display = 'block';
-}
-
-// Live preview as user types
-const nameInput = document.getElementById('name');
-if (nameInput) {
-    nameInput.addEventListener('input', function() {
-        showSanitizedPreview(this.value);
-    });
-}
-
-// Fetch branches when repo URL changes
-{% if github_connected %}
-let currentRepo = null;
-
-document.getElementById('repo_url').addEventListener('blur', function() {
-    const url = this.value.trim();
-    if (url.includes('github.com/')) {
-        // Extract owner/repo from URL
-        const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
-        if (match) {
-            const fullName = match[1].replace(/\.git$/, '');
-            if (fullName !== currentRepo) {
-// Disable submit if prerequisites not met (progressive enhancement)
-(function(){
-    try {
-        const submitBtn = document.querySelector('#deploymentForm button[type="submit"]');
-        const allOk = {% if approval_required %}true{% else %}{{ core_status.all_ok|yesno:'true,false' }}{% endif %};
-        if (!allOk && submitBtn) {
-            submitBtn.setAttribute('disabled', 'disabled');
-            submitBtn.setAttribute('aria-disabled', 'true');
-        }
-    } catch(e) {}
-})();
-                currentRepo = fullName;
-                fetchBranches(fullName);
-            }
-        }
-    }
-});
-
-function fetchBranches(fullName) {
-    const branchLoader = document.getElementById('branchLoader');
-    const branchSelector = document.getElementById('branchSelector');
-    const branchSelect = document.getElementById('branchSelect');
-
-    branchLoader.style.display = 'block';
-    branchSelector.style.display = 'none';
-
-    fetch(`{% url 'deployments:github_repo_branches' %}?repo=${encodeURIComponent(fullName)}`)
-        .then(response => response.json())
-        .then(data => {
-            branchLoader.style.display = 'none';
-
-            if (data.success && data.branches.length > 0) {
-                branchSelect.innerHTML = '<option value="">Select a branch...</option>';
-                data.branches.forEach(branch => {
-                    const option = document.createElement('option');
-                    option.value = branch;
-                    option.textContent = branch;
-                    branchSelect.appendChild(option);
-                });
-
-                // Set current branch value as selected
-                const currentBranch = document.getElementById('branch').value;
-                if (currentBranch && data.branches.includes(currentBranch)) {
-                    branchSelect.value = currentBranch;
-                }
-
-                branchSelector.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('Failed to fetch branches:', error);
-            branchLoader.style.display = 'none';
-        });
-}
-
-// Update branch input when selection changes
-document.getElementById('branchSelect').addEventListener('change', function() {
-    if (this.value) {
-        document.getElementById('branch').value = this.value;
-    }
-});
-{% endif %}
-
-// On submit, show loader
-document.getElementById('deploymentForm').addEventListener('submit', function() {
-    showLoader();
-});
-
-// Docker options toggle (only if Docker addon is enabled)
-const useDockerCheckbox = document.getElementById('use_docker');
-if (useDockerCheckbox) {
-    useDockerCheckbox.addEventListener('change', function() {
-        const dockerOptions = document.getElementById('dockerOptions');
-        if (dockerOptions) {
-            if (this.checked) {
-                dockerOptions.style.display = 'block';
-            } else {
-                dockerOptions.style.display = 'none';
-            }
-        }
-    });
-}
-
-// Service Management Functions
-function refreshCoreServices() {
-    const refreshBtn = document.getElementById('refreshServicesBtn');
-    const refreshIcon = refreshBtn.querySelector('i');
-    
-    // Show loading state
-    refreshIcon.className = 'fas fa-spinner fa-spin';
-    refreshBtn.disabled = true;
-    
-    fetch('{% url "deployments:core_services_status_detailed" %}')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateServiceStatusDisplay(data.services);
-                showNotification('Services status refreshed', 'success');
-            } else {
-                showNotification('Failed to refresh services status', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error refreshing services:', error);
-            showNotification('Error refreshing services status', 'error');
-        })
-        .finally(() => {
-            refreshIcon.className = 'fas fa-sync-alt';
-            refreshBtn.disabled = false;
-        });
-}
-
-function restartService(serviceName) {
-    const restartBtn = document.getElementById(`restart-${serviceName}`);
-    if (!restartBtn) return;
-    
-    const originalText = restartBtn.innerHTML;
-    restartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting...';
-    restartBtn.disabled = true;
-    
-    fetch(`{% url "deployments:restart_core_service" "SERVICE_NAME" %}`.replace('SERVICE_NAME', serviceName))
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(`${serviceName} restarted successfully`, 'success');
-                // Refresh the service status after restart
-                setTimeout(() => refreshCoreServices(), 2000);
-            } else {
-                showNotification(`Failed to restart ${serviceName}: ${data.message}`, 'error');
-            }
-        })
-        .catch(error => {
-            console.error(`Error restarting ${serviceName}:`, error);
-            showNotification(`Error restarting ${serviceName}`, 'error');
-        })
-        .finally(() => {
-            restartBtn.innerHTML = originalText;
-            restartBtn.disabled = false;
-        });
-}
-
-function restartAllFailedServices() {
-    const failedServices = document.querySelectorAll('.service-item .text-danger');
-    const serviceNames = Array.from(failedServices).map(el => {
-        const serviceItem = el.closest('.service-item');
-        return serviceItem ? serviceItem.dataset.service : null;
-    }).filter(name => name);
-    
-    if (serviceNames.length === 0) {
-        showNotification('No failed services to restart', 'info');
-        return;
-    }
-    
-    const restartBtn = document.getElementById('restartAllFailedBtn');
-    const originalText = restartBtn.innerHTML;
-    restartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restarting All...';
-    restartBtn.disabled = true;
-    
-    let restartPromises = serviceNames.map(serviceName => 
-        fetch(`{% url "deployments:restart_core_service" "SERVICE_NAME" %}`.replace('SERVICE_NAME', serviceName))
-            .then(response => response.json())
-            .then(data => ({ service: serviceName, success: data.success, message: data.message }))
-            .catch(error => ({ service: serviceName, success: false, message: error.message }))
-    );
-    
-    Promise.all(restartPromises)
-        .then(results => {
-            const successful = results.filter(r => r.success).length;
-            const failed = results.filter(r => !r.success).length;
-            
-            if (successful > 0) {
-                showNotification(`Successfully restarted ${successful} service(s)`, 'success');
-            }
-            if (failed > 0) {
-                showNotification(`Failed to restart ${failed} service(s)`, 'error');
-            }
-            
-            // Refresh status after all restarts
-            setTimeout(() => refreshCoreServices(), 2000);
-        })
-        .finally(() => {
-            restartBtn.innerHTML = originalText;
-            restartBtn.disabled = false;
-        });
-}
-
-function updateServiceStatusDisplay(services) {
-    services.forEach(service => {
-        const serviceItem = document.querySelector(`[data-service="${service.name}"]`);
-        if (!serviceItem) return;
-        
-        const statusIcon = serviceItem.querySelector('.service-status i');
-        const statusText = serviceItem.querySelector('.service-status');
-        const restartBtn = serviceItem.querySelector('.restart-btn');
-        
-        if (service.active) {
-            statusIcon.className = 'fas fa-check-circle text-success';
-            statusText.innerHTML = '<i class="fas fa-check-circle text-success"></i> Running';
-            if (restartBtn) restartBtn.style.display = 'none';
-        } else {
-            statusIcon.className = 'fas fa-times-circle text-danger';
-            statusText.innerHTML = '<i class="fas fa-times-circle text-danger"></i> Stopped';
-            if (restartBtn) restartBtn.style.display = 'inline-block';
-        }
-    });
-    
-    // Update overall status
-    const allOk = services.every(service => service.active);
-    const warningAlert = document.getElementById('serviceWarning');
-    const submitBtn = document.querySelector('#deploymentForm button[type="submit"]');
-    
-    if (allOk) {
-        warningAlert.style.display = 'none';
-        if (submitBtn) {
-            submitBtn.removeAttribute('disabled');
-            submitBtn.removeAttribute('aria-disabled');
-        }
-    } else {
-        warningAlert.style.display = 'block';
-        if (submitBtn) {
-            submitBtn.setAttribute('disabled', 'disabled');
-            submitBtn.setAttribute('aria-disabled', 'true');
-        }
-    }
-}
-
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
-    notification.style.position = 'fixed';
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.zIndex = '9999';
-    notification.style.minWidth = '300px';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
-    }, 5000);
-    
-    // Manual dismiss
-    notification.querySelector('.close').addEventListener('click', function() {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
-    });
-}
-
-// Add event listeners for service management buttons
-document.addEventListener('DOMContentLoaded', function() {
-    const refreshBtn = document.getElementById('refreshServicesBtn');
-    const restartAllBtn = document.getElementById('restartAllFailedBtn');
-    
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', refreshCoreServices);
-    }
-    
-    if (restartAllBtn) {
-        restartAllBtn.addEventListener('click', restartAllFailedServices);
-    }
-    
-    // Add click listeners to individual restart buttons
-    document.querySelectorAll('.restart-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const serviceName = this.dataset.service;
-            if (serviceName) {
-                restartService(serviceName);
-            }
-        });
-    });
-});
-</script>
+<div id="page-config" hidden data-github-connected="{% if github_connected %}true{% else %}false{% endif %}" data-all-ok="{% if approval_required %}true{% else %}{{ core_status.all_ok|yesno:'true,false' }}{% endif %}" data-url-branches="{% url 'deployments:github_repo_branches' %}" data-url-core-status="{% url 'deployments:core_services_status_detailed' %}" data-url-restart-service="{% url 'deployments:restart_core_service' 'SERVICE_NAME' %}"></div>
+<script src="{% static 'js/pages/deployments-create.js' %}"></script>
 {% endblock %}

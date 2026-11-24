@@ -1,158 +1,159 @@
 {% extends "base.html" %}
 
+{% load static %}
 {% block title %}Integrations - {{ branding.site_name }}{% endblock %}
 {% block header_title %}Platform Integrations{% endblock %}
 
 {% block content %}
-<div class="webops-header" style="margin-bottom: var(--webops-space-3);">
-    <h1 style="font-size: var(--webops-font-size-3xl); font-weight: var(--webops-font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-1-5);">
+<div class="webops-header webops-s-74c7834">
+    <h2 class="webops-s-7f339d7">
         Platform Integrations
-    </h1>
-    <p style="color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-lg);">
+    </h2>
+    <p class="webops-s-ce60233">
         Connect external platforms to unlock advanced features
     </p>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--webops-space-3);">
+<div class="webops-s-b7c25b1">
     <!-- GitHub Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #6e5494; display: flex; align-items: center; justify-content: center;">
-                    <span class="material-icons" style="font-size: 28px; color: white;">code</span>
+    <div class="webops-card webops-s-2dd555c">
+        <div class="webops-s-5bffbf9">
+            <div class="webops-s-74cd148">
+                <div class="webops-s-9aef6f2">
+                    <span class="material-icons webops-s-b23d3f5">code</span>
                 </div>
                 <div>
-                    <h3 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                    <h3 class="webops-s-6c35d04">
                         GitHub
                     </h3>
-                    <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                    <p class="webops-s-6cb00b8">
                         Personal Access Token
                     </p>
                 </div>
             </div>
             {% if github_connected %}
-            <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-semibold);">
+            <span class="webops-badge webops-s-12d475c">
                 Connected
             </span>
             {% endif %}
         </div>
 
         {% if github_connected %}
-        <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-                <span class="material-icons" style="color: var(--webops-color-success);">check_circle</span>
+        <div class="webops-s-67e2c9c">
+            <div class="webops-s-3f406cb">
+                <span class="material-icons webops-s-361c4d3">check_circle</span>
                 <div>
-                    <div style="font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
+                    <div class="webops-s-af29016">
                         Connected as <strong>@{{ github_username }}</strong>
                     </div>
-                    <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-secondary);">
+                    <div class="webops-s-b2335af">
                         Private repository access enabled
                     </div>
                 </div>
             </div>
         </div>
-        <div style="display: flex; gap: var(--webops-space-1-5);">
-            <form method="post" action="{% url 'github_disconnect' %}" style="flex: 1;">
+        <div class="webops-s-f2cdaea">
+            <form method="post" action="{% url 'github_disconnect' %}" class="webops-s-634a28b">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+                <button type="submit" class="webops-btn webops-s-4ccf529">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testGitHub()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+            <button type="button" data-on-click="testGitHub()" class="webops-btn webops-s-d50a3b7">
                 Test Connection
             </button>
         </div>
         {% else %}
-        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+        <p class="webops-s-9d68033">
             Connect your GitHub account to deploy private repositories and access advanced features.
         </p>
-        <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+        <ul class="webops-s-b0bd679">
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Deploy private repositories
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Automatic deployments from Git
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-6e5ec77">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Simple token-based authentication
             </li>
         </ul>
-        <a href="{% url 'github_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: none;">
+        <a href="{% url 'github_connect' %}" class="webops-btn webops-s-e35bf71">
             Connect GitHub Account
         </a>
         {% endif %}
     </div>
 
     <!-- Hugging Face Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #ffbe00; display: flex; align-items: center; justify-content: center;">
-                    <span class="material-icons" style="font-size: 28px; color: white;">hub</span>
+    <div class="webops-card webops-s-2dd555c">
+        <div class="webops-s-5bffbf9">
+            <div class="webops-s-74cd148">
+                <div class="webops-s-24fe69f">
+                    <span class="material-icons webops-s-b23d3f5">hub</span>
                 </div>
                 <div>
-                    <h3 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                    <h3 class="webops-s-6c35d04">
                         Hugging Face
                     </h3>
-                    <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                    <p class="webops-s-6cb00b8">
                         API Token
                     </p>
                 </div>
             </div>
             {% if hf_connected %}
-            <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-semibold);">
+            <span class="webops-badge webops-s-12d475c">
                 Connected
             </span>
             {% endif %}
         </div>
 
         {% if hf_connected %}
-        <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-                <span class="material-icons" style="color: var(--webops-color-success);">check_circle</span>
+        <div class="webops-s-67e2c9c">
+            <div class="webops-s-3f406cb">
+                <span class="material-icons webops-s-361c4d3">check_circle</span>
                 <div>
-                    <div style="font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
+                    <div class="webops-s-af29016">
                         Connected as <strong>@{{ hf_username }}</strong>
                     </div>
-                    <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-secondary);">
+                    <div class="webops-s-b2335af">
                         Model access enabled
                     </div>
                 </div>
             </div>
         </div>
-        <div style="display: flex; gap: var(--webops-space-1-5);">
-            <form method="post" action="{% url 'huggingface_disconnect' %}" style="flex: 1;">
+        <div class="webops-s-f2cdaea">
+            <form method="post" action="{% url 'huggingface_disconnect' %}" class="webops-s-634a28b">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+                <button type="submit" class="webops-btn webops-s-4ccf529">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testHF()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+            <button type="button" data-on-click="testHF()" class="webops-btn webops-s-d50a3b7">
                 Test Connection
             </button>
         </div>
         {% else %}
-        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+        <p class="webops-s-9d68033">
             Connect Hugging Face to deploy AI models and access your private model library.
         </p>
-        <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+        <ul class="webops-s-b0bd679">
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Deploy LLM models
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Access private models
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-6e5ec77">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Browse model library
             </li>
         </ul>
-        <a href="{% url 'huggingface_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); transition: none;">
+        <a href="{% url 'huggingface_connect' %}" class="webops-btn webops-s-21e4055">
             Connect Hugging Face
         </a>
         {% endif %}
@@ -160,83 +161,83 @@
 </div>
 
     <!-- Google Integration Card -->
-    <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); transition: none;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #4285F4; display: flex; align-items: center; justify-content: center;">
-                    <span class="material-icons" style="font-size: 28px; color: white;">account_circle</span>
+    <div class="webops-card webops-s-2dd555c">
+        <div class="webops-s-5bffbf9">
+            <div class="webops-s-74cd148">
+                <div class="webops-s-101f2b3">
+                    <span class="material-icons webops-s-b23d3f5">account_circle</span>
                 </div>
                 <div>
-                    <h3 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                    <h3 class="webops-s-6c35d04">
                         Google
                     </h3>
-                    <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                    <p class="webops-s-6cb00b8">
                         OAuth
                     </p>
                 </div>
             </div>
             {% if google_connected %}
-            <span class="webops-badge" style="background: rgba(0, 255, 136, 0.2); color: var(--webops-color-success); padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-semibold);">
+            <span class="webops-badge webops-s-12d475c">
                 Connected
             </span>
             {% endif %}
         </div>
 
         {% if google_connected %}
-        <div style="background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; align-items: center; gap: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-                <span class="material-icons" style="color: var(--webops-color-success);">check_circle</span>
+        <div class="webops-s-67e2c9c">
+            <div class="webops-s-3f406cb">
+                <span class="material-icons webops-s-361c4d3">check_circle</span>
                 <div>
-                    <div style="font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
+                    <div class="webops-s-af29016">
                         Connected as <strong>{{ google_email }}</strong>
                     </div>
-                    <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-secondary);">
+                    <div class="webops-s-b2335af">
                         SSO and profile sync enabled
                     </div>
                 </div>
             </div>
         </div>
-        <div style="display: flex; gap: var(--webops-space-1-5);">
-            <form method="post" action="{% url 'google_disconnect' %}" style="flex: 1;">
+        <div class="webops-s-f2cdaea">
+            <form method="post" action="{% url 'google_disconnect' %}" class="webops-s-634a28b">
                 {% csrf_token %}
-                <button type="submit" class="webops-btn" style="width: 100%; background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error); border: 1px solid var(--webops-color-error); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+                <button type="submit" class="webops-btn webops-s-4ccf529">
                     Disconnect
                 </button>
             </form>
-            <button type="button" onclick="testGoogle()" class="webops-btn" style="flex: 1; background: rgba(0, 255, 136, 0.1); color: var(--webops-color-primary); border: 1px solid var(--webops-color-primary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); cursor: pointer; transition: none;">
+            <button type="button" data-on-click="testGoogle()" class="webops-btn webops-s-d50a3b7">
                 Test Connection
             </button>
         </div>
-        <div style="margin-top: var(--webops-space-2);">
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: none;">
-                <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
+        <div class="webops-s-6abf23a">
+            <a href="{% url 'google_connect' %}" class="webops-btn webops-s-7df19b7">
+                <span class="material-icons webops-s-fd7d015">settings</span>
                 Configure OAuth Settings
             </a>
         </div>
         {% else %}
-        <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+        <p class="webops-s-9d68033">
             Connect your Google account to enable one-click SSO and profile sync.
         </p>
-        <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+        <ul class="webops-s-b0bd679">
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Single Sign-On with Google
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-48d3a17">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Sync basic profile and email
             </li>
-            <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <li class="webops-s-6e5ec77">
+                <span class="material-icons webops-s-a179c6b">check</span>
                 Secure OAuth 2.0 flow
             </li>
         </ul>
-        <div style="display: flex; flex-direction: column; gap: var(--webops-space-2);">
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(66, 133, 244, 0.1); color: #4285F4; border: 1px solid #4285F4; padding: var(--webops-space-2) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-medium); transition: none;">
-                <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: var(--webops-space-1);">settings</span>
+        <div class="webops-s-d353e99">
+            <a href="{% url 'google_connect' %}" class="webops-btn webops-s-8baf003">
+                <span class="material-icons webops-s-fd7d015">settings</span>
                 Configure OAuth Settings
             </a>
-            <a href="{% url 'google_connect' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: var(--webops-color-primary); color: var(--webops-color-bg-primary); padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold); transition: none;">
+            <a href="{% url 'google_connect' %}" class="webops-btn webops-s-e35bf71">
                 Connect Google Account
             </a>
         </div>
@@ -244,98 +245,98 @@
     </div>
 
 <!-- Webhooks & Automation Section -->
-<div style="margin-top: var(--webops-space-3xl);">
-    <h2 style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-3);">
+<div class="webops-s-5990a6c">
+    <h2 class="webops-s-6a73309">
         Automation & Notifications
     </h2>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--webops-space-3);">
+    <div class="webops-s-b7c25b1">
         <!-- Webhooks Card -->
-        <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-                <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #667eea; display: flex; align-items: center; justify-content: center;">
-                        <span class="material-icons" style="font-size: 28px; color: white;">webhook</span>
+        <div class="webops-card webops-s-0d1d87a">
+            <div class="webops-s-5bffbf9">
+                <div class="webops-s-74cd148">
+                    <div class="webops-s-3a2fc3e">
+                        <span class="material-icons webops-s-b23d3f5">webhook</span>
                     </div>
                     <div>
-                        <h3 style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                        <h3 class="webops-s-7543521">
                             Webhooks
                         </h3>
-                        <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                        <p class="webops-s-6cb00b8">
                             Auto-deploy on push
                         </p>
                     </div>
                 </div>
-                <span class="webops-badge" style="background: rgba(102, 126, 234, 0.2); color: #667eea; padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-semibold);">
+                <span class="webops-badge webops-s-8c0ca8c">
                     {{ webhook_count|default:0 }} Active
                 </span>
             </div>
 
-            <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+            <p class="webops-s-9d68033">
                 Trigger deployments automatically when you push to GitHub. Perfect for CI/CD workflows.
             </p>
 
-            <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <ul class="webops-s-b0bd679">
+                <li class="webops-s-48d3a17">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Auto-deploy on git push
                 </li>
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                <li class="webops-s-48d3a17">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Branch filtering
                 </li>
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                <li class="webops-s-6e5ec77">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Secure with HMAC signatures
                 </li>
             </ul>
 
-            <a href="{% url 'webhook_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(102, 126, 234, 0.2); color: #667eea; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #667eea; transition: none;">
+            <a href="{% url 'webhook_list' %}" class="webops-btn webops-s-4c46dab">
                 Manage Webhooks
             </a>
         </div>
 
         <!-- Notifications Card -->
-        <div class="webops-card" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--webops-space-3);">
-                <div style="display: flex; align-items: center; gap: var(--webops-space-3);">
-                    <div style="width: 48px; height: 48px; border-radius: var(--webops-radius-md); background: #f093fb; display: flex; align-items: center; justify-content: center;">
-                        <span class="material-icons" style="font-size: 28px; color: white;">notifications</span>
+        <div class="webops-card webops-s-0d1d87a">
+            <div class="webops-s-5bffbf9">
+                <div class="webops-s-74cd148">
+                    <div class="webops-s-6c8abf5">
+                        <span class="material-icons webops-s-b23d3f5">notifications</span>
                     </div>
                     <div>
-                        <h3 style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-0-5);">
+                        <h3 class="webops-s-7543521">
                             Notifications
                         </h3>
-                        <p style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+                        <p class="webops-s-6cb00b8">
                             Deployment alerts
                         </p>
                     </div>
                 </div>
-                <span class="webops-badge" style="background: rgba(245, 87, 108, 0.2); color: #f5576c; padding: var(--webops-space-0-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-semibold);">
+                <span class="webops-badge webops-s-45e5cee">
                     {{ notification_count|default:0 }} Channels
                 </span>
             </div>
 
-            <p style="color: var(--webops-color-text-secondary); margin-bottom: var(--webops-space-3); line-height: 1.6;">
+            <p class="webops-s-9d68033">
                 Get notified about deployment events via email, webhooks, or other channels.
             </p>
 
-            <ul style="list-style: none; padding: 0; margin-bottom: var(--webops-space-3);">
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+            <ul class="webops-s-b0bd679">
+                <li class="webops-s-48d3a17">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Email notifications
                 </li>
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                <li class="webops-s-48d3a17">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Webhook callbacks
                 </li>
-                <li style="display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-secondary);">
-                    <span class="material-icons" style="font-size: 16px; color: var(--webops-color-primary);">check</span>
+                <li class="webops-s-6e5ec77">
+                    <span class="material-icons webops-s-a179c6b">check</span>
                     Custom event filters
                 </li>
             </ul>
 
-            <a href="{% url 'notifications:notification_list' %}" class="webops-btn" style="display: block; width: 100%; text-align: center; background: rgba(245, 87, 108, 0.2); color: #f5576c; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--font-weight-semibold); border: 1px solid #f5576c; transition: none;">
+            <a href="{% url 'notifications:notification_list' %}" class="webops-btn webops-s-7d86083">
                 Manage Notifications
             </a>
         </div>
@@ -343,84 +344,46 @@
 </div>
 
 <!-- Integration Stats -->
-<div style="margin-top: var(--webops-space-3xl); background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
-    <h3 style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-3);">
+<div class="webops-s-b566004">
+    <h3 class="webops-s-a145e78">
         Integration Activity
     </h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--webops-space-3);">
-        <div style="text-align: center;">
-            <div style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-primary); margin-bottom: var(--webops-space-0-5);">
+    <div class="webops-s-9dbd8e6">
+        <div class="webops-s-65f9d5a">
+            <div class="webops-s-87cf337">
                 {{ webhook_triggers|default:0 }}
             </div>
-            <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+            <div class="webops-s-6cb00b8">
                 Webhook Triggers
             </div>
         </div>
-        <div style="text-align: center;">
-            <div style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-primary); margin-bottom: var(--webops-space-0-5);">
+        <div class="webops-s-65f9d5a">
+            <div class="webops-s-87cf337">
                 {{ notifications_sent|default:0 }}
             </div>
-            <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+            <div class="webops-s-6cb00b8">
                 Notifications Sent
             </div>
         </div>
-        <div style="text-align: center;">
-            <div style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-primary); margin-bottom: var(--webops-space-0-5);">
+        <div class="webops-s-65f9d5a">
+            <div class="webops-s-87cf337">
                 {{ auto_deployments|default:0 }}
             </div>
-            <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+            <div class="webops-s-6cb00b8">
                 Auto-Deployments
             </div>
         </div>
-        <div style="text-align: center;">
-            <div style="font-size: var(--webops-font-size-sm); font-weight: var(--font-weight-bold); color: var(--webops-color-primary); margin-bottom: var(--webops-space-0-5);">
+        <div class="webops-s-65f9d5a">
+            <div class="webops-s-87cf337">
                 {{ connected_platforms|default:0 }}
             </div>
-            <div style="font-size: var(--webops-font-size-sm); color: var(--webops-color-text-tertiary);">
+            <div class="webops-s-6cb00b8">
                 Connected Platforms
             </div>
         </div>
     </div>
 </div>
 
-<script>
-function testGitHub() {
-    fetch('{% url "github_test" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.valid ? '✓ ' + data.message : '✗ ' + data.message);
-    });
-}
-
-function testHF() {
-    fetch('{% url "huggingface_test" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.valid ? '✓ ' + data.message : '✗ ' + data.message);
-    });
-}
-
-function testGoogle() {
-    fetch('{% url "google_test" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.valid ? '✓ ' + data.message : '✗ ' + data.message);
-    });
-}
-</script>
+<div id="page-config" hidden data-url-github='{% url "github_test" %}' data-url-huggingface='{% url "huggingface_test" %}' data-url-google='{% url "google_test" %}'></div>
+<script src="{% static 'js/pages/integrations-dashboard.js' %}"></script>
 {% endblock %}

@@ -1703,43 +1703,43 @@ class WorkflowCanvas {
         `;
         
         settingsContent.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--webops-space-4);">
-                <h2 style="margin: 0; color: var(--webops-color-text-primary); font-size: var(--webops-font-size-xl);">Workflow Settings</h2>
-                <button id="btn-close-settings" class="webops-btn webops-btn-icon" style="background: none; border: none; color: var(--webops-color-text-secondary);">
+            <div class="webops-s-81b8016">
+                <h2 class="webops-s-978be8b">Workflow Settings</h2>
+                <button id="btn-close-settings" class="webops-btn webops-btn-icon webops-s-7f86fdf" >
                     <span class="material-icons">close</span>
                 </button>
             </div>
             
-            <div class="webops-form-group" style="margin-bottom: var(--webops-space-4);">
-                <label class="webops-label" style="display: block; margin-bottom: var(--webops-space-1); color: var(--webops-color-text-primary);">Auto-save interval (seconds)</label>
-                <input type="number" id="auto-save-interval" class="webops-input" value="30" min="10" max="300" style="width: 100%; padding: var(--webops-space-2); border: 1px solid var(--webops-color-border); border-radius: var(--webops-radius-sm); background: var(--webops-color-bg-primary); color: var(--webops-color-text-primary);">
-                <small class="webops-text-muted" style="color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-sm);">Set to 0 to disable auto-save</small>
+            <div class="webops-form-group webops-s-d143d33" >
+                <label class="webops-label webops-s-1790f4b" >Auto-save interval (seconds)</label>
+                <input type="number" id="auto-save-interval" class="webops-input webops-s-ccacf6b" value="30" min="10" max="300" >
+                <small class="webops-text-muted webops-s-48d29b3" >Set to 0 to disable auto-save</small>
             </div>
             
-            <div class="webops-form-group" style="margin-bottom: var(--webops-space-4);">
-                <label class="webops-label" style="display: block; margin-bottom: var(--webops-space-1); color: var(--webops-color-text-primary);">Grid size</label>
-                <select id="grid-size" class="webops-select" style="width: 100%; padding: var(--webops-space-2); border: 1px solid var(--webops-color-border); border-radius: var(--webops-radius-sm); background: var(--webops-color-bg-primary); color: var(--webops-color-text-primary);">
+            <div class="webops-form-group webops-s-d143d33" >
+                <label class="webops-label webops-s-1790f4b" >Grid size</label>
+                <select id="grid-size" class="webops-select webops-s-ccacf6b" >
                     <option value="20">Small (20px)</option>
                     <option value="30" selected>Medium (30px)</option>
                     <option value="40">Large (40px)</option>
                 </select>
             </div>
             
-            <div class="webops-form-group" style="margin-bottom: var(--webops-space-3);">
-                <label class="webops-checkbox" style="display: flex; align-items: center; color: var(--webops-color-text-primary);">
-                    <input type="checkbox" id="show-node-labels" checked style="margin-right: var(--webops-space-2);">
+            <div class="webops-form-group webops-s-74c7834" >
+                <label class="webops-checkbox webops-s-02f2a11" >
+                    <input type="checkbox" id="show-node-labels" checked class="webops-s-34f5c4b">
                     Show node labels
                 </label>
             </div>
             
-            <div class="webops-form-group" style="margin-bottom: var(--webops-space-6);">
-                <label class="webops-checkbox" style="display: flex; align-items: center; color: var(--webops-color-text-primary);">
-                    <input type="checkbox" id="enable-snap-to-grid" checked style="margin-right: var(--webops-space-2);">
+            <div class="webops-form-group webops-s-d1bc163" >
+                <label class="webops-checkbox webops-s-02f2a11" >
+                    <input type="checkbox" id="enable-snap-to-grid" checked class="webops-s-34f5c4b">
                     Snap to grid
                 </label>
             </div>
             
-            <div class="webops-form-group" style="display: flex; gap: var(--webops-space-2); justify-content: flex-end;">
+            <div class="webops-form-group webops-s-484e0f4" >
                 <button id="btn-reset-settings" class="webops-btn webops-btn-secondary">Reset to Defaults</button>
                 <button id="btn-save-settings" class="webops-btn webops-btn-primary">Save Settings</button>
             </div>

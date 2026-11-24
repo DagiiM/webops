@@ -1,0 +1,17 @@
+/* Charts: solid data colours from tokens, hairline grid, no gradients (ui-skill rules 3, 19). */
+.webops-chart { width: 100%; }
+.webops-chart__svg { display: block; width: 100%; height: auto; max-height: 360px; }
+.webops-chart__grid { stroke: var(--webops-color-border, currentColor); stroke-width: 1; opacity: 0.5; }
+.webops-chart__axis { stroke: var(--webops-color-border, currentColor); stroke-width: 1; }
+.webops-chart__tick,
+.webops-chart__label { fill: var(--webops-color-text-secondary); font-size: 11px; font-family: inherit; }
+.webops-chart__bar--1 { fill: var(--webops-color-info); background: var(--webops-color-info); }
+.webops-chart__bar--2 { fill: var(--webops-color-success); background: var(--webops-color-success); }
+.webops-chart__bar--3 { fill: var(--webops-color-warning); background: var(--webops-color-warning); }
+.webops-chart__bar--4 { fill: var(--webops-color-primary); background: var(--webops-color-primary); }
+.webops-chart__bar--5 { fill: var(--webops-color-error); background: var(--webops-color-error); }
+.webops-chart__bar--6 { fill: var(--webops-color-text-tertiary); background: var(--webops-color-text-tertiary); }
+.webops-chart__legend { display: flex; flex-wrap: wrap; gap: var(--webops-space-3) var(--webops-space-4); margin: var(--webops-space-3) 0 0; padding: 0; list-style: none; color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-sm); }
+.webops-chart__legend li { display: inline-flex; align-items: center; gap: var(--webops-space-2); }
+.webops-chart__swatch { width: 12px; height: 12px; border-radius: 2px; }
+.webops-chart__data { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -10,7 +10,7 @@
         <p class="webops-text-muted">Service status and health monitoring</p>
     </div>
     <div class="webops-flex webops-gap-md">
-        <form method="post" action="{% url 'monitoring:refresh_service_status' deployment.pk %}" style="display: inline;">
+        <form method="post" action="{% url 'monitoring:refresh_service_status' deployment.pk %}" class="webops-s-2f8710b">
             {% csrf_token %}
             <button type="submit" class="webops-btn webops-btn-primary">
                 <span class="material-icons">refresh</span>
@@ -39,13 +39,13 @@
             <div>
                 <div class="webops-text-sm webops-text-secondary webops-mb-xs">Status</div>
                 {% if status.status == 'running' %}
-                    <span class="webops-badge webops-badge-success" style="font-size: 1rem;">● Running</span>
+                    <span class="webops-badge webops-badge-success webops-s-b407bc0">● Running</span>
                 {% elif status.status == 'stopped' %}
-                    <span class="webops-badge webops-badge-info" style="font-size: 1rem;">○ Stopped</span>
+                    <span class="webops-badge webops-badge-info webops-s-b407bc0">○ Stopped</span>
                 {% elif status.status == 'failed' %}
-                    <span class="webops-badge webops-badge-danger" style="font-size: 1rem;">✗ Failed</span>
+                    <span class="webops-badge webops-badge-danger webops-s-b407bc0">✗ Failed</span>
                 {% else %}
-                    <span class="webops-badge webops-badge-warning" style="font-size: 1rem;">⟳ {{ status.get_status_display }}</span>
+                    <span class="webops-badge webops-badge-warning webops-s-b407bc0">⟳ {{ status.get_status_display }}</span>
                 {% endif %}
             </div>
 

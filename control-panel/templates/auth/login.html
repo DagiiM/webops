@@ -1,5 +1,6 @@
 {% extends 'auth/auth_base.html' %}
 
+{% load static %}
 {% block title %}Login - WebOps{% endblock %}
 {% block page_title %}Control Panel Login{% endblock %}
 
@@ -63,11 +64,11 @@
     </div>
 
     <div class="webops-form-group webops-flex webops-items-center webops-justify-between">
-        <label class="webops-flex webops-items-center webops-gap-xs" style="cursor: pointer;">
+        <label class="webops-flex webops-items-center webops-gap-xs webops-s-74fa97c">
             <input type="checkbox" name="remember_me" id="id_remember_me" class="webops-checkbox" checked>
             <span class="webops-text-sm webops-text-secondary">Remember me for 30 days</span>
         </label>
-        <a href="{% url 'password_reset' %}" class="webops-text-sm webops-text-primary" style="text-decoration: none;">
+        <a href="{% url 'password_reset' %}" class="webops-text-sm webops-text-primary webops-s-190f09c">
             Forgot password?
         </a>
     </div>
@@ -78,7 +79,7 @@
 
     <div class="webops-text-center webops-text-secondary">
         Don't have an account?
-        <a href="{% url 'register' %}" class="webops-text-primary" style="text-decoration: none;">
+        <a href="{% url 'register' %}" class="webops-text-primary webops-s-190f09c">
             Sign Up
         </a>
     </div>
@@ -87,14 +88,14 @@
 </form>
 
 <!-- Social Login -->
-<div class="webops-divider" style="margin: var(--webops-space-3) 0; display: flex; align-items: center; gap: var(--webops-space-1-5); color: var(--webops-color-text-tertiary);">
-    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
-    <span style="font-size: var(--webops-font-size-sm);">or</span>
-    <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+<div class="webops-divider webops-s-67abd0a">
+    <span class="webops-s-9fff9d8"></span>
+    <span class="webops-s-ab87a4a">or</span>
+    <span class="webops-s-9fff9d8"></span>
 </div>
-<a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full" style="display: block; text-align: center; background: #4285F4; color: white; padding: var(--webops-space-3); border-radius: var(--webops-radius-md); text-decoration: none; font-weight: var(--webops-font-weight-semibold);">
-    <span style="display: inline-flex; align-items: center; gap: var(--webops-space-2);">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+<a href="{% url 'google_login' %}?next={{ next|default:'/' }}" class="webops-btn webops-w-full webops-s-6b77ba5">
+    <span class="webops-s-42d9778">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false">
             <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
             <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
             <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
@@ -106,116 +107,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-(function() {
-    'use strict';
-
-    const form = document.getElementById('loginForm');
-    const usernameInput = document.getElementById('id_username');
-    const passwordInput = document.getElementById('id_password');
-    const submitBtn = document.getElementById('submitBtn');
-    const togglePassword = document.getElementById('togglePassword');
-
-    // Password visibility toggle
-    togglePassword.addEventListener('click', function() {
-        const type = passwordInput.type === 'password' ? 'text' : 'password';
-        passwordInput.type = type;
-        const icon = this.querySelector('.material-icons');
-        icon.textContent = type === 'password' ? 'visibility_off' : 'visibility';
-    });
-
-    // Real-time validation
-    function validateUsername() {
-        const value = usernameInput.value.trim();
-        const feedback = document.getElementById('username-feedback');
-        const icon = document.getElementById('username-icon');
-
-        if (value === '') {
-            usernameInput.classList.remove('valid', 'invalid');
-            icon.textContent = '';
-            feedback.classList.remove('show');
-            return false;
-        }
-
-        if (value.length < 3) {
-            usernameInput.classList.remove('valid');
-            usernameInput.classList.add('invalid');
-            icon.textContent = 'error';
-            icon.classList.remove('success');
-            icon.classList.add('error');
-            feedback.innerHTML = '<span class="material-icons">error</span><span>Username must be at least 3 characters</span>';
-            feedback.classList.add('show', 'error');
-            feedback.classList.remove('success');
-            return false;
-        }
-
-        usernameInput.classList.remove('invalid');
-        usernameInput.classList.add('valid');
-        icon.textContent = 'check_circle';
-        icon.classList.remove('error');
-        icon.classList.add('success');
-        feedback.classList.remove('show');
-        return true;
-    }
-
-    function validatePassword() {
-        const value = passwordInput.value;
-        const feedback = document.getElementById('password-feedback');
-
-        if (value === '') {
-            passwordInput.classList.remove('valid', 'invalid');
-            feedback.classList.remove('show');
-            return false;
-        }
-
-        if (value.length < 6) {
-            passwordInput.classList.remove('valid');
-            passwordInput.classList.add('invalid');
-            feedback.innerHTML = '<span class="material-icons">error</span><span>Password must be at least 6 characters</span>';
-            feedback.classList.add('show', 'error');
-            feedback.classList.remove('success');
-            return false;
-        }
-
-        passwordInput.classList.remove('invalid');
-        passwordInput.classList.add('valid');
-        feedback.classList.remove('show');
-        return true;
-    }
-
-    // Attach event listeners
-    usernameInput.addEventListener('input', validateUsername);
-    usernameInput.addEventListener('blur', validateUsername);
-    passwordInput.addEventListener('input', validatePassword);
-    passwordInput.addEventListener('blur', validatePassword);
-
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        const usernameValid = validateUsername();
-        const passwordValid = validatePassword();
-
-        if (!usernameValid || !passwordValid) {
-            e.preventDefault();
-
-            if (!usernameValid) {
-                usernameInput.focus();
-            } else if (!passwordValid) {
-                passwordInput.focus();
-            }
-            return false;
-        }
-
-        // Add loading state
-        submitBtn.classList.add('auth-btn-loading');
-        submitBtn.textContent = 'Logging in...';
-    });
-
-    // Clear validation on page load if there are errors
-    window.addEventListener('load', function() {
-        if (usernameInput.value) {
-            validateUsername();
-        }
-    });
-})();
-</script>
+<script src="{% static 'js/pages/auth-login.js' %}"></script>
 {% endblock %}

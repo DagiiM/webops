@@ -1,0 +1,26 @@
+/* Moved from templates/services/background_management.html (ui-skill rule 17: no inline <style>). */
+.webops-btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.webops-table-sm td {
+    padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

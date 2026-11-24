@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}{{ database.name }} - WebOps{% endblock %}
 {% block header_title %}{{ database.name }}{% endblock %}
 
@@ -37,7 +38,7 @@
             <span class="material-icons webops-align-middle webops-icon--small">settings_ethernet</span>
             Connection Information
         </h3>
-        <button onclick="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-primary">
+        <button data-on-click="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-primary">
             <span class="material-icons">content_copy</span>
             Copy Connection String
         </button>
@@ -57,7 +58,7 @@
                 <label class="webops-label">Database Name</label>
                 <div class="webops-info-value">
                     <code class="webops-code">{{ database.name }}</code>
-                    <button onclick="copyToClipboard('{{ database.name }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyToClipboard('{{ database.name }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -67,7 +68,7 @@
                 <label class="webops-label">Username</label>
                 <div class="webops-info-value">
                     <code class="webops-code">{{ database.username }}</code>
-                    <button onclick="copyToClipboard('{{ database.username }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyToClipboard('{{ database.username }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -77,10 +78,10 @@
                 <label class="webops-label">Password</label>
                 <div class="webops-info-value">
                     <code id="password" class="webops-code password-hidden">••••••••••••••••</code>
-                    <button onclick="togglePassword()" class="webops-btn webops-btn-sm webops-btn-ghost" id="toggle-btn">
+                    <button data-on-click="togglePassword()" class="webops-btn webops-btn-sm webops-btn-ghost" id="toggle-btn">
                         <span class="material-icons">visibility</span>
                     </button>
-                    <button onclick="copyToClipboard('{{ decrypted_password }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyToClipboard('{{ decrypted_password }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -90,7 +91,7 @@
                 <label class="webops-label">Host</label>
                 <div class="webops-info-value">
                     <code class="webops-code">{{ database.host }}</code>
-                    <button onclick="copyToClipboard('{{ database.host }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyToClipboard('{{ database.host }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -100,7 +101,7 @@
                 <label class="webops-label">Port</label>
                 <div class="webops-info-value">
                     <code class="webops-code">{{ database.port }}</code>
-                    <button onclick="copyToClipboard('{{ database.port }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyToClipboard('{{ database.port }}')" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -110,7 +111,7 @@
                 <label class="webops-label">Connection String</label>
                 <div class="webops-info-value">
                     <code id="connection-string" class="webops-code">{{ connection_string }}</code>
-                    <button onclick="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-ghost">
+                    <button data-on-click="copyConnectionString()" class="webops-btn webops-btn-sm webops-btn-ghost">
                         <span class="material-icons">content_copy</span>
                     </button>
                 </div>
@@ -315,62 +316,6 @@ print("Redis connection successful")</code></pre>
     </div>
 </div>
 
-<script>
-const actualPassword = '{{ decrypted_password }}';
-let passwordVisible = false;
-
-function togglePassword() {
-    const passwordEl = document.getElementById('password');
-    const toggleBtn = document.getElementById('toggle-btn');
-
-    passwordVisible = !passwordVisible;
-
-    if (passwordVisible) {
-        passwordEl.textContent = actualPassword;
-        passwordEl.classList.remove('password-hidden');
-        toggleBtn.innerHTML = '<span class="material-icons">visibility_off</span>';
-    } else {
-        passwordEl.textContent = '••••••••••••••••';
-        passwordEl.classList.add('password-hidden');
-        toggleBtn.innerHTML = '<span class="material-icons">visibility</span>';
-    }
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showNotification('Copied to clipboard!');
-    });
-}
-
-function copyConnectionString() {
-    const connectionString = '{{ connection_string }}';
-    navigator.clipboard.writeText(connectionString).then(() => {
-        showNotification('Connection string copied!');
-    });
-}
-
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--webops-success);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: var(--webops-radius);
-        box-shadow: none;
-        z-index: 10000;
-        animation: none;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 2000);
-}
-</script>
+<div id="page-config" hidden data-password="{{ decrypted_password }}" data-connection-string="{{ connection_string }}"></div>
+<script src="{% static 'js/pages/databases-detail.js' %}"></script>
 {% endblock %}

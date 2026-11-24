@@ -7,7 +7,7 @@
 <div class="webops-container">
     <div class="webops-header">
         <div class="webops-header-content">
-            <h1 class="webops-title">SSL Configuration</h1>
+            <h2 class="webops-title">SSL Configuration</h2>
             <p class="webops-subtitle">Manage SSL settings for {{ deployment.name }}</p>
         </div>
         <div class="webops-header-actions">
@@ -103,8 +103,8 @@
                     
                     <!-- Certificate Type -->
                     <div class="webops-form-group">
-                        <label class="webops-form-label">Certificate Type</label>
-                        <select name="certificate_type" class="webops-form-select" onchange="toggleCertificateFields(this.value)">
+                        <label for="field-certificate-type" class="webops-form-label">Certificate Type</label>
+                        <select id="field-certificate-type" name="certificate_type" class="webops-form-select" data-on-change="toggleCertificateFields(this.value)">
                             <option value="self_signed" {% if ssl_config.certificate_type == 'self_signed' %}selected{% endif %}>Self-Signed Certificate</option>
                             <option value="lets_encrypt" {% if ssl_config.certificate_type == 'lets_encrypt' %}selected{% endif %}>Let's Encrypt</option>
                             <option value="custom" {% if ssl_config.certificate_type == 'custom' %}selected{% endif %}>Custom Certificate</option>
@@ -114,25 +114,25 @@
 
                     <!-- Domain -->
                     <div class="webops-form-group">
-                        <label class="webops-form-label">Domain</label>
-                        <input type="text" name="domain" value="{{ ssl_config.domain }}" class="webops-form-input" placeholder="example.com">
+                        <label for="field-domain" class="webops-form-label">Domain</label>
+                        <input id="field-domain" type="text" name="domain" value="{{ ssl_config.domain }}" class="webops-form-input" placeholder="example.com">
                         <div class="webops-form-help">The domain name for this SSL certificate</div>
                     </div>
 
                     <!-- Let's Encrypt Email (conditional) -->
-                    <div class="webops-form-group" id="lets-encrypt-fields" style="{% if ssl_config.certificate_type == 'lets_encrypt' %}display: block;{% else %}display: none;{% endif %}">
-                        <label class="webops-form-label">Let's Encrypt Email</label>
-                        <input type="email" name="lets_encrypt_email" value="{{ ssl_config.lets_encrypt_email }}" class="webops-form-input" placeholder="admin@example.com">
+                    <div class="webops-form-group{% if ssl_config.certificate_type != 'lets_encrypt' %} webops-state-hidden{% endif %}" id="lets-encrypt-fields">
+                        <label for="field-lets-encrypt-email" class="webops-form-label">Let's Encrypt Email</label>
+                        <input id="field-lets-encrypt-email" type="email" name="lets_encrypt_email" value="{{ ssl_config.lets_encrypt_email }}" class="webops-form-input" placeholder="admin@example.com">
                         <div class="webops-form-help">Email address for Let's Encrypt registration</div>
                     </div>
 
                     <!-- Certificate Files (conditional) -->
-                    <div class="webops-form-group" id="custom-certificate-fields" style="{% if ssl_config.certificate_type == 'custom' or ssl_config.certificate_type == 'wildcard' %}display: block;{% else %}display: none;{% endif %}">
+                    <div class="webops-form-group{% if ssl_config.certificate_type != 'custom' and ssl_config.certificate_type != 'wildcard' %} webops-state-hidden{% endif %}" id="custom-certificate-fields">
                         <label class="webops-form-label">Certificate Files</label>
                         
                         <div class="webops-file-upload-group">
-                            <label class="webops-form-label">Certificate File (.crt)</label>
-                            <input type="file" name="certificate_file" class="webops-form-file" accept=".crt,.pem">
+                            <label for="field-certificate-file" class="webops-form-label">Certificate File (.crt)</label>
+                            <input id="field-certificate-file" type="file" name="certificate_file" class="webops-form-file" accept=".crt,.pem">
                             {% if ssl_config.certificate_file %}
                                 <div class="webops-file-info">
                                     <span class="material-icons">description</span>
@@ -142,8 +142,8 @@
                         </div>
 
                         <div class="webops-file-upload-group">
-                            <label class="webops-form-label">Private Key File (.key)</label>
-                            <input type="file" name="private_key_file" class="webops-form-file" accept=".key,.pem">
+                            <label for="field-private-key-file" class="webops-form-label">Private Key File (.key)</label>
+                            <input id="field-private-key-file" type="file" name="private_key_file" class="webops-form-file" accept=".key,.pem">
                             {% if ssl_config.private_key_file %}
                                 <div class="webops-file-info">
                                     <span class="material-icons">vpn_key</span>
@@ -153,8 +153,8 @@
                         </div>
 
                         <div class="webops-file-upload-group">
-                            <label class="webops-form-label">Certificate Chain File (optional)</label>
-                            <input type="file" name="certificate_chain_file" class="webops-form-file" accept=".crt,.pem">
+                            <label for="field-certificate-chain-file" class="webops-form-label">Certificate Chain File (optional)</label>
+                            <input id="field-certificate-chain-file" type="file" name="certificate_chain_file" class="webops-form-file" accept=".crt,.pem">
                             {% if ssl_config.certificate_chain_file %}
                                 <div class="webops-file-info">
                                     <span class="material-icons">link</span>
@@ -166,8 +166,8 @@
 
                     <!-- Encryption Settings -->
                     <div class="webops-form-group">
-                        <label class="webops-form-label">Encryption Protocol</label>
-                        <select name="encryption_protocol" class="webops-form-select">
+                        <label for="field-encryption-protocol" class="webops-form-label">Encryption Protocol</label>
+                        <select id="field-encryption-protocol" name="encryption_protocol" class="webops-form-select">
                             <option value="TLSv1.3" {% if ssl_config.encryption_protocol == 'TLSv1.3' %}selected{% endif %}>TLS 1.3 (Recommended)</option>
                             <option value="TLSv1.2" {% if ssl_config.encryption_protocol == 'TLSv1.2' %}selected{% endif %}>TLS 1.2</option>
                             <option value="TLSv1.1" {% if ssl_config.encryption_protocol == 'TLSv1.1' %}selected{% endif %}>TLS 1.1</option>
@@ -176,8 +176,8 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label class="webops-form-label">Cipher Suite</label>
-                        <input type="text" name="cipher_suite" value="{{ ssl_config.cipher_suite }}" class="webops-form-input" placeholder="ECDHE-RSA-AES256-GCM-SHA384">
+                        <label for="field-cipher-suite" class="webops-form-label">Cipher Suite</label>
+                        <input id="field-cipher-suite" type="text" name="cipher_suite" value="{{ ssl_config.cipher_suite }}" class="webops-form-input" placeholder="ECDHE-RSA-AES256-GCM-SHA384">
                         <div class="webops-form-help">SSL cipher suite configuration</div>
                     </div>
 
@@ -191,8 +191,8 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label class="webops-form-label">HSTS Max Age (seconds)</label>
-                        <input type="number" name="hsts_max_age" value="{{ ssl_config.hsts_max_age }}" class="webops-form-input" min="0" max="63072000">
+                        <label for="field-hsts-max-age" class="webops-form-label">HSTS Max Age (seconds)</label>
+                        <input id="field-hsts-max-age" type="number" name="hsts_max_age" value="{{ ssl_config.hsts_max_age }}" class="webops-form-input" min="0" max="63072000">
                         <div class="webops-form-help">How long browsers should remember to use HTTPS (default: 1 year)</div>
                     </div>
 
@@ -214,8 +214,8 @@
                     </div>
 
                     <div class="webops-form-group">
-                        <label class="webops-form-label">Renewal Days Before Expiry</label>
-                        <input type="number" name="renewal_days_before" value="{{ ssl_config.renewal_days_before }}" class="webops-form-input" min="1" max="90">
+                        <label for="field-renewal-days-before" class="webops-form-label">Renewal Days Before Expiry</label>
+                        <input id="field-renewal-days-before" type="number" name="renewal_days_before" value="{{ ssl_config.renewal_days_before }}" class="webops-form-input" min="1" max="90">
                         <div class="webops-form-help">How many days before expiry to attempt renewal</div>
                     </div>
 
@@ -297,177 +297,7 @@
     </div>
 </div>
 
-<script>
-function toggleCertificateFields(certificateType) {
-    const letsEncryptFields = document.getElementById('lets-encrypt-fields');
-    const customCertificateFields = document.getElementById('custom-certificate-fields');
-    
-    if (certificateType === 'lets_encrypt') {
-        letsEncryptFields.style.display = 'block';
-        customCertificateFields.style.display = 'none';
-    } else if (certificateType === 'custom' || certificateType === 'wildcard') {
-        letsEncryptFields.style.display = 'none';
-        customCertificateFields.style.display = 'block';
-    } else {
-        letsEncryptFields.style.display = 'none';
-        customCertificateFields.style.display = 'none';
-    }
-}
+<script src="{% static 'js/pages/services-ssl_configuration.js' %}"></script>
 
-// Form submission handling
-document.getElementById('ssl-config-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const form = this;
-    const formData = new FormData(form);
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success message
-            showNotification('SSL configuration updated successfully', 'success');
-            // Reload page after short delay
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            // Show error message
-            showNotification(data.message || 'Error updating SSL configuration', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Error updating SSL configuration', 'error');
-    });
-});
-
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `webops-notification webops-notification-${type}`;
-    notification.innerHTML = `
-        <span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span>
-        <span>${message}</span>
-    `;
-    
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-</script>
-
-<style>
-.webops-status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-}
-
-.webops-status-item {
-    text-align: center;
-}
-
-.webops-status-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.webops-status-value {
-    font-size: 1.125rem;
-    font-weight: 600;
-}
-
-.webops-file-upload-group {
-    margin-bottom: 1rem;
-}
-
-.webops-file-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    padding: 0.5rem;
-    background-color: var(--background-light);
-    border-radius: 4px;
-    font-size: 0.875rem;
-}
-
-.webops-actions-grid {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.webops-action-form {
-    display: inline-block;
-}
-
-.webops-help-section h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-}
-
-.webops-help-list {
-    list-style: none;
-    padding: 0;
-}
-
-.webops-help-list li {
-    margin-bottom: 0.5rem;
-    padding-left: 1.5rem;
-    position: relative;
-}
-
-.webops-help-list li::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    color: var(--primary-color);
-    font-weight: bold;
-}
-
-.webops-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    z-index: 1000;
-    animation: none;
-}
-
-.webops-notification-success {
-    background-color: var(--success-color);
-}
-
-.webops-notification-error {
-    background-color: var(--error-color);
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/services-ssl_configuration.css' %}">
 {% endblock %}

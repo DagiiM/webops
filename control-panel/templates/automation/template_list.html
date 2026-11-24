@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Workflow Templates - WebOps{% endblock %}
 {% block header_title %}Automation{% endblock %}
 
@@ -24,53 +25,43 @@
 <!-- Template Categories Filter -->
 <div class="webops-card webops-mb-lg">
     <div class="webops-card-body">
--        <div class="template-filters">
-+        <div class="webops-template-list__filters">
--            <div class="filter-group">
-+            <div class="webops-template-list__filter-group">
+        <div class="webops-template-list__filters">
+            <div class="webops-template-list__filter-group">
                 <label class="webops-label">Category</label>
--                <div class="filter-buttons">
-+                <div class="webops-template-list__filter-buttons">
--                    <button class="filter-btn active" data-category="all">
-+                    <button class="webops-template-list__filter-btn webops-template-list__filter-btn--active" data-category="all">
+                <div class="webops-template-list__filter-buttons">
+                    <button class="webops-template-list__filter-btn webops-template-list__filter-btn--active" data-category="all">
                         <span class="material-icons">apps</span>
                         All Templates
                     </button>
--                    <button class="filter-btn" data-category="data_processing">
-+                    <button class="webops-template-list__filter-btn" data-category="data_processing">
+                    <button class="webops-template-list__filter-btn" data-category="data_processing">
                         <span class="material-icons">transform</span>
                         Data Processing
                     </button>
--                    <button class="filter-btn" data-category="notifications">
-+                    <button class="webops-template-list__filter-btn" data-category="notifications">
+                    <button class="webops-template-list__filter-btn" data-category="notifications">
                         <span class="material-icons">notifications</span>
                         Notifications
                     </button>
--                    <button class="filter-btn" data-category="integrations">
-+                    <button class="webops-template-list__filter-btn" data-category="integrations">
+                    <button class="webops-template-list__filter-btn" data-category="integrations">
                         <span class="material-icons">integration_instructions</span>
                         Integrations
                     </button>
--                    <button class="filter-btn" data-category="reporting">
-+                    <button class="webops-template-list__filter-btn" data-category="reporting">
+                    <button class="webops-template-list__filter-btn" data-category="reporting">
                         <span class="material-icons">assessment</span>
                         Reporting
                     </button>
                 </div>
             </div>
             
--            <div class="filter-group">
-+            <div class="webops-template-list__filter-group">
-                <label class="webops-label">Search</label>
+            <div class="webops-template-list__filter-group">
+                <label for="template-search" class="webops-label">Search</label>
                 <div class="webops-input-group">
                     <span class="material-icons webops-input-icon">search</span>
                     <input type="text" id="template-search" class="webops-input" placeholder="Search templates...">
                 </div>
             </div>
             
--            <div class="filter-actions">
-+            <div class="webops-template-list__filter-actions">
-                <button class="webops-btn webops-btn-sm webops-btn-secondary" onclick="clearFilters()">
+            <div class="webops-template-list__filter-actions">
+                <button class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="clearFilters()">
                     <span class="material-icons">clear</span>
                     Clear Filters
                 </button>
@@ -80,49 +71,35 @@
 </div>
 
 <!-- Templates Grid -->
--<div class="templates-container" id="templates-container">
-+<div class="webops-template-list__container" id="templates-container">
--    <div class="templates-grid" id="templates-grid">
-+    <div class="webops-template-list__grid" id="templates-grid">
+<div class="webops-template-list__container" id="templates-container">
+    <div class="webops-template-list__grid" id="templates-grid">
         {% for template in templates %}
--        <div class="template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
-+        <div class="webops-template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
--            <div class="template-card-header">
-+            <div class="webops-template-card__header">
--                <div class="template-icon">
-+                <div class="webops-template-card__icon">
+        <div class="webops-template-card" data-category="{{ template.category }}" data-name="{{ template.name|lower }}">
+            <div class="webops-template-card__header">
+                <div class="webops-template-card__icon">
                     <span class="material-icons">{{ template.icon|default:'auto_awesome' }}</span>
                 </div>
--                <div class="template-category">{{ template.get_category_display }}</div>
-+                <div class="webops-template-card__category">{{ template.get_category_display }}</div>
+                <div class="webops-template-card__category">{{ template.get_category_display }}</div>
             </div>
             
--            <div class="template-card-body">
--                <h3 class="template-title">{{ template.name }}</h3>
--                <p class="template-description">{{ template.description|truncatechars:120 }}</p>
-+            <div class="webops-template-card__body">
-+                <h3 class="webops-template-card__title">{{ template.name }}</h3>
-+                <p class="webops-template-card__description">{{ template.description|truncatechars:120 }}</p>
+            <div class="webops-template-card__body">
+                <h3 class="webops-template-card__title">{{ template.name }}</h3>
+                <p class="webops-template-card__description">{{ template.description|truncatechars:120 }}</p>
                 
--                <div class="template-meta">
--                    <div class="meta-item">
-+                <div class="webops-template-card__meta">
-+                    <div class="webops-template-card__meta-item">
+                <div class="webops-template-card__meta">
+                    <div class="webops-template-card__meta-item">
                         <span class="material-icons webops-icon-xs">schedule</span>
                         <span>{{ template.estimated_duration|default:'5 min' }}</span>
                     </div>
--                    <div class="meta-item">
-+                    <div class="webops-template-card__meta-item">
+                    <div class="webops-template-card__meta-item">
                         <span class="material-icons webops-icon-xs">settings</span>
                         <span>{{ template.complexity|default:'Easy' }}</span>
                     </div>
                 </div>
             </div>
             
--            <div class="template-card-footer">
--                <button class="webops-btn webops-btn-sm webops-btn-secondary template-preview-btn" 
-+            <div class="webops-template-card__footer">
-+                <button class="webops-btn webops-btn-sm webops-btn-secondary webops-template-card__preview-btn" 
+            <div class="webops-template-card__footer">
+                <button class="webops-btn webops-btn-sm webops-btn-secondary webops-template-card__preview-btn" 
                          data-template-id="{{ template.id }}">
                     <span class="material-icons webops-icon-sm">visibility</span>
                     Preview
@@ -156,29 +133,26 @@
 {% endif %}
 
 <!-- Template Preview Modal -->
-<div class="webops-modal" id="template-preview-modal" style="display: none;">
-    <div class="webops-modal-backdrop" onclick="closePreviewModal()"></div>
+<div class="webops-modal webops-s-5790ffb" id="template-preview-modal" >
+    <div class="webops-modal-backdrop" data-on-click="closePreviewModal()"></div>
     <div class="webops-modal__content">
         <div class="webops-modal-header">
             <div class="webops-modal-title-section">
                 <h3 class="webops-modal-title" id="preview-title">Template Preview</h3>
                 <p class="webops-modal-subtitle" id="preview-subtitle">Loading template details...</p>
             </div>
-            <button class="webops-modal-close" onclick="closePreviewModal()">
+            <button class="webops-modal-close" data-on-click="closePreviewModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>
         <div class="webops-modal-body" id="preview-body">
--            <div class="loading-spinner">
--                <div class="spinner-ring"></div>
--                <span class="loading-text">Loading template preview...</span>
-+            <div class="webops-loading">
-+                <div class="webops-loading__ring"></div>
-+                <span class="webops-loading__text">Loading template preview...</span>
+            <div class="webops-loading">
+                <div class="webops-loading__ring"></div>
+                <span class="webops-loading__text">Loading template preview...</span>
             </div>
         </div>
         <div class="webops-modal-footer">
-            <button class="webops-btn webops-btn-secondary" onclick="closePreviewModal()">
+            <button class="webops-btn webops-btn-secondary" data-on-click="closePreviewModal()">
                 <span class="material-icons">close</span>
                 Close
             </button>
@@ -190,584 +164,7 @@
     </div>
 </div>
 
-<style>
-/* Enhanced Modal Styles */
-.webops-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2000; /* ensure modal stacks above page content */
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: var(--webops-space-6);
-    opacity: 0;
-    visibility: hidden;
-    transition: none;
-}
+<link rel="stylesheet" href="{% static 'css/pages/automation-template_list.css' %}">
 
-.webops-modal.show {
-    display: flex; /* allow showing via class toggle */
-    opacity: 1;
-    visibility: visible;
-}
-
-.webops-modal-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    animation: none;
-    z-index: 1; /* backdrop below content */
-}
-
-.webops-modal__content {
-    position: relative;
-    z-index: 2; /* content above backdrop */
-    background: var(--webops-color-bg-elevated);
-    border-radius: var(--webops-radius-2xl);
-    box-shadow: none;
-    max-width: 900px;
-    width: 100%;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    transform: scale(0.95) translateY(20px);
-    transition: none;
-    overflow: hidden;
-    border: 1px solid var(--webops-color-primary-alpha-15);
-}
-
-.webops-modal.show .webops-modal__content {
-    transform: scale(1) translateY(0);
-}
-
-.webops-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
-    background: var(--webops-color-primary);
-    color: var(--webops-color-text-inverse);
-    position: relative;
-}
-
-.webops-modal-title {
-    margin: 0 0 var(--webops-space-2) 0;
-    font-size: var(--webops-font-size-xl);
-    font-weight: var(--webops-font-weight-bold);
-}
-
-.webops-modal-subtitle {
-    margin: 0;
-    font-size: var(--webops-font-size-sm);
-    opacity: 0.9;
-}
-
-.webops-modal-body {
-    flex: 1;
-    padding: var(--webops-space-6);
-    overflow-y: auto;
-    background: #f8fafc;
-}
-
-.webops-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--webops-space-3);
-    padding: var(--webops-space-4) var(--webops-space-6);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    background: var(--webops-color-bg-primary);
-}
-
-.webops-modal-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: var(--webops-color-text-inverse);
-    cursor: pointer;
-    padding: var(--webops-space-3);
-    border-radius: var(--webops-radius-lg);
-    transition: none;
-}
-
-.webops-modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.webops-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--webops-space-4);
-    padding: var(--webops-space-8) var(--webops-space-6);
-}
-
-.webops-loading__ring {
-    width: 48px;
-    height: 48px;
-    border: 4px solid rgba(59, 130, 246, 0.1);
-    border-top: 4px solid #3b82f6;
-    border-radius: 50%;
-    animation: none;
-}
-
-/* Template Filters */
-.webops-template-list__filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    align-items: flex-end;
-}
-
-.webops-template-list__filter-group {
-    flex: 1;
-    min-width: 200px;
-}
-
-.webops-template-list__filter-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.webops-template-list__filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: white;
-    border: 2px solid var(--webops-color-border);
-    border-radius: 12px;
-    color: var(--webops-color-text-secondary);
-    cursor: pointer;
-    transition: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.webops-template-list__filter-btn:hover {
-    border-color: var(--webops-color-primary);
-    color: var(--webops-color-primary);
-    transform: none;
-}
-
-.webops-template-list__filter-btn--active {
-    background: var(--webops-color-primary);
-    border-color: var(--webops-color-primary);
-    color: white;
-}
-
-/* Templates Grid */
-.webops-template-list__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: var(--webops-space-6);
-}
-
-.webops-template-card {
-    background: var(--webops-color-bg-primary);
-    border-radius: var(--webops-radius-2xl);
-    border: 1px solid var(--webops-color-border);
-    overflow: hidden;
-    transition: none;
-    box-shadow: none;
-}
-
-.webops-template-card:hover {
-    transform: none;
-    box-shadow: none;
-}
-
-.webops-template-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
-    background: var(--webops-color-bg-secondary);
-}
-
-.webops-template-card__icon {
-    width: var(--webops-size-12);
-    height: var(--webops-size-12);
-    background: var(--webops-color-primary);
-    border-radius: var(--webops-radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--webops-color-text-inverse);
-}
-
-.webops-template-card__category {
-    font-size: var(--webops-font-size-xs);
-    font-weight: var(--webops-font-weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: var(--webops-letter-spacing-wide);
-    color: var(--webops-color-text-secondary);
-    background: var(--webops-color-primary-alpha-10);
-    padding: var(--webops-space-1) var(--webops-space-3);
-    border-radius: var(--webops-radius-full);
-}
-
-.webops-template-card__body {
-    padding: var(--webops-space-6);
-}
-
-.webops-template-card__title {
-    margin: 0 0 var(--webops-space-3) 0;
-    font-size: var(--webops-font-size-lg);
-    font-weight: var(--webops-font-weight-semibold);
-    color: var(--webops-color-text-primary);
-}
-
-.webops-template-card__description {
-    margin: 0 0 var(--webops-space-4) 0;
-    color: var(--webops-color-text-secondary);
-    line-height: var(--webops-line-height-normal);
-}
-
-.webops-template-card__meta {
-    display: flex;
-    gap: var(--webops-space-4);
-}
-
-.webops-template-card__meta-item {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-2);
-    font-size: var(--webops-font-size-sm);
-    color: var(--webops-color-text-secondary);
-}
-
-.webops-template-card__footer {
-    display: flex;
-    gap: var(--webops-space-3);
-    padding: var(--webops-space-6);
-    border-top: 1px solid var(--webops-color-border);
-    background: var(--webops-color-bg-tertiary);
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .webops-template-list__grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .webops-template-list__filters {
-        flex-direction: column;
-        gap: var(--webops-space-4);
-    }
-    
-    .webops-template-list__filter-buttons {
-        flex-direction: column;
-    }
-
-    .webops-modal {
-        padding: var(--webops-space-4);
-    }
-    
-    .webops-modal__content {
-        max-height: 90vh;
-        border-radius: var(--webops-radius-2xl);
-    }
-    
-    .webops-modal-header {
-        padding: var(--webops-space-6) var(--webops-space-6) var(--webops-space-4);
-    }
-    
-    .webops-modal-body {
-        padding: var(--webops-space-6);
-    }
-    
-    .webops-modal-footer {
-        padding: var(--webops-space-4) var(--webops-space-6);
-        flex-direction: column;
-        gap: var(--webops-space-3);
-    }
-    
-    .webops-modal-footer .webops-btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-/* Template Preview Content Styles */
-.webops-template-preview {
-    padding: 0;
-}
-
-.webops-template-preview__description {
-    margin-bottom: var(--webops-space-6);
-    padding: var(--webops-space-5);
-    background: var(--webops-color-bg-secondary);
-    border-radius: var(--webops-radius-xl);
-    border-left: var(--webops-space-1) solid var(--webops-color-primary);
-}
-
-.webops-template-preview__description p {
-    margin: 0;
-    color: var(--webops-color-text-secondary);
-    font-size: var(--webops-font-size-base);
-    line-height: var(--webops-line-height-relaxed);
-}
-
-.webops-workflow-summary {
-    margin-bottom: 24px;
-    padding: 20px;
-    border-radius: 12px;
-}
-
-.webops-workflow-summary__stats {
-    display: flex;
-    justify-content: space-around;
-    gap: 20px;
-}
-
-.webops-workflow-summary__stat-item {
-    text-align: center;
-    flex: 1;
-}
-
-.webops-workflow-summary__stat-number {
-    display: block;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--webops-color-primary);
-    margin-bottom: 4px;
-}
-
-.webops-workflow-summary__stat-label {
-    display: block;
-    font-size: 12px;
-    color: var(--webops-color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-}
-
-.webops-workflow-nodes {
-    padding: 20px;
-    background: var(--webops-color-bg-primary);
-    border: 1px solid var(--webops-color-border);
-    border-radius: 12px;
-}
-
-.webops-workflow-nodes h4 {
-    margin: 0 0 16px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--webops-color-text-primary);
-}
-
-.webops-workflow-nodes__list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.webops-workflow-node {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--webops-color-bg-secondary);
-    border: 1px solid var(--webops-color-border);
-    border-radius: 8px;
-    transition: none;
-}
-
-.webops-workflow-node:hover {
-    background: var(--webops-color-bg-tertiary);
-    border-color: var(--webops-color-border-hover);
-    transform: translateX(4px);
-}
-
-.webops-workflow-node__type-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
-    min-width: 80px;
-    text-align: center;
-}
-
-.webops-workflow-node__type-badge--trigger { background: var(--webops-color-status-info-bg); color: var(--webops-color-status-info); }
-.webops-workflow-node__type-badge--api { background: var(--webops-color-status-success-bg); color: var(--webops-color-status-success); }
-.webops-workflow-node__type-badge--database { background: var(--webops-color-status-warning-bg); color: var(--webops-color-status-warning); }
-.webops-workflow-node__type-badge--condition { background: var(--webops-color-status-error-bg); color: var(--webops-color-status-error); }
-.webops-workflow-node__type-badge--email { background: var(--webops-color-status-info-bg); color: var(--webops-color-status-info); }
-.webops-workflow-node__type-badge--webhook { background: var(--webops-color-status-purple-bg); color: var(--webops-color-status-purple); }
-.webops-workflow-node__type-badge--transform { background: var(--webops-color-status-error-bg); color: var(--webops-color-status-error); }
-.webops-workflow-node__type-badge--aggregate { background: var(--webops-color-status-blue-bg); color: var(--webops-color-status-blue); }
-.webops-workflow-node__type-badge--slack { background: var(--webops-color-status-cyan-bg); color: var(--webops-color-status-cyan); }
-.webops-workflow-node__type-badge--file { background: var(--webops-color-status-pink-bg); color: var(--webops-color-status-pink); }
-.webops-workflow-node__type-badge--code { background: var(--webops-color-status-success-bg); color: var(--webops-color-status-success); }
-
-.webops-workflow-node__label {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--webops-color-text-secondary);
-}
-
-/* Responsive adjustments for preview content */
-@media (max-width: 768px) {
-    .webops-workflow-summary__stats {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .webops-workflow-summary__stat-item {
-        padding: 12px;
-        background: var(--webops-color-bg-secondary);
-        border-radius: 8px;
-    }
-
-    .webops-workflow-node {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .webops-workflow-node__type-badge {
-        min-width: auto;
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('template-search');
-    const filterBtns = document.querySelectorAll('.webops-template-list__filter-btn');
-    const templatesGrid = document.getElementById('templates-grid');
-    const previewModal = document.getElementById('template-preview-modal');
-    const previewBtns = document.querySelectorAll('.webops-template-card__preview-btn');
-
-    let currentFilters = {
-        category: 'all',
-        search: ''
-    };
-
-    // Search functionality
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            currentFilters.search = this.value.toLowerCase();
-            filterTemplates();
-        });
-    }
-
-    // Filter buttons
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filterValue = this.dataset.category;
-            
-            // Update active state
-            this.parentElement.querySelectorAll('.webops-template-list__filter-btn').forEach(b => b.classList.remove('webops-template-list__filter-btn--active'));
-            this.classList.add('webops-template-list__filter-btn--active');
-            
-            // Update filter
-            currentFilters.category = filterValue;
-            filterTemplates();
-        });
-    });
-
-    // Template preview buttons
-    previewBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const templateId = this.dataset.templateId;
-            showPreviewModal(templateId);
-        });
-    });
-
-    function filterTemplates() {
-        const templateCards = document.querySelectorAll('.webops-template-card');
-        let visibleCount = 0;
-
-        templateCards.forEach(card => {
-            const category = card.dataset.category;
-            const name = card.dataset.name;
-            
-            const matchesCategory = currentFilters.category === 'all' || category === currentFilters.category;
-            const matchesSearch = !currentFilters.search || name.includes(currentFilters.search);
-            
-            if (matchesCategory && matchesSearch) {
-                card.style.display = 'block';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
-    function showPreviewModal(templateId) {
-        if (previewModal) {
-            previewModal.style.display = 'flex';
-            previewModal.classList.add('show');
-            
-            // Load template details via AJAX
-            fetch(`/automation/templates/${templateId}/preview/`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('preview-title').textContent = data.name;
-                    document.getElementById('preview-subtitle').textContent = data.category;
-                    document.getElementById('preview-body').innerHTML = data.html;
-                    document.getElementById('use-template-btn').onclick = () => {
-                        window.location.href = `/automation/template/${templateId}/create/`;
-                    };
-                })
-                .catch(error => {
-                    document.getElementById('preview-body').innerHTML = '<p>Error loading template preview.</p>';
-                });
-        }
-    }
-
-    window.closePreviewModal = function() {
-        if (previewModal) {
-            previewModal.classList.remove('show');
-            setTimeout(() => {
-                previewModal.style.display = 'none';
-            }, 300);
-        }
-    };
-
-    window.clearFilters = function() {
-        currentFilters = {
-            category: 'all',
-            search: ''
-        };
-
-        if (searchInput) searchInput.value = '';
-        filterBtns.forEach(btn => {
-            btn.classList.remove('webops-template-list__filter-btn--active');
-            if (btn.dataset.category === 'all') {
-                btn.classList.add('webops-template-list__filter-btn--active');
-            }
-        });
-
-        filterTemplates();
-    };
-});
-</script>
+<script src="{% static 'js/pages/automation-template_list.js' %}"></script>
 {% endblock %}

@@ -563,7 +563,7 @@ async function restartAllServices() {
     // Show loading state
     const restartBtn = event.target.closest('button');
     const originalText = restartBtn.innerHTML;
-    restartBtn.innerHTML = '<span class="material-icons" style="animation: none;">autorenew</span> Restarting All...';
+    restartBtn.innerHTML = '<span class="material-icons webops-s-ab5299c" >autorenew</span> Restarting All...';
     restartBtn.disabled = true;
     
     const results = [];

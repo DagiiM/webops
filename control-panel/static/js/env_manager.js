@@ -263,13 +263,13 @@ function renderWizard(data) {
     const wizardContent = document.getElementById('wizardContent');
 
     let html = `
-        <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+        <div class="alert alert-info webops-s-92cb257" >
             Found <strong>${data.total}</strong> variables
             (<strong>${data.required}</strong> required)
             ${data.has_env_file ? '- Will update existing .env file' : '- Will create new .env file'}
         </div>
 
-        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 1.5rem;">
+        <div class="webops-s-f72ca77">
     `;
 
     data.variables.forEach((variable, index) => {
@@ -277,26 +277,26 @@ function renderWizard(data) {
         const hasValue = variable.value && variable.value.length > 0;
 
         html += `
-            <div style="padding: 1rem; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 0.75rem;">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+            <div class="webops-s-06bfcb6">
+                <div class="webops-s-905a1e4">
                     <div>
-                        <strong style="font-family: monospace; color: #1f2937;">${variable.key}</strong>
-                        ${variable.required ? '<span style="color: #ef4444; margin-left: 0.5rem;">*</span>' : ''}
-                        ${variable.comment ? `<p style="color: #6b7280; font-size: 0.75rem; margin: 0.25rem 0 0 0;">${variable.comment.replace(/^#\s*/gm, '')}</p>` : ''}
+                        <strong class="webops-s-874c39a">${variable.key}</strong>
+                        ${variable.required ? '<span class="webops-s-1dfd5f0">*</span>' : ''}
+                        ${variable.comment ? `<p class="webops-s-2b548ae">${variable.comment.replace(/^#\s*/gm, '')}</p>` : ''}
                     </div>
-                    <span style="font-size: 0.75rem; background: #e5e7eb; padding: 0.25rem 0.5rem; border-radius: 4px;">${variable.type}</span>
+                    <span class="webops-s-fa9837a">${variable.type}</span>
                 </div>
-                <div style="margin-top: 0.5rem;">
+                <div class="webops-s-fc215b9">
                     <input
                         type="${isSecret ? 'password' : 'text'}"
                         id="wizard_${index}"
                         data-key="${variable.key}"
                         value="${variable.value || ''}"
                         placeholder="${variable.example_value || 'Will be auto-generated'}"
-                        style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 0.875rem;"
+                        class="webops-s-7513370"
                         ${hasValue && isSecret ? 'readonly' : ''}
                     >
-                    ${hasValue && isSecret ? '<p style="font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0 0;">Value already set (leave as-is or clear to regenerate)</p>' : ''}
+                    ${hasValue && isSecret ? '<p class="webops-s-5771ecf">Value already set (leave as-is or clear to regenerate)</p>' : ''}
                 </div>
             </div>
         `;
@@ -305,11 +305,11 @@ function renderWizard(data) {
     html += `
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-            <button type="button" class="webops-btn btn-secondary" onclick="closeWizardModal()">Cancel</button>
-            <button type="button" class="webops-btn btn-success" onclick="generateEnvFile()">
+        <div class="webops-s-b29dbfc">
+            <button type="button" class="webops-btn btn-secondary" data-on-click="closeWizardModal()">Cancel</button>
+            <button type="button" class="webops-btn btn-success" data-on-click="generateEnvFile()">
                 <span id="generateBtnText">Generate .env File</span>
-                <span id="generateBtnLoading" class="loading" style="display: none;"></span>
+                <span id="generateBtnLoading" class="loading webops-s-5790ffb" ></span>
             </button>
         </div>
     `;

@@ -1,0 +1,103 @@
+/* Moved from templates/api/token_create.html (ui-skill rule 17: no inline <style>). */
+.webops-form-group {
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-form-group label {
+    display: block;
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-1-5);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-form-input {
+    width: 100%;
+    padding: var(--webops-space-3);
+    border: 2px solid var(--webops-color-border);
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-base);
+    transition: none;
+    background: var(--webops-color-background);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-form-input:focus {
+    border-color: var(--webops-color-primary);
+    box-shadow: none;
+}
+
+.webops-form-help {
+    display: block;
+    margin-top: var(--webops-space-1-5);
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-info-box {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-primary-light);
+    border-radius: var(--webops-radius-md);
+    border-left: 4px solid var(--webops-color-primary);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-info-box--security {
+    display: flex;
+    align-items: flex-start;
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-3);
+}
+
+.webops-btn-lg {
+    padding: var(--webops-space-3) var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-color-border);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-btn-outline:hover {
+    background: var(--webops-color-background-secondary);
+    border-color: var(--webops-color-border-hover);
+}
+
+.webops-code-examples {
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-code-examples:last-child {
+    margin-bottom: 0;
+}
+
+.webops-code-examples h5 {
+    margin-bottom: var(--webops-space-1-5);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webops-code-examples pre {
+    background: var(--webops-color-background-tertiary);
+    color: var(--webops-color-text-inverse);
+    padding: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+    overflow-x: auto;
+}
+
+.webops-code-examples code {
+    font-family: var(--webops-font-family-mono);
+    font-size: var(--webops-font-size-sm);
+    line-height: var(--webops-line-height-relaxed);
+}

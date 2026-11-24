@@ -185,13 +185,21 @@ body {
     padding: var(--webops-space-3) var(--webops-space-3);
 }
 
-/* Accessibility: Skip link */
-.skip-link:focus {
-    clip: auto;
-    height: auto;
-    width: auto;
+/* Accessibility: Skip link (hidden until focused) */
+.skip-link {
     position: absolute;
-    top: 6px !important;
+    top: -100%;
+    left: var(--webops-space-3);
+    z-index: 2000;
+    padding: var(--webops-space-2) var(--webops-space-4);
+    background: var(--webops-color-bg-primary);
+    color: var(--webops-color-primary);
+    border: 1px solid var(--webops-color-primary);
+    border-radius: var(--webops-radius-md);
+}
+
+.skip-link:focus {
+    top: var(--webops-space-3);
 }
 
 /* Accessibility: Focus indicators */
@@ -658,7 +666,6 @@ select:focus {
 }
 
 .webops-oauth-config__input:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
     background: var(--webops-color-surface-hover);
@@ -1035,7 +1042,6 @@ input:-internal-autofill-selected{
 }
 
 .login-page .webops-input:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
     background: var(--webops-color-surface-hover);
@@ -1330,7 +1336,6 @@ input:-internal-autofill-selected{
     font-size: var(--webops-font-size-sm);
     color: var(--webops-color-text-primary);
     resize: vertical;
-    outline: none;
 }
 
 /* WebOps Empty State */
@@ -1613,7 +1618,6 @@ input:-internal-autofill-selected{
 .webops-modal__content input:focus,
 .webops-modal__content textarea:focus,
 .webops-modal__content select:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
 }
@@ -1808,7 +1812,7 @@ input:-internal-autofill-selected{
 
 .webops-btn-danger {
     background: var(--webops-color-error);
-    color: white;
+    color: var(--webops-color-bg-primary);
     box-shadow: none;
 }
 
@@ -1863,7 +1867,6 @@ input:-internal-autofill-selected{
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     transition: none;
-    outline: none;
 }
 
 .webops-input:focus {
@@ -1894,7 +1897,6 @@ input:-internal-autofill-selected{
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     transition: none;
-    outline: none;
     resize: vertical;
 }
 
@@ -1915,7 +1917,6 @@ input:-internal-autofill-selected{
     border: 1px solid var(--webops-color-primary-alpha-20);
     border-radius: var(--webops-radius-md);
     transition: none;
-    outline: none;
     cursor: pointer;
 }
 
@@ -2566,6 +2567,7 @@ input:-internal-autofill-selected{
 }
 
 .webops-header__title {
+    margin: 0;
     font-size: var(--webops-font-size-xl);
     font-weight: var(--webops-font-weight-semibold);
     color: var(--webops-color-text-primary);
@@ -4041,7 +4043,6 @@ input:-internal-autofill-selected{
 }
 
 .login-page .webops-input:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
     background: var(--webops-color-surface-hover);
@@ -4932,7 +4933,6 @@ input:-internal-autofill-selected{
 }
 
 .webops-settings-form .webops-form-control:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
     background: var(--webops-color-surface-hover);

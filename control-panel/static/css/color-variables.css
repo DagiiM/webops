@@ -289,7 +289,8 @@
 
 /* Focus State Utilities */
 .webops-focus-primary:focus { 
-    outline: none;
+    outline: 2px solid var(--webops-color-primary);
+    outline-offset: 2px;
     box-shadow: none;
 }
 

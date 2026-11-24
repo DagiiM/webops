@@ -1,0 +1,114 @@
+/* Moved from templates/core/google_oauth_config.html (ui-skill rule 17: no inline <style>). */
+/* OAuth Status Box Styles */
+.webops-oauth-config__status-box {
+    background: var(--card-background);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: none;
+}
+
+.webops-oauth-config__status-box--success {
+    border-color: var(--success-color, #10b981);
+    background: var(--success-background, #f0fdf4);
+}
+
+.webops-oauth-config__status-box--warning {
+    border-color: var(--warning-color, #f59e0b);
+    background: var(--warning-background, #fffbeb);
+}
+
+.webops-oauth-config__status-box--info {
+    border-color: var(--info-color, #3b82f6);
+    background: var(--info-background, #eff6ff);
+}
+
+.webops-oauth-config__status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.webops-oauth-config__status-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.webops-oauth-config__status-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.webops-oauth-config__btn-test {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.webops-oauth-config__btn-test:hover {
+    background: var(--primary-hover);
+    transform: none;
+}
+
+.webops-oauth-config__status-details {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.webops-oauth-config__status-details p {
+    margin: 0.5rem 0;
+}
+
+.webops-oauth-config__status-details code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.8rem;
+}
+
+.webops-oauth-config__label-status {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--success-color, #10b981);
+    font-weight: 500;
+}
+
+.webops-oauth-config__info-text {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .webops-oauth-config__status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .webops-oauth-config__status-actions {
+        width: 100%;
+    }
+
+    .webops-oauth-config__btn-test {
+        width: 100%;
+        justify-content: center;
+    }
+}

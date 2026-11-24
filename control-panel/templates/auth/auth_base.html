@@ -8,11 +8,9 @@
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88' aria-hidden="true" focusable="false"><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
     {% endif %}
 
-    <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
 
     <!-- Core CSS -->
     <link rel="stylesheet" href="{% static 'css/variables.css' %}">
@@ -25,311 +23,21 @@
     <link rel="stylesheet" href="{% static 'css/toast.css' %}">
 
     <!-- Dynamic branding variables -->
-    <style>
-        {{ branding.generate_css_variables|safe }}
-    </style>
+    <link rel="stylesheet" href="{% url 'branding_css' %}">
 
-    <style>
-        /* Auth page specific styles */
-        .auth-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--webops-color-bg-primary);
-            position: relative;
-        }
-
-        .auth-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 2rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        .webops-theme-switcher {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            z-index: 100;
-        }
-
-        /* Enhanced Form Styles */
-        .auth-form-group {
-            position: relative;
-            margin-bottom: var(--webops-space-4);
-        }
-
-        .auth-input-wrapper {
-            position: relative;
-        }
-
-        .auth-input {
-            width: 100%;
-            padding: var(--webops-space-3);
-            padding-right: var(--webops-space-6);
-            background: var(--webops-color-surface);
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            border-radius: var(--webops-radius-md);
-            color: var(--webops-color-text-primary);
-            font-size: var(--webops-font-size-base);
-            transition: none;
-        }
-
-        .auth-input::placeholder {
-            color: var(--webops-color-text-tertiary);
-            opacity: 0.6;
-        }
-
-        .auth-input:focus {
-            outline: none;
-            border-color: var(--webops-color-primary);
-            box-shadow: none;
-            background: var(--webops-color-bg-elevated);
-        }
-
-        .auth-input:focus + .auth-input-icon {
-            color: var(--webops-color-primary);
-        }
-
-        .auth-input.valid {
-            border-color: var(--webops-color-success);
-            padding-right: var(--webops-space-6);
-        }
-
-        .auth-input.invalid {
-            border-color: var(--webops-color-error);
-            padding-right: var(--webops-space-6);
-        }
-
-        .auth-input-icon {
-            position: absolute;
-            right: var(--webops-space-3);
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--webops-color-text-tertiary);
-            pointer-events: none;
-            transition: none;
-            font-size: 20px;
-        }
-
-        .auth-input-icon.success {
-            color: var(--webops-color-success);
-        }
-
-        .auth-input-icon.error {
-            color: var(--webops-color-error);
-        }
-
-        .auth-feedback {
-            display: flex;
-            align-items: center;
-            gap: var(--webops-space-1);
-            margin-top: var(--webops-space-1);
-            font-size: var(--webops-font-size-sm);
-            opacity: 0;
-            transform: none;
-            transition: none;
-        }
-
-        .auth-feedback.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .auth-feedback.error {
-            color: var(--webops-color-error);
-        }
-
-        .auth-feedback.success {
-            color: var(--webops-color-success);
-        }
-
-        .auth-feedback.info {
-            color: var(--webops-color-info);
-        }
-
-        .auth-feedback .material-icons {
-            font-size: 16px;
-        }
-
-        /* Password Strength Meter */
-        .password-strength {
-            margin-top: var(--webops-space-2);
-        }
-
-        .password-strength-label {
-            font-size: var(--webops-font-size-sm);
-            color: var(--webops-color-text-secondary);
-            margin-bottom: var(--webops-space-1);
-        }
-
-        .password-strength-bar {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: var(--webops-radius-full);
-            overflow: hidden;
-        }
-
-        .password-strength-fill {
-            height: 100%;
-            width: 0%;
-            transition: none;
-            border-radius: var(--webops-radius-full);
-        }
-
-        .password-strength-fill.weak {
-            width: 33%;
-            background: var(--webops-color-error);
-        }
-
-        .password-strength-fill.medium {
-            width: 66%;
-            background: var(--webops-color-warning);
-        }
-
-        .password-strength-fill.strong {
-            width: 100%;
-            background: var(--webops-color-success);
-        }
-
-        .password-requirements {
-            margin-top: var(--webops-space-2);
-            padding: var(--webops-space-3);
-            background: rgba(0, 255, 136, 0.05);
-            border-radius: var(--webops-radius-md);
-            border: 1px solid rgba(0, 255, 136, 0.1);
-        }
-
-        .password-requirement {
-            display: flex;
-            align-items: center;
-            gap: var(--webops-space-1-5);
-            font-size: var(--webops-font-size-sm);
-            color: var(--webops-color-text-secondary);
-            margin-bottom: var(--webops-space-1);
-        }
-
-        .password-requirement:last-child {
-            margin-bottom: 0;
-        }
-
-        .password-requirement .material-icons {
-            font-size: 16px;
-            color: var(--webops-color-text-tertiary);
-        }
-
-        .password-requirement.met .material-icons {
-            color: var(--webops-color-success);
-        }
-
-        .password-requirement.met {
-            color: var(--webops-color-success);
-        }
-
-        /* Toggle Password Visibility */
-        .password-toggle {
-            position: absolute;
-            right: var(--webops-space-3);
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: var(--webops-color-text-tertiary);
-            cursor: pointer;
-            padding: var(--webops-space-1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--webops-radius-sm);
-            transition: none;
-        }
-
-        .password-toggle:hover {
-            color: var(--webops-color-primary);
-            background: rgba(0, 255, 136, 0.1);
-        }
-
-        .password-toggle .material-icons {
-            font-size: 20px;
-        }
-
-        /* Loading State */
-        .auth-btn-loading {
-            position: relative;
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .auth-btn-loading::after {
-            content: "";
-            position: absolute;
-            right: var(--webops-space-3);
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            border: 2px solid currentColor;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: none;
-        }
-
-        @keyframes spin {
-            to { transform: translateY(-50%) rotate(360deg); }
-        }
-
-        /* Alert Messages */
-        .auth-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--webops-space-2);
-            padding: var(--webops-space-3);
-            border-radius: var(--webops-radius-md);
-            margin-bottom: var(--webops-space-4);
-            animation: none;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: none;
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .auth-alert-error {
-            background: rgba(255, 68, 68, 0.1);
-            border-left: 4px solid var(--webops-color-error);
-            color: var(--webops-color-error);
-        }
-
-        .auth-alert-success {
-            background: rgba(0, 255, 136, 0.1);
-            border-left: 4px solid var(--webops-color-success);
-            color: var(--webops-color-success);
-        }
-
-        .auth-alert-info {
-            background: rgba(0, 170, 255, 0.1);
-            border-left: 4px solid var(--webops-color-info);
-            color: var(--webops-color-info);
-        }
-
-        .auth-alert .material-icons {
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        {% block extra_styles %}{% endblock %}
-    </style>
+    <link rel="stylesheet" href="{% static 'css/pages/auth-auth_base.css' %}">
+    {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-states.css' %}">
+    <link rel="stylesheet" href="{% static 'css/inline-extracted.css' %}">
+    <script src="{% static 'js/page-config.js' %}"></script>
+    <script src="{% static 'js/dynamic-style.js' %}"></script>
+    <script src="{% static 'js/ui-actions.js' %}"></script>
+    <script src="{% static 'js/icons.js' %}"></script>
 </head>
 <body class="auth-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
     <!-- Theme Switcher -->
     <div class="webops-theme-switcher">
         <div class="theme-switcher-container">
@@ -370,16 +78,16 @@
     </div>
 
     <div class="webops-app-background"></div>
-    <div class="auth-container">
-        <div class="webops-card" style="max-width: {% block card_max_width %}420px{% endblock %}; margin: 0 auto;">
+    <main class="auth-container" id="main" tabindex="-1">
+        <div class="webops-card webops-auth-card {% block card_width_class %}{% endblock %}">
             <div class="webops-card-body">
-                <h1 class="webops-h1" style="text-align: center; margin-bottom: var(--webops-space-0-5);">{{ branding.site_name }}</h1>
+                <h1 class="webops-h1 webops-s-f71b564">{{ branding.site_name }}</h1>
                 <h2 class="webops-h3 webops-text-center webops-text-secondary webops-mb-lg">{% block page_title %}{% endblock %}</h2>
 
                 {% block content %}{% endblock %}
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Theme JavaScript -->
     <script src="{% static 'js/dynamic-theme-loader.js' %}"></script>

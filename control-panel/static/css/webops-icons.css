@@ -1,0 +1,28 @@
+/* Local icon set (static/js/icons.js). Replaces the Google Fonts "Material Icons" font:
+   ui-skill rule 17, no third-party requests. The icon box keeps the font-size it always had. */
+.material-icons,
+.webops-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    vertical-align: middle;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Until the script has swapped the ligature name for an SVG, show nothing (not the raw word). */
+.material-icons:not([data-icon]) {
+    color: transparent;
+    user-select: none;
+}
+
+.webops-icon__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+@media (forced-colors: active) {
+    .webops-icon__svg { forced-color-adjust: auto; }
+}

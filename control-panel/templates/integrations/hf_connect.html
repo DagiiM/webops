@@ -4,58 +4,58 @@
 {% block header_title %}Connect Hugging Face{% endblock %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 0 auto;">
-    <div style="text-align: center; margin-bottom: var(--webops-space-3);">
-        <div style="width: 64px; height: 64px; border-radius: var(--webops-radius-lg); background: #ffbe00; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--webops-space-3);">
-            <span class="material-icons" style="font-size: 36px; color: white;">hub</span>
+<div class="webops-s-ffe0797">
+    <div class="webops-s-4056f28">
+        <div class="webops-s-3091b24">
+            <span class="material-icons webops-s-825120f">hub</span>
         </div>
-        <h1 style="font-size: var(--webops-font-size-3xl); font-weight: var(--webops-font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-1-5);">
+        <h2 class="webops-s-7f339d7">
             Connect Hugging Face
-        </h1>
-        <p style="color: var(--webops-color-text-secondary);">
+        </h2>
+        <p class="webops-s-c005e4e">
             Enter your Hugging Face API token to enable model deployment
         </p>
     </div>
 
-    <form method="post" style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
+    <form method="post" class="webops-s-0d1d87a">
         {% csrf_token %}
 
-        <div style="margin-bottom: var(--webops-space-3);">
-            <label for="token" style="display: block; margin-bottom: var(--webops-space-1-5); font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
-                API Token <span style="color: var(--webops-color-error);">*</span>
+        <div class="webops-s-74c7834">
+            <label for="token" class="webops-s-1a279c4">
+                API Token <span class="webops-s-cab2384">*</span>
             </label>
             <input type="password" id="token" name="token" required
-                   style="width: 100%; padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-radius-md); color: var(--webops-color-text-primary); font-family: 'Courier New', monospace;"
+                   class="webops-s-da604c8"
                    placeholder="hf_...">
-            <small style="display: block; margin-top: var(--webops-space-0-5); color: var(--webops-color-text-tertiary);">
-                Get your token from <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: var(--webops-color-primary);">huggingface.co/settings/tokens</a>
+            <small class="webops-s-f521f59">
+                Get your token from <a href="https://huggingface.co/settings/tokens" target="_blank" class="webops-s-d8eb29e">huggingface.co/settings/tokens</a>
             </small>
         </div>
 
-        <div style="margin-bottom: var(--webops-space-3);">
-            <label for="token_type" style="display: block; margin-bottom: var(--webops-space-1-5); font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary);">
+        <div class="webops-s-74c7834">
+            <label for="token_type" class="webops-s-1a279c4">
                 Token Type
             </label>
             <select id="token_type" name="token_type"
-                    style="width: 100%; padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-radius-md); color: var(--webops-color-text-primary);">
+                    class="webops-s-80680cb">
                 <option value="read">Read (Recommended)</option>
                 <option value="write">Write</option>
                 <option value="fine-grained">Fine-grained</option>
             </select>
-            <small style="display: block; margin-top: var(--webops-space-0-5); color: var(--webops-color-text-tertiary);">
+            <small class="webops-s-f521f59">
                 Read tokens are sufficient for deploying models
             </small>
         </div>
 
-        <div style="background: rgba(0, 170, 255, 0.1); border: 1px solid rgba(0, 170, 255, 0.3); border-radius: var(--webops-radius-md); padding: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
-            <div style="display: flex; gap: var(--webops-space-1-5); align-items: flex-start;">
-                <span class="material-icons" style="color: var(--webops-color-info); font-size: 20px;">info</span>
+        <div class="webops-s-f49f0e6">
+            <div class="webops-s-cf9c173">
+                <span class="material-icons webops-s-6b77ebc">info</span>
                 <div>
-                    <strong style="color: var(--webops-color-text-primary);">Token Permissions</strong>
-                    <p style="margin-top: var(--webops-space-0-5); color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-sm); line-height: 1.6;">
+                    <strong class="webops-s-62105ae">Token Permissions</strong>
+                    <p class="webops-s-f1b3ec6">
                         Your token is encrypted and stored securely. It enables:
                     </p>
-                    <ul style="margin: var(--webops-space-1-5) 0 0 var(--webops-space-3); color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-sm);">
+                    <ul class="webops-s-6e8477b">
                         <li>Downloading public and private models</li>
                         <li>Accessing your model library</li>
                         <li>Deploying models with vLLM</li>
@@ -64,13 +64,13 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: var(--webops-space-3);">
+        <div class="webops-s-8ca34cb">
             <a href="{% url 'integrations_dashboard' %}"
-               style="flex: 1; text-align: center; padding: var(--webops-space-3); background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--webops-radius-md); color: var(--webops-color-text-secondary); text-decoration: none; transition: none;">
+               class="webops-s-c6a6cbb">
                 Cancel
             </a>
             <button type="submit"
-                    style="flex: 2; padding: var(--webops-space-3); background: var(--webops-color-primary); border: none; border-radius: var(--webops-radius-md); color: var(--webops-color-bg-primary); font-weight: var(--font-weight-semibold); cursor: pointer; transition: none;">
+                    class="webops-s-01c7a8c">
                 Connect Account
             </button>
         </div>

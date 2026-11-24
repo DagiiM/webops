@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Delete Token - WebOps{% endblock %}
+
+{% block header_title %}Delete API token{% endblock %}
 
 {% block content %}
 <div class="webops-page-header">
@@ -12,19 +15,19 @@
 </div>
 
 <!-- Warning Card -->
-<div class="webops-card webops-card--warning" style="max-width: 700px; margin: 0 auto;">
-    <div class="webops-card-header" style="background: var(--webops-color-error); color: white; border: none;">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 32px;">⚠️</span>
+<div class="webops-card webops-card--warning webops-s-19b8ad2">
+    <div class="webops-card-header webops-s-70f517c">
+        <div class="webops-s-bb9e8c0">
+            <span class="webops-s-8507053">⚠️</span>
             <div>
-                <h3 style="margin: 0; color: white;">Delete API Token</h3>
-                <p style="margin: 0.25rem 0 0 0; opacity: 0.9;">This action cannot be undone</p>
+                <h3 class="webops-s-a9dbd92">Delete API Token</h3>
+                <p class="webops-s-9ad418c">This action cannot be undone</p>
             </div>
         </div>
     </div>
     <div class="webops-card-body">
         <div class="webops-token-info">
-            <h4 style="margin-bottom: 1rem; color: var(--webops-color-text-primary);">Token Details</h4>
+            <h4 class="webops-s-f5696ea">Token Details</h4>
 
             <div class="webops-info-grid">
                 <div class="webops-info-row">
@@ -59,7 +62,7 @@
         </div>
 
         <div class="webops-impact-section">
-            <h4 style="margin-bottom: 1rem; color: var(--webops-color-error);">⚡ What Will Happen:</h4>
+            <h4 class="webops-s-c07c9e1">⚡ What Will Happen:</h4>
             <ul class="webops-impact-list">
                 <li>
                     <span class="webops-impact-icon">🔑</span>
@@ -104,7 +107,7 @@
                 <div class="webops-form-actions">
                     <button type="submit" class="webops-btn webops-btn-danger webops-btn-lg" id="delete-btn" disabled>
                         <span id="delete-text">🗑️ Delete Token</span>
-                        <span id="delete-loading" style="display: none;">⏳ Deleting...</span>
+                        <span id="delete-loading" class="webops-s-5790ffb">⏳ Deleting...</span>
                     </button>
                     <a href="{% url 'token_detail' token.pk %}" class="webops-btn webops-btn-outline webops-btn-lg">
                         ← Cancel
@@ -116,9 +119,9 @@
 </div>
 
 <!-- Alternative Action Card -->
-<div class="webops-card" style="max-width: 700px; margin: 2rem auto 0; border-left: 4px solid var(--primary);">
+<div class="webops-card webops-s-6be2ca4">
     <div class="webops-card-body">
-        <h4 style="margin-bottom: 1rem; color: var(--webops-color-primary);">💡 Consider Alternatives</h4>
+        <h4 class="webops-s-e830593">💡 Consider Alternatives</h4>
         <ul class="webops-help-list">
             <li>
                 <strong>Deactivate Instead:</strong> You can deactivate the token to temporarily block access without deleting it
@@ -131,8 +134,8 @@
             </li>
         </ul>
 
-        <div style="margin-top: 1.5rem;">
-            <form method="POST" action="{% url 'token_toggle' token.pk %}" style="display: inline;">
+        <div class="webops-s-1d30ad4">
+            <form method="POST" action="{% url 'token_toggle' token.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 {% if token.is_active %}
                     <button type="submit" class="webops-btn webops-btn--warning">⏸️ Deactivate Token Instead</button>
@@ -144,183 +147,7 @@
     </div>
 </div>
 
-<style>
-.webops-card--warning {
-    border: 3px solid var(--webops-color-error);
-    box-shadow: none;
-}
+<link rel="stylesheet" href="{% static 'css/pages/api-token_delete_confirm.css' %}">
 
-.webops-token-info {
-    padding: var(--webops-space-3);
-    background: var(--webops-color-background-secondary);
-    border-radius: var(--webops-radius-md);
-    margin-bottom: var(--webops-space-3);
-}
-
-.webops-info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-3);
-}
-
-.webops-info-row {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-3);
-}
-
-.webops-info-label {
-    font-weight: var(--webops-font-weight-semibold);
-    color: var(--webops-color-text-primary);
-    min-width: 100px;
-}
-
-.webops-info-value {
-    color: var(--webops-color-text-secondary);
-}
-
-.webops-impact-section {
-    padding: var(--webops-space-3);
-    background: var(--webops-color-error-lighter);
-    border-radius: var(--webops-radius-md);
-    border: 2px solid var(--webops-color-error-light);
-    margin-bottom: var(--webops-space-3);
-}
-
-.webops-impact-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.webops-impact-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--webops-space-3);
-    padding: var(--webops-space-3);
-    background: var(--webops-color-background);
-    border-radius: var(--webops-radius-md);
-    margin-bottom: var(--webops-space-3);
-    border: 1px solid var(--webops-color-error-light);
-}
-
-.webops-impact-list li:last-child {
-    margin-bottom: 0;
-}
-
-.webops-impact-icon {
-    font-size: 24px;
-    flex-shrink: 0;
-}
-
-.webops-confirmation-section {
-    padding-top: var(--webops-space-3);
-    border-top: 2px solid var(--webops-color-border);
-}
-
-.webops-checkbox-group {
-    margin-bottom: var(--webops-space-3);
-}
-
-.webops-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--webops-space-3);
-    cursor: pointer;
-    padding: var(--webops-space-3);
-    background: var(--webops-color-background-secondary);
-    border-radius: var(--webops-radius-md);
-    border: 2px solid var(--webops-color-border);
-    transition: none;
-}
-
-.webops-checkbox-label:hover {
-    background: var(--webops-color-background);
-    border-color: var(--webops-color-primary);
-}
-
-.webops-checkbox-label input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.webops-checkbox-text {
-    font-weight: var(--webops-font-weight-semibold);
-    color: var(--webops-color-text-primary);
-}
-
-.webops-form-actions {
-    display: flex;
-    gap: var(--webops-space-3);
-    flex-wrap: wrap;
-}
-
-.webops-btn-lg {
-    padding: var(--webops-space-3) var(--webops-space-3);
-    font-size: var(--webops-font-size-base);
-    font-weight: var(--webops-font-weight-semibold);
-}
-
-.webops-btn-danger {
-    background: var(--webops-color-error);
-    color: var(--webops-color-text-inverse);
-}
-
-.webops-btn-danger:hover:not(:disabled) {
-    background: var(--webops-color-error-dark);
-    transform: none;
-}
-
-.webops-btn-danger:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.webops-btn-outline {
-    background: transparent;
-    border: 2px solid var(--webops-color-border);
-    color: var(--webops-color-text-primary);
-}
-
-.webops-btn-outline:hover {
-    background: var(--webops-color-background-secondary);
-    border-color: var(--webops-color-border-hover);
-}
-
-.webops-help-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.webops-help-list li {
-    padding: var(--webops-space-3) 0;
-    border-bottom: 1px solid var(--webops-color-border);
-}
-
-.webops-help-list li:last-child {
-    border-bottom: none;
-}
-
-.webops-help-list strong {
-    color: var(--webops-color-text-primary);
-}
-</style>
-
-<script>
-const confirmCheckbox = document.getElementById('confirm-delete');
-const deleteButton = document.getElementById('delete-button');
-
-confirmCheckbox.addEventListener('change', function() {
-    deleteButton.disabled = !this.checked;
-});
-
-document.getElementById('delete-form').addEventListener('submit', function(e) {
-    if (!confirmCheckbox.checked) {
-        e.preventDefault();
-        alert('Please confirm that you understand the consequences of deleting this token.');
-    }
-});
-</script>
+<script src="{% static 'js/pages/api-token_delete_confirm.js' %}"></script>
 {% endblock %}

@@ -1,0 +1,97 @@
+/* Moved from templates/databases/dependencies.html (ui-skill rule 17: no inline <style>). */
+.webops-dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+.webops-dependency-item {
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    transition: none;
+}
+
+.webops-dependency-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: none;
+}
+
+.webops-dependency-item.installed {
+    border-color: var(--webops-color-success-alpha-20);
+    background: var(--webops-color-success-alpha-05);
+}
+
+.webops-dependency-command {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1-5);
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-sm);
+}
+
+.webops-addons-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-3);
+}
+
+.webops-addon-item {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-surface);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+    border-radius: var(--webops-radius-md);
+    transition: none;
+}
+
+.webops-addon-item:hover {
+    border-color: var(--webops-color-primary-alpha-20);
+    box-shadow: none;
+}
+
+.webops-addon-checkbox {
+    position: relative;
+}
+
+.webops-addon-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--webops-color-primary);
+}
+
+.webops-addon-checkbox label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.webops-install-result {
+    padding: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-install-result.success {
+    background: var(--webops-color-success-alpha-10);
+    border-left: 4px solid var(--webops-color-success);
+}
+
+.webops-install-result.error {
+    background: var(--webops-color-error-alpha-10);
+    border-left: 4px solid var(--webops-color-error);
+}
+
+.webops-install-error {
+    margin-top: var(--webops-space-1-5);
+    padding: var(--webops-space-1-5);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-sm);
+    overflow-x: auto;
+}

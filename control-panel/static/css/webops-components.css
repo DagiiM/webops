@@ -207,7 +207,6 @@
 .webops-input:focus,
 .webops-select:focus,
 .webops-textarea:focus {
-  outline: none;
   border-color: var(--webops-color-primary);
   box-shadow: none;
 }

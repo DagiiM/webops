@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Create Workflow - WebOps{% endblock %}
 {% block header_title %}Automation{% endblock %}
 
@@ -88,7 +89,7 @@
                 <div class="template-footer">
                     <div class="template-stats">
                         <span class="webops-text-sm webops-text-secondary">
-                            <span class="material-icons" style="font-size: 16px;">people</span>
+                            <span class="material-icons webops-s-7da4e82">people</span>
                             {{ template.usage_count }} uses
                         </span>
                         {% if template.is_official %}
@@ -117,72 +118,5 @@
 </div>
 {% endif %}
 
-<style>
-.template-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.template-card {
-    border: 1px solid var(--webops-color-border);
-    border-radius: var(--webops-radius-md);
-    padding: 1.25rem;
-    background: var(--webops-color-bg-primary);
-    transition: none;
-}
-
-.template-card:hover {
-    border-color: var(--webops-color-primary);
-    box-shadow: none;
-    transform: none;
-}
-
-.template-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.75rem;
-}
-
-.template-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--webops-color-text-primary);
-}
-
-.template-description {
-    color: var(--webops-color-text-secondary);
-    font-size: 0.875rem;
-    margin-bottom: 1rem;
-    line-height: 1.5;
-}
-
-.template-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--webops-color-border);
-}
-
-.template-stats {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.inline-form {
-    display: inline-block;
-    margin: 0;
-}
-
-@media (max-width: 768px) {
-    .template-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/automation-workflow_create.css' %}">
 {% endblock %}

@@ -1,10 +1,16 @@
-/* WebOps flat visual contract. No decorative motion or elevation. */
+/* WebOps flat visual contract. No decorative elevation; motion is purposeful and
+   disabled entirely when the user prefers reduced motion. */
 html, html *, html *::before, html *::after {
     box-shadow: none !important;
     text-shadow: none !important;
-    transition: none !important;
-    animation: none !important;
-    scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+    html, html *, html *::before, html *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
 }
 .webops-btn:hover, .webops-btn:active, .webops-card:hover,
 .webops-nav-item:hover, .webops-palette-node:hover {

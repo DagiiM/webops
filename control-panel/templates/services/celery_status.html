@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Celery Management - WebOps{% endblock %}
 {% block header_title %}Celery Management{% endblock %}
 
@@ -10,11 +11,11 @@
         <p class="webops-text-muted">Monitor and manage background task workers</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
-        <button onclick="refreshStatus()" class="webops-btn webops-btn-info">
+        <button data-on-click="refreshStatus()" class="webops-btn webops-btn-info">
             <span class="material-icons">refresh</span>
             Refresh
         </button>
@@ -24,7 +25,7 @@
 <!-- Celery Health Overview -->
 <div class="webops-stats-grid webops-mb-lg">
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba({% if worker_status.healthy %}0, 255, 136{% else %}255, 68, 68{% endif %}, 0.1); color: var(--webops-color-{% if worker_status.healthy %}success{% else %}error{% endif %});">
+        <div class="webops-stat-icon {% if worker_status.healthy %}webops-bg-tint-success webops-fg-success{% else %}webops-bg-tint-error webops-fg-error{% endif %}">
             <span class="material-icons">{{ worker_status.healthy|yesno:"check_circle,cancel" }}</span>
         </div>
         <div class="webops-stat-value">{{ worker_status.healthy|yesno:"Healthy,Unhealthy" }}</div>
@@ -32,7 +33,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+        <div class="webops-stat-icon webops-s-31e84b7">
             <span class="material-icons">group</span>
         </div>
         <div class="webops-stat-value">{{ worker_status.worker_count }}</div>
@@ -40,7 +41,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(255, 170, 0, 0.1); color: var(--webops-color-warning);">
+        <div class="webops-stat-icon webops-s-5651be3">
             <span class="material-icons">schedule</span>
         </div>
         <div class="webops-stat-value">{{ worker_status.beat_running|yesno:"Running,Stopped" }}</div>
@@ -48,7 +49,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+        <div class="webops-stat-icon webops-s-3b11233">
             <span class="material-icons">task</span>
         </div>
         <div class="webops-stat-value">{{ worker_status.scheduled_tasks|length|default:0 }}</div>
@@ -98,7 +99,7 @@
                     <td>{{ worker.concurrency|default:4 }}</td>
                     <td>
                         <div class="webops-btn-group">
-                            <button onclick="inspectWorker('{{ worker.name }}')"
+                            <button data-on-click="inspectWorker('{{ worker.name }}')"
                                     class="webops-btn webops-btn-xs webops-btn-info"
                                     title="Inspect">
                                 <span class="material-icons">visibility</span>
@@ -112,7 +113,7 @@
     </div>
     {% else %}
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">error_outline</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">error_outline</span>
         <h3 class="webops-empty-state-title">No workers detected</h3>
         <p class="webops-empty-state-description">Start Celery workers to process background tasks</p>
         <div class="webops-code-block webops-mt-md">
@@ -172,7 +173,7 @@
     </div>
     {% else %}
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">schedule</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">schedule</span>
         <h3 class="webops-empty-state-title">No scheduled tasks</h3>
         <p class="webops-empty-state-description">Configure periodic tasks in celery_app.py</p>
     </div>
@@ -187,22 +188,22 @@
     </div>
     <div class="webops-card-body">
         <div class="webops-grid webops-grid-4">
-            <div class="webops-text-center webops-p-md" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md);">
+            <div class="webops-text-center webops-p-md webops-s-d0963fe">
                 <div class="webops-text-2xl webops-font-bold">{{ queue_stats.pending|default:0 }}</div>
                 <div class="webops-text-sm webops-text-secondary">Pending Tasks</div>
             </div>
 
-            <div class="webops-text-center webops-p-md" style="background: rgba(255, 170, 0, 0.1); border-radius: var(--webops-radius-md);">
+            <div class="webops-text-center webops-p-md webops-s-aca0584">
                 <div class="webops-text-2xl webops-font-bold">{{ queue_stats.active|default:0 }}</div>
                 <div class="webops-text-sm webops-text-secondary">Active Tasks</div>
             </div>
 
-            <div class="webops-text-center webops-p-md" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md);">
+            <div class="webops-text-center webops-p-md webops-s-d1187f1">
                 <div class="webops-text-2xl webops-font-bold webops-text-success">{{ queue_stats.completed_24h|default:0 }}</div>
                 <div class="webops-text-sm webops-text-secondary">Completed (24h)</div>
             </div>
 
-            <div class="webops-text-center webops-p-md" style="background: rgba(255, 68, 68, 0.1); border-radius: var(--webops-radius-md);">
+            <div class="webops-text-center webops-p-md webops-s-3566339">
                 <div class="webops-text-2xl webops-font-bold webops-text-error">{{ queue_stats.failed_24h|default:0 }}</div>
                 <div class="webops-text-sm webops-text-secondary">Failed (24h)</div>
             </div>
@@ -275,91 +276,15 @@
     </div>
     {% else %}
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">inbox</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">inbox</span>
         <h3 class="webops-empty-state-title">No recent task executions</h3>
         <p class="webops-empty-state-description">Task history will appear here once tasks start running</p>
     </div>
     {% endif %}
 </div>
 
-<script>
-function refreshStatus() {
-    location.reload();
-}
+<div id="page-config" hidden data-url-inspect="{% url 'monitoring:api_celery_inspect' %}"></div>
+<script src="{% static 'js/pages/services-celery_status.js' %}"></script>
 
-function inspectWorker(workerName) {
-    fetch(`{% url 'monitoring:api_celery_inspect' %}?worker=${workerName}`, {
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        let info = `Worker: ${workerName}\n\n`;
-        info += `Active Tasks: ${data.active || 0}\n`;
-        info += `Scheduled: ${data.scheduled || 0}\n`;
-        info += `Reserved: ${data.reserved || 0}\n`;
-        info += `\nConfiguration:\n`;
-        info += JSON.stringify(data.config, null, 2);
-
-        alert(info);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to inspect worker');
-    });
-}
-
-// Auto-refresh every 30 seconds
-let refreshInterval;
-
-document.addEventListener('DOMContentLoaded', () => {
-    refreshInterval = setInterval(() => {
-        console.log('Auto-refreshing Celery status...');
-        refreshStatus();
-    }, 30000);
-});
-
-window.addEventListener('beforeunload', () => {
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-    }
-});
-</script>
-
-<style>
-.webops-btn-group {
-    display: flex;
-    gap: 0.25rem;
-}
-
-.webops-icon-xs {
-    font-size: 14px;
-}
-
-.webops-code-block {
-    background: var(--webops-color-bg-secondary);
-    padding: 1rem;
-    border-radius: var(--webops-radius-md);
-    border: 1px solid var(--webops-color-border);
-}
-
-.webops-grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-
-@media (max-width: 768px) {
-    .webops-grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .webops-grid-4 {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/services-celery_status.css' %}">
 {% endblock %}

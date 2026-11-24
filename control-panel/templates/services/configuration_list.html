@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Configuration - WebOps{% endblock %}
 {% block header_title %}Configuration{% endblock %}
 
@@ -10,11 +11,11 @@
         <p class="webops-text-muted">Manage monitoring intervals, thresholds, and system settings</p>
     </div>
     <div class="webops-flex webops-gap-sm">
-        <button onclick="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
+        <button data-on-click="location.href='{% url 'monitoring:service_control_dashboard' %}'" class="webops-btn webops-btn-secondary">
             <span class="material-icons">arrow_back</span>
             Back to Control
         </button>
-        <button onclick="resetToDefaults()" class="webops-btn webops-btn-warning">
+        <button data-on-click="resetToDefaults()" class="webops-btn webops-btn-warning">
             <span class="material-icons">restore</span>
             Reset to Defaults
         </button>
@@ -252,53 +253,8 @@
     </div>
 </div>
 
-<script>
-function resetToDefaults() {
-    if (!confirm('Reset all configuration to default values? This cannot be undone.')) {
-        return;
-    }
+<div id="page-config" hidden data-url-reset-all='{% url "monitoring:configuration_reset_all" %}'></div>
+<script src="{% static 'js/pages/services-configuration_list.js' %}"></script>
 
-    fetch('{% url "monitoring:configuration_reset_all" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Configuration reset to defaults successfully!');
-            window.location.reload();
-        } else {
-            alert('Failed to reset configuration: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to reset configuration');
-    });
-}
-</script>
-
-<style>
-.webops-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.webops-grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
-
-@media (max-width: 768px) {
-    .webops-grid-2,
-    .webops-grid-3 {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/services-configuration_list.css' %}">
 {% endblock %}

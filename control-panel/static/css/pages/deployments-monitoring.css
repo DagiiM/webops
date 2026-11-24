@@ -1,0 +1,158 @@
+/* Moved from templates/deployments/monitoring.html (ui-skill rule 17: no inline <style>). */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--webops-space-3);
+    margin-bottom: var(--webops-space-3);
+}
+
+.metric-card {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    box-shadow: none;
+}
+
+.metric-label {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-0-5);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--webops-color-text-primary);
+}
+
+.metric-unit {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--webops-color-text-secondary);
+    margin-left: 0.25rem;
+}
+
+.health-checks-section {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    box-shadow: none;
+    margin-bottom: var(--webops-space-3);
+}
+
+.health-check-item {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.health-check-item:last-child {
+    border-bottom: none;
+}
+
+.health-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.health-icon.healthy {
+    background: var(--color-success-light);
+    color: var(--color-success-dark);
+}
+
+.health-icon.unhealthy {
+    background: var(--color-danger-light);
+    color: var(--color-danger-dark);
+}
+
+.health-check-label {
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    min-width: 120px;
+}
+
+.health-check-details {
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.chart-container {
+    background: var(--webops-color-surface);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+    box-shadow: none;
+    margin-bottom: var(--webops-space-3);
+    height: 350px;
+}
+
+.chart-title {
+    font-size: var(--webops-font-size-sm);
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-3);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    text-align: left;
+    padding: var(--webops-space-3);
+    background: var(--color-background-secondary);
+    font-weight: 600;
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.history-table td {
+    padding: var(--webops-space-3);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--webops-font-size-sm);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: var(--webops-space-0-5);
+}
+
+.status-dot.healthy {
+    background: var(--webops-color-success);
+}
+
+.status-dot.unhealthy {
+    background: var(--color-danger);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--webops-space-3xl);
+    color: var(--webops-color-text-secondary);
+}
+
+.loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--webops-color-primary);
+    border-radius: 50%;
+    animation: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

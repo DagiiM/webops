@@ -1,0 +1,39 @@
+/* Moved from templates/automation/execution_list.html (ui-skill rule 17: no inline <style>). */
+.webops-form--inline {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-progress {
+    width: 100%;
+    height: 4px;
+    background-color: var(--webops-color-bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.webops-progress-bar {
+    height: 100%;
+    background-color: var(--webops-color-primary);
+    transition: none;
+}
+
+.webops-grid--cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .webops-grid--cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-grid--cols-4 {
+        grid-template-columns: 1fr;
+    }
+}

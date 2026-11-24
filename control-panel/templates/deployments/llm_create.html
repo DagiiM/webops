@@ -40,12 +40,12 @@
                 <small class="webops-input-help">Hugging Face model ID (e.g., gpt2, meta-llama/Llama-2-7b-hf)</small>
             </div>
 
-            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 255, 136, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-success);">
-                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
-                    <span class="material-icons webops-text-success" style="font-size: 20px;">link</span>
+            <div class="webops-p-md webops-mb-lg webops-s-8ef9d40">
+                <div class="webops-flex webops-gap-sm webops-s-714f345">
+                    <span class="material-icons webops-text-success webops-s-b39dc14">link</span>
                     <div class="webops-text-sm">
                         <strong class="webops-font-semibold">Need access to private models?</strong>
-                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                        <p class="webops-text-secondary webops-s-9a9e62c">
                             Connect your Hugging Face account in <a href="{% url 'integrations_dashboard' %}" class="webops-text-primary">Integrations</a> to deploy private models.
                         </p>
                     </div>
@@ -99,16 +99,16 @@
                 <small class="webops-input-help">Override model's maximum context length (leave empty for auto)</small>
             </div>
 
-            <div class="webops-p-md webops-mb-lg" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
-                <div class="webops-flex webops-gap-sm" style="align-items: flex-start;">
-                    <span class="material-icons webops-text-info" style="font-size: 20px;">info</span>
+            <div class="webops-p-md webops-mb-lg webops-s-dac9fb0">
+                <div class="webops-flex webops-gap-sm webops-s-714f345">
+                    <span class="material-icons webops-text-info webops-s-b39dc14">info</span>
                     <div class="webops-text-sm">
                         <strong class="webops-font-semibold">Deployment Process</strong>
-                        <p class="webops-text-secondary" style="margin: 4px 0 0 0;">
+                        <p class="webops-text-secondary webops-s-9a9e62c">
                             The deployment will download the model from Hugging Face, set up vLLM environment, and start the inference server.
                             This may take several minutes depending on model size. You can monitor progress in the deployment details page.
                         </p>
-                        <p class="webops-text-secondary" style="margin: 8px 0 0 0;">
+                        <p class="webops-text-secondary webops-s-a8c5490">
                             <strong>Note:</strong> vLLM requires GPU access. Ensure your system has available GPU resources.
                         </p>
                     </div>
@@ -219,9 +219,5 @@
 <script src="{% static 'js/llm-detection-preview.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/llm-detection-preview.css' %}">
 
-<script>
-document.getElementById('llmForm').addEventListener('submit', function() {
-    showLoader();
-});
-</script>
+<script src="{% static 'js/pages/deployments-llm_create.js' %}"></script>
 {% endblock %}

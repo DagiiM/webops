@@ -1,0 +1,37 @@
+/* Moved from templates/auth/two_factor_verify.html (ui-skill rule 17: no inline <style>). */
+.code-input {
+    font-family: var(--webops-font-family-mono);
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.backup-code-input {
+    font-family: var(--webops-font-family-mono);
+    text-transform: uppercase;
+}
+
+.auth-details {
+    margin-top: var(--webops-space-1);
+}
+
+.auth-details summary {
+    cursor: pointer;
+    user-select: none;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    transition: none;
+}
+
+.auth-details summary:hover {
+    color: var(--webops-color-primary);
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.auth-details[open] summary {
+    margin-bottom: var(--webops-space-2);
+    color: var(--webops-color-primary);
+}

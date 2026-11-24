@@ -9,11 +9,15 @@ from django.urls import path, include
 from django.shortcuts import render
 from apps.deployments import views as deployment_views
 from apps.core.webhooks import views as webhook_views
+from apps.core.branding import views as branding_views
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Branding design tokens as a stylesheet (public: sign-in and error pages use it)
+    path('branding.css', branding_views.branding_css, name='branding_css'),
 
     
 
