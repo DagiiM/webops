@@ -10,10 +10,16 @@
         <h2 class="webops-page-title">LLM Models</h2>
         <p class="webops-text-muted">Deploy and manage Large Language Models with vLLM</p>
     </div>
-    <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-primary">
-        <span class="material-icons">add</span>
-        Deploy LLM Model
-    </a>
+    <div class="webops-header-actions">
+        <a href="{% url 'llm_keys' %}" class="webops-btn">
+            <span class="material-icons">vpn_key</span>
+            API keys
+        </a>
+        <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-primary">
+            <span class="material-icons">add</span>
+            Deploy LLM Model
+        </a>
+    </div>
 </div>
 
 <div class="webops-card">

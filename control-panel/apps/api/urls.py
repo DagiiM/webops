@@ -1,12 +1,17 @@
 """URL configuration for API app."""
 
 from django.urls import path
-from . import views, token_views, doc_views, mcp_views
+from . import views, token_views, doc_views, mcp_views, llm_public
 
 urlpatterns = [
     path('mcp/', mcp_views.mcp_endpoint, name='mcp_endpoint'),
     path('mcp/access/', mcp_views.mcp_access, name='mcp_access'),
     path('mcp/access/<int:pk>/revoke/', mcp_views.mcp_revoke, name='mcp_revoke'),
+    # Public LLM inference API (inference-only key) and key management
+    path('llm/v1/models', llm_public.models_view, name='llm_public_models'),
+    path('llm/v1/completions', llm_public.completions_view, name='llm_public_completions'),
+    path('llm/keys/', llm_public.keys_view, name='llm_keys'),
+    path('llm/keys/<int:pk>/revoke/', llm_public.key_revoke, name='llm_key_revoke'),
     # API Documentation
     path('docs/', doc_views.api_documentation, name='api_docs'),
     path('docs/data/', doc_views.api_documentation_data, name='api_docs_data'),

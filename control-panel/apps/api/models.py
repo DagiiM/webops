@@ -64,3 +64,25 @@ class MCPAccessToken(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class LLMAccessKey(models.Model):
+    """Dedicated, hashed, inference-only key for the public LLM API.
+
+    Unlike APIToken it can only call /api/llm/v1/ (list models, run bounded completions on the
+    owner's own running reviewed CPU models). It is never accepted by the REST API, MCP or the UI,
+    so a leaked key cannot manage deployments. Only a SHA-256 digest is stored; the key is shown once.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="llm_keys")
+    name = models.CharField(max_length=100)
+    digest = models.CharField(max_length=64, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    last_used = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.user.username})"

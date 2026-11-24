@@ -1,5 +1,4 @@
 /* Deployments list. Classes only: the panel runs under a strict CSP (no style attributes). */
-.ui-panel--spaced { margin-bottom: var(--ui-gap); }
 .ui-panel__search { max-width: 20rem; }
 .ui-empty--flush { padding-bottom: 0; }
 .ui-need--row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--webops-space-2) var(--webops-space-4); }

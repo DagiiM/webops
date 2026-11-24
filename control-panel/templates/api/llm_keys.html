@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}LLM API keys - {{ branding.site_name }}{% endblock %}
+{% block header_title %}LLM API keys{% endblock %}
+{% block content %}
+<div class="webops-page-header">
+    <div>
+        <h2 class="webops-page-title">LLM API keys</h2>
+        <p class="webops-text-muted">Call your running CPU models from anywhere with a key. A key can only run completions; it cannot manage deployments.</p>
+    </div>
+    <a href="{% url 'deployments:llm_list' %}" class="webops-btn">Back to LLM models</a>
+</div>
+
+{% if error %}<div class="webops-alert webops-alert-error" role="alert">{{ error }}</div>{% endif %}
+{# A dedicated element, not .webops-alert: toast.js converts every .webops-alert to a toast and hides it, which would hide the one-time key. #}
+{% if issued %}
+<section class="ui-secret" role="status" aria-labelledby="secret-h">
+    <h3 class="ui-secret__title" id="secret-h">Copy your new key now. It cannot be shown again.</h3>
+    <input class="webops-input ui-secret__value" type="text" readonly value="{{ issued }}" aria-label="New LLM API key" autocomplete="off" spellcheck="false">
+    <p class="webops-help-text">Keep it in a secret store. Never paste it into a public repository or chat.</p>
+</section>
+{% endif %}
+
+<section class="ui-panel ui-panel--spaced" aria-labelledby="use-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="use-h">How to call it</h3></div>
+    <div class="webops-card-body">
+        <p>Base URL: <code>{{ base_url }}</code>. Endpoints: <code>GET /models</code> and <code>POST /completions</code> (text completions, up to 128 tokens, prompts up to 4096 characters, no streaming).</p>
+        {% if models %}<p>Models available now: {% for m in models %}<code>{{ m }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.</p>{% else %}<p>No running reviewed CPU model right now. Start one from LLM models.</p>{% endif %}
+        <pre class="webops-code-block">curl {{ base_url }}/completions \
+  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"{% if models %}{{ models.0 }}{% else %}your-deployment{% endif %}","prompt":"Hello","max_tokens":32}'</pre>
+    </div>
+</section>
+
+<section class="ui-panel ui-panel--spaced" aria-labelledby="new-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="new-h">Create a key</h3></div>
+    <div class="webops-card-body">
+        <form method="post">{% csrf_token %}
+            <div class="webops-form-group">
+                <label class="webops-label" for="key-name">Name</label>
+                <input id="key-name" name="name" class="webops-input" maxlength="100" required placeholder="My app">
+                <p class="webops-help-text">Keys expire after {{ days }} days and are rate limited.</p>
+            </div>
+            <button class="webops-btn webops-btn-primary" type="submit">Create key</button>
+        </form>
+    </div>
+</section>
+
+<section class="ui-panel" aria-labelledby="list-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="list-h">Your keys</h3></div>
+    {% if keys %}
+    <div class="webops-table-responsive">
+        <table class="webops-table">
+            <thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col" class="webops-col-sec">Last used</th><th scope="col" class="webops-col-opt">Expires</th><th scope="col"><span class="webops-sr-only">Actions</span></th></tr></thead>
+            <tbody>
+            {% for key in keys %}
+                <tr>
+                    <td class="webops-cell-name">{{ key.name }}</td>
+                    <td>{% if key.revoked_at %}<span class="webops-badge webops-badge-info">Revoked</span>{% else %}<span class="webops-badge webops-badge-success">Active</span>{% endif %}</td>
+                    <td class="webops-col-sec webops-time">{% if key.last_used %}{{ key.last_used|timesince }} ago{% else %}Never{% endif %}</td>
+                    <td class="webops-col-opt webops-time">{{ key.expires_at|date:"Y-m-d" }}</td>
+                    <td>{% if not key.revoked_at %}<form method="post" action="{% url 'llm_key_revoke' key.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-sm webops-btn-danger" type="submit">Revoke</button></form>{% endif %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="ui-empty"><strong>No keys yet.</strong>Create one above to call your models from outside WebOps.</div>
+    {% endif %}
+</section>
+{% endblock %}
