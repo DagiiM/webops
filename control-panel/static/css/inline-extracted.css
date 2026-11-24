@@ -2,7 +2,7 @@
    Doubled class + html prefix keeps the specificity the inline styles had over component rules. */
 
 html .webops-s-014cdc5.webops-s-014cdc5 {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
     gap: var(--webops-space-3);
 }
 
@@ -163,7 +163,7 @@ html .webops-s-160ce1a.webops-s-160ce1a {
 
 html .webops-s-169353b.webops-s-169353b {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: var(--webops-space-3);
     max-height: 500px;
     overflow-y: auto;
@@ -203,7 +203,7 @@ html .webops-s-1a279c4.webops-s-1a279c4 {
 
 html .webops-s-1d2dd7f.webops-s-1d2dd7f {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--webops-space-0-5);
 }
 
@@ -458,7 +458,7 @@ html .webops-s-45e5cee.webops-s-45e5cee {
 }
 
 html .webops-s-47ed98c.webops-s-47ed98c {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
 
 html .webops-s-484e0f4.webops-s-484e0f4 {
@@ -1128,12 +1128,6 @@ html .webops-s-87cf337.webops-s-87cf337 {
     margin-bottom: var(--webops-space-0-5);
 }
 
-html .webops-s-89faf72.webops-s-89faf72 {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: var(--webops-space-3);
-}
-
 html .webops-s-8b4ab7f.webops-s-8b4ab7f {
     flex: 1;
     min-width: 0;
@@ -1575,7 +1569,7 @@ html .webops-s-b768872.webops-s-b768872 {
 
 html .webops-s-b7c25b1.webops-s-b7c25b1 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
     gap: var(--webops-space-3);
 }
 
@@ -2014,6 +2008,7 @@ html .webops-s-f1b3ec6.webops-s-f1b3ec6 {
 
 html .webops-s-f2cdaea.webops-s-f2cdaea {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--webops-space-1-5);
 }
 

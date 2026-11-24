@@ -31,6 +31,18 @@ Add `python3 $S/human_check.py --catalog human/designs.json --root .` for the hu
 | Human brief | `control-panel/human/designs.json` covers deploy create, delete confirmation, sign-in and dashboard. It passes the structural gate; every review is `pending` and no research was done. |
 | Pre-existing bugs | Removed committed diff markers in `automation/template_list.html`; fixed `<span="material-icons">` in `deployments/create.html`. |
 
+## Responsive check
+
+All 63 pages were rendered as static HTML with sample data (templates composed without Django, real CSS and JS) in headless Chrome at 320, 360, 390, 768, 1024, 1280 and 1536 px. The check is page width (`scrollWidth` vs viewport) plus elements past the right edge outside a scroll box. `body` has `overflow-x: hidden`, so `shots.py --fail-on-overflow` does not see these problems.
+
+Found and fixed:
+- `.webops-main-content` was a flex item without `min-width: 0`, so any wide child widened the whole page (27 of 58 pages at 390 px, 9 at 768 px).
+- 106 `grid-template-columns` declarations used bare `1fr` / `repeat(n, 1fr)` and now use `minmax(0, 1fr)`; 22 `minmax(Npx, 1fr)` minimums of 250 px or more are capped with `min(Npx, 100%)`.
+- The API docs layout had a fixed `250px 1fr` grid with no mobile rule (now `.webops-docs-layout`).
+- 3 and 4 column grids stack under 640 px; page-header, filter-form and status-banner rows wrap on phones.
+
+Result: no page is wider than the viewport at any tested width. At 320 px, 4 pages still have a small element (button, badge or card header, up to about 40 px) clipped (`compliance/dashboard`, `dashboard`, `deployments/llm_detail`, `integrations/dashboard`). Limits: sample data, no real fonts or API data, drawer and JS states not exercised, Chrome only.
+
 ## Remaining, by design or needs a human
 
 1. **JSON data block.** `automation/workflow_builder.html` has `<script type="application/json">`. It is data, not executable, and is allowed under `script-src 'self'`; the checker flags it anyway.

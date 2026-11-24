@@ -319,6 +319,11 @@
   margin-bottom: var(--webops-space-6);
 }
 
+.webops-stat-card > * {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
 .webops-stat-card {
   display: flex;
   align-items: center;
@@ -894,10 +899,14 @@
 .webops-gap-4 { gap: var(--webops-space-4); }
 
 .webops-grid { display: grid; }
-.webops-grid-1 { grid-template-columns: 1fr; }
-.webops-grid-2 { grid-template-columns: repeat(2, 1fr); }
-.webops-grid-3 { grid-template-columns: repeat(3, 1fr); }
-.webops-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.webops-grid-1 { grid-template-columns: minmax(0, 1fr); }
+.webops-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.webops-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.webops-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 640px) {
+  .webops-grid-3, .webops-grid-4 { grid-template-columns: minmax(0, 1fr); }
+}
 
 .webops-w-full { width: 100%; }
 .webops-h-full { height: 100%; }
@@ -927,21 +936,21 @@
 /* Responsive Utilities */
 @media (min-width: 640px) {
   .webops-sm-flex { display: flex; }
-  .webops-sm-grid-2 { grid-template-columns: repeat(2, 1fr); }
-  .webops-sm-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .webops-sm-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .webops-sm-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (min-width: 768px) {
   .webops-md-flex { display: flex; }
-  .webops-md-grid-2 { grid-template-columns: repeat(2, 1fr); }
-  .webops-md-grid-3 { grid-template-columns: repeat(3, 1fr); }
-  .webops-md-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .webops-md-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .webops-md-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .webops-md-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (min-width: 1024px) {
   .webops-lg-flex { display: flex; }
-  .webops-lg-grid-3 { grid-template-columns: repeat(3, 1fr); }
-  .webops-lg-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .webops-lg-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .webops-lg-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -961,7 +970,7 @@
   }
   
   .webops-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   
   .webops-card__header,
@@ -1011,7 +1020,7 @@
 
 .webops-models-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: var(--webops-space-4);
   margin-bottom: var(--webops-space-6);
 }
@@ -1359,7 +1368,7 @@
 /* Responsive Design for Model Browser */
 @media (max-width: 768px) {
   .webops-models-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--webops-space-3);
   }
 
@@ -1415,4 +1424,27 @@
   .webops-page-header {
     border-bottom: 2px solid #000;
   }
+}
+
+/* Phones: action rows wrap instead of pushing buttons past the screen edge. */
+@media (max-width: 640px) {
+  html .webops-page-header,
+  html .webops-page-header > .webops-flex,
+  html form.webops-flex,
+  html .webops-status-banner > div[class],
+  html .webops-status-banner > div[class] > div[class] {
+    flex-wrap: wrap;
+  }
+}
+
+canvas, img, svg { max-width: 100%; }
+canvas { height: auto; }
+
+@media (max-width: 480px) {
+  html .webops-stat-card { flex-wrap: wrap; }
+  html .webops-card-header,
+  html .webops-card-header > div[class] { flex-wrap: wrap; }
+  html .webops-badge { max-width: 100%; white-space: normal; }
+  html .webops-btn { max-width: 100%; white-space: normal; }
+  html .webops-h3 { overflow-wrap: anywhere; }
 }

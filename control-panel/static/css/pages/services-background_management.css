@@ -10,7 +10,7 @@
 
 .webops-grid-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2rem;
 }
 
@@ -20,7 +20,7 @@
 
 @media (max-width: 768px) {
     .webops-grid-2 {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 1rem;
     }
 }

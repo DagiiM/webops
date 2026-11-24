@@ -175,7 +175,7 @@
 /* Templates Grid */
 .webops-template-list__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: var(--webops-space-6);
 }
 
@@ -275,7 +275,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
     .webops-template-list__grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-template-list__filters {

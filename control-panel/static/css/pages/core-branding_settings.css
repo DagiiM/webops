@@ -1,14 +1,14 @@
 /* Moved from templates/core/branding_settings.html (ui-skill rule 17: no inline <style>). */
 .webops-branding-container {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: minmax(0, 1fr) 400px;
     gap: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
 }
 
 @media (max-width: 1200px) {
     .webops-branding-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -17,6 +17,9 @@
 }
 
 .webops-preview-card {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     position: sticky;
     top: var(--webops-space-4);
     height: fit-content;
@@ -53,7 +56,7 @@
 
 .webops-form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
     gap: var(--webops-space-3);
 }
 
@@ -357,6 +360,7 @@
 
 .webops-preview-nav {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--webops-space-2);
 }
 

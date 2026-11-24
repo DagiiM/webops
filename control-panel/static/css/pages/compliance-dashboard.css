@@ -28,7 +28,7 @@
 
 .webops-dashboard-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-4);
 }
@@ -115,7 +115,7 @@
 
 .webops-dashboard-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--webops-space-4);
 }
 
@@ -357,7 +357,7 @@
 
 @media (max-width: 768px) {
     .webops-dashboard-columns {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-3);
     }
 
@@ -373,7 +373,7 @@
     }
 
     .webops-dashboard-cards {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-overview-card {

@@ -270,7 +270,7 @@
 /* Trash Items Grid */
 .webops-trash-items {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
     gap: var(--webops-space-4);
 }
 
@@ -351,7 +351,7 @@
 
 .webops-trash-item-meta {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-4);
     font-size: var(--webops-font-size-sm);
@@ -532,7 +532,7 @@
 
 @media (max-width: 768px) {
     .webops-trash-items {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-3);
     }
 
@@ -548,7 +548,7 @@
     }
 
     .webops-trash-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--webops-space-3);
     }
 
@@ -564,7 +564,7 @@
     }
 
     .webops-trash-item-meta {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-2);
     }
 
@@ -584,7 +584,7 @@
     }
 
     .webops-trash-stats {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-trash-item-card {

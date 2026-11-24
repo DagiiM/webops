@@ -1,7 +1,7 @@
 /* Moved from templates/core/user_settings.html (ui-skill rule 17: no inline <style>). */
 .webops-settings-layout {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 280px minmax(0, 1fr);
     gap: var(--webops-space-8);
     min-height: 600px;
     margin: var(--webops-space-4) 0;
@@ -256,7 +256,7 @@
 
 .webops-form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
 }
@@ -431,7 +431,7 @@
 
 @media (max-width: 1024px) {
     .webops-user-settings {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-6);
     }
 
@@ -455,7 +455,7 @@
 
 @media (max-width: 768px) {
     .webops-user-settings {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-4);
         margin: var(--webops-space-2) 0;
     }
@@ -478,7 +478,7 @@
     }
 
     .webops-form-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-3);
     }
 
@@ -512,6 +512,6 @@
     }
 
     .webops-toggle-group--radio {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }

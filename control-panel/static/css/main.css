@@ -175,8 +175,8 @@ body {
 
 /* WebOps Grid System */
 .webops-grid { display: grid; gap: var(--webops-space-3); }
-.webops-grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.webops-grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.webops-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.webops-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
 
 /* WebOps Container - Using layout.css for comprehensive container system */
 /* This simplified version is kept for backward compatibility */
@@ -465,7 +465,7 @@ select:focus {
 
 @media (max-width: 768px) {
     .webops-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--webops-space-3);
     }
 
@@ -484,7 +484,7 @@ select:focus {
     }
 
     .webops-grid-2, .webops-grid-3 {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -1104,7 +1104,7 @@ input:-internal-autofill-selected{
 
 @media (max-width: 480px) {
     .webops-stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-container {
@@ -3166,7 +3166,7 @@ input:-internal-autofill-selected{
 /* WebOps Info Grid */
 .webops-info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-3);
 }
@@ -3558,6 +3558,7 @@ input:-internal-autofill-selected{
 
 .webops-main-content {
     flex: 1;
+    min-width: 0; /* let wide children shrink instead of widening the page */
     margin-left: 280px;
     min-height: 100vh;
     background: var(--webops-color-bg-primary);
@@ -3668,7 +3669,7 @@ input:-internal-autofill-selected{
     }
     
     .webops-info-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
     
     .webops-env-input-row {
@@ -3725,7 +3726,7 @@ input:-internal-autofill-selected{
 
 .webops-theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
 }
@@ -3846,7 +3847,7 @@ input:-internal-autofill-selected{
 
 @media (max-width: 480px) {
     .webops-theme-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-2);
     }
     
@@ -4743,7 +4744,7 @@ input:-internal-autofill-selected{
 /* User Settings Layout */
 .webops-user-settings {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 280px minmax(0, 1fr);
     gap: var(--webops-space-4);
     max-width: 1200px;
     margin: 0 auto;
@@ -4894,7 +4895,7 @@ input:-internal-autofill-selected{
 
 .webops-form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-4);
     margin-bottom: var(--webops-space-4);
 }
@@ -5140,7 +5141,7 @@ input:-internal-autofill-selected{
 /* Responsive Design */
 @media (max-width: 1024px) {
     .webops-user-settings {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-3);
     }
     
@@ -5168,7 +5169,7 @@ input:-internal-autofill-selected{
     }
     
     .webops-form-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--webops-space-3);
     }
     
@@ -5202,7 +5203,7 @@ input:-internal-autofill-selected{
     }
     
     .webops-toggle-group--radio {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

@@ -22,3 +22,8 @@
 .webops-logs::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 255, 136, 0.5);
 }
+
+/* Let the cURL example scroll inside its box instead of widening the page. */
+html .webops-s-cf9c173.webops-s-cf9c173 > div {
+    min-width: 0;
+}

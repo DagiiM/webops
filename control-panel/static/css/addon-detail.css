@@ -222,7 +222,7 @@
 
 .webops-addon-detail__grid {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: minmax(0, 1fr) 400px;
     gap: var(--webops-space-6);
 }
 
@@ -331,7 +331,7 @@
 
 .webops-addon-detail__capabilities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-4);
 }
 
@@ -662,7 +662,7 @@
 
 .webops-addon-detail__stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-4);
 }
@@ -1050,7 +1050,7 @@
 
 @media (max-width: 1024px) {
     .webops-addon-detail__grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-addon-detail__sidebar {
@@ -1074,11 +1074,11 @@
     }
 
     .webops-addon-detail__capabilities-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-addon-detail__stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -1092,7 +1092,7 @@
     }
 
     .webops-addon-detail__quick-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .webops-addon-detail__card-header,

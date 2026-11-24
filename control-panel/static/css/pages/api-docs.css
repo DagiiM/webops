@@ -301,3 +301,18 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+.webops-docs-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: var(--webops-space-3);
+}
+
+@media (max-width: 767px) {
+    .webops-docs-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .webops-docs-sidebar {
+        position: static;
+    }
+}
