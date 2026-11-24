@@ -412,27 +412,13 @@ def deployment_start(request, pk):
     try:
         llm_deployment = LLMDeployment.objects.get(pk=pk)
         is_llm_deployment = True
-        if llm_deployment.status == 'pending':
-            # Trigger initial LLM deployment
-            from ..tasks.llm import deploy_llm_model
-            try:
-                deploy_llm_model.delay(llm_deployment.id)
-            except Exception:
-                logger.exception(
-                    "Failed to enqueue LLM deployment task for deployment_id=%s",
-                    llm_deployment.id
-                )
-                messages.error(
-                    request,
-                    (
-                        "Failed to queue LLM deployment task. "
-                        "Check Redis/Celery configuration and connectivity."
-                    ),
-                )
-                return redirect('deployments:llm_detail', pk=pk)
-
-            messages.success(request, f'LLM deployment started! Check deployment logs for progress.')
-            return redirect('deployments:llm_detail', pk=pk)
+        if llm_deployment.status in ("pending","failed"):
+            from ..services.llm_cpu import queue_llm
+            ok,message=queue_llm(llm_deployment)
+            (messages.success if ok else messages.error)(request,message)
+            return redirect("deployments:llm_detail",pk=pk)
+        if llm_deployment.status == "building":
+            return HttpResponseForbidden("Model deployment already in progress.")
     except LLMDeployment.DoesNotExist:
         pass  # Not an LLM deployment, continue with regular start
 
@@ -541,17 +527,31 @@ def deployment_delete(request, pk):
         elif hasattr(deployment, 'llmdeployment'):
             # LLM deployment - delete directly (no complex services)
             try:
-                # Remove deployment files
-                from ..services import LLMDeploymentService
-                llm_service = LLMDeploymentService()
-                deployment_path = llm_service.get_deployment_path(deployment)
-
-                if deployment_path.exists():
-                    import shutil
-                    shutil.rmtree(deployment_path)
-
-                # Delete from database
-                deployment.delete()
+                from apps.services.runtime import portable_runtime
+                from ..services.llm_cpu import slot_lock
+                from ..services.llm import LLMDeploymentService
+                from ..services.llm_transformers import TransformersLLMService
+                import shutil
+                with slot_lock():
+                    deployment.refresh_from_db()
+                    if deployment.status == "building":
+                        return HttpResponseForbidden("Model is still deploying.")
+                    runtime = portable_runtime()
+                    if runtime:
+                        ok, msg = runtime.remove(deployment)
+                        if not ok: raise RuntimeError(msg)
+                    else:
+                        from ..shared import ServiceManager
+                        manager=ServiceManager()
+                        ok,msg=manager.remove_service(deployment)
+                        if not ok: raise RuntimeError(msg)
+                    llm = deployment.llmdeployment
+                    svc=TransformersLLMService() if llm.backend=="transformers" else LLMDeploymentService()
+                    path=svc.get_deployment_path(llm)
+                    if path.exists():shutil.rmtree(path)
+                    deployment.status="stopped"
+                    deployment.save(update_fields=["status"])
+                    deployment.delete(user=request.user)
 
                 messages.success(
                     request,

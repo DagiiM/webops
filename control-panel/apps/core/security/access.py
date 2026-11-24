@@ -46,6 +46,9 @@ def deny_for_user(request, user, match=None):
     if name in HOST_NAMES or match.namespace == "compliance" or (match.namespace == "addons" and name not in ("addons_list","addon_detail")):
         return HttpResponseForbidden("This action manages shared host infrastructure. Operator access is required.")
     if requires_review(user):
+        from apps.services.runtime import portable_runtime
+        if portable_runtime() and name in ("llm_create","llm_detect","llm_test","llm_playground"):
+            return None  # Reviewed CPU models only; views enforce preflight and ownership.
         # Code and environment edits can turn a previously reviewed process into arbitrary code.
         if name in REVIEW_NAMES and (request.method not in ("GET","HEAD") or name in ("llm_playground","llm_test","workflow_execute","retry_execution","webhook_trigger","check_dependencies","database_check_dependencies")):
             return HttpResponseForbidden("This operation requires a trusted operator or isolated execution worker.")
