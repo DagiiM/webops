@@ -22,7 +22,27 @@
     <div class="webops-card-body">
         {% if portable %}
         <p>CPU-only preview · {{ hardware.ram_gb }} GB RAM limit · {{ hardware.available_ram_gb }} GB available · {{ hardware.disk_gb }} GB free disk. One model slot. No GPU, private models, custom code or quantization on this host.</p>
-        <p>Reviewed CPU catalog (subject to current free resources): {% for model in supported_models %}<code>{{ model }}</code>{% if not forloop.last %}; {% endif %}{% endfor %}.</p>
+        <section class="webops-mb-lg" aria-labelledby="hf-catalog-heading">
+            <h3 id="hf-catalog-heading" class="webops-h3">Discover models from Hugging Face</h3>
+            <p class="webops-text-muted">Reviewed models are eligible for this CPU host. Other search results require review or different infrastructure. Selecting a model checks compatibility; it does not download weights.</p>
+            <form id="hfCatalogSearch" method="get" data-url-search="{% url 'deployments:llm_search' %}">
+                <label for="hfCatalogQuery" class="webops-label">Search public text-generation models</label>
+                <div class="webops-flex webops-gap-sm">
+                    <input type="search" id="hfCatalogQuery" name="q" class="webops-input" maxlength="100" placeholder="e.g. Qwen, SmolLM2" autocomplete="off">
+                    <button type="submit" class="webops-btn webops-btn-secondary">Search</button>
+                    <button type="button" id="hfCatalogReset" class="webops-btn webops-btn-secondary">Reviewed</button>
+                </div>
+            </form>
+            <p id="hfCatalogStatus" role="status" aria-live="polite" class="webops-text-muted">Loading reviewed models…</p>
+            <div id="hfCatalogResults" class="webops-mb-md">
+                {% for model in supported_models %}
+                <div class="webops-card webops-mb-sm"><div class="webops-card-body">
+                    <strong>{{ model }}</strong><p class="webops-text-muted">Reviewed CPU model · compatibility check required</p>
+                    <button type="button" class="webops-btn webops-btn-secondary" data-hf-model="{{ model }}">Select and check</button>
+                </div></div>
+                {% endfor %}
+            </div>
+        </section>
         {% if preflight and not preflight.success %}
         <div role="alert" class="webops-card webops-mb-md"><strong>Deployment blocked before download</strong><ul>{% for error in preflight.errors %}<li>{{ error }}</li>{% endfor %}</ul><p>Choose a compatible model or a larger isolated worker.</p></div>
         {% endif %}
@@ -31,7 +51,7 @@
             <div class="webops-form-group"><label for="cpuName">Deployment name</label><input class="webops-input" id="cpuName" name="name" value="{{ form_name }}" required maxlength="100"></div>
             <div class="webops-form-group"><label for="cpuModel">Hugging Face model ID</label><input class="webops-input" id="cpuModel" name="model_name" value="{{ form_model }}" placeholder="HuggingFaceTB/SmolLM2-135M-Instruct" list="cpuModels" required maxlength="200"><datalist id="cpuModels">{% for model in supported_models %}<option value="{{ model }}"></option>{% endfor %}</datalist></div>
             <button type="button" id="checkModel" class="webops-btn webops-btn-secondary">Check compatibility</button>
-            <button type="submit" id="cpuDeploy" class="webops-btn webops-btn-primary">Check and deploy</button>
+            <button type="submit" id="cpuDeploy" class="webops-btn webops-btn-primary" disabled>Check and deploy</button>
             <div id="compatibility" role="status" aria-live="polite" class="webops-mt-md"></div>
             <p>Deployment repeats the compatibility check on the server. Only after model loading and an HTTP health check does its status become Running. Follow the deployment logs for updates.</p>
         </form>
