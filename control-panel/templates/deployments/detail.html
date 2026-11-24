@@ -92,6 +92,19 @@
     </div>
 </div>
 
+{% if host_cannot_run %}
+<section class="ui-formerror" role="status"><h3 class="ui-formerror__title">This server cannot run this project</h3>
+<p>{{ host_cannot_run_reason }} The request is saved and nothing will run. It stays here until an isolated worker exists, or an operator declines it.</p></section>
+{% endif %}
+{% if can_decide %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="decide-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="decide-h">Operator decision</h3></div>
+    <div class="webops-card-body ui-actions">
+        {% if not host_cannot_run %}<form method="post" action="{% url 'deployments:deployment_approve' deployment.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-primary" type="submit">Approve and deploy</button></form>{% endif %}
+        <form method="post" action="{% url 'deployments:deployment_decline' deployment.pk %}" class="ui-inline-form">{% csrf_token %}<input type="text" name="reason" class="webops-input ui-key-input" maxlength="200" aria-label="Reason for declining" placeholder="Reason (optional)"><button class="webops-btn webops-btn-danger" type="submit">Decline</button></form>
+    </div>
+</section>
+{% endif %}
 {% include 'deployments/_safety_report.html' %}
 
 <!-- Deployment Info Card -->

@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from apps.core.security.access import requires_review, queue_deployment
@@ -36,7 +37,12 @@ def deployment_detail(request, pk):
     """Show deployment details and logs."""
     # SECURITY FIX: Verify ownership to prevent IDOR vulnerability
     # Only allow access to deployments owned by the current user
-    deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
+    if request.user.is_staff:
+        # Operators can open any request that is waiting for them, so they can read its safety review.
+        deployment = get_object_or_404(ApplicationDeployment.objects.filter(Q(deployed_by=request.user) | Q(status='requested')),
+                                       pk=pk, is_deleted=False)
+    else:
+        deployment = get_object_or_404(ApplicationDeployment, pk=pk, deployed_by=request.user, is_deleted=False)
     logs = deployment.logs.all()[:100]  # Last 100 logs
 
     # Get service status
@@ -53,7 +59,10 @@ def deployment_detail(request, pk):
         'deployment': deployment,
         'logs': logs,
         'service_status': service_status,
-        'celery_services': celery_services
+        'celery_services': celery_services,
+        'host_cannot_run': deployment.status == 'requested' and restricted() and not deployment.static_only,
+        'host_cannot_run_reason': executable_block_reason(),
+        'can_decide': request.user.is_staff and deployment.status == 'requested',
     })
 
 
@@ -1175,4 +1184,21 @@ def deployment_approve(request, pk):
         messages.error(request, "Unable to queue request; try again.")
     else:
         messages.success(request, "Deployment request approved and queued.")
+    return redirect("deployments:deployment_list")
+
+
+@login_required
+@require_POST
+def deployment_decline(request, pk):
+    """An operator closes a request that will not be run, with a reason the requester can read."""
+    import re
+    if not request.user.is_staff:
+        return HttpResponseForbidden("Operator access required.")
+    deployment = get_object_or_404(ApplicationDeployment, pk=pk, is_deleted=False, status="requested")
+    reason = re.sub(r"[\x00-\x1f\x7f]+", " ", request.POST.get("reason", "")).strip()[:200] or "Declined by an operator."
+    if not BaseDeployment.objects.filter(pk=pk, status="requested", is_deleted=False).update(status="failed"):
+        return HttpResponseForbidden("Request already processed.")
+    DeploymentLog.objects.create(deployment=deployment, level="error",
+                                 message=f"Request declined by {request.user.get_username()}: {reason}")
+    messages.success(request, f"Request for {deployment.name} declined.")
     return redirect("deployments:deployment_list")

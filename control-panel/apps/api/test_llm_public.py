@@ -261,7 +261,7 @@ class LLMDetailPublicPanelTests(TestCase):
         self.assertIn('"model": "panel-model"', html)
         self.assertNotIn("http://localhost:9371/v1/completions", html)
         self.assertIn("Create an API key", html)
-        self.assertIn("not reachable from outside", html)
+        self.assertNotIn("localhost", html)
 
     def test_reflects_active_key_count(self):
         make_key(self.me, name="a")
@@ -308,3 +308,31 @@ class LLMListEndpointTests(TestCase):
         self.assertEqual(html.count("/api/llm/v1/completions"), 1)       # only the reviewed, running model
         self.assertIn("localhost:9372", html)
         self.assertNotIn("localhost:9373", html)                          # stopped: no endpoint at all
+
+
+@override_settings(ALLOWED_HOSTS=["testserver", "my-pod-8000.proxy.example"], **SETTINGS)
+class LLMDetailNoLocalhostTests(TestCase):
+    """On a portable host the model page never shows or links a localhost address."""
+    def setUp(self):
+        cache.clear()
+        self.me = get_user_model().objects.create_user(username="nolocal", password="pw-nolocal-12345")
+        self.client.force_login(self.me)
+        runtime = MagicMock()
+        runtime.status.return_value = {"active": True, "enabled": True}
+        p = patch("apps.services.runtime.portable_runtime", return_value=runtime)
+        p.start()
+        self.addCleanup(p.stop)
+
+    def page(self, **kw):
+        d = LLMDeployment.objects.create(deployed_by=self.me, status="running", port=9371, **kw)
+        return self.client.get(f"/deployments/llm/{d.pk}/", secure=True, HTTP_HOST="my-pod-8000.proxy.example").content.decode()
+
+    def test_reviewed_model_page_has_no_localhost(self):
+        html = self.page(name="reviewed", model_name=MODEL)
+        self.assertNotIn("localhost", html)
+        self.assertIn("https://my-pod-8000.proxy.example/api/llm/v1/completions", html)
+
+    def test_unreviewed_model_explains_instead_of_showing_localhost(self):
+        html = self.page(name="unreviewed", model_name="meta/Unreviewed-70B")
+        self.assertNotIn("localhost", html)
+        self.assertIn("not available through the public API", html)

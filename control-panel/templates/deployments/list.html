@@ -34,7 +34,7 @@
         {% for item in review_requests %}
         <li class="ui-need ui-need--row">
             <span class="ui-need__main"><strong>{{ item.name }}</strong> · {{ item.deployed_by.username }} · <code>{{ item.repo_url }}</code> · branch {{ item.branch }}</span>
-            {% if restricted_workloads and not item.static_only %}<span class="webops-badge webops-badge-warning">Awaiting isolated worker</span>{% else %}<form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>{% endif %}
+            {% if restricted_workloads and not item.static_only %}<a href="{% url 'deployments:deployment_detail' item.pk %}" class="webops-btn webops-btn-sm">Review</a><span class="webops-badge webops-badge-warning">Awaiting isolated worker</span>{% else %}<a href="{% url 'deployments:deployment_detail' item.pk %}" class="webops-btn webops-btn-sm">Review</a><form method="post" action="{% url 'deployments:deployment_approve' item.pk %}">{% csrf_token %}<button type="submit" class="webops-btn webops-btn-primary">Approve and deploy</button></form>{% endif %}<form method="post" action="{% url 'deployments:deployment_decline' item.pk %}" class="ui-inline-form">{% csrf_token %}<input type="text" name="reason" class="webops-input ui-key-input" maxlength="200" aria-label="Reason for declining {{ item.name }}" placeholder="Reason (optional)"><button type="submit" class="webops-btn webops-btn-sm webops-btn-danger">Decline</button></form>
         </li>
         {% endfor %}
     </ul>

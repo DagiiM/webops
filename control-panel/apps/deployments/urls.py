@@ -1,7 +1,7 @@
 """URL configuration for Deployments app."""
 
 from django.urls import path, include
-from .views.application_deployment import deployment_approve
+from .views.application_deployment import deployment_approve, deployment_decline
 from .views.ai_assist import ai_assist
 from .views import (
     # Legacy/Application views
@@ -44,6 +44,7 @@ urlpatterns = [
     # Standard Deployments
     path('', deployment_list, name='deployment_list'),
     path('<int:pk>/approve/', deployment_approve, name='deployment_approve'),
+    path('<int:pk>/decline/', deployment_decline, name='deployment_decline'),
     path('create/', deployment_create, name='deployment_create'),
     path('github/branches/', github_repo_branches, name='github_repo_branches'),
     path('ai-assist/', ai_assist, name='ai_assist'),

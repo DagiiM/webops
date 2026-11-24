@@ -12,10 +12,12 @@
     </div>
     <div class="webops-s-f2cdaea">
         {% if deployment.status == 'running' %}
-            <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-primary">
+            {% if not portable %}
+            <a href="http://localhost:{{ deployment.port }}/docs" target="_blank" rel="noopener noreferrer" class="webops-btn webops-btn-primary">
                 <span class="material-icons">api</span>
                 API Docs
             </a>
+            {% endif %}
             <form method="POST" action="{% url 'deployments:deployment_stop' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-warning">
@@ -233,7 +235,6 @@
         <div class="webops-info-item"><span class="webops-info-label">Model id</span><span class="webops-info-value"><code>{{ public_api.model_id }}</code></span></div>
         <div class="webops-info-item"><span class="webops-info-label">Authentication</span><span class="webops-info-value">{% if public_api.active_keys %}Bearer key. You have {{ public_api.active_keys }} active key{{ public_api.active_keys|pluralize }}.{% else %}Bearer key. You have no active key yet.{% endif %}</span></div>
         <div class="webops-info-item"><span class="webops-info-label">Limits</span><span class="webops-info-value">Prompts up to 4096 characters, up to 128 tokens, one request at a time. Text completions only: no chat or streaming.</span></div>
-        <div class="webops-info-item"><span class="webops-info-label">Internal address</span><span class="webops-info-value webops-text-muted"><code>localhost:{{ deployment.port }}</code> (inside the server only; not reachable from outside)</span></div>
         <p class="webops-help-text">Example</p>
         <pre class="webops-code-block">curl {{ public_api.completions_url }} \
   -H "Authorization: Bearer $WEBOPS_LLM_KEY" \
@@ -243,6 +244,13 @@
     "prompt": "Once upon a time",
     "max_tokens": 50
   }'</pre>
+    </div>
+</section>
+{% elif deployment.status == 'running' and deployment.port and portable %}
+<section class="ui-panel ui-panel--spaced" aria-labelledby="api-h">
+    <div class="ui-panel__head"><h3 class="ui-panel__title" id="api-h">API endpoints</h3></div>
+    <div class="webops-card-body">
+        <p class="webops-help-text">This model is not available through the public API. Only reviewed CPU models are exposed, and this one is not on the reviewed list.</p>
     </div>
 </section>
 {% elif deployment.status == 'running' and deployment.port %}
