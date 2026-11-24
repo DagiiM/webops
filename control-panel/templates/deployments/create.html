@@ -142,7 +142,7 @@
 <div class="webops-card webops-mb-lg"><div class="webops-card-body">
 <h3>Portable runtime: Supervisor</h3>
 <p>{% if core_status.runtime_ready %}Process supervisor connected{% else %}Process supervisor unavailable{% endif %}. Systemd and Nginx are not required in direct mode.</p>
-<p>Task queue: {{ core_status.background_processor|default:"unknown" }}. {% if core_status.queue_ready %}Worker ready.{% else %}Worker unavailable; queued operations may not run until restored.{% endif %} Application ports are local to this host. Static-only publication is self-service. Executable repositories require review on this shared host.</p>
+<p>{% if restricted_workloads %}Restricted workload sandbox: {% if core_status.sandbox_ready %}available{% else %}unavailable; contact an operator{% endif %}. {% endif %}Task queue: {{ core_status.background_processor|default:"unknown" }}. {% if core_status.queue_ready %}Worker ready.{% else %}Worker unavailable; queued operations may not run until restored.{% endif %} Application ports are local to this host. Static-only publication is self-service. Executable repositories require review on this shared host.</p>
 </div></div>
 {% else %}
 <div class="webops-card webops-mb-lg">
@@ -400,7 +400,7 @@
             {% if core_status.runtime == 'supervisor' %}
             <div class="webops-card webops-mb-lg"><div class="webops-card-body">
                 <label><input type="checkbox" name="static_only" id="static_only" {% if approval_required %}checked{% endif %}> Publish static assets only (no build scripts or executable code)</label>
-                <p class="webops-text-sm">Static assets from a public GitHub repository with index.html are published automatically on a local port. {% if approval_required %}Uncheck to submit an executable deployment request for operator review.{% endif %}</p>
+                <p class="webops-text-sm">Static assets from a public GitHub repository with index.html are published automatically on a local port. {% if approval_required %}{% if restricted_workloads %}Uncheck to save a request for a future isolated worker; executable builds cannot run on this host.{% else %}Uncheck to submit an executable deployment request for operator review.{% endif %}{% endif %}</p>
             </div></div>
             {% endif %}
             <div class="webops-flex webops-gap-sm">

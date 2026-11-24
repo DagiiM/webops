@@ -122,6 +122,7 @@ def create_deployment(request) -> JsonResponse:
 
         from apps.core.utils import sanitize_deployment_name, validate_repo_url, validate_domain
         from apps.core.security.access import requires_review, queue_deployment
+        from apps.services.runtime.policy import restricted, executable_block_reason
         try:
             data["name"] = sanitize_deployment_name(data["name"])
         except (ValueError, TypeError, AttributeError):
@@ -149,7 +150,7 @@ def create_deployment(request) -> JsonResponse:
             branch=data.get('branch', 'main'),
             domain=data.get('domain', ''),
             env_vars={} if requires_review(request.user) else data.get('env_vars', {}),
-            status=ApplicationDeployment.Status.REQUESTED if requires_review(request.user) and not static_only else ApplicationDeployment.Status.PENDING,
+            status=ApplicationDeployment.Status.REQUESTED if (requires_review(request.user) or restricted()) and not static_only else ApplicationDeployment.Status.PENDING,
             static_only=static_only,
             deployed_by=request.user
         )
@@ -161,7 +162,7 @@ def create_deployment(request) -> JsonResponse:
             'id': deployment.id,
             'name': deployment.name,
             'status': deployment.status,
-            'message': 'Awaiting approval' if deployment.status == 'requested' else 'Deployment queued successfully'
+            'message': (executable_block_reason() if restricted() else 'Awaiting approval') if deployment.status == 'requested' else 'Deployment queued successfully'
         }, status=201)
 
     except json.JSONDecodeError:

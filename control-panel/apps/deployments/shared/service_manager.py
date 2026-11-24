@@ -121,9 +121,11 @@ class ServiceManager:
             if choice == "sqlite":
                 from apps.services.background import get_background_processor
                 queue_ready = get_background_processor().healthcheck()
-            return {"systemctl": False, "runtime": self.runtime.name, "runtime_ready": ready,
+            from apps.services.runtime.policy import restricted, sandbox_ready
+            confinement_ready = sandbox_ready() if restricted() else True
+            return {"systemctl": False, "runtime": self.runtime.name, "runtime_ready": ready, "sandbox_ready": confinement_ready,
                     "services": {"nginx": False, "postgresql": False, "redis": False, "celery": False, "web": True},
-                    "background_processor": choice, "queue_ready": queue_ready, "all_ok": ready and queue_ready}
+                    "background_processor": choice, "queue_ready": queue_ready, "all_ok": ready and queue_ready and confinement_ready}
         # Test if systemd is actually functional (not just if systemctl exists)
         systemctl_ok = False
         try:

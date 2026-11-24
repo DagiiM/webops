@@ -99,7 +99,17 @@ def deploy_cpu(d):
         log(d,"Download complete. Starting CPU inference and waiting for the model to load.")
         env["HF_HUB_OFFLINE"]="1"
         server=Path(__file__).with_name("cpu_inference_server.py").resolve()
-        ok,msg=runtime.install_process(d,base,base,[str(envpath/"bin/python"),str(server)],env)
+        from apps.services.runtime.policy import restricted
+        profile=None
+        if restricted():
+            scratch=base/"sandbox-tmp"
+            scratch.mkdir(exist_ok=True,mode=0o700)
+            env["TMPDIR"]=str(scratch)
+            env["HF_HOME"]=str(scratch/"hf-cache")
+            env["PYTHONDONTWRITEBYTECODE"]="1"
+            profile={"kind":"cpu_llm","read":[str(weights),str(envpath),str(server)],"write":[str(scratch)],
+                     "executable":str(envpath/"bin/python"),"port":d.port}
+        ok,msg=runtime.install_process(d,base,base,[str(envpath/"bin/python"),str(server)],env,profile=profile)
         if not ok:return fail(d,"Supervisor registration failed: "+msg)
         ok,msg=runtime.lifecycle(d,"start")
         if not ok:

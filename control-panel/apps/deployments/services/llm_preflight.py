@@ -80,6 +80,9 @@ def check_model(model, backend="transformers", dtype="auto", quantization="", ex
     except (requests.RequestException, ValueError, TypeError):
         errors.append("Unable to verify model metadata. Check Hugging Face connectivity and try again.")
     runtime = portable_runtime()
+    from apps.services.runtime.policy import restricted, sandbox_ready
+    if restricted() and not sandbox_ready():
+        errors.append("Restricted workload sandbox unavailable. Contact an operator.")
     if runtime is None or not runtime.ready():
         errors.append("The Supervisor runtime is unavailable. Contact an operator.")
     envpath = Path(getattr(settings,"WEBOPS_CPU_LLM_ENV",Path(settings.WEBOPS_INSTALL_PATH)/"llm-cpu-env"))
