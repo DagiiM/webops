@@ -1,0 +1,29 @@
+/* Moved from templates/deployments/llm_detail.html (ui-skill rule 17: no inline <style>). */
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-0-5);
+}
+
+.webops-logs::-webkit-scrollbar {
+    width: 8px;
+}
+
+.webops-logs::-webkit-scrollbar-track {
+    background: var(--webops-color-bg-secondary);
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-logs::-webkit-scrollbar-thumb {
+    background: var(--webops-color-primary-alpha-30);
+    border-radius: var(--webops-radius-md);
+}
+
+.webops-logs::-webkit-scrollbar-thumb:hover {
+    background: var(--webops-color-primary-alpha-50);
+}
+
+/* Let the cURL example scroll inside its box instead of widening the page. */
+html .webops-s-cf9c173.webops-s-cf9c173 > div {
+    min-width: 0;
+}

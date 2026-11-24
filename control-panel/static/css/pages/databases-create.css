@@ -1,0 +1,59 @@
+/* Moved from templates/databases/create.html (ui-skill rule 17: no inline <style>). */
+.webops-advanced-options {
+    margin-top: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-bg-tertiary);
+    border-radius: var(--webops-radius-md);
+    border: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-advanced-summary {
+    font-weight: var(--webops-font-weight-semibold);
+    cursor: pointer;
+    padding: var(--webops-space-1);
+    margin: calc(-1 * var(--webops-space-1));
+    border-radius: var(--webops-radius-sm);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-advanced-summary:hover {
+    background: var(--webops-color-surface-hover);
+}
+
+.webops-advanced-content {
+    margin-top: var(--webops-space-3);
+    padding-top: var(--webops-space-3);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-4);
+}
+
+.webops-help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-help-list li {
+    padding: var(--webops-space-1-5) 0;
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-help-list li:last-child {
+    border-bottom: none;
+}
+
+.webops-help-list strong {
+    color: var(--webops-color-text-primary);
+}
+
+@media (max-width: 768px) {
+    .webops-flex.webops-gap-md {
+        flex-direction: column;
+        gap: 0;
+    }
+}

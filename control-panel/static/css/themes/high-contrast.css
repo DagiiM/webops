@@ -23,9 +23,10 @@
      ════════════════════════════════════════════════════════════════════════════════ */
   
   /* Core theme parameters (modify these to change the entire theme) */
-  --webops-hue-primary: 180;       /* Cyan: 180 | Blue: 210 | Purple: 280 */
-  --webops-sat-primary: 100%;      /* Maximum saturation for visibility */
-  --webops-light-primary: 85%;     /* Very light for maximum contrast */
+  --webops-hue-primary: 0;       /* Cyan: 180 | Blue: 210 | Purple: 280 */
+  --webops-sat-primary: 0%;      /* Maximum saturation for visibility */
+  --webops-light-primary: 100%;     /* Very light for maximum contrast */
+  --webops-color-on-primary: #000000;
 
   /* ────────────────────────────────────────────────────────────────────────────────
      🎯 PRIMARY COLOR SYSTEM (Auto-generated from theme parameters)
@@ -92,9 +93,9 @@
   --webops-color-error-alpha-30: hsl(0 100% 35% / 30%);
   
   /* Info system (high contrast blue) */
-  --webops-color-info: hsl(220 100% 40%);           /* #0044aa - WCAG AAA blue */
-  --webops-color-info-alpha-10: hsl(220 100% 40% / 10%);
-  --webops-color-info-alpha-30: hsl(220 100% 40% / 30%);
+  --webops-color-info: hsl(0 0% 25%);           /* #0044aa - WCAG AAA blue */
+  --webops-color-info-alpha-10: hsl(0 0% 25% / 10%);
+  --webops-color-info-alpha-30: hsl(0 0% 25% / 30%);
   
   /* Accent color (high contrast orange) */
   --webops-color-accent: hsl(30 100% 45%);          /* #cc5500 - High contrast orange */

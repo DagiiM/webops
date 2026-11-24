@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "designs": [
+    {
+      "path": "templates/deployments/create.html",
+      "surface": "transactional",
+      "audience": {
+        "who": "A developer or small-team operator who self-hosts apps and is often handling an incident alone",
+        "job": "Deploy an application with the right repository, branch and environment on the first attempt",
+        "constraints": "Keyboard use, slow connections, possible interruption mid-form"
+      },
+      "situation": {
+        "where": "At a desk or on call, usually in a dark room or a terminal-adjacent window",
+        "stakes": "medium",
+        "initial_uncertainty": "Unsure which settings are required and whether a deploy will touch production"
+      },
+      "intent": {
+        "primary_action": "Submit a validated deployment configuration",
+        "desired_feeling": "In control and confident about what will run",
+        "avoid_feeling": "Rushed, or surprised by a deploy they did not intend"
+      },
+      "content": {
+        "first_use": "Show required fields first with plain labels and the target environment before the submit button",
+        "waiting": "Say the deploy is queued, not finished, and show real status instead of an invented duration",
+        "failure_recovery": "Keep entered values after a validation error and name the field and the fix",
+        "success": "Show the deployment as started only after the server accepts it, with a link to its live status"
+      },
+      "visual": {
+        "presence": "none",
+        "reason": "Configuration and status matter more than imagery; faces or stock photos would add noise to an operational form",
+        "assets": []
+      },
+      "trust": {
+        "claims": "Never state a deploy succeeded until the backend reports a final state",
+        "privacy": "Do not echo secrets or environment values in messages or logs",
+        "uncertainty": "Keep a distinct queued/running state until a final result is known"
+      },
+      "evidence": {
+        "research_status": "not_conducted",
+        "research_refs": [],
+        "proofs": []
+      },
+      "review": {
+        "status": "pending",
+        "reviewer": "",
+        "date": "",
+        "scores": {},
+        "notes": ""
+      }
+    },
+    {
+      "path": "templates/deployments/delete_confirm.html",
+      "surface": "web",
+      "audience": {
+        "who": "A developer or small-team operator who self-hosts apps and is often handling an incident alone",
+        "job": "Remove a deployment only when they truly mean to, knowing what is lost",
+        "constraints": "Possible muscle-memory clicks, shared screens"
+      },
+      "situation": {
+        "where": "At a desk, often after a failed deploy and under time pressure",
+        "stakes": "high",
+        "initial_uncertainty": "Unsure whether deletion is reversible and what data goes with it"
+      },
+      "intent": {
+        "primary_action": "Confirm or cancel deletion of one named deployment",
+        "desired_feeling": "Clear about the consequence and able to back out",
+        "avoid_feeling": "Tricked into a destructive click or blamed for a slip"
+      },
+      "content": {
+        "first_use": "Name the deployment and state exactly what is removed and whether it can be restored from the recycle bin",
+        "waiting": "Disable repeat submission while the request is in flight and say it is working",
+        "failure_recovery": "If deletion fails, say nothing was removed and offer retry or cancel",
+        "success": "Confirm what was removed and where to restore it, only after the server confirms"
+      },
+      "visual": {
+        "presence": "none",
+        "reason": "A plain confirmation reads as honest and serious; decoration would distract from the consequence",
+        "assets": []
+      },
+      "trust": {
+        "claims": "Do not claim data is permanently gone if it is only in the recycle bin",
+        "privacy": "Show only the deployment name and essential counts",
+        "uncertainty": "Say deletion is unconfirmed until the server responds"
+      },
+      "evidence": {
+        "research_status": "not_conducted",
+        "research_refs": [],
+        "proofs": []
+      },
+      "review": {
+        "status": "pending",
+        "reviewer": "",
+        "date": "",
+        "scores": {},
+        "notes": ""
+      }
+    },
+    {
+      "path": "templates/auth/login.html",
+      "surface": "transactional",
+      "audience": {
+        "who": "Any authorised user returning to the panel, possibly on a shared or unfamiliar machine",
+        "job": "Sign in quickly and recover access if a credential or second factor is lost",
+        "constraints": "Password managers, screen readers, shared devices"
+      },
+      "situation": {
+        "where": "On a laptop, sometimes mid-incident",
+        "stakes": "high",
+        "initial_uncertainty": "Unsure whether the account is locked or the credentials are wrong"
+      },
+      "intent": {
+        "primary_action": "Sign in, or reach a safe recovery path",
+        "desired_feeling": "Welcomed, secure and not locked out",
+        "avoid_feeling": "Accused of a mistake or left guessing why access failed"
+      },
+      "content": {
+        "first_use": "Show one clear form with labelled fields, a visible password reveal and a recovery link",
+        "waiting": "Say the sign-in is being checked without inventing a duration",
+        "failure_recovery": "Give a specific, non-leaking error and keep the username; link to reset and two-factor recovery",
+        "success": "Move straight to the panel or the second-factor step"
+      },
+      "visual": {
+        "presence": "none",
+        "reason": "A sign-in form needs focus and speed; imagery adds nothing to the job",
+        "assets": []
+      },
+      "trust": {
+        "claims": "Never reveal whether an account exists",
+        "privacy": "Never expose which of username or password was wrong",
+        "uncertainty": "Treat lockout and rate-limit as explicit states with time guidance from the server"
+      },
+      "evidence": {
+        "research_status": "not_conducted",
+        "research_refs": [],
+        "proofs": []
+      },
+      "review": {
+        "status": "pending",
+        "reviewer": "",
+        "date": "",
+        "scores": {},
+        "notes": ""
+      }
+    },
+    {
+      "path": "templates/dashboard.html",
+      "surface": "web",
+      "audience": {
+        "who": "A developer or small-team operator who self-hosts apps and is often handling an incident alone",
+        "job": "See at a glance what is healthy, what is failing and what needs action",
+        "constraints": "Many tabs, intermittent attention, colour-vision differences"
+      },
+      "situation": {
+        "where": "Glancing between a terminal and the browser during a release or incident",
+        "stakes": "medium",
+        "initial_uncertainty": "Unsure whether a quiet dashboard means healthy or stale data"
+      },
+      "intent": {
+        "primary_action": "Open the failing deployment or service",
+        "desired_feeling": "Oriented and trusting what the numbers say",
+        "avoid_feeling": "Misled by stale data or alarmed by decoration"
+      },
+      "content": {
+        "first_use": "Lead with current status and anything needing action, with text labels in addition to colour",
+        "waiting": "Show loading and last-updated states rather than empty numbers",
+        "failure_recovery": "If data cannot load, say so and what was last known, with a retry",
+        "success": "Show real counts and timestamps from the backend"
+      },
+      "visual": {
+        "presence": "none",
+        "reason": "Operational data is the content; stock imagery or avatars would compete with status",
+        "assets": []
+      },
+      "trust": {
+        "claims": "Do not show healthy when the data is unknown",
+        "privacy": "Show only the signed-in user's own deployments and data",
+        "uncertainty": "Keep an explicit unknown/stale state distinct from healthy"
+      },
+      "evidence": {
+        "research_status": "not_conducted",
+        "research_refs": [],
+        "proofs": []
+      },
+      "review": {
+        "status": "pending",
+        "reviewer": "",
+        "date": "",
+        "scores": {},
+        "notes": ""
+      }
+    }
+  ]
+}

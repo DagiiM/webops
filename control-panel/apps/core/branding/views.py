@@ -6,7 +6,7 @@ Handles branding settings and theme management.
 """
 
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
@@ -100,3 +100,17 @@ def reset_branding(request):
     settings.save()
 
     return JsonResponse({'status': 'success', 'message': 'Branding reset to defaults'})
+
+
+@require_http_methods(["GET", "HEAD"])
+def branding_css(request):
+    """Serve the branding design tokens as a same-origin stylesheet.
+
+    Public on purpose: the sign-in and error pages need it before authentication.
+    It replaces an inline <style> block so the panel can run under a strict
+    Content-Security-Policy (no 'unsafe-inline').
+    """
+    css = BrandingSettings.get_settings().generate_css_variables()
+    response = HttpResponse(css, content_type="text/css; charset=utf-8")
+    response["Cache-Control"] = "no-cache"
+    return response

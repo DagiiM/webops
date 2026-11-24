@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Execution History - {{ workflow.name }} - WebOps{% endblock %}
 {% block header_title %}Automation{% endblock %}
 
@@ -31,7 +32,7 @@
 <!-- Statistics Cards -->
 <div class="webops-stats-grid webops-mb-lg">
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 170, 255, 0.1); color: var(--webops-color-info);">
+        <div class="webops-stat-icon webops-s-31e84b7">
             <span class="material-icons">play_arrow</span>
         </div>
         <div class="webops-stat-value">{{ total_executions }}</div>
@@ -39,7 +40,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--webops-color-success);">
+        <div class="webops-stat-icon webops-s-3b11233">
             <span class="material-icons">check_circle</span>
         </div>
         <div class="webops-stat-value">{{ successful_executions }}</div>
@@ -47,7 +48,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(255, 68, 68, 0.1); color: var(--webops-color-error);">
+        <div class="webops-stat-icon webops-s-36ac346">
             <span class="material-icons">error</span>
         </div>
         <div class="webops-stat-value">{{ failed_executions }}</div>
@@ -55,7 +56,7 @@
     </div>
 
     <div class="webops-stat-card">
-        <div class="webops-stat-icon" style="background: rgba(156, 39, 176, 0.1); color: #9c27b0;">
+        <div class="webops-stat-icon webops-s-609e623">
             <span class="material-icons">schedule</span>
         </div>
         <div class="webops-stat-value">
@@ -199,7 +200,7 @@
                             </div>
                             {% if execution.status == 'running' %}
                             <div class="webops-progress webops-mt-xs">
-                                <div class="webops-progress-bar" style="width: {% widthratio execution.nodes_executed execution.total_nodes 100 %}%"></div>
+                                <div class="webops-progress-bar" data-style-width="{% widthratio execution.nodes_executed execution.total_nodes 100 %}"></div>
                             </div>
                             {% endif %}
                         </td>
@@ -213,7 +214,7 @@
                                 <form method="post" action="{% url 'execution_cancel' execution.id %}" class="webops-form webops-form--inline">
                                     {% csrf_token %}
                                     <button type="submit" class="webops-btn webops-btn-xs webops-btn-danger"
-                                            onclick="return confirm('Cancel this execution?');">
+                                            data-confirm="Cancel this execution?">
                                         <span class="material-icons">stop</span>
                                         Cancel
                                     </button>
@@ -261,7 +262,7 @@
 {% else %}
 <div class="webops-card">
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">history</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">history</span>
         <h3 class="webops-empty-state-title">No executions yet</h3>
         <p class="webops-empty-state-description">This workflow hasn't been executed yet</p>
         <div class="webops-flex webops-gap-sm webops-justify-center webops-mt-md">
@@ -281,44 +282,5 @@
 </div>
 {% endif %}
 
-<style>
-.webops-form--inline {
-    display: inline-block;
-    margin: 0;
-}
-
-.webops-icon-xs {
-    font-size: 14px;
-}
-
-.webops-progress {
-    width: 100%;
-    height: 4px;
-    background-color: var(--webops-color-bg-secondary);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.webops-progress-bar {
-    height: 100%;
-    background-color: var(--webops-color-primary);
-    transition: none;
-}
-
-.webops-grid--cols-4 {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-@media (max-width: 768px) {
-    .webops-grid--cols-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .webops-grid--cols-4 {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/automation-execution_list.css' %}">
 {% endblock %}

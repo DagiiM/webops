@@ -9,92 +9,30 @@
     {% if branding.favicon %}
     <link rel="icon" type="image/png" href="{{ branding.favicon.url }}">
     {% else %}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2300ff88'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23888888' aria-hidden="true" focusable="false"><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
     {% endif %}
 
     <link rel="stylesheet" href="{% static 'css/variables.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     <!-- Dynamic branding variables -->
-    <style>
-        {{ branding.generate_css_variables|safe }}
-    </style>
+    <link rel="stylesheet" href="{% url 'branding_css' %}">
 
-    <style>
-        .error-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--webops-space-3);
-            position: relative;
-            z-index: 1;
-        }
-
-        .error-card {
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .error-code {
-            font-size: 120px;
-            font-weight: var(--webops-font-weight-bold);
-            background: var(--webops-color-primary);
-
-            -webkit-text-fill-color: currentColor;
-
-            line-height: 1;
-            margin-bottom: var(--webops-space-3);
-            animation: none;
-        }
-
-        @keyframes errorPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .error-title {
-            font-size: var(--webops-font-size-3xl);
-            font-weight: var(--webops-font-weight-semibold);
-            color: var(--webops-color-text-primary);
-            margin-bottom: var(--webops-space-3);
-        }
-
-        .error-message {
-            font-size: var(--webops-font-size-lg);
-            color: var(--webops-color-text-secondary);
-            margin-bottom: var(--webops-space-3);
-            line-height: 1.6;
-        }
-
-        .error-actions {
-            display: flex;
-            gap: var(--webops-space-3);
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        @media (max-width: 768px) {
-            .error-code {
-                font-size: 80px;
-            }
-
-            .error-title {
-                font-size: var(--webops-font-size-2xl);
-            }
-
-            .error-message {
-                font-size: var(--webops-font-size-base);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/pages/errors-base_error.css' %}">
     <link rel="stylesheet" href="{% static 'css/flat-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/webops-states.css' %}">
+    <link rel="stylesheet" href="{% static 'css/inline-extracted.css' %}">
+    <script src="{% static 'js/page-config.js' %}"></script>
+    <script src="{% static 'js/dynamic-style.js' %}"></script>
+    <script src="{% static 'js/ui-actions.js' %}"></script>
+    <script src="{% static 'js/icons.js' %}"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
     <div class="app-background"></div>
 
-    <div class="error-container">
+    <main class="error-container" id="main" tabindex="-1">
         <div class="error-card">
             <div class="error-code">{% block error_code %}{% endblock %}</div>
             <h1 class="error-title">{% block error_heading %}{% endblock %}</h1>
@@ -104,13 +42,13 @@
                 <a href="{% url 'dashboard' %}" class="webops-btn webops-btn-primary">
                     Back to Dashboard
                 </a>
-                <button onclick="window.history.back()" class="webops-btn btn-secondary">
+                <button data-on-click="window.history.back()" class="webops-btn btn-secondary">
                     Go Back
                 </button>
                 {% endblock %}
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="{% static 'js/main.js' %}"></script>
 </body>

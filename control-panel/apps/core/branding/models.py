@@ -52,15 +52,15 @@ class BrandingSettings(BaseModel):
     # ═══════════════════════════════════════════════════════════════════════════════
     
     primary_hue = models.IntegerField(
-        default=217,  # Blue hue for #3b82f6
+        default=0,  # Neutral (no hue)
         help_text='Primary color hue (0-360 degrees)'
     )
     primary_saturation = models.IntegerField(
-        default=91,  # Saturation percentage for #3b82f6
+        default=0,  # Neutral (grayscale)
         help_text='Primary color saturation (0-100%)'
     )
     primary_lightness = models.IntegerField(
-        default=60,  # Lightness percentage for #3b82f6
+        default=12,  # Near-black ink; the theme inverts it on dark
         help_text='Primary color lightness (0-100%)'
     )
     
@@ -70,17 +70,17 @@ class BrandingSettings(BaseModel):
     
     primary_color = models.CharField(
         max_length=7,
-        default='#3b82f6',
+        default='#1f2937',
         help_text='Primary brand color (hex format: #RRGGBB) - auto-generated from HSL'
     )
     secondary_color = models.CharField(
         max_length=7,
-        default='#1e40af',
+        default='#4b5563',
         help_text='Secondary brand color (hex format: #RRGGBB) - auto-generated'
     )
     accent_color = models.CharField(
         max_length=7,
-        default='#10b981',
+        default='#374151',
         help_text='Accent color for success states (hex format: #RRGGBB)'
     )
     header_bg_color = models.CharField(

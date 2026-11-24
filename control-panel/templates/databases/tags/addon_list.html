@@ -1,3 +1,4 @@
+{% load static %}
 {% load installer_tags %}
 <div class="webops-addon-list">
     {% if available_addons %}
@@ -46,45 +47,4 @@
     {% endif %}
 </div>
 
-<style>
-.webops-addon-list {
-    margin-top: var(--webops-space-3);
-}
-
-.webops-addon-item {
-    padding: var(--webops-space-3);
-    background: var(--webops-color-surface);
-    border: 1px solid var(--webops-color-primary-alpha-10);
-    border-radius: var(--webops-radius-md);
-    transition: none;
-    margin-bottom: var(--webops-space-3);
-}
-
-.webops-addon-item:hover {
-    border-color: var(--webops-color-primary-alpha-20);
-    box-shadow: none;
-}
-
-.webops-addon-checkbox {
-    position: relative;
-}
-
-.webops-addon-checkbox input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--webops-color-primary);
-}
-
-.webops-addon-checkbox label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.webops-addon-status {
-    margin-left: auto;
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/databases-tags-addon_list.css' %}">

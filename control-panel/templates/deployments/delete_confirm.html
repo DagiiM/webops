@@ -2,17 +2,19 @@
 
 {% block title %}Delete {{ deployment.name }} - WebOps{% endblock %}
 
+{% block header_title %}Delete deployment{% endblock %}
+
 {% block content %}
 <div class="webops-page-header">
     <h2 class="webops-page-title">Delete Deployment</h2>
 </div>
 
-<div class="webops-card webops-mb-lg" style="background: rgba(255, 68, 68, 0.1); border-left: 4px solid var(--webops-color-error);">
+<div class="webops-card webops-mb-lg webops-s-3335327">
     <div class="webops-card-body">
         <h3 class="webops-h3 webops-text-error webops-mb-md">⚠️ Warning</h3>
         <p>You are about to delete the deployment <strong>{{ deployment.name }}</strong>.</p>
         <p class="webops-mb-sm">This action will:</p>
-        <ul style="margin-left: var(--webops-space-3); margin-bottom: var(--webops-space-3);">
+        <ul class="webops-s-34f6453">
             <li>Stop the running service (if running)</li>
             <li>Remove all deployed files</li>
             <li>Delete the systemd service</li>
@@ -28,7 +30,7 @@
         <h3 class="webops-h3">Deployment Details</h3>
     </div>
     <div class="webops-card-body">
-        <dl class="webops-grid webops-grid-2" style="gap: var(--webops-space-3);">
+        <dl class="webops-grid webops-grid-2 webops-s-4574c23">
             <div>
                 <dt class="webops-font-semibold webops-text-primary webops-mb-xs">Repository:</dt>
                 <dd><code class="webops-text-sm">{{ deployment.repo_url }}</code></dd>

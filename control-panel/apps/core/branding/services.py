@@ -325,8 +325,11 @@ class BrandingService:
         css_vars.extend([
             f"  --webops-hue-primary: {settings.primary_hue};",
             f"  --webops-sat-primary: {settings.primary_saturation}%;",
-            f"  --webops-light-primary: {settings.primary_lightness}%;",
         ])
+        # A neutral (0% saturation) palette leaves lightness to the active
+        # theme (light ink on dark, dark ink on light) so contrast holds in both.
+        if settings.primary_saturation > 0:
+            css_vars.append(f"  --webops-light-primary: {settings.primary_lightness}%;")
 
         # Primary color system
         primary_variants = BrandingService.generate_color_scale(
@@ -354,9 +357,9 @@ class BrandingService:
             "  --webops-error: #ef4444;",
             "  --webops-error-light: #f87171;",
             "  --webops-error-dark: #dc2626;",
-            "  --webops-info: #3b82f6;",
-            "  --webops-info-light: #60a5fa;",
-            "  --webops-info-dark: #2563eb;",
+            "  --webops-info: #374151;",
+            "  --webops-info-light: #6b7280;",
+            "  --webops-info-dark: #1f2937;",
             f"  --webops-accent: {settings.accent_color};",
         ])
 

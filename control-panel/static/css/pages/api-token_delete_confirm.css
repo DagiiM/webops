@@ -1,0 +1,162 @@
+/* Moved from templates/api/token_delete_confirm.html (ui-skill rule 17: no inline <style>). */
+.webops-card--warning {
+    border: 3px solid var(--webops-color-error);
+    box-shadow: none;
+}
+
+.webops-token-info {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-background-secondary);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-3);
+}
+
+.webops-info-row {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+}
+
+.webops-info-label {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    min-width: 100px;
+}
+
+.webops-info-value {
+    color: var(--webops-color-text-secondary);
+}
+
+.webops-impact-section {
+    padding: var(--webops-space-3);
+    background: var(--webops-color-error-lighter);
+    border-radius: var(--webops-radius-md);
+    border: 2px solid var(--webops-color-error-light);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-impact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-impact-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-3);
+    padding: var(--webops-space-3);
+    background: var(--webops-color-background);
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-3);
+    border: 1px solid var(--webops-color-error-light);
+}
+
+.webops-impact-list li:last-child {
+    margin-bottom: 0;
+}
+
+.webops-impact-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.webops-confirmation-section {
+    padding-top: var(--webops-space-3);
+    border-top: 2px solid var(--webops-color-border);
+}
+
+.webops-checkbox-group {
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-3);
+    cursor: pointer;
+    padding: var(--webops-space-3);
+    background: var(--webops-color-background-secondary);
+    border-radius: var(--webops-radius-md);
+    border: 2px solid var(--webops-color-border);
+    transition: none;
+}
+
+.webops-checkbox-label:hover {
+    background: var(--webops-color-background);
+    border-color: var(--webops-color-primary);
+}
+
+.webops-checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.webops-checkbox-text {
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-3);
+    flex-wrap: wrap;
+}
+
+.webops-btn-lg {
+    padding: var(--webops-space-3) var(--webops-space-3);
+    font-size: var(--webops-font-size-base);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-btn-danger {
+    background: var(--webops-color-error);
+    color: var(--webops-color-text-inverse);
+}
+
+.webops-btn-danger:hover:not(:disabled) {
+    background: var(--webops-color-error-dark);
+    transform: none;
+}
+
+.webops-btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.webops-btn-outline {
+    background: transparent;
+    border: 2px solid var(--webops-color-border);
+    color: var(--webops-color-text-primary);
+}
+
+.webops-btn-outline:hover {
+    background: var(--webops-color-background-secondary);
+    border-color: var(--webops-color-border-hover);
+}
+
+.webops-help-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.webops-help-list li {
+    padding: var(--webops-space-3) 0;
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.webops-help-list li:last-child {
+    border-bottom: none;
+}
+
+.webops-help-list strong {
+    color: var(--webops-color-text-primary);
+}

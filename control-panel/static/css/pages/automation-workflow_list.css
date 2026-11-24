@@ -1,0 +1,21 @@
+/* Moved from templates/automation/workflow_list.html (ui-skill rule 17: no inline <style>). */
+.webops-form--inline {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-grid--cols-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .webops-grid--cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

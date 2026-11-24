@@ -1,68 +1,69 @@
 {% extends "base.html" %}
 
+{% load static %}
 {% block title %}Webhooks - {{ branding.site_name }}{% endblock %}
 {% block header_title %}Webhooks{% endblock %}
 
 {% block content %}
-<div style="max-width: 1200px; margin: 0 auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--webops-space-3);">
+<div class="webops-s-d46f84d">
+    <div class="webops-s-48da92c">
         <div>
-            <h1 style="font-size: var(--webops-font-size-3xl); font-weight: var(--webops-font-weight-bold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-1-5);">
+            <h2 class="webops-s-7f339d7">
                 Webhooks
-            </h1>
-            <p style="color: var(--webops-color-text-secondary); font-size: var(--webops-font-size-lg);">
+            </h2>
+            <p class="webops-s-ce60233">
                 Manage webhook endpoints for deployment notifications
             </p>
         </div>
-        <button onclick="showCreateModal()" 
-                style="background: var(--webops-color-primary); color: white; border: none; padding: var(--webops-space-3) var(--webops-space-3); border-radius: var(--webops-radius-lg); font-weight: var(--webops-font-weight-semibold); cursor: pointer;">
-            <span class="material-icons" style="vertical-align: middle; margin-right: var(--webops-space-0-5);">add</span>
+        <button data-on-click="showCreateModal()"
+                class="webops-s-4cdeb7a">
+            <span class="material-icons webops-s-ec5c425">add</span>
             Add Webhook
         </button>
     </div>
 
     <!-- Webhooks List -->
-    <div style="background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3);">
-        <h2 style="font-size: var(--webops-font-size-xl); font-weight: var(--webops-font-weight-semibold); color: var(--webops-color-text-primary); margin-bottom: var(--webops-space-3);">
+    <div class="webops-s-0d1d87a">
+        <h2 class="webops-s-ece53c8">
             Configured Webhooks
         </h2>
 
         {% if webhooks %}
-            <div style="display: grid; gap: var(--webops-space-3);">
+            <div class="webops-s-b52efeb">
                 {% for webhook in webhooks %}
-                <div style="background: var(--webops-color-bg-primary); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: var(--webops-radius-md); padding: var(--webops-space-3);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div style="flex: 1;">
-                            <div style="display: flex; align-items: center; gap: var(--webops-space-1-5); margin-bottom: var(--webops-space-0-5);">
-                                <span class="material-icons" style="color: var(--webops-color-primary);">webhook</span>
-                                <h3 style="font-size: var(--webops-font-size-lg); font-weight: var(--webops-font-weight-medium); color: var(--webops-color-text-primary); margin: 0;">
+                <div class="webops-s-9536ffe">
+                    <div class="webops-s-2666170">
+                        <div class="webops-s-634a28b">
+                            <div class="webops-s-1dd87e7">
+                                <span class="material-icons webops-s-d8eb29e">webhook</span>
+                                <h3 class="webops-s-cd4a3a9">
                                     {{ webhook.name }}
                                 </h3>
                                 {% if webhook.is_active %}
-                                    <span style="background: var(--webops-color-success); color: white; padding: 2px var(--webops-space-0-5); border-radius: var(--webops-radius-sm); font-size: var(--webops-font-size-sm); font-weight: var(--webops-font-weight-medium);">
+                                    <span class="webops-s-05d6575">
                                         Active
                                     </span>
                                 {% endif %}
                             </div>
-                            <p style="color: var(--webops-color-text-tertiary); margin: 0 0 var(--webops-space-0-5) 0; font-size: var(--webops-font-size-sm); font-family: 'Courier New', monospace;">
+                            <p class="webops-s-a040d50">
                                 {{ webhook.url }}
                             </p>
-                            <p style="color: var(--webops-color-text-secondary); margin: 0; font-size: var(--webops-font-size-sm);">
+                            <p class="webops-s-db5c870">
                                 Events: {{ webhook.events|join:", " }}
                             </p>
                         </div>
-                        <div style="display: flex; gap: var(--webops-space-0-5);">
-                            <button onclick="testWebhook('{{ webhook.id }}')" 
-                                    style="background: transparent; border: 1px solid rgba(0, 255, 136, 0.3); color: var(--webops-color-text-secondary); padding: var(--webops-space-0-5) var(--webops-space-1-5); border-radius: var(--webops-radius-sm); cursor: pointer;">
-                                <span class="material-icons" style="font-size: 16px;">send</span>
+                        <div class="webops-s-c055fe4">
+                            <button data-on-click="testWebhook('{{ webhook.id }}')"
+                                    class="webops-s-2cbe4cc">
+                                <span class="material-icons webops-s-7da4e82">send</span>
                             </button>
-                            <button onclick="editWebhook('{{ webhook.id }}')" 
-                                    style="background: transparent; border: 1px solid rgba(0, 255, 136, 0.3); color: var(--webops-color-text-secondary); padding: var(--webops-space-0-5) var(--webops-space-1-5); border-radius: var(--webops-radius-sm); cursor: pointer;">
-                                <span class="material-icons" style="font-size: 16px;">edit</span>
+                            <button data-on-click="editWebhook('{{ webhook.id }}')"
+                                    class="webops-s-2cbe4cc">
+                                <span class="material-icons webops-s-7da4e82">edit</span>
                             </button>
-                            <button onclick="deleteWebhook('{{ webhook.id }}')" 
-                                    style="background: transparent; border: 1px solid var(--webops-color-error); color: var(--webops-color-error); padding: var(--webops-space-0-5) var(--webops-space-1-5); border-radius: var(--webops-radius-sm); cursor: pointer;">
-                                <span class="material-icons" style="font-size: 16px;">delete</span>
+                            <button data-on-click="deleteWebhook('{{ webhook.id }}')"
+                                    class="webops-s-6bbba10">
+                                <span class="material-icons webops-s-7da4e82">delete</span>
                             </button>
                         </div>
                     </div>
@@ -70,54 +71,54 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div style="text-align: center; padding: var(--webops-space-3); color: var(--webops-color-text-tertiary);">
-                <span class="material-icons" style="font-size: 48px; margin-bottom: var(--webops-space-3); opacity: 0.5;">webhook</span>
-                <p style="margin: 0;">No webhooks configured</p>
+            <div class="webops-s-cf4f25e">
+                <span class="material-icons webops-s-bbb03a0">webhook</span>
+                <p class="webops-s-2a0ca83">No webhooks configured</p>
             </div>
         {% endif %}
     </div>
 </div>
 
 <!-- Create Webhook Modal -->
-<div id="createModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000;">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--webops-color-bg-primary); border-radius: var(--webops-radius-lg); padding: var(--webops-space-3); min-width: 500px;">
-        <h3 style="margin: 0 0 var(--webops-space-3) 0; color: var(--webops-color-text-primary);">Add Webhook</h3>
+<div id="createModal" class="webops-s-2d11e92">
+    <div class="webops-s-aae569f">
+        <h3 class="webops-s-4ec54f9">Add Webhook</h3>
         <form id="createForm" method="post">
             {% csrf_token %}
-            <div style="margin-bottom: var(--webops-space-3);">
-                <label style="display: block; margin-bottom: var(--webops-space-0-5); color: var(--webops-color-text-primary);">Name</label>
-                <input type="text" name="name" required style="width: 100%; padding: var(--webops-space-1-5); background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-radius-sm); color: var(--webops-color-text-primary);">
+            <div class="webops-s-74c7834">
+                <label for="field-name" class="webops-s-cf39c7a">Name</label>
+                <input id="field-name" type="text" name="name" required class="webops-s-b3dc67e">
             </div>
-            <div style="margin-bottom: var(--webops-space-3);">
-                <label style="display: block; margin-bottom: var(--webops-space-0-5); color: var(--webops-color-text-primary);">URL</label>
-                <input type="url" name="url" required style="width: 100%; padding: var(--webops-space-1-5); background: var(--webops-color-bg-secondary); border: 1px solid rgba(0, 255, 136, 0.3); border-radius: var(--webops-radius-sm); color: var(--webops-color-text-primary); font-family: 'Courier New', monospace;">
+            <div class="webops-s-74c7834">
+                <label for="field-url" class="webops-s-cf39c7a">URL</label>
+                <input id="field-url" type="url" name="url" required class="webops-s-1192af9">
             </div>
-            <div style="margin-bottom: var(--webops-space-3);">
-                <label style="display: block; margin-bottom: var(--webops-space-0-5); color: var(--webops-color-text-primary);">Events</label>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--webops-space-0-5);">
-                    <label style="display: flex; align-items: center; gap: var(--webops-space-0-5); color: var(--webops-color-text-secondary);">
+            <div class="webops-s-74c7834">
+                <label class="webops-s-cf39c7a">Events</label>
+                <div class="webops-s-1d2dd7f">
+                    <label class="webops-s-8f91b20">
                         <input type="checkbox" name="events" value="deployment.started">
                         Deployment Started
                     </label>
-                    <label style="display: flex; align-items: center; gap: var(--webops-space-0-5); color: var(--webops-color-text-secondary);">
+                    <label class="webops-s-8f91b20">
                         <input type="checkbox" name="events" value="deployment.completed">
                         Deployment Completed
                     </label>
-                    <label style="display: flex; align-items: center; gap: var(--webops-space-0-5); color: var(--webops-color-text-secondary);">
+                    <label class="webops-s-8f91b20">
                         <input type="checkbox" name="events" value="deployment.failed">
                         Deployment Failed
                     </label>
-                    <label style="display: flex; align-items: center; gap: var(--webops-space-0-5); color: var(--webops-color-text-secondary);">
+                    <label class="webops-s-8f91b20">
                         <input type="checkbox" name="events" value="service.health">
                         Service Health
                     </label>
                 </div>
             </div>
-            <div style="display: flex; gap: var(--webops-space-1-5); justify-content: flex-end;">
-                <button type="button" onclick="hideCreateModal()" style="background: transparent; border: 1px solid rgba(0, 255, 136, 0.3); color: var(--webops-color-text-secondary); padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); cursor: pointer;">
+            <div class="webops-s-56957e0">
+                <button type="button" data-on-click="hideCreateModal()" class="webops-s-ffbb713">
                     Cancel
                 </button>
-                <button type="submit" style="background: var(--webops-color-primary); color: white; border: none; padding: var(--webops-space-1-5) var(--webops-space-3); border-radius: var(--webops-radius-sm); cursor: pointer;">
+                <button type="submit" class="webops-s-78d7a77">
                     Create
                 </button>
             </div>
@@ -125,30 +126,5 @@
     </div>
 </div>
 
-<script>
-function showCreateModal() {
-    document.getElementById('createModal').style.display = 'block';
-}
-
-function hideCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
-}
-
-function testWebhook(webhookId) {
-    // Implementation for testing webhook
-    console.log('Test webhook:', webhookId);
-}
-
-function editWebhook(webhookId) {
-    // Implementation for editing webhook
-    console.log('Edit webhook:', webhookId);
-}
-
-function deleteWebhook(webhookId) {
-    if (confirm('Are you sure you want to delete this webhook?')) {
-        // Implementation for deleting webhook
-        console.log('Delete webhook:', webhookId);
-    }
-}
-</script>
+<script src="{% static 'js/pages/integrations-webhook_list.js' %}"></script>
 {% endblock %}

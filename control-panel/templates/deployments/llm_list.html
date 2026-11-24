@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}LLM Models - {{ branding.site_name }}{% endblock %}
 {% block header_title %}LLM Models{% endblock %}
 
@@ -18,7 +19,7 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">All LLM Deployments</h3>
-        <input type="text" id="search" placeholder="Search models..." class="webops-input" style="max-width: 300px;">
+        <input type="text" id="search" aria-label="Search models..." placeholder="Search models..." class="webops-input webops-s-c26114f">
     </div>
 
     {% if llm_deployments %}
@@ -89,7 +90,7 @@
     </div>
     {% else %}
     <div class="webops-empty-state">
-        <span class="material-icons webops-empty-state-icon" style="font-size: 64px; color: var(--webops-color-text-tertiary); opacity: 0.3;">smart_toy</span>
+        <span class="material-icons webops-empty-state-icon webops-s-5d5c186">smart_toy</span>
         <h3 class="webops-empty-state-title">No LLM models deployed</h3>
         <p class="webops-empty-state-description">Deploy your first Large Language Model to get started</p>
         <a href="{% url 'deployments:llm_create' %}" class="webops-btn webops-btn-primary">
@@ -101,43 +102,29 @@
 </div>
 
 {% if llm_deployments %}
-<div class="webops-card" style="margin-top: var(--webops-space-3);">
+<div class="webops-card webops-s-a92b13d">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
-            <span class="material-icons" style="color: var(--webops-color-info);">info</span>
-            <h3 class="webops-h3" style="margin: 0;">About vLLM Deployments</h3>
+        <div class="webops-s-66fb080">
+            <span class="material-icons webops-s-4fe7a62">info</span>
+            <h3 class="webops-h3 webops-s-2a0ca83">About vLLM Deployments</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-3); color: var(--webops-color-text-secondary); line-height: 1.6;">
-        <p style="margin-bottom: var(--webops-space-3);">
+    <div class="webops-s-b768872">
+        <p class="webops-s-74c7834">
             All LLM models are deployed using <strong>vLLM</strong>, a high-performance inference engine optimized for large language models.
         </p>
-        <ul style="margin: var(--webops-space-3) 0; padding-left: var(--webops-space-3);">
+        <ul class="webops-s-6f36210">
             <li>OpenAI-compatible API endpoints for easy integration</li>
             <li>Automatic tensor parallelism for multi-GPU deployments</li>
             <li>Support for quantization (AWQ, GPTQ, SqueezeLLM) to reduce memory usage</li>
             <li>Continuous batching for high throughput</li>
         </ul>
-        <p style="margin-top: var(--webops-space-3);">
+        <p class="webops-s-a92b13d">
             <strong>GPU Requirements:</strong> Most models require at least one GPU. Memory requirements vary by model size.
         </p>
     </div>
 </div>
 {% endif %}
 
-<script>
-// Search functionality
-const searchInput = document.getElementById('search');
-if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('tbody tr');
-
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-    });
-}
-</script>
+<script src="{% static 'js/pages/deployments-llm_list.js' %}"></script>
 {% endblock %}

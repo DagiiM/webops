@@ -14,6 +14,6 @@
 <button class="webops-btn webops-btn-primary" type="submit">Create MCP token</button>
 </form></div></div>
 <div class="webops-card webops-mt-md"><div class="webops-card-body"><h3>Your assistant tokens</h3>
-{% for token in tokens %}<div class="webops-flex webops-gap-sm webops-mb-md" style="align-items:center;flex-wrap:wrap"><strong>{{ token.name }}</strong> · {% if token.can_control %}Control{% else %}Read-only{% endif %} · Expires {{ token.expires_at|date:"Y-m-d" }} · {% if token.revoked_at %}Revoked{% else %}<form method="post" action="{% url 'mcp_revoke' token.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-secondary" type="submit">Revoke</button></form>{% endif %}</div>{% empty %}<p>No assistant tokens created.</p>{% endfor %}
+{% for token in tokens %}<div class="webops-flex webops-gap-sm webops-mb-md webops-s-eed9692" ><strong>{{ token.name }}</strong> · {% if token.can_control %}Control{% else %}Read-only{% endif %} · Expires {{ token.expires_at|date:"Y-m-d" }} · {% if token.revoked_at %}Revoked{% else %}<form method="post" action="{% url 'mcp_revoke' token.pk %}">{% csrf_token %}<button class="webops-btn webops-btn-secondary" type="submit">Revoke</button></form>{% endif %}</div>{% empty %}<p>No assistant tokens created.</p>{% endfor %}
 </div></div>
 {% endblock %}

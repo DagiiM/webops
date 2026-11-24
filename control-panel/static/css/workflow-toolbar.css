@@ -135,7 +135,6 @@
 }
 
 .webops-workflow-name-input:focus {
-    outline: none;
     border-color: var(--webops-color-primary);
     box-shadow: none;
     background: var(--webops-color-surface-hover);
@@ -247,7 +246,7 @@
 }
 
 .webops-btn-success:hover {
-    background: var(--webops-color-success-light, #4ade80);
+    background: var(--webops-color-success-light, #595959);
     box-shadow: none;
     transform: none;
 }

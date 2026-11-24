@@ -1,0 +1,183 @@
+/* Moved from templates/databases/list.html (ui-skill rule 17: no inline <style>). */
+/* Dependency status styles for modal */
+.webops-dependency-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+    margin-top: var(--webops-space-2);
+}
+
+.dependency-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--webops-space-2);
+    border-radius: var(--webops-radius-md);
+    border: 1px solid var(--webops-color-border);
+    background: var(--webops-color-surface);
+}
+
+.dependency-item.installed {
+    border-color: var(--webops-color-success-alpha-20);
+    background: var(--webops-color-primary-alpha-05);
+}
+
+.dependency-item.missing {
+    border-color: var(--webops-color-warning-alpha-20);
+    background: rgba(255, 170, 0, 0.05);
+}
+
+.dependency-item.installing {
+    border-color: var(--webops-color-primary-alpha-20);
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.dependency-item.failed {
+    border-color: var(--webops-color-error-alpha-20);
+    background: rgba(255, 59, 48, 0.05);
+}
+
+.dependency-info {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-2);
+    flex: 1;
+}
+
+.dependency-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.dependency-icon.installed {
+    color: var(--webops-color-success);
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.dependency-icon.missing {
+    color: var(--webops-color-warning);
+    background: rgba(255, 170, 0, 0.1);
+}
+
+.dependency-details {
+    flex: 1;
+}
+
+.dependency-name {
+    font-weight: var(--webops-font-weight-semibold);
+    font-size: var(--webops-font-size-sm);
+    margin-bottom: 2px;
+}
+
+.dependency-description {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-secondary);
+}
+
+.dependency-status {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    margin-right: var(--webops-space-2);
+}
+
+.dependency-status.installed {
+    color: var(--webops-color-success);
+}
+
+.dependency-status.missing {
+    color: var(--webops-color-warning);
+}
+
+.dependency-status.installing {
+    color: var(--webops-color-primary);
+}
+
+.dependency-status.failed {
+    color: var(--webops-color-error);
+}
+
+.dependency-actions {
+    display: flex;
+    align-items: center;
+}
+
+.dependency-install-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1);
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    border: 1px solid;
+    cursor: pointer;
+    transition: none;
+}
+
+.dependency-install-btn.installed {
+    background: var(--webops-color-success);
+    color: var(--webops-color-on-primary);
+    border-color: var(--webops-color-success);
+    cursor: not-allowed;
+}
+
+.dependency-install-btn.missing {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-on-primary);
+    border-color: var(--webops-color-primary);
+}
+
+.dependency-install-btn.missing:hover {
+    background: var(--webops-color-primary-hover);
+    border-color: var(--webops-color-primary-hover);
+}
+
+.dependency-install-btn.installing {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-on-primary);
+    border-color: var(--webops-color-primary);
+    cursor: wait;
+}
+
+.dependency-install-btn.failed {
+    background: var(--webops-color-error);
+    color: white;
+    border-color: var(--webops-color-error);
+}
+
+.dependency-install-btn.failed:hover {
+    background: var(--webops-color-error-hover);
+    border-color: var(--webops-color-error-hover);
+}
+
+.webops-btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.webops-btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

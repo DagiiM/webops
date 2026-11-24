@@ -116,10 +116,7 @@
     margin: 0 0 var(--webops-space-2) 0;
     font-size: var(--webops-font-size-4xl);
     font-weight: var(--webops-font-weight-bold);
-    background: var(--webops-color-text-primary);
-
-    -webkit-text-fill-color: currentColor;
-
+    color: var(--webops-color-text-primary);
 }
 
 .webops-addon-detail__meta {
@@ -222,7 +219,7 @@
 
 .webops-addon-detail__grid {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: minmax(0, 1fr) 400px;
     gap: var(--webops-space-6);
 }
 
@@ -331,7 +328,7 @@
 
 .webops-addon-detail__capabilities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: var(--webops-space-4);
 }
 
@@ -662,7 +659,7 @@
 
 .webops-addon-detail__stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--webops-space-3);
     margin-bottom: var(--webops-space-4);
 }
@@ -1050,7 +1047,7 @@
 
 @media (max-width: 1024px) {
     .webops-addon-detail__grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-addon-detail__sidebar {
@@ -1074,11 +1071,11 @@
     }
 
     .webops-addon-detail__capabilities-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .webops-addon-detail__stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -1092,7 +1089,7 @@
     }
 
     .webops-addon-detail__quick-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .webops-addon-detail__card-header,

@@ -49,7 +49,7 @@ class TrashItemAdmin(admin.ModelAdmin):
 
     def expiry_status(self, obj):
         if obj.is_restored:
-            return format_html('<span style="color: #00ff88;">✓ Restored</span>')
+            return format_html('<span style="color: #1f2937;">✓ Restored</span>')
         if obj.is_permanently_deleted:
             return format_html('<span style="color: #ff4444;">✗ Permanently Deleted</span>')
 
@@ -57,7 +57,7 @@ class TrashItemAdmin(admin.ModelAdmin):
             return format_html('<span style="color: #ffaa00;">⏰ Expired</span>')
         else:
             days = obj.days_until_expiry()
-            return format_html(f'<span style="color: #00aaff;">{days} days left</span>')
+            return format_html(f'<span style="color: #4b5563;">{days} days left</span>')
     expiry_status.short_description = "Status"
 
     def expiry_info(self, obj):

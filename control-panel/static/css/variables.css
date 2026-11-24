@@ -20,9 +20,11 @@
      ════════════════════════════════════════════════════════════════════════════════ */
   
   /* Core theme parameters (modify these to change the entire theme) */
-  --webops-hue-primary: 150;       /* Green: 150 | Blue: 210 | Teal: 170 | Purple: 270 */
-  --webops-sat-primary: 100%;      /* Saturation: 0% (grayscale) to 100% (vivid) */
-  --webops-light-primary: 50%;     /* Lightness: 20% (dark) to 80% (light) */
+  --webops-hue-primary: 0;       /* Green: 150 | Blue: 210 | Teal: 170 | Purple: 270 */
+  --webops-sat-primary: 0%;      /* Saturation: 0% (grayscale) to 100% (vivid) */
+  --webops-light-primary: 93%;     /* Lightness: 20% (dark) to 80% (light) */
+  --webops-color-on-primary: hsl(0 0% 4%);
+  --webops-color-on-primary: hsl(0 0% 4%);   /* text/icons on a primary-coloured fill */
 
   /* ────────────────────────────────────────────────────────────────────────────────
      🎯 PRIMARY COLOR SYSTEM (Auto-generated from theme parameters)
@@ -89,9 +91,9 @@
   --webops-color-error-alpha-30: hsl(0 100% 63% / 30%);
   
   /* Info system (blue) */
-  --webops-color-info: hsl(195 100% 50%);           /* #00aaff - WCAG AA compliant */
-  --webops-color-info-alpha-10: hsl(195 100% 50% / 10%);
-  --webops-color-info-alpha-30: hsl(195 100% 50% / 30%);
+  --webops-color-info: hsl(0 0% 80%);           /* var(--webops-color-primary) - WCAG AA compliant */
+  --webops-color-info-alpha-10: hsl(0 0% 80% / 10%);
+  --webops-color-info-alpha-30: hsl(0 0% 80% / 30%);
   
   /* Accent color (for highlights and special elements) */
   --webops-color-accent: hsl(18 100% 60%);          /* #ff6b35 - Complementary orange */
@@ -108,7 +110,7 @@
   --webops-gray-825: hsl(0 0% 12%);    /* #1f1f1f - Hover states */
   --webops-gray-750: hsl(0 0% 16%);    /* #292929 - Active states */
   --webops-gray-600: hsl(0 0% 25%);    /* #404040 - Disabled text */
-  --webops-gray-500: hsl(0 0% 40%);    /* #666666 - Tertiary text */
+  --webops-gray-500: hsl(0 0% 60%);    /* #666666 - Tertiary text */
   --webops-gray-400: hsl(0 0% 65%);    /* #a6a6a6 - Secondary text */
   --webops-gray-200: hsl(0 0% 93%);    /* #ededed - Primary text */
 
@@ -407,8 +409,8 @@
   --webops-color-success-dark: var(--webops-color-primary-dark);
   --webops-color-warning-light: hsl(40 100% 60%);   /* Lighter warning color */
   --webops-color-warning-dark: hsl(40 100% 40%);    /* Darker warning color */
-  --webops-color-info-light: hsl(195 100% 60%);     /* Lighter info color */
-  --webops-color-info-dark: hsl(195 100% 40%);      /* Darker info color */
+  --webops-color-info-light: hsl(0 0% 80%);     /* Lighter info color */
+  --webops-color-info-dark: hsl(0 0% 80%);      /* Darker info color */
 
   --webops-shadow-xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                             /* High elevation */
   --webops-shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 25%);                           /* Maximum elevation */

@@ -112,7 +112,7 @@
                 <!-- Header -->
                 <div class="webops-detection-header">
                     <div class="webops-flex webops-items-center webops-gap-3">
-                        <span class="material-icons webops-text-${confidenceColor}" style="font-size: 32px;">${confidenceIcon}</span>
+                        <span class="material-icons webops-text-${confidenceColor} webops-s-8507053" >${confidenceIcon}</span>
                         <div>
                             <h4 class="webops-h4 webops-m-0 webops-flex webops-items-center webops-gap-2">
                                 Auto-Detected Configuration
@@ -121,7 +121,7 @@
                             <p class="webops-text-sm webops-text-muted webops-m-0">Railway-style zero-configuration deployment</p>
                         </div>
                     </div>
-                    <button type="button" class="webops-btn webops-btn-sm webops-btn-ghost" onclick="hideDetectionPreview()">
+                    <button type="button" class="webops-btn webops-btn-sm webops-btn-ghost" data-on-click="hideDetectionPreview()">
                         <span class="material-icons">close</span>
                     </button>
                 </div>
@@ -199,9 +199,9 @@
                         </div>
                     </div>
 
-                    <div class="webops-mt-3 webops-p-3" style="background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
-                        <div class="webops-flex webops-gap-2" style="align-items: flex-start;">
-                            <span class="material-icons webops-text-info" style="font-size: 20px;">lightbulb</span>
+                    <div class="webops-mt-3 webops-p-3 webops-s-dac9fb0" >
+                        <div class="webops-flex webops-gap-2 webops-s-714f345" >
+                            <span class="material-icons webops-text-info webops-s-b39dc14" >lightbulb</span>
                             <div class="webops-text-sm">
                                 <strong>${config.backend_confidence}% confident:</strong> ${config.backend_reasoning}
                             </div>
@@ -232,7 +232,7 @@
                 <!-- Action Note -->
                 <div class="webops-detection-footer">
                     <p class="webops-text-sm webops-text-muted webops-m-0">
-                        <span class="material-icons" style="font-size: 16px; vertical-align: text-bottom;">info</span>
+                        <span class="material-icons webops-s-fbd8194" >info</span>
                         These values have been automatically filled in the form. You can override them if needed.
                     </p>
                 </div>
@@ -251,12 +251,12 @@
         container.innerHTML = `
             <div class="webops-detection-preview webops-detection-error">
                 <div class="webops-flex webops-items-center webops-gap-3">
-                    <span class="material-icons webops-text-danger" style="font-size: 32px;">error</span>
+                    <span class="material-icons webops-text-danger webops-s-8507053" >error</span>
                     <div>
                         <h4 class="webops-h4 webops-m-0">Detection Failed</h4>
                         <p class="webops-text-sm webops-text-muted webops-m-0">${error}</p>
                     </div>
-                    <button type="button" class="webops-btn webops-btn-sm webops-btn-ghost" onclick="hideDetectionPreview()">
+                    <button type="button" class="webops-btn webops-btn-sm webops-btn-ghost" data-on-click="hideDetectionPreview()">
                         <span class="material-icons">close</span>
                     </button>
                 </div>

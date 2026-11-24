@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}{{ deployment.name }} - {{ branding.site_name }}{% endblock %}
 {% block header_title %}{{ deployment.name }}{% endblock %}
 
@@ -9,20 +10,20 @@
         <h2 class="webops-page-title">{{ deployment.name }}</h2>
         <p class="webops-text-muted">LLM deployment details and management</p>
     </div>
-    <div style="display: flex; gap: var(--webops-space-1-5);">
+    <div class="webops-s-f2cdaea">
         {% if deployment.status == 'running' %}
             <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-primary">
                 <span class="material-icons">api</span>
                 API Docs
             </a>
-            <form method="POST" action="{% url 'deployments:deployment_stop' deployment.pk %}" style="display: inline;">
+            <form method="POST" action="{% url 'deployments:deployment_stop' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-warning">
                     <span class="material-icons">pause</span>
                     Stop
                 </button>
             </form>
-            <form method="POST" action="{% url 'deployments:deployment_restart' deployment.pk %}" style="display: inline;">
+            <form method="POST" action="{% url 'deployments:deployment_restart' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-secondary">
                     <span class="material-icons">refresh</span>
@@ -30,7 +31,7 @@
                 </button>
             </form>
         {% elif deployment.status == 'stopped' %}
-            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
+            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-success">
                     <span class="material-icons">play_arrow</span>
@@ -38,7 +39,7 @@
                 </button>
             </form>
         {% elif deployment.status == 'pending' %}
-            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
+            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-success">
                     <span class="material-icons">play_arrow</span>
@@ -46,7 +47,7 @@
                 </button>
             </form>
         {% elif deployment.status == 'failed' %}
-            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" style="display: inline;">
+            <form method="POST" action="{% url 'deployments:deployment_start' deployment.pk %}" class="webops-s-2f8710b">
                 {% csrf_token %}
                 <button type="submit" class="webops-btn webops-btn-primary">
                     <span class="material-icons">replay</span>
@@ -63,27 +64,27 @@
 
 <!-- Status Banner -->
 {% if latest_error %}<div role="alert" class="webops-card webops-mb-md"><strong>Latest deployment error</strong><p>{{ latest_error.message }}</p></div>{% endif %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-3); background: {% if deployment.status == 'running' %}rgba(0, 255, 136, 0.1){% elif deployment.status == 'failed' %}rgba(255, 68, 68, 0.1){% elif deployment.status == 'stopped' %}rgba(128, 128, 128, 0.1){% else %}rgba(255, 191, 0, 0.1){% endif %};">
-    <div style="display: flex; align-items: center; gap: var(--webops-space-3); padding: var(--webops-space-3);">
-        <span class="material-icons" style="font-size: 48px; color: {% if deployment.status == 'running' %}var(--webops-color-success){% elif deployment.status == 'failed' %}var(--webops-color-error){% elif deployment.status == 'stopped' %}var(--webops-color-text-tertiary){% else %}var(--webops-color-warning){% endif %};">
+<div class="webops-card webops-mb-3 {% if deployment.status == 'running' %}webops-bg-tint-success{% elif deployment.status == 'failed' %}webops-bg-tint-error{% elif deployment.status == 'stopped' %}webops-bg-tint-muted{% else %}webops-bg-tint-warning{% endif %}">
+    <div class="webops-s-9a905a5">
+        <span class="material-icons webops-icon-lg {% if deployment.status == 'running' %}webops-fg-success{% elif deployment.status == 'failed' %}webops-fg-error{% elif deployment.status == 'stopped' %}webops-fg-muted{% else %}webops-fg-warning{% endif %}">
             {% if deployment.status == 'running' %}check_circle{% elif deployment.status == 'stopped' %}pause_circle{% elif deployment.status == 'failed' %}error{% else %}pending{% endif %}
         </span>
         <div>
-            <h3 class="webops-h3" style="margin: 0;">Status: {{ deployment.get_status_display }}</h3>
+            <h3 class="webops-h3 webops-s-2a0ca83">Status: {{ deployment.get_status_display }}</h3>
             {% if deployment.status == 'running' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
+                <p class="webops-text-secondary webops-s-6cca3b9">
                     Model is running on the host. Use the authenticated test panel below; its local port is not public.
                 </p>
             {% elif deployment.status == 'pending' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
+                <p class="webops-text-secondary webops-s-6cca3b9">
                     Deployment is ready to start. Click "Start Deployment" to begin downloading the model and setting up the environment.
                 </p>
             {% elif deployment.status == 'building' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
+                <p class="webops-text-secondary webops-s-6cca3b9">
                     Downloading model and setting up environment. This may take several minutes. Check deployment logs for progress.
                 </p>
             {% elif deployment.status == 'failed' %}
-                <p class="webops-text-secondary" style="margin: var(--webops-space-0-5) 0 0 0;">
+                <p class="webops-text-secondary webops-s-6cca3b9">
                     Deployment failed or was blocked before download. Read the latest error below; correct the indicated cause before retrying.
                 </p>
             {% endif %}
@@ -93,19 +94,19 @@
 
 <!-- Backend Selection -->
 {% if not portable and deployment.status == 'pending' or not portable and deployment.status == 'failed' %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+<div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
         <h3 class="webops-h3">Deployment Backend</h3>
     </div>
-    <div style="padding: var(--webops-space-3);">
-        <p class="webops-text-secondary" style="margin-bottom: var(--webops-space-3);">
+    <div class="webops-s-ee81060">
+        <p class="webops-text-secondary webops-s-74c7834">
             Choose which LLM serving backend to use for this deployment. Each backend has different trade-offs between performance and setup time.
         </p>
-        <form method="POST" action="{% url 'deployments:llm_update_backend' deployment.pk %}" style="display: flex; gap: var(--webops-space-3); align-items: end;">
+        <form method="POST" action="{% url 'deployments:llm_update_backend' deployment.pk %}" class="webops-s-07b54de">
             {% csrf_token %}
-            <div style="flex: 1;">
-                <label class="webops-label">Backend</label>
-                <select name="backend" class="webops-input" style="width: 100%;">
+            <div class="webops-s-634a28b">
+                <label for="field-backend" class="webops-label">Backend</label>
+                <select id="field-backend" name="backend" class="webops-input webops-s-16000cc">
                     <option value="transformers" {% if deployment.backend == 'transformers' %}selected{% endif %}>
                         Transformers (CPU-Optimized - Fast Setup, 5-10 minutes)
                     </option>
@@ -127,12 +128,12 @@
         </form>
 
         <!-- Backend Info -->
-        <div style="margin-top: var(--webops-space-3); padding: var(--webops-space-2); background: rgba(0, 123, 255, 0.1); border-radius: 4px;">
-            <div style="display: flex; align-items: start; gap: var(--webops-space-2);">
-                <span class="material-icons" style="color: var(--webops-color-info);">info</span>
+        <div class="webops-s-7258101">
+            <div class="webops-s-68139ba">
+                <span class="material-icons webops-s-4fe7a62">info</span>
                 <div>
                     <strong>Current: {{ deployment.get_backend_display }}</strong>
-                    <p class="webops-text-sm" style="margin: var(--webops-space-0-5) 0 0 0;">
+                    <p class="webops-text-sm webops-s-6cca3b9">
                         {% if deployment.backend == 'transformers' %}
                             Uses HuggingFace Transformers with CPU optimization. Fast setup (5-10 min), good for testing and small models.
                         {% elif deployment.backend == 'vllm' %}
@@ -151,12 +152,12 @@
 {% endif %}
 
 <!-- Model Information -->
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+<div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
         <h3 class="webops-h3">Model Information</h3>
     </div>
-    <div style="padding: var(--webops-space-3);">
-        <div class="webops-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--webops-space-3);">
+    <div class="webops-s-ee81060">
+        <div class="webops-grid webops-s-014cdc5">
             <div class="webops-info-item">
                 <label class="webops-label">Model Name</label>
                 <code class="webops-text-sm">{{ deployment.model_name }}</code>
@@ -220,47 +221,47 @@
 
 <!-- API Endpoint Info -->
 {% if deployment.status == 'running' and deployment.port %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+<div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
-            <span class="material-icons" style="color: var(--webops-color-primary);">api</span>
-            <h3 class="webops-h3" style="margin: 0;">API Endpoints</h3>
+        <div class="webops-s-66fb080">
+            <span class="material-icons webops-s-d8eb29e">api</span>
+            <h3 class="webops-h3 webops-s-2a0ca83">API Endpoints</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-3);">
-        <div style="display: flex; flex-direction: column; gap: var(--webops-space-3);">
+    <div class="webops-s-ee81060">
+        <div class="webops-s-4a4172e">
             <div>
                 <label class="webops-label">OpenAI-Compatible API</label>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
+                <code class="webops-text-sm webops-s-adb4316">
                     http://localhost:{{ deployment.port }}/v1/completions
                 </code>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
+                <code class="webops-text-sm webops-s-adb4316">
                     {% if portable %}Chat completions are not supported in this CPU preview.{% else %}http://localhost:{{ deployment.port }}/v1/chat/completions{% endif %}
                 </code>
             </div>
 
             <div>
                 <label class="webops-label">Health Check</label>
-                <code class="webops-text-sm" style="display: block; padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); margin-top: var(--webops-space-0-5);">
+                <code class="webops-text-sm webops-s-adb4316">
                     http://localhost:{{ deployment.port }}/health
                 </code>
             </div>
 
             <div>
                 <label class="webops-label">Interactive API Documentation</label>
-                <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary" style="margin-top: var(--webops-space-0-5); width: fit-content;">
+                <a {% if portable %}hidden{% endif %} href="http://localhost:{{ deployment.port }}/docs" target="_blank" class="webops-btn webops-btn-sm webops-btn-primary webops-s-592c9bd">
                     <span class="material-icons">open_in_new</span>
                     Open Swagger UI
                 </a>
             </div>
         </div>
 
-        <div style="margin-top: var(--webops-space-3); padding: var(--webops-space-3); background: rgba(0, 170, 255, 0.1); border-radius: var(--webops-radius-md); border-left: 4px solid var(--webops-color-info);">
-            <div style="display: flex; gap: var(--webops-space-1-5); align-items: flex-start;">
-                <span class="material-icons" style="color: var(--webops-color-info); font-size: 20px;">info</span>
+        <div class="webops-s-0342b16">
+            <div class="webops-s-cf9c173">
+                <span class="material-icons webops-s-6b77ebc">info</span>
                 <div>
                     <strong>Usage Example (cURL)</strong>
-                    <pre style="margin: var(--webops-space-1-5) 0 0 0; padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border-radius: var(--webops-radius-sm); overflow-x: auto; font-size: 0.75rem;">curl http://localhost:{{ deployment.port }}/v1/completions \
+                    <pre class="webops-s-d87d488">curl http://localhost:{{ deployment.port }}/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "{{ deployment.model_name }}",
@@ -276,14 +277,14 @@
 
 <!-- Quick Test (if running) -->
 {% if deployment.status == 'running' %}
-<div class="webops-card" style="margin-bottom: var(--webops-space-3);">
+<div class="webops-card webops-s-74c7834">
     <div class="webops-card-header">
-        <div style="display: flex; align-items: center; gap: var(--webops-space-1-5);">
-            <span class="material-icons" style="color: var(--webops-color-success);">psychology</span>
-            <h3 class="webops-h3" style="margin: 0;">Quick Test</h3>
+        <div class="webops-s-66fb080">
+            <span class="material-icons webops-s-361c4d3">psychology</span>
+            <h3 class="webops-h3 webops-s-2a0ca83">Quick Test</h3>
         </div>
     </div>
-    <div style="padding: var(--webops-space-3);">
+    <div class="webops-s-ee81060">
         <div class="webops-form-group">
             <label for="test-prompt" class="webops-label">Test Prompt</label>
             <textarea id="test-prompt" class="webops-input" rows="3" maxlength="4096" placeholder="Enter a prompt to test the model...">Once upon a time</textarea>
@@ -300,14 +301,14 @@
             </div>
         </div>
 
-        <button onclick="testModel()" class="webops-btn webops-btn-primary" id="test-btn">
+        <button data-on-click="testModel()" class="webops-btn webops-btn-primary" id="test-btn">
             <span class="material-icons">send</span>
             Generate
         </button>
 
-        <div id="test-result" style="display: none; margin-top: var(--webops-space-3); padding: var(--webops-space-3); background: var(--webops-color-bg-secondary); border-radius: var(--webops-radius-md); border: 1px solid rgba(0, 255, 136, 0.3);">
+        <div id="test-result" class="webops-s-b654217">
             <label class="webops-label">Response</label>
-            <pre id="test-output" style="margin-top: var(--webops-space-1-5); padding: var(--webops-space-3); background: var(--webops-color-bg-primary); border-radius: var(--webops-radius-sm); overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;"></pre>
+            <pre id="test-output" class="webops-s-5399629"></pre>
         </div>
     </div>
 </div>
@@ -317,18 +318,18 @@
 <div class="webops-card">
     <div class="webops-card-header">
         <h3 class="webops-h3">Deployment Logs</h3>
-        <button onclick="location.reload()" class="webops-btn webops-btn-sm webops-btn-secondary">
+        <button data-on-click="location.reload()" class="webops-btn webops-btn-sm webops-btn-secondary">
             <span class="material-icons">refresh</span>
             Refresh
         </button>
     </div>
-    <div style="padding: var(--webops-space-3);">
-        <div class="webops-logs" id="deployment-logs" style="max-height: 500px; overflow-y: auto; background: var(--webops-color-bg-primary); padding: var(--webops-space-3); border-radius: var(--webops-radius-md); font-family: 'Monaco','Menlo','Consolas', monospace; font-size: 0.85rem; line-height: 1.5;">
+    <div class="webops-s-ee81060">
+        <div class="webops-logs webops-s-4928d14" id="deployment-logs" >
             {% if logs %}
                 {% for log in logs %}
-                <div class="webops-log-entry" style="padding: var(--webops-space-0-5) 0; {% if log.level == 'error' %}color: var(--webops-color-error);{% elif log.level == 'warning' %}color: var(--webops-color-warning);{% elif log.level == 'success' %}color: var(--webops-color-success);{% else %}color: var(--webops-color-text-secondary);{% endif %}">
-                    <span style="color: var(--webops-color-text-tertiary);">{{ log.created_at|date:"H:i:s" }}</span>
-                    <span style="font-weight: 600;">[{{ log.level|upper }}]</span>
+                <div class="webops-log-entry webops-log-entry--spaced {% if log.level == 'error' %}webops-fg-error{% elif log.level == 'warning' %}webops-fg-warning{% elif log.level == 'success' %}webops-fg-success{% else %}webops-fg-secondary{% endif %}">
+                    <span class="webops-s-57d3903">{{ log.created_at|date:"H:i:s" }}</span>
+                    <span class="webops-s-21a1be8">[{{ log.level|upper }}]</span>
                     <span>{{ log.message }}</span>
                 </div>
                 {% endfor %}
@@ -336,8 +337,8 @@
                 <div class="webops-text-muted">No logs yet. Live logs will stream here.</div>
             {% endif %}
         </div>
-        <div style="display:flex; gap: var(--webops-space-1); align-items:center; margin-top: var(--webops-space-1-5);">
-            <label class="webops-label" style="display:flex; align-items:center; gap: 0.5rem;">
+        <div class="webops-s-b195cea">
+            <label class="webops-label webops-s-6450058">
                 <input type="checkbox" id="auto-scroll-toggle" checked>
                 Auto-scroll
             </label>
@@ -347,227 +348,8 @@
     </div>
 </div>
 
-<script>
-const deploymentId = {{ deployment.pk }};
-const csrfToken = '{{ csrf_token }}';
+<div id="page-config" hidden data-deployment-id="{{ deployment.pk }}" data-port="{{ deployment.port }}" data-model-name="{{ deployment.model_name }}" data-url-test="{% url 'deployments:llm_test' deployment.pk %}"></div>
+<script src="{% static 'js/pages/deployments-llm_detail.js' %}"></script>
 
-async function testModel() {
-    const btn = document.getElementById('test-btn');
-    const output = document.getElementById('test-output');
-    const result = document.getElementById('test-result');
-    const prompt = document.getElementById('test-prompt').value;
-    const maxTokens = parseInt(document.getElementById('max-tokens').value);
-    const temperature = parseFloat(document.getElementById('temperature').value);
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generating...';
-    output.textContent = 'Waiting for response...';
-    result.style.display = 'block';
-
-    try {
-        const response = await fetch('{% url "deployments:llm_test" deployment.pk %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({
-                model: '{{ deployment.model_name }}',
-                prompt: prompt,
-                max_tokens: maxTokens,
-                temperature: temperature
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.choices && data.choices.length > 0) {
-            output.textContent = data.choices[0].text;
-        } else {
-            output.textContent = data.error || 'No response generated';
-        }
-    } catch (error) {
-        output.textContent = 'Error: ' + error.message;
-        console.error(error);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-icons">send</span> Generate';
-    }
-}
-
-// Auto-scroll logs to bottom
-window.addEventListener('DOMContentLoaded', () => {
-    const logsContainer = document.getElementById('deployment-logs');
-    if (logsContainer) {
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-    }
-    initLiveLogs();
-});
-
-function initLiveLogs() {
-    const logsEl = document.getElementById('deployment-logs');
-    const autoScrollEl = document.getElementById('auto-scroll-toggle');
-    const pauseBtn = document.getElementById('pause-resume-btn');
-    const clearBtn = document.getElementById('clear-logs-btn');
-    if (!logsEl) return;
-
-    const MAX_LINES = 1000;
-    const wsProto = (location.protocol === 'https:') ? 'wss' : 'ws';
-    // Force use of port 8009 where Daphne is running
-    const wsHost = location.hostname + ':8009';
-    
-    // Get WebSocket token before connecting
-    async function getWebSocketToken() {
-        try {
-            const response = await fetch('/api/ws/token/');
-            if (!response.ok) {
-                throw new Error('Failed to get WebSocket token');
-            }
-            const data = await response.json();
-            return data.token;
-        } catch (error) {
-            console.error('Error getting WebSocket token:', error);
-            appendLine('[ERROR] Failed to get WebSocket token: ' + error.message);
-            return null;
-        }
-    }
-    
-    let ws;
-    let buffer = [];
-    let flushing = false;
-    let autoScroll = true;
-    let paused = false;
-    let reconnectDelay = 1000;
-    let wsToken = null;
-
-    function normalizeLogs(logs) {
-        return logs.map(l => {
-            if (typeof l === 'string') return l;
-            const level = (l.level || 'info').toUpperCase();
-            const ts = l.created_at ? new Date(l.created_at).toLocaleTimeString() : '';
-            return `[${ts}] [${level}] ${l.message}`;
-        });
-    }
-
-    function appendLine(text) {
-        const line = document.createElement('div');
-        line.textContent = text;
-        line.style.padding = '4px 0';
-        line.style.color = 'var(--webops-color-text-secondary)';
-        logsEl.appendChild(line);
-        while (logsEl.childNodes.length > MAX_LINES) {
-            logsEl.removeChild(logsEl.firstChild);
-        }
-    }
-
-    function flush() {
-        if (flushing || paused) return;
-        flushing = true;
-        requestAnimationFrame(() => {
-            while (buffer.length) appendLine(buffer.shift());
-            if (autoScroll) logsEl.scrollTop = logsEl.scrollHeight;
-            flushing = false;
-        });
-    }
-
-    function enqueue(logs) {
-        buffer.push(...normalizeLogs(logs));
-        flush();
-    }
-
-    async function connect() {
-        // Get a fresh token for each connection attempt
-        wsToken = await getWebSocketToken();
-        if (!wsToken) {
-            appendLine('[ERROR] Failed to get authentication token. Retrying in 5 seconds...');
-            setTimeout(() => connect(), 5000);
-            return;
-        }
-        
-        // Build WebSocket URL with token as query parameter
-        const wsUrlWithToken = `${wsProto}://${wsHost}/ws/deployments/${deploymentId}/?token=${wsToken}`;
-
-        
-        // Create WebSocket connection with token
-        ws = new WebSocket(wsUrlWithToken);
-        ws.onopen = () => {
-            console.log('WebSocket connected successfully');
-            appendLine('[INFO] WebSocket connected successfully');
-            reconnectDelay = 1000;
-        };
-        ws.onmessage = (evt) => {
-            try {
-                const msg = JSON.parse(evt.data);
-                if (msg.type === 'deployment_logs' && Array.isArray(msg.logs)) {
-                    enqueue(msg.logs);
-                }
-            } catch (e) {
-                console.error('Error parsing WebSocket message:', e);
-                appendLine('[ERROR] Error parsing WebSocket message: ' + e.message);
-            }
-        };
-        ws.onclose = (evt) => {
-            const reason = evt.reason || 'Unknown reason';
-            console.log('WebSocket closed, attempting reconnect. Code:', evt.code, 'Reason:', reason);
-            
-            // If authentication failed (code 4001), get a new token
-            if (evt.code === 4001) {
-                appendLine('[WARN] Authentication expired. Getting new token...');
-                wsToken = null;
-            } else {
-                appendLine(`[WARN] WebSocket closed (code: ${evt.code}, reason: ${reason}). Reconnecting in ${reconnectDelay/1000}s...`);
-            }
-            
-            setTimeout(() => {
-                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
-                connect();
-            }, reconnectDelay);
-        };
-        ws.onerror = (err) => {
-            console.error('WebSocket error:', err);
-            appendLine('[ERROR] WebSocket connection error. Check browser console for details.');
-            try { ws.close(); } catch(e) {}
-        };
-    }
-
-    // Controls
-    if (autoScrollEl) autoScrollEl.addEventListener('change', (e) => { autoScroll = e.target.checked; });
-    if (pauseBtn) pauseBtn.addEventListener('click', () => {
-        paused = !paused;
-        pauseBtn.textContent = paused ? 'Resume' : 'Pause';
-        if (!paused) flush();
-    });
-    if (clearBtn) clearBtn.addEventListener('click', () => {
-        logsEl.innerHTML = '';
-    });
-
-    connect();
-}
-</script>
-
-<style>
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--webops-space-0-5);
-}
-
-.webops-logs::-webkit-scrollbar {
-    width: 8px;
-}
-
-.webops-logs::-webkit-scrollbar-track {
-    background: var(--webops-color-bg-secondary);
-    border-radius: var(--webops-radius-md);
-}
-
-.webops-logs::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 136, 0.3);
-    border-radius: var(--webops-radius-md);
-}
-
-.webops-logs::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 136, 0.5);
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/deployments-llm_detail.css' %}">
 {% endblock %}

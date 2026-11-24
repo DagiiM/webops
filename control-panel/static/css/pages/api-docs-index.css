@@ -1,0 +1,25 @@
+/* Moved from templates/api/docs/index.html (ui-skill rule 17: no inline <style>). */
+/* High contrast code blocks - override for immediate effect */
+.code-block {
+    background: #0d1117 !important;
+}
+.code-block code {
+    color: #f0f6fc !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+.code-header {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.code-label {
+    color: #8b949e !important;
+}
+.copy-btn {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #c9d1d9 !important;
+}
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}

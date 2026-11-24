@@ -1,0 +1,10 @@
+/* Moved from templates/services/restart_policy_edit.html (ui-skill rule 17: no inline <style>). */
+.webops-form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--webops-color-border);
+}
+
+.webops-form-section:last-of-type {
+    border-bottom: none;
+}

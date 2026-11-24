@@ -1,0 +1,421 @@
+/* Moved from templates/core/branding_settings.html (ui-skill rule 17: no inline <style>). */
+.webops-branding-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: var(--webops-space-4);
+    margin-bottom: var(--webops-space-4);
+}
+
+@media (max-width: 1200px) {
+    .webops-branding-container {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.webops-settings-card {
+    height: fit-content;
+}
+
+.webops-preview-card {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    position: sticky;
+    top: var(--webops-space-4);
+    height: fit-content;
+    max-height: calc(100vh - var(--webops-space-8));
+    overflow-y: auto;
+}
+
+.webops-form-section {
+    margin-bottom: var(--webops-space-4);
+    padding-bottom: var(--webops-space-4);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-form-section:last-of-type {
+    border-bottom: none;
+}
+
+.webops-form-section-title {
+    font-size: var(--webops-font-size-lg);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-2);
+}
+
+.webops-section-description {
+    font-size: var(--webops-font-size-sm);
+    color: var(--webops-color-text-tertiary);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-form-group {
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+    gap: var(--webops-space-3);
+}
+
+.webops-hsl-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--webops-space-3);
+}
+
+.webops-label {
+    display: block;
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-secondary);
+    margin-bottom: var(--webops-space-1-5);
+}
+
+.webops-input {
+    width: 100%;
+    padding: var(--webops-space-1-5) var(--webops-space-3);
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-md);
+    color: var(--webops-color-text-primary);
+    font-size: var(--webops-font-size-sm);
+    transition: none;
+}
+
+.webops-input[type="color"] {
+    height: 48px;
+    cursor: pointer;
+}
+
+.webops-input[readonly] {
+    background: var(--webops-color-primary-alpha-03);
+    cursor: not-allowed;
+}
+
+.webops-input:focus {
+    border-color: var(--webops-color-primary);
+    background: var(--webops-color-primary-alpha-10);
+}
+
+.webops-hue-slider,
+.webops-saturation-slider,
+.webops-lightness-slider {
+    height: 8px;
+    border-radius: 4px;
+    margin-top: var(--webops-space-1);
+    cursor: pointer;
+    position: relative;
+}
+
+.webops-hue-slider {
+    background: hsl(0, 100%, 50%);
+}
+
+.webops-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+.webops-checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--webops-space-2);
+}
+
+.webops-checkbox {
+    margin-top: 2px;
+}
+
+.webops-checkbox-label {
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    color: var(--webops-color-text-secondary);
+    cursor: pointer;
+}
+
+.webops-help-text {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-tertiary);
+    margin-top: var(--webops-space-0-5);
+}
+
+.webops-error-text {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-error);
+    margin-top: var(--webops-space-0-5);
+}
+
+.webops-image-preview {
+    margin-bottom: var(--webops-space-2);
+}
+
+.webops-logo-preview {
+    max-height: 60px;
+    border-radius: var(--webops-radius-md);
+    background: rgba(255, 255, 255, 0.1);
+    padding: var(--webops-space-1-5);
+}
+
+.webops-favicon-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--webops-radius-sm);
+}
+
+.webops-form-actions {
+    display: flex;
+    gap: var(--webops-space-3);
+    margin-top: var(--webops-space-4);
+    padding-top: var(--webops-space-4);
+    border-top: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--webops-space-1-5);
+    padding: var(--webops-space-2) var(--webops-space-4);
+    border-radius: var(--webops-radius-md);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    cursor: pointer;
+    transition: none;
+    border: none;
+}
+
+.webops-btn-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.webops-btn-primary {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-bg-primary);
+}
+
+.webops-btn-primary:hover {
+    opacity: 0.9;
+    transform: none;
+}
+
+.webops-btn-secondary {
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-primary);
+}
+
+.webops-btn-secondary:hover {
+    background: var(--webops-color-primary-alpha-20);
+}
+
+/* Preview Panel Styles */
+.webops-preview-title {
+    font-size: var(--webops-font-size-md);
+    font-weight: var(--webops-font-weight-semibold);
+    color: var(--webops-color-text-primary);
+    margin-bottom: var(--webops-space-3);
+}
+
+.webops-palette-preview,
+.webops-accessibility-report,
+.webops-colorblind-simulation,
+.webops-ui-preview {
+    margin-bottom: var(--webops-space-4);
+    padding-bottom: var(--webops-space-4);
+    border-bottom: 1px solid var(--webops-color-primary-alpha-10);
+}
+
+.webops-palette-preview:last-child,
+.webops-accessibility-report:last-child,
+.webops-colorblind-simulation:last-child,
+.webops-ui-preview:last-child {
+    border-bottom: none;
+}
+
+.webops-color-scales {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+.webops-color-scale {
+    display: flex;
+    border-radius: var(--webops-radius-md);
+    overflow: hidden;
+    height: 40px;
+}
+
+.webops-color-swatch {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-medium);
+    color: white;
+    text-shadow: none;
+}
+
+.webops-contrast-checks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--webops-space-2);
+}
+
+.webops-contrast-check {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-2);
+    background: var(--webops-color-primary-alpha-05);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-contrast-ratio {
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-contrast-grade {
+    padding: var(--webops-space-0-5) var(--webops-space-1);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-xs);
+    font-weight: var(--webops-font-weight-semibold);
+}
+
+.webops-contrast-grade.aaa {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-on-primary);
+}
+
+.webops-contrast-grade.aa {
+    background: #f59e0b;
+    color: white;
+}
+
+.webops-contrast-grade.fail {
+    background: #ef4444;
+    color: white;
+}
+
+.webops-simulation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--webops-space-2);
+}
+
+.webops-simulation-item {
+    text-align: center;
+}
+
+.webops-simulation-swatches {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--webops-space-1);
+}
+
+.webops-mini-swatch {
+    flex: 1;
+    height: 40px;
+    border-radius: var(--webops-radius-sm);
+    min-width: 20px;
+}
+
+.webops-simulation-swatch {
+    width: 100%;
+    height: 60px;
+    border-radius: var(--webops-radius-md);
+    margin-bottom: var(--webops-space-1);
+}
+
+.webops-simulation-label {
+    font-size: var(--webops-font-size-xs);
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-preview-interface {
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-md);
+    overflow: hidden;
+    background: var(--webops-color-bg-primary);
+}
+
+.webops-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--webops-space-2) var(--webops-space-3);
+    background: var(--webops-header-bg);
+    color: white;
+}
+
+.webops-preview-logo {
+    font-weight: var(--webops-font-weight-bold);
+    font-size: var(--webops-font-size-lg);
+}
+
+.webops-preview-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--webops-space-2);
+}
+
+.webops-preview-nav-item {
+    padding: var(--webops-space-1) var(--webops-space-2);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-sm);
+    cursor: pointer;
+    transition: none;
+}
+
+.webops-preview-nav-item.active {
+    background: var(--webops-color-primary);
+}
+
+.webops-preview-content {
+    padding: var(--webops-space-3);
+}
+
+.webops-preview-card {
+    background: var(--webops-color-primary-alpha-05);
+    border: 1px solid var(--webops-color-primary-alpha-20);
+    border-radius: var(--webops-radius-md);
+    padding: var(--webops-space-3);
+}
+
+.webops-preview-card h5 {
+    margin: 0 0 var(--webops-space-2) 0;
+    color: var(--webops-color-text-primary);
+}
+
+.webops-preview-card p {
+    margin: 0 0 var(--webops-space-3) 0;
+    color: var(--webops-color-text-secondary);
+    font-size: var(--webops-font-size-sm);
+}
+
+.webops-preview-btn {
+    padding: var(--webops-space-1-5) var(--webops-space-3);
+    border-radius: var(--webops-radius-sm);
+    font-size: var(--webops-font-size-sm);
+    font-weight: var(--webops-font-weight-medium);
+    cursor: pointer;
+    transition: none;
+    border: none;
+    margin-right: var(--webops-space-2);
+}
+
+.webops-preview-btn:not(.secondary) {
+    background: var(--webops-color-primary);
+    color: var(--webops-color-on-primary);
+}
+
+.webops-preview-btn.secondary {
+    background: var(--webops-color-primary-alpha-10);
+    border: 1px solid var(--webops-color-primary-alpha-30);
+    color: var(--webops-color-primary);
+}

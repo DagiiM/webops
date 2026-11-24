@@ -1,0 +1,18 @@
+/* Moved from templates/services/control_dashboard.html (ui-skill rule 17: no inline <style>). */
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-btn-group {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-icon-sm {
+    font-size: 16px;
+}

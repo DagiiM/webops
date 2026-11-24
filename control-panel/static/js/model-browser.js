@@ -709,13 +709,13 @@ class WebOpsModelBrowser {
             </div>
             <div class="webops-model-card__footer">
                 <button type="button" class="webops-btn webops-btn-sm webops-btn-primary webops-model-card__btn"
-                        onclick="window.webopsFillModel('${this.escapeHtml(model.modelId)}', '${this.escapeHtml(model.modelId)}-deployment')"
+                        data-on-click="window.webopsFillModel('${this.escapeHtml(model.modelId)}', '${this.escapeHtml(model.modelId)}-deployment')"
                         aria-label="Select model ${model.name} for deployment">
                     <span class="material-icons">smart_toy</span>
                     Use This Model
                 </button>
                 <button type="button" class="webops-btn webops-btn-sm webops-btn-secondary webops-model-card__compare-btn"
-                        onclick="window.webopsModelBrowser.toggleModelComparison('${this.escapeHtml(model.modelId)}')"
+                        data-on-click="window.webopsModelBrowser.toggleModelComparison('${this.escapeHtml(model.modelId)}')"
                         aria-label="Add model ${model.name} to comparison">
                     <span class="material-icons">compare</span>
                     ${isSelected ? 'Remove' : 'Compare'}
@@ -848,7 +848,7 @@ class WebOpsModelBrowser {
                 </div>
             </div>
             <div class="webops-compare-panel__footer">
-                <button class="webops-btn webops-btn-secondary" onclick="window.webopsModelBrowser.clearComparison()">
+                <button class="webops-btn webops-btn-secondary" data-on-click="window.webopsModelBrowser.clearComparison()">
                     Clear All
                 </button>
             </div>
@@ -887,7 +887,7 @@ class WebOpsModelBrowser {
                     ` : ''}
                 </div>
                 <button type="button" class="webops-btn webops-btn-sm webops-btn-primary webops-compare-card__btn"
-                        onclick="window.webopsFillModel('${this.escapeHtml(model.modelId)}', '${this.escapeHtml(model.modelId)}-deployment')">
+                        data-on-click="window.webopsFillModel('${this.escapeHtml(model.modelId)}', '${this.escapeHtml(model.modelId)}-deployment')">
                     <span class="material-icons">smart_toy</span>
                     Use This Model
                 </button>
@@ -937,7 +937,7 @@ class WebOpsModelBrowser {
                         Try different keywords or browse all models to discover new options.
                     </p>
                     <button class="webops-btn webops-btn-sm webops-btn-secondary"
-                            onclick="document.getElementById('webops-model-search').value=''; document.getElementById('webops-model-category').value='all'; window.webopsModelBrowser.resetAndLoadModels()">
+                            data-on-click="document.getElementById('webops-model-search').value=''; document.getElementById('webops-model-category').value='all'; window.webopsModelBrowser.resetAndLoadModels()">
                         <span class="material-icons">refresh</span>
                         Show All Models
                     </button>
@@ -954,7 +954,7 @@ class WebOpsModelBrowser {
                         Try selecting a different category or search for specific models.
                     </p>
                     <button class="webops-btn webops-btn-sm webops-btn-secondary"
-                            onclick="document.getElementById('webops-model-category').value='all'; window.webopsModelBrowser.resetAndLoadModels()">
+                            data-on-click="document.getElementById('webops-model-category').value='all'; window.webopsModelBrowser.resetAndLoadModels()">
                         <span class="material-icons">apps</span>
                         Show All Categories
                     </button>
@@ -991,7 +991,7 @@ class WebOpsModelBrowser {
                 </div>
                 <h3 class="webops-model-browser__error-title">Error Loading Models</h3>
                 <p class="webops-model-browser__error-text">${this.escapeHtml(message)}</p>
-                <button class="webops-btn webops-btn-sm webops-btn-secondary" onclick="window.webopsModelBrowser.resetAndLoadModels()">
+                <button class="webops-btn webops-btn-sm webops-btn-secondary" data-on-click="window.webopsModelBrowser.resetAndLoadModels()">
                     <span class="material-icons">refresh</span>
                     Try Again
                 </button>

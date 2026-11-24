@@ -5,7 +5,7 @@
 
 class WebOpsThemeSwitcher {
     constructor() {
-        this.themes = ['dark', 'light', 'forest', 'high-contrast', 'custom'];
+        this.themes = ['dark', 'light', 'high-contrast'];
         this.currentTheme = this.getStoredTheme() || 'dark';
         this.container = null;
         this.isInitialized = false;
@@ -49,7 +49,8 @@ class WebOpsThemeSwitcher {
      * @returns {string|null} The stored theme or null
      */
     getStoredTheme() {
-        return localStorage.getItem('theme');
+        const stored = localStorage.getItem('theme');
+        return this.themes.includes(stored) ? stored : null;
     }
 
     /**
@@ -135,8 +136,6 @@ class WebOpsThemeSwitcher {
         const labels = {
             'dark': 'Dark',
             'light': 'Light',
-            'forest': 'Forest',
-            'custom': 'Custom',
             'high-contrast': 'High Contrast'
         };
         return labels[theme] || theme;

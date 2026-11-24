@@ -23,9 +23,10 @@
      ════════════════════════════════════════════════════════════════════════════════ */
   
   /* Core theme parameters (modify these to change the entire theme) */
-  --webops-hue-primary: 210;       /* Blue: 210 | Teal: 170 | Purple: 270 */
-  --webops-sat-primary: 70%;       /* Saturation: 40% (subtle) to 100% (vivid) */
-  --webops-light-primary: 65%;     /* Lightness: 50% (medium) to 85% (very bright) */
+  --webops-hue-primary: 0;       /* Blue: 210 | Teal: 170 | Purple: 270 */
+  --webops-sat-primary: 0%;       /* Saturation: 40% (subtle) to 100% (vivid) */
+  --webops-light-primary: 12%;     /* Lightness: 50% (medium) to 85% (very bright) */
+  --webops-color-on-primary: #ffffff;
 
   /* ────────────────────────────────────────────────────────────────────────────────
      🎯 PRIMARY COLOR SYSTEM (Auto-generated from theme parameters)
@@ -82,19 +83,19 @@
      ──────────────────────────────────────────────────────────────────────────────── */
   
   /* Warning system (bright amber) */
-  --webops-color-warning: hsl(40 90% 55%);         /* #ffaa00 - Bright amber */
-  --webops-color-warning-alpha-10: hsl(40 90% 55% / 10%);
-  --webops-color-warning-alpha-30: hsl(40 90% 55% / 30%);
+  --webops-color-warning: hsl(32 90% 28%);         /* #ffaa00 - Bright amber */
+  --webops-color-warning-alpha-10: hsl(32 90% 28% / 10%);
+  --webops-color-warning-alpha-30: hsl(32 90% 28% / 30%);
   
   /* Error system (bright red) */
-  --webops-color-error: hsl(0 85% 60%);            /* #ff4444 - Bright red */
-  --webops-color-error-alpha-10: hsl(0 85% 60% / 10%);
-  --webops-color-error-alpha-30: hsl(0 85% 60% / 30%);
+  --webops-color-error: hsl(0 70% 40%);            /* #ff4444 - Bright red */
+  --webops-color-error-alpha-10: hsl(0 70% 40% / 10%);
+  --webops-color-error-alpha-30: hsl(0 70% 40% / 30%);
   
   /* Info system (bright blue) */
-  --webops-color-info: hsl(195 85% 55%);           /* #00aaff - Bright blue */
-  --webops-color-info-alpha-10: hsl(195 85% 55% / 10%);
-  --webops-color-info-alpha-30: hsl(195 85% 55% / 30%);
+  --webops-color-info: hsl(0 0% 25%);           /* var(--webops-color-primary) - Bright blue */
+  --webops-color-info-alpha-10: hsl(0 0% 25% / 10%);
+  --webops-color-info-alpha-30: hsl(0 0% 25% / 30%);
   
   /* Accent color (bright orange) */
   --webops-color-accent: hsl(18 90% 60%);          /* #ff6b35 - Bright complementary orange */
@@ -111,7 +112,7 @@
   --webops-gray-825: hsl(0 0% 95%);     /* #f2f2f2 - Light hover states */
   --webops-gray-750: hsl(0 0% 92%);     /* #ebebeb - Light active states */
   --webops-gray-600: hsl(0 0% 45%);     /* #737373 - Dark text on light backgrounds */
-  --webops-gray-500: hsl(0 0% 55%);     /* #8c8c8c - Medium gray text */
+  --webops-gray-500: hsl(0 0% 38%);     /* #8c8c8c - Medium gray text */
   --webops-gray-400: hsl(0 0% 35%);     /* #595959 - Secondary dark text */
   --webops-gray-200: hsl(0 0% 15%);     /* #262626 - Primary dark text */
 
@@ -408,10 +409,10 @@
   --webops-color-error-dark: hsl(0 85% 50%);       /* Darker light theme error */
   --webops-color-success-light: var(--webops-color-primary-light);
   --webops-color-success-dark: var(--webops-color-primary-dark);
-  --webops-color-warning-light: hsl(40 90% 65%);   /* Lighter light theme warning */
-  --webops-color-warning-dark: hsl(40 90% 45%);    /* Darker light theme warning */
-  --webops-color-info-light: hsl(195 85% 65%);     /* Lighter light theme info */
-  --webops-color-info-dark: hsl(195 85% 45%);      /* Darker light theme info */
+  --webops-color-warning-light: hsl(32 90% 28%);   /* Lighter light theme warning */
+  --webops-color-warning-dark: hsl(32 90% 28%);    /* Darker light theme warning */
+  --webops-color-info-light: hsl(0 0% 25%);     /* Lighter light theme info */
+  --webops-color-info-dark: hsl(0 0% 25%);      /* Darker light theme info */
 
   /* Additional shadows for compatibility */
   --webops-shadow-xl: 0 25px 50px -12px hsl(0 0% 0% / 15%);                             /* High light elevation */

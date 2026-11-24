@@ -1,0 +1,277 @@
+/* Moved from templates/automation/execution_detail.html (ui-skill rule 17: no inline <style>). */
+.webops-form--inline {
+    display: inline-block;
+    margin: 0;
+}
+
+.webops-icon-xs {
+    font-size: 14px;
+}
+
+.webops-icon-sm {
+    font-size: 18px;
+}
+
+.webops-grid--cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.webops-execution-stat {
+    text-align: center;
+}
+
+.webops-execution-stat__label {
+    font-size: 0.875rem;
+    color: var(--webops-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.webops-execution-stat__value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--webops-color-text-primary);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.webops-execution-stat__meta {
+    font-size: 0.75rem;
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-progress {
+    width: 100%;
+    height: 4px;
+    background-color: var(--webops-color-bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.webops-progress-bar {
+    height: 100%;
+    background-color: var(--webops-color-primary);
+    transition: none;
+}
+
+.webops-error-message {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.2);
+    border-radius: var(--webops-radius-sm);
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--webops-color-error);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.webops-timeline {
+    padding: 1rem;
+}
+
+.webops-timeline__item {
+    display: flex;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.webops-timeline__item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    bottom: -32px;
+    width: 2px;
+    background: var(--webops-color-border);
+}
+
+.webops-timeline__marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.webops-timeline__item--success .webops-timeline__marker {
+    background: var(--webops-color-primary-alpha-10);
+    color: var(--webops-color-success);
+    border: 2px solid var(--webops-color-success);
+}
+
+.webops-timeline__item--error .webops-timeline__marker {
+    background: rgba(255, 68, 68, 0.1);
+    color: var(--webops-color-error);
+    border: 2px solid var(--webops-color-error);
+}
+
+.webops-timeline__item--running .webops-timeline__marker {
+    background: rgba(0, 170, 255, 0.1);
+    color: var(--webops-color-info);
+    border: 2px solid var(--webops-color-info);
+}
+
+.webops-timeline__item--pending .webops-timeline__marker {
+    background: var(--webops-color-bg-secondary);
+    color: var(--webops-color-text-tertiary);
+    border: 2px solid var(--webops-color-border);
+}
+
+.webops-timeline__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.webops-timeline__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.webops-timeline__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--webops-color-text-primary);
+}
+
+.webops-timeline__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.webops-timeline__section {
+    margin-bottom: 1rem;
+}
+
+.webops-timeline__section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--webops-color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.webops-code-block {
+    background: var(--webops-color-bg-secondary);
+    border: 1px solid var(--webops-color-border);
+    border-radius: var(--webops-radius-sm);
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.webops-code-block pre {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: var(--webops-color-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.webops-code-block--error {
+    background: rgba(255, 68, 68, 0.05);
+    border-color: rgba(255, 68, 68, 0.2);
+}
+
+.webops-code-block--error pre {
+    color: var(--webops-color-error);
+}
+
+.webops-log-viewer {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.webops-log-entries {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.webops-log-entry {
+    display: flex;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--webops-color-border);
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.webops-log-entry:hover {
+    background: var(--webops-color-bg-secondary);
+}
+
+.webops-log-entry__timestamp {
+    color: var(--webops-color-text-tertiary);
+    font-size: 0.75rem;
+    min-width: 80px;
+}
+
+.webops-log-entry__level {
+    font-weight: 600;
+    min-width: 60px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.webops-log-entry__message {
+    flex: 1;
+    word-break: break-word;
+}
+
+.webops-log-entry--debug .webops-log-entry__level {
+    color: var(--webops-color-text-tertiary);
+}
+
+.webops-log-entry--info .webops-log-entry__level {
+    color: var(--webops-color-info);
+}
+
+.webops-log-entry--warning .webops-log-entry__level {
+    color: var(--webops-color-warning);
+}
+
+.webops-log-entry--error .webops-log-entry__level {
+    color: var(--webops-color-error);
+}
+
+@media (max-width: 768px) {
+    .webops-grid--cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .webops-timeline__item {
+        flex-direction: column;
+    }
+
+    .webops-timeline__marker {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        align-self: flex-start;
+    }
+
+    .webops-timeline__item:not(:last-child)::after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .webops-grid--cols-4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

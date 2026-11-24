@@ -6,7 +6,7 @@
 
 class WebOpsDynamicThemeLoader {
     constructor() {
-        this.availableThemes = ['dark', 'light', 'forest', 'high-contrast', 'custom'];
+        this.availableThemes = ['dark', 'light', 'high-contrast'];
         this.currentTheme = this.detectInitialTheme();
         this.themeLinks = new Map();
         this.isLoading = false;
@@ -207,7 +207,7 @@ class WebOpsDynamicThemeLoader {
                 '--webops-color-bg-primary': '#0a0e0d',
                 '--webops-color-bg-secondary': '#111816',
                 '--webops-color-text-primary': '#e8f5f0',
-                '--webops-color-primary': '#00ff88'
+                '--webops-color-primary': '#ededed'
             },
             light: {
                 '--webops-color-bg-primary': '#ffffff',

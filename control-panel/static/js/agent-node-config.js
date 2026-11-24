@@ -186,7 +186,7 @@ const AgentNodeConfigurator = {
 
                 <div class="webops-form-group">
                     <label for="operation">Operation</label>
-                    <select id="operation" name="operation" class="webops-form-control" onchange="AgentNodeConfigurator.toggleMemoryOperation(this.value)">
+                    <select id="operation" name="operation" class="webops-form-control" data-on-change="AgentNodeConfigurator.toggleMemoryOperation(this.value)">
                         <option value="store" ${config.operation === 'store' ? 'selected' : ''}>Store Memory</option>
                         <option value="retrieve" ${config.operation === 'retrieve' ? 'selected' : ''}>Retrieve Memory</option>
                         <option value="search" ${config.operation === 'search' ? 'selected' : ''}>Search Memory</option>

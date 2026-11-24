@@ -257,13 +257,13 @@ class WebOpsChatInterface {
             return `
                 <div class="webops-chat-message__actions">
                     <button class="webops-chat-input__button webops-chat-input__button--attach" 
-                            onclick="webopsChat.copyMessage('${message.id}')" 
+                            data-on-click="webopsChat.copyMessage('${message.id}')" 
                             title="Copy message"
                             aria-label="Copy message">
                         <span class="material-icons">content_copy</span>
                     </button>
                     <button class="webops-chat-input__button webops-chat-input__button--attach" 
-                            onclick="webopsChat.retryMessage('${message.id}')" 
+                            data-on-click="webopsChat.retryMessage('${message.id}')" 
                             title="Retry"
                             aria-label="Retry message">
                         <span class="material-icons">refresh</span>
