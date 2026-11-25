@@ -64,8 +64,12 @@ chmod 0600 "$TOKEN_FILE"
 DIGEST=$(python3 -c "import hashlib,sys;print(hashlib.sha256(open('$TOKEN_FILE').read().strip().encode()).hexdigest())")
 
 # Containers have no init system: start supervisord ourselves when it is not already running.
-if supervisorctl status >/dev/null 2>&1; then
-  supervisorctl reread >/dev/null && supervisorctl update >/dev/null && supervisorctl restart webops-worker >/dev/null 2>&1 || true
+# (`supervisorctl status` fails whenever any program is not running, so test the process itself.)
+SUP_PID=$(cat /var/run/supervisord.pid 2>/dev/null || true)
+if [ -n "$SUP_PID" ] && kill -0 "$SUP_PID" 2>/dev/null; then
+  supervisorctl reread >/dev/null 2>&1 || true
+  supervisorctl update >/dev/null 2>&1 || true
+  supervisorctl restart webops-worker >/dev/null 2>&1 || true
 else
   mkdir -p /var/log
   supervisord -c /etc/supervisor/supervisord.conf
