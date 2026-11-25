@@ -27,6 +27,30 @@ The Workers page shows it **Online** within about 30 seconds. (The older flow st
 Add a worker** shows a token once; put it in `/etc/webops-worker/token`.) Set `WEBOPS_WORKER_TOKEN` to supply your own
 token, for machines that are rebuilt from scratch on every start.
 
+## Persistent volumes (a worker that survives stops)
+
+A pod's own disk is wiped on every stop or restart, so a worker normally has to be reinstalled. To have it rebuild
+itself, mount a small network volume and give the pod these environment variables and this start command:
+
+```bash
+# environment
+WEBOPS_PANEL_URL=https://<panel address>   WEBOPS_WORKER_NAME=<name>   WEBOPS_WORKER_STATE=/workspace/webops-worker   WEBOPS_REF=<ref>
+# start command
+sh -c 'curl -fsSL https://raw.githubusercontent.com/DagiiM/webops/${WEBOPS_REF}/worker/install.sh | sh; exec sleep infinity'
+```
+
+The first start installs everything (a couple of minutes) and prints the one `register_worker` command. Every later
+start restores the same token and comes back Online with nothing to do.
+
+**What is, and is not, kept on the volume, and why.** A network volume does **not** enforce file permissions: any user on
+the machine can read (and write) any file on it, and build jobs run as unprivileged users on the same machine as the
+agent. So the volume holds only the worker token, **encrypted** with a key derived from `RUNPOD_API_KEY`, which Runpod
+puts in the environment of the container's root process and which jobs never receive. The plaintext token lives only on
+the container's own disk (root, mode 0600). Job directories, the Rust toolchain and the agent also stay on the container
+disk: anything on the volume could be read or tampered with by a build, which would let one job poison the next.
+The price is a minute or two of reinstalling packages on each start. If the pod's key ever changes, the worker makes a
+new token and prints a new `register_worker` command instead of failing silently.
+
 ## What a job gets
 
 * Source: the exact commit, fetched by the panel with the requester's GitHub token (the token never leaves the panel).
