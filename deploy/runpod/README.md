@@ -6,7 +6,7 @@ A Runpod pod's container disk is wiped whenever the pod stops, restarts or is ed
 | Lives on the volume (`/workspace`) | Rebuilt by `boot.sh` on every start |
 |---|---|
 | code (`webops/`), virtualenv (`venv/`) | apt packages (PostgreSQL, Redis, SQLite, git), the `webops` user |
-| SQLite database, `.env` (keys), supervisor programs | settings files copied from `deploy/runpod/config/` |
+| SQLite database, `.env` (keys), supervisor programs | settings files copied from `deploy/runpod/settings/` |
 | managed-database **backups** (`webops-data/backups/databases`) | managed databases, **restored from backup** |
 | LLM model files / state | supervisord and the panel, queue worker and backup loop |
 

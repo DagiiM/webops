@@ -60,7 +60,7 @@ if [ "$(cat "$STAMP" 2>/dev/null || true)" != "$WANT" ]; then
 fi
 
 # 4. Settings + environment -----------------------------------------------------------------------------------
-cp "$REPO/deploy/runpod/config/runpod_preview.py" "$REPO/deploy/runpod/config/runpod_asgi.py" "$APP/config/"
+cp "$REPO/deploy/runpod/settings/runpod_preview.py" "$REPO/deploy/runpod/settings/runpod_asgi.py" "$APP/config/"
 ENVFILE=$APP/.env
 if [ ! -f "$ENVFILE" ]; then
   log "first boot: generating $ENVFILE"
