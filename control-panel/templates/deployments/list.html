@@ -33,7 +33,7 @@
         <h3 class="ui-panel__title" id="review-h">Waiting for your review</h3>
         <span class="ui-panel__meta">{{ review_requests|length }} open</span>
     </div>
-    <p class="ui-empty ui-empty--flush">{% if restricted_workloads %}Executable builds are blocked until a separate isolated worker is available. Requests are kept.{% else %}Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.{% endif %}</p>
+    <p class="ui-empty ui-empty--flush">{% if restricted_workloads and worker_ready %}A build worker is online. Approving a request for a trusted owner queues it on the worker; this server never runs repository code.{% elif restricted_workloads %}Executable builds are blocked until a separate isolated worker is available. Requests are kept.{% else %}Approve only reviewed, trusted repositories. Executable workloads in portable mode share a host account.{% endif %}</p>
     <ul class="ui-rows">
         {% for item in review_requests %}
         <li class="ui-need ui-need--row">

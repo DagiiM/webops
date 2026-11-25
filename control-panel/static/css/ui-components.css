@@ -638,3 +638,6 @@ pre code, .webops-code-block code { padding: 0; background: none; }
 .ui-actions { display: flex; flex-wrap: wrap; gap: var(--webops-space-2); align-items: center; }
 .ui-actions form { margin: 0; }
 .ui-url { display: block; padding: var(--webops-space-2) var(--webops-space-3); border: 1px solid var(--ui-line); border-radius: var(--webops-radius-sm); background: var(--ui-surface-2); font: var(--webops-font-size-sm) var(--webops-font-family-mono); word-break: break-all; user-select: all; }
+
+/* Long unbroken values (model ids, URLs, hashes) must wrap inside their cell instead of overlapping the next one. */
+.webops-info-item code, .webops-info-value code, .webops-info-item .webops-text-sm { overflow-wrap: break-word; max-width: 100%; }

@@ -76,6 +76,16 @@ class DeclineTests(TestCase):
         self.assertContains(page, "This server cannot run this project")
         self.assertNotContains(page, "Operator decision")
 
+    def test_review_queue_text_reflects_an_online_worker(self):
+        from apps.deployments.services import worker_queue as wq
+        self.client.force_login(self.op)
+        self.assertIn("blocked until a separate isolated worker", self.client.get(reverse("deployments:deployment_list")).content.decode())
+        node, _ = wq.create_worker("build-1", self.op)
+        wq.heartbeat(node, {})
+        html = self.client.get(reverse("deployments:deployment_list")).content.decode()
+        self.assertIn("A build worker is online", html)
+        self.assertNotIn("blocked until a separate isolated worker", html)
+
     def test_dashboard_and_list_offer_review_and_decline_to_operators(self):
         self.client.force_login(self.op)
         for name in ("deployments:deployment_list", "dashboard"):

@@ -17,6 +17,90 @@ WebOps is a lightweight, security-first hosting platform that transforms a fresh
 - **Automation System** - Workflow automation with node-based execution
 - **Plugin Architecture** - Extensible hook-based addons system
 
+## Screenshots
+
+The control panel in dark and light themes, on desktop and phone. All data shown is fictional demo data (see [how these were made](docs/screenshots/README.md)).
+
+<p align="center">
+  <img src="docs/screenshots/02-overview-dark.png" alt="Overview: what is running and what needs you" width="100%">
+</p>
+
+**Overview.** One screen for what is running and what needs a person: failed deploys, requests waiting for review, expiring tokens. Dark, light and high-contrast themes, with compact, default and roomy density.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/03-overview-light.png" alt="Overview, light theme"><br><sub><b>Light theme</b> with the same layout.</sub></td>
+    <td width="50%"><img src="docs/screenshots/04-deployments.png" alt="Deployments list with the operator review queue"><br><sub><b>Deployments</b> with the operator review queue.</sub></td>
+  </tr>
+</table>
+
+### Safe deployment
+
+Every request is safety-reviewed before anything is built. Deterministic rules decide; an AI second opinion can only make the result stricter. Only a plain static site that passes is approved automatically, and anything that would run code goes to an operator. See [Safety review](docs/deployments/safety-review.md).
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/05-new-deployment-safety-review.png" alt="New deployment: analyse a repository and see the safety review"><br><sub><b>Analyse before you submit.</b> Paste any GitHub URL form and see the verdict first. The response in this shot is mocked with the exact shape the panel produces.</sub></td>
+    <td width="50%"><img src="docs/screenshots/06-deployment-safety-report.png" alt="Deployment page with the safety report and operator decision"><br><sub><b>The report travels with the request</b>, so the operator decides with the findings in front of them.</sub></td>
+  </tr>
+</table>
+
+### Build workers
+
+Projects that run code never run on the panel's own host. An approved request is queued for a separate **worker** that connects out to the panel, builds the exact commit in a per-job sandbox, and streams the log back. See [Remote build workers](docs/deployments/remote-workers.md).
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/15-build-workers.png" alt="Build workers and recent jobs"><br><sub><b>Workers</b> are registered with a hashed, revocable token.</sub></td>
+    <td width="50%"><img src="docs/screenshots/16-build-job-log.png" alt="A Rust build job and its log"><br><sub><b>A real build:</b> a private Rust workspace compiled on a worker.</sub></td>
+  </tr>
+</table>
+
+### Databases in one click
+
+Pick PostgreSQL, Redis or SQLite and a name. WebOps provisions a real instance on the host, generates the credentials, starts it, and shows a ready-to-paste connection URL. See [Managed databases](docs/databases/managed-databases.md).
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/11-databases.png" alt="Databases list with live status"><br><sub><b>Live status</b> for every database.</sub></td>
+    <td width="33%"><img src="docs/screenshots/12-deploy-a-database.png" alt="Deploy a database"><br><sub><b>Deploy</b> by choosing an engine.</sub></td>
+    <td width="33%"><img src="docs/screenshots/13-database-detail.png" alt="Database detail with connection URL and controls"><br><sub><b>Connect</b>, test, restart or stop.</sub></td>
+  </tr>
+</table>
+
+### LLM models and AI providers
+
+Run reviewed CPU models and call them from anywhere with a scoped key, or connect any OpenAI-compatible provider (a local model or an external one) for WebOps' own AI features. See [LLM public API](docs/api/llm-public-api.md) and [AI providers](docs/api/ai-providers.md).
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/08-llm-models.png" alt="LLM models"><br><sub><b>Models</b> with a public endpoint that follows the host you browse on.</sub></td>
+    <td width="33%"><img src="docs/screenshots/09-llm-public-api.png" alt="LLM model page with the public API panel"><br><sub><b>Public API</b> panel with a ready-to-run example.</sub></td>
+    <td width="33%"><img src="docs/screenshots/10-llm-api-keys.png" alt="LLM API keys"><br><sub><b>Inference-only keys</b> that cannot manage deployments.</sub></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/14-ai-providers.png" alt="AI providers"><br><sub><b>AI providers</b>: keys encrypted, URLs SSRF-checked.</sub></td>
+    <td width="33%"><img src="docs/screenshots/07-operator-approval-light.png" alt="Operator approval, light theme"><br><sub><b>Operator approval</b>, light theme.</sub></td>
+    <td width="33%"><img src="docs/screenshots/17-api-tokens-light.png" alt="API tokens, light theme"><br><sub><b>API tokens</b>, light theme.</sub></td>
+  </tr>
+</table>
+
+### On your phone
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/18-overview-phone.png" alt="Overview on a phone" width="300"><br><sub><b>Overview</b></sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/19-deployments-phone.png" alt="Deployments on a phone" width="300"><br><sub><b>Deployments</b></sub></td>
+  </tr>
+</table>
+
+<details>
+<summary>Sign-in page</summary>
+
+<img src="docs/screenshots/01-sign-in.png" alt="Sign in" width="100%">
+
+</details>
+
 ## Use Cases
 
 - Personal project hosting
