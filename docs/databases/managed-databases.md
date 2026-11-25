@@ -32,10 +32,22 @@ Instances are daemonised and survive a panel restart. After a host restart run:
 python manage.py start_managed_databases
 ```
 
-It starts every managed database that is stopped. Status means "the port accepts connections". A server that crashes stays stopped until it is started again (from the page, or by this command); it is not auto-restarted.
+It starts every managed database that is stopped, and **rebuilds any whose files are gone from its newest backup** (see below). Status means "the port accepts connections". A server that crashes stays stopped until it is started again (from the page, or by this command); it is not auto-restarted.
+
+## Backups
+
+```bash
+python manage.py backup_managed_databases
+```
+
+writes a consistent backup of every running instance (`pg_dump -Fc`, a Redis `SAVE` snapshot, or SQLite's online backup API) to `WEBOPS_DATABASE_BACKUP_DIR` (default `<install path>/../backups/databases`), keeps the newest five per database, and writes each file privately (mode 0600 in a 0700 directory) via a temporary name so a failed backup never leaves a half-written file. Credentials are not stored inside the dump.
+
+Point `WEBOPS_DATABASE_BACKUP_DIR` at storage that outlives the machine, and `WEBOPS_DATABASES_ROOT` at fast local disk if the persistent storage is a network filesystem. After a machine replacement, `start_managed_databases` finds each instance's files missing and restores it from its newest backup, with the same port and the same stored password. If files are missing and there is **no** backup the database is reported as failed; it is never silently replaced by an empty one. Deleting a database deletes its backups too.
+
+Backups are only as fresh as the last run: run the command on a schedule (the Runpod deployment does so every 15 minutes), and expect to lose up to that long of writes on an unplanned restart. Redis keeps RDB snapshots only (`save 60 1`, `save 300 10`) so that a single file is the whole state.
 
 ## Known limits
 
 * MySQL, MongoDB and Pinecone are still *Connect existing* only (saved connection details, not deployed).
-* No automatic backups, no remote access, no per-database resource tuning yet.
+* No remote access and no per-database resource tuning yet. Backups run only when the command is scheduled, and restore is whole-instance (no point-in-time recovery).
 * In a container whose PID 1 does not reap children (such as `sleep infinity`), each PostgreSQL stop leaves a few harmless defunct process entries until the container restarts.
