@@ -58,6 +58,13 @@ async function open(page, url, themeName = 'dark') {
 
   ids = getIds();                                       // marks the demo worker as just seen
   await open(page, '/', 'dark');                       await shot(page, '02-overview-dark');
+  // The sidebar footer: account menu open, then the collapsed rail.
+  await page.click('#userMenuTrigger'); await page.waitForTimeout(400);
+  await shot(page, '20-sidebar-account-menu');
+  await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+  await page.click('#btn-toggle-sidebar'); await page.waitForTimeout(700);
+  await shot(page, '21-sidebar-collapsed');
+  await page.click('#btn-toggle-sidebar'); await page.waitForTimeout(500);
   ids = getIds();
   await open(page, '/', 'light');                      await shot(page, '03-overview-light');
   ids = getIds();

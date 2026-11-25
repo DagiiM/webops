@@ -25,12 +25,23 @@ The control panel in dark and light themes, on desktop and phone. All data shown
   <img src="docs/screenshots/02-overview-dark.png" alt="Overview: what is running and what needs you" width="100%">
 </p>
 
-**Overview.** One screen for what is running and what needs a person: failed deploys, requests waiting for review, expiring tokens. Dark, light and high-contrast themes, with compact, default and roomy density.
+**Overview.** One screen for what is running and what needs a person: failed deploys, requests waiting for review, expiring tokens. Dark, light and high-contrast themes, with compact, default and roomy density. Your account, notifications and appearance settings live in the sidebar footer, so the page itself is all content.
 
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/03-overview-light.png" alt="Overview, light theme"><br><sub><b>Light theme</b> with the same layout.</sub></td>
     <td width="50%"><img src="docs/screenshots/04-deployments.png" alt="Deployments list with the operator review queue"><br><sub><b>Deployments</b> with the operator review queue.</sub></td>
+  </tr>
+</table>
+
+### The sidebar
+
+Navigation is grouped by what you are trying to do. The footer holds your account menu, notifications and appearance (theme, density, animations), and the whole sidebar collapses to an icon rail. On a phone it becomes a drawer.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/20-sidebar-account-menu.png" alt="Sidebar footer with the account menu open"><br><sub><b>Footer.</b> Account menu, notifications and appearance, always one click away.</sub></td>
+    <td width="50%"><img src="docs/screenshots/21-sidebar-collapsed.png" alt="Collapsed sidebar rail"><br><sub><b>Collapsed rail.</b> Icons only, with the same footer controls stacked.</sub></td>
   </tr>
 </table>
 
