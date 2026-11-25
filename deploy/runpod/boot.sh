@@ -139,10 +139,20 @@ log "reconciling managed databases (restores any whose files are gone from their
 as_app "$VENV/bin/python" manage.py start_managed_databases 2>&1 | grep -v '^INFO\|^WARNING' || true
 
 # 7. Start supervisord (it starts the panel, queue worker and backup loop, and restarts them if they crash) -----
-if as_app "$VENV/bin/supervisorctl" -c "$SUPERVISORD_CONF" status >/dev/null 2>&1; then
-  log "supervisord already running; reloading programs"
+# "Already running" is decided from the pid file, not from `supervisorctl status`: status fails on any broken
+# program file, and starting a second supervisord would run every program twice.
+SUP_PID=$(cat "$RT/supervisord.pid" 2>/dev/null || true)
+if [ -n "$SUP_PID" ] && kill -0 "$SUP_PID" 2>/dev/null && [ -S "$RT/supervisor.sock" ]; then
+  log "supervisord already running (pid $SUP_PID); reloading programs"
   as_app "$VENV/bin/supervisorctl" -c "$SUPERVISORD_CONF" update >/dev/null 2>&1 || true
 else
+  # Programs created later from the panel (model servers) log into their own folders; supervisord refuses to
+  # start if one is missing, so make sure they all exist first.
+  for f in "$RT"/programs/*.ini; do
+    grep -E '^std(out|err)_logfile=' "$f" 2>/dev/null | cut -d= -f2- | while read -r logfile; do
+      mkdir -p "$(dirname "$logfile")" && chown "$APPUSER:$APPUSER" "$(dirname "$logfile")" 2>/dev/null || true
+    done
+  done
   rm -f "$RT/supervisor.sock"
   as_app "$VENV/bin/supervisord" -c "$SUPERVISORD_CONF"
 fi
