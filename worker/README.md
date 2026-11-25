@@ -48,8 +48,13 @@ agent. So the volume holds only the worker token, **encrypted** with a key deriv
 puts in the environment of the container's root process and which jobs never receive. The plaintext token lives only on
 the container's own disk (root, mode 0600). Job directories, the Rust toolchain and the agent also stay on the container
 disk: anything on the volume could be read or tampered with by a build, which would let one job poison the next.
-The price is a minute or two of reinstalling packages on each start. If the pod's key ever changes, the worker makes a
-new token and prints a new `register_worker` command instead of failing silently.
+The price is a minute or two of reinstalling packages on each start.
+
+**The key belongs to the pod, not the account** (measured: a second pod mounting the same volume could not open the
+first pod's sealed token). So stop/start and restart of the *same* pod come back by themselves, but a *replacement* pod
+on the same volume makes a new token and prints a new `register_worker` command (run it once; re-registering under the
+same name keeps the worker's history). This matters because Runpod pins a stopped pod to its host and can refuse to
+start it later when that host is full; in that case create a replacement pod on the volume and re-register.
 
 ## What a job gets
 
