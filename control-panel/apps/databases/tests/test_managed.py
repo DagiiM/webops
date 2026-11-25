@@ -231,3 +231,160 @@ class RedisLifecycle(Base):
         port = db.port
         pv.destroy(db)
         self.assertFalse(pv._port_open(port))
+
+
+class BackupBase(Base):
+    def setUp(self):
+        super().setUp()
+        self.backups = Path(tempfile.mkdtemp(prefix="wo-backups-"))
+        self.addCleanup(shutil.rmtree, self.backups, True)
+        override = override_settings(WEBOPS_DATABASE_BACKUP_DIR=str(self.backups))
+        override.enable()
+        self.addCleanup(override.disable)
+
+    def wipe_local_disk(self, db):
+        """What a pod restart does: instance files vanish, backups (on the persistent volume) stay."""
+        pv.destroy(db, missing_ok=True, keep_backups=True)
+        self.assertEqual(pv.status(db), "missing")
+
+
+class BackupRules(BackupBase):
+    def test_backup_dir_is_derived_and_inside_backup_root(self):
+        db = self.make("shop")
+        self.assertEqual(pv.backup_dir(db), (self.backups / f"{db.pk}-shop").resolve())
+
+    def test_backup_requires_a_running_instance(self):
+        db = self.make("shop")
+        with self.assertRaises(pv.ProvisionError):
+            pv.backup(db)
+
+    def test_restore_without_a_backup_is_an_error_not_a_silent_empty_database(self):
+        db = self.make("notes", "sqlite")
+        with self.assertRaises(pv.ProvisionError):
+            pv.restore_missing(db)
+        self.assertIn(("notes", "failed: The database's files are missing and there is no backup to restore from."),
+                      pv.reconcile())
+
+    def test_restore_does_nothing_when_files_exist(self):
+        db = self.make("notes", "sqlite")
+        pv.provision(db)
+        self.assertFalse(pv.restore_missing(db))
+
+    def test_destroy_removes_backups_unless_kept(self):
+        db = self.make("notes", "sqlite")
+        pv.provision(db)
+        pv.backup(db)
+        pv.destroy(db, keep_backups=True)
+        self.assertEqual(len(pv.backups(db)), 1)
+        pv.destroy(db)
+        self.assertFalse(pv.backup_dir(db).exists())
+
+
+class SqliteBackup(BackupBase):
+    def test_backup_prune_wipe_and_restore(self):
+        import sqlite3
+        db = self.make("notes", "sqlite")
+        pv.provision(db)
+        db.refresh_from_db()
+        conn = sqlite3.connect(db.database_name)
+        conn.execute("CREATE TABLE t(a int)")
+        conn.execute("INSERT INTO t VALUES (7)")
+        conn.commit()
+        conn.close()
+        with mock.patch.object(pv.time, "strftime", side_effect=[f"2026010{i}T000000Z" for i in range(1, 9)]):
+            for _ in range(pv.KEEP_BACKUPS + 2):
+                pv.backup(db)
+        self.assertEqual(len(pv.backups(db)), pv.KEEP_BACKUPS)                  # old ones pruned
+        self.assertEqual(oct(pv.backup_dir(db).stat().st_mode & 0o777), "0o700")
+        self.wipe_local_disk(db)
+        self.assertIn(("notes", "restored from backup"), pv.reconcile())
+        conn = sqlite3.connect(db.database_name)
+        self.assertEqual(conn.execute("SELECT a FROM t").fetchall(), [(7,)])
+        conn.close()
+
+    def test_failed_backup_leaves_no_partial_file(self):
+        db = self.make("notes", "sqlite")
+        pv.provision(db)
+        with mock.patch.object(pv.os, "replace", side_effect=OSError("disk full")):
+            with self.assertRaises(pv.ProvisionError):
+                pv.backup(db)
+        self.assertEqual(list(pv.backup_dir(db).iterdir()), [])
+
+
+@skipIf(not _can_run_servers(), "database servers cannot run as root")
+class PostgresBackup(BackupBase):
+    def setUp(self):
+        super().setUp()
+        if not pv.engine_info()["postgresql"]["available"] or not pv._pg_bin("pg_dump"):
+            self.skipTest("PostgreSQL server software not installed")
+
+    def test_backup_wipe_restore_keeps_data_and_password(self):
+        db = self.make("shop")
+        self.addCleanup(lambda: pv.destroy(db, missing_ok=True))
+        pv.provision(db)
+        db.refresh_from_db()
+        password = pv._password(db)
+        conn = pv._pg_connect(db, password, "shop")
+        conn.autocommit = True
+        conn.cursor().execute("CREATE TABLE t(a int); INSERT INTO t VALUES (42)")
+        conn.close()
+        path = pv.backup(db)
+        self.assertEqual(path.suffix, ".dump")
+        self.assertEqual(oct(path.stat().st_mode & 0o777)[-3:], "600")          # pg_dump output is private
+        self.assertNotIn(password.encode(), path.read_bytes())                  # no credential inside the dump
+        pv.stop(db)
+        self.wipe_local_disk(db)
+        self.assertIn(("shop", "restored from backup"), pv.reconcile())
+        self.assertEqual(pv.status(db), "running")
+        conn = pv._pg_connect(db, password, "shop")                             # same stored password works
+        cur = conn.cursor()
+        cur.execute("SELECT a FROM t")
+        self.assertEqual(cur.fetchone()[0], 42)
+        conn.close()
+
+    def test_corrupt_backup_fails_cleanly_and_removes_the_half_built_instance(self):
+        db = self.make("shop")
+        self.addCleanup(lambda: pv.destroy(db, missing_ok=True, keep_backups=True))
+        pv.provision(db)
+        pv.backup(db)
+        pv.stop(db)
+        self.wipe_local_disk(db)
+        pv.backups(db)[0].write_bytes(b"not a dump")
+        with self.assertRaises(pv.ProvisionError):
+            pv.restore_missing(db)
+        self.assertEqual(pv.status(db), "missing")
+        self.assertFalse(pv._port_open(db.port))
+
+
+@skipIf(not _can_run_servers(), "database servers cannot run as root")
+class RedisBackup(BackupBase):
+    def setUp(self):
+        super().setUp()
+        if not pv.engine_info()["redis"]["available"]:
+            self.skipTest("Redis server software not installed")
+
+    def test_backup_wipe_restore_keeps_keys(self):
+        db = self.make("cache", "redis")
+        self.addCleanup(lambda: pv.destroy(db, missing_ok=True))
+        pv.provision(db)
+        db.refresh_from_db()
+        pw = pv._password(db)
+        self.assertEqual(pv._redis_talk(db.port, pw, "SET", "k", "v"), "+OK")
+        pv.backup(db)
+        pv.stop(db)
+        self.wipe_local_disk(db)
+        self.assertIn(("cache", "restored from backup"), pv.reconcile())
+        self.assertEqual(pv._redis_talk(db.port, pw, "DBSIZE"), ":1")
+        self.assertTrue(pv._redis_talk(db.port, "", "PING").startswith("-NOAUTH"))
+
+
+class BackupCommand(BackupBase):
+    def test_command_reports_each_database(self):
+        from io import StringIO
+        from django.core.management import call_command
+        db = self.make("notes", "sqlite")
+        pv.provision(db)
+        out = StringIO()
+        call_command("backup_managed_databases", stdout=out)
+        self.assertIn("notes: backed up", out.getvalue())
+        self.assertEqual(len(pv.backups(db)), 1)

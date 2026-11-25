@@ -166,10 +166,10 @@ def _write_private(path, text):
         stream.write(text)
 
 
-def _run(argv, directory, timeout=60):
+def _run(argv, directory, timeout=60, extra_env=None):
     try:
         done = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, cwd=str(directory),
-                              env=_env(directory), stdin=subprocess.DEVNULL)
+                              env={**_env(directory), **(extra_env or {})}, stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
         raise ProvisionError("The database server did not respond in time.")
     except OSError:
@@ -278,7 +278,7 @@ def _redis_talk(port, password, *command, timeout=3):
 def _redis_conf(db, directory, password):
     return "\n".join([
         "bind 127.0.0.1", f"port {int(db.port)}", f'requirepass "{password}"', "protected-mode yes",
-        f"dir {directory / 'data'}", "appendonly yes", "save 60 1", "daemonize yes",
+        f"dir {directory / 'data'}", "appendonly no", "save 60 1", "save 300 10", "daemonize yes",
         f"pidfile {directory / 'redis.pid'}", f"logfile {directory / 'redis.log'}",
         "maxmemory 128mb", "maxmemory-policy noeviction", "",
     ])
@@ -449,18 +449,153 @@ def check(db):
         return False, "Could not connect with the stored credentials."
 
 
-def destroy(db, missing_ok=False):
-    """Stop the instance and delete its files. Only ever touches this database's own directory."""
+def destroy(db, missing_ok=False, keep_backups=False):
+    """Stop the instance and delete its files (and, unless asked not to, its backups). Only ever touches this
+    database's own directories."""
     directory = instance_dir(db)
-    if not directory.exists():
-        return
+    if directory.exists():
+        try:
+            stop(db)
+        except ProvisionError:
+            if not missing_ok:
+                raise
+            logger.warning("Stopping database %s during cleanup failed", db.pk)
+        shutil.rmtree(directory)
+    if not keep_backups:
+        shutil.rmtree(backup_dir(db), ignore_errors=True)
+
+
+# ───────────────────────────── backups and restore ─────────────────────────────
+#
+# Instances run on the host's fast local disk. On a platform whose local disk is wiped when the machine restarts
+# (a container pod) they would be lost, so each one is backed up to WEBOPS_DATABASE_BACKUP_DIR (put that on
+# persistent storage) and `reconcile()` rebuilds any instance whose files are gone from its newest backup.
+
+KEEP_BACKUPS = 5
+_BACKUP_EXT = {"postgresql": "dump", "redis": "rdb", "sqlite": "sqlite3"}
+
+
+def backup_root() -> Path:
+    configured = getattr(settings, "WEBOPS_DATABASE_BACKUP_DIR", None)
+    return Path(configured) if configured else root().parent / "backups" / "databases"
+
+
+def backup_dir(db) -> Path:
+    name = f"{db.pk}-{slug(db.name)}"
+    if not _DIR_RE.match(name):
+        raise ProvisionError("Invalid database name.")
+    return backup_root().resolve() / name
+
+
+def backups(db):
+    """This database's backups, newest first."""
+    directory = backup_dir(db)
+    if not directory.is_dir():
+        return []
+    return sorted((p for p in directory.iterdir() if p.is_file() and p.suffix != ".tmp"), reverse=True)
+
+
+def backup(db) -> Path:
+    """Write a consistent backup of a running instance and prune old ones. Returns the new file."""
+    if db.db_type not in _BACKUP_EXT:
+        raise ProvisionError("This database type cannot be backed up.")
+    if status(db) != "running":
+        raise ProvisionError("The database must be running to be backed up.")
+    directory = instance_dir(db)
+    target_dir = backup_dir(db)
+    target_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    final = target_dir / (time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "." + _BACKUP_EXT[db.db_type])
+    temp = final.with_name(final.name + ".tmp")
     try:
-        stop(db)
+        if db.db_type == "postgresql":
+            dump = _pg_bin("pg_dump")
+            if not dump:
+                raise ProvisionError("PostgreSQL's backup tool is not installed.")
+            done = _run([dump, "-Fc", "-h", "127.0.0.1", "-p", str(int(db.port)), "-U", db.username, "-d", db.database_name,
+                         "-f", str(temp)], directory, 600, {"PGPASSWORD": _password(db)})
+            if done.returncode != 0:
+                logger.error("pg_dump failed for database %s: %s", db.pk, done.stderr[-300:].replace(_password(db), "[password]"))
+                raise ProvisionError("The PostgreSQL backup failed.")
+        elif db.db_type == "redis":
+            _redis_talk(db.port, _password(db), "SAVE", timeout=60)
+            shutil.copyfile(directory / "data" / "dump.rdb", temp)
+        else:
+            src, dst = sqlite3.connect(str(_sqlite_path(db, directory))), sqlite3.connect(str(temp))
+            try:
+                src.backup(dst)
+            finally:
+                dst.close()
+                src.close()
+        os.chmod(temp, 0o600)
+        os.replace(temp, final)
+    except (OSError, sqlite3.Error) as exc:
+        temp.unlink(missing_ok=True)
+        logger.error("Backup of database %s failed: %s", db.pk, exc)
+        raise ProvisionError("The backup could not be written.")
     except ProvisionError:
-        if not missing_ok:
-            raise
-        logger.warning("Stopping database %s during cleanup failed", db.pk)
-    shutil.rmtree(directory)
+        temp.unlink(missing_ok=True)
+        raise
+    for old in backups(db)[KEEP_BACKUPS:]:
+        old.unlink(missing_ok=True)
+    return final
+
+
+def restore_missing(db) -> bool:
+    """Rebuild an instance whose files are gone (new machine, wiped local disk) from its newest backup.
+
+    Returns False when nothing needed doing. Raises ProvisionError when files are missing and there is no backup.
+    """
+    directory = instance_dir(db)
+    if directory.exists() or db.db_type not in _BACKUP_EXT:
+        return False
+    found = backups(db)
+    if not found:
+        raise ProvisionError("The database's files are missing and there is no backup to restore from.")
+    latest = found[0]
+    if not engine_info()[db.db_type]["available"]:
+        raise ProvisionError(engine_info()[db.db_type]["hint"])
+    password = _password(db)
+    root().mkdir(parents=True, exist_ok=True, mode=0o700)
+    directory.mkdir(mode=0o700)
+    try:
+        if db.db_type == "postgresql":
+            _pg_provision(db, directory, password)
+            restore = _pg_bin("pg_restore")
+            if not restore:
+                raise ProvisionError("PostgreSQL's restore tool is not installed.")
+            done = _run([restore, "--no-owner", "--exit-on-error", "-h", "127.0.0.1", "-p", str(int(db.port)), "-U", db.username,
+                         "-d", db.database_name, str(latest)], directory, 900, {"PGPASSWORD": password})
+            if done.returncode != 0:
+                logger.error("pg_restore failed for database %s: %s", db.pk, done.stderr[-300:].replace(password, "[password]"))
+                raise ProvisionError("The PostgreSQL restore failed.")
+        elif db.db_type == "redis":
+            (directory / "data").mkdir(mode=0o700)
+            shutil.copyfile(latest, directory / "data" / "dump.rdb")
+            _write_private(directory / "redis.conf", _redis_conf(db, directory, password))
+            _redis_start(db, directory)
+        else:
+            shutil.copyfile(latest, _sqlite_path(db, directory))
+            os.chmod(_sqlite_path(db, directory), 0o600)
+    except Exception:
+        destroy(db, missing_ok=True, keep_backups=True)
+        raise
+    logger.info("Restored managed database %s from %s", db.pk, latest.name)
+    return True
+
+
+def backup_all():
+    """Back up every running managed instance. Returns [(name, outcome)]."""
+    from .models import Database
+    results = []
+    for db in Database.objects.filter(managed=True, is_deleted=False, is_active=True):
+        try:
+            if status(db) == "running":
+                results.append((db.name, "backed up " + backup(db).name))
+            else:
+                results.append((db.name, "skipped (" + status(db) + ")"))
+        except ProvisionError as exc:
+            results.append((db.name, f"failed: {exc}"))
+    return results
 
 
 def connection_url(db):
@@ -474,16 +609,23 @@ def connection_url(db):
 
 
 def reconcile():
-    """Start every managed instance that should be running but is not. Returns [(name, outcome)]."""
+    """Bring every managed instance to where it should be: restore the ones whose files are gone (from their newest
+    backup) and start the ones that are stopped. Returns [(name, outcome)]."""
     from .models import Database
     results = []
     for db in Database.objects.filter(managed=True, is_deleted=False, is_active=True):
         try:
-            if status(db) == "stopped":
+            state = status(db)
+            if state == "missing":
+                if restore_missing(db):
+                    results.append((db.name, "restored from backup"))
+                else:
+                    results.append((db.name, "missing"))
+            elif state == "stopped":
                 start(db)
                 results.append((db.name, "started"))
             else:
-                results.append((db.name, status(db)))
+                results.append((db.name, state))
         except ProvisionError as exc:
             results.append((db.name, f"failed: {exc}"))
     return results
