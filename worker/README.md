@@ -9,14 +9,23 @@ panel  <──HTTPS, bearer token──  worker   (the worker polls; nothing con
 
 ## Install
 
-1. In the panel: **Deployments → Workers → Add a worker**. Copy the token (it is shown once).
-2. On the worker machine, as root:
-   ```bash
-   WEBOPS_PANEL_URL=https://your-panel sh install.sh
-   umask 077; printf '%s' 'wops_wrk_...' > /etc/webops-worker/token
-   supervisorctl reread && supervisorctl update
-   ```
-3. The Workers page shows it **Online** within about 30 seconds.
+On the worker machine, as root, one command (nothing to download first):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DagiiM/webops/<ref>/worker/install.sh | WEBOPS_PANEL_URL=https://your-panel WEBOPS_REF=<ref> sh
+```
+
+or `WEBOPS_PANEL_URL=https://your-panel sh install.sh` from a checkout. The worker generates its own token (kept in
+`/etc/webops-worker/token`, mode 0600) and prints one command containing only the token's **hash**; run it once on
+the panel:
+
+```bash
+cd control-panel && python manage.py register_worker --name '<name>' --digest <hash>
+```
+
+The Workers page shows it **Online** within about 30 seconds. (The older flow still works: **Deployments → Workers →
+Add a worker** shows a token once; put it in `/etc/webops-worker/token`.) Set `WEBOPS_WORKER_TOKEN` to supply your own
+token, for machines that are rebuilt from scratch on every start.
 
 ## What a job gets
 

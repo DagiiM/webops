@@ -14,17 +14,39 @@ Managed databases run from the pod's local disk (`/var/lib/webops-databases`) be
 filesystem that ignores `chmod` for non-root users, which PostgreSQL requires. They are backed up to the volume every
 15 minutes, so an unplanned restart loses at most that much database writes; a clean stop/start loses none.
 
-## Set up
+## Set up (one command)
 
-1. Create a network volume and a pod in the same data center with the volume mounted at `/workspace`, port `8000/http`
-   exposed, and the start command
-   `sh -c 'if [ -x /workspace/bin/boot.sh ]; then /workspace/bin/boot.sh; fi; exec sleep infinity'`.
-2. Clone the repository to `/workspace/webops` and create the wrapper:
-   `mkdir -p /workspace/bin && printf '#!/bin/sh\nexec sh /workspace/webops/deploy/runpod/boot.sh\n' > /workspace/bin/boot.sh && chmod +x /workspace/bin/boot.sh`
-3. Run `/workspace/bin/boot.sh` once (or restart the pod). The first run takes a few minutes (packages, virtualenv)
-   and writes a fresh `.env` with new keys for this pod's address. Progress is in `/workspace/webops-data/boot.log`.
-4. Create the first admin: `cd /workspace/webops/control-panel && ../../venv/bin/python manage.py createsuperuser`
-   with `DJANGO_SETTINGS_MODULE=config.runpod_preview` set.
+Create a network volume and a pod in the same data center, with the volume mounted at `/workspace`, port `8000/http`
+exposed, and this **start command** (pin `<ref>` to a release tag or commit for production; `main` follows development):
+
+```bash
+sh -c 'if [ -x /workspace/bin/boot.sh ]; then /workspace/bin/boot.sh; else curl -fsSL https://raw.githubusercontent.com/DagiiM/webops/<ref>/deploy/runpod/install.sh | WEBOPS_REF=<ref> sh; fi; exec sleep infinity'
+```
+
+That is all. The first start installs everything (several minutes; progress in `/workspace/webops-data/boot.log`),
+and every later start just brings the stack back. Then:
+
+* The address is `https://<pod id>-8000.proxy.runpod.net/`.
+* The first administrator is `admin`; the generated password is in `/workspace/webops-data/initial-admin.txt`
+  (read it from the pod's terminal, sign in, change it, delete the file). To choose your own, set the pod environment
+  variables `WEBOPS_ADMIN_USERNAME`, `WEBOPS_ADMIN_EMAIL` and `WEBOPS_ADMIN_PASSWORD` (12+ characters) before the
+  first start; use a Runpod secret for the password.
+* Prefer a shell? From any pod with the volume mounted: `curl -fsSL .../install.sh | WEBOPS_REF=<ref> sh`.
+
+The pod and volume themselves must be created in the Runpod console or API (the installer runs inside the pod).
+
+## Build workers
+
+On a separate machine (a plain pod is fine), one command installs the agent, makes its own token and starts it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DagiiM/webops/<ref>/worker/install.sh | WEBOPS_PANEL_URL=https://<panel address> WEBOPS_REF=<ref> sh
+```
+
+It then prints a single `register_worker` command containing only the token's hash; run it once on the panel
+(`cd /workspace/webops/control-panel` with the panel's settings). A pod's disk is wiped on restart: to make a
+worker rebuild itself, set `WEBOPS_WORKER_TOKEN` and `WEBOPS_WORKER_NAME` as pod environment variables, register the
+token's hash once, and use the same `curl ... | sh` line in the pod's start command.
 
 ## Updating
 
