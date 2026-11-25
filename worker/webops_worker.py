@@ -429,6 +429,21 @@ def run_once(panel):
     return False
 
 
+UNREGISTERED_WAIT = 60
+
+
+def beat(panel):
+    """Send a heartbeat. False when the panel does not recognise the token: the worker was started before it was
+    registered on the panel (the normal order with one-command installs) or has been revoked. Either way keep
+    waiting quietly instead of exiting, so registering it later brings it online without a restart."""
+    status, _ = panel.call("POST", "/api/worker/v1/heartbeat", host_info())
+    if status == 401:
+        log(f"The panel does not recognise this worker's token (not registered yet, or revoked). Retrying in {UNREGISTERED_WAIT}s.")
+        time.sleep(UNREGISTERED_WAIT)
+        return False
+    return True
+
+
 def main():
     base = os.environ.get("WEBOPS_PANEL_URL", "")
     token = os.environ.get("WEBOPS_WORKER_TOKEN") or (TOKEN_FILE.read_text().strip() if TOKEN_FILE.is_file() else "")
@@ -443,9 +458,8 @@ def main():
     while True:
         try:
             if time.monotonic() - last_beat > HEARTBEAT_SECONDS:
-                status, _ = panel.call("POST", "/api/worker/v1/heartbeat", host_info())
-                if status == 401:
-                    raise SystemExit("The panel rejected this worker's token (revoked?).")
+                if not beat(panel):
+                    continue
                 last_beat = time.monotonic()
             if not run_once(panel):
                 time.sleep(POLL_SECONDS)

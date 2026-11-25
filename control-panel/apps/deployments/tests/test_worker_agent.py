@@ -114,6 +114,22 @@ class CatalogTests(SimpleTestCase):
         agent.Panel("https://panel.example/", "t")
 
 
+class HeartbeatTests(SimpleTestCase):
+    def test_an_unregistered_or_revoked_token_waits_instead_of_exiting(self):
+        panel = mock.Mock()
+        panel.call.return_value = (401, None)
+        with mock.patch.object(agent.time, "sleep") as sleep, mock.patch.object(agent, "host_info", return_value={}):
+            self.assertFalse(agent.beat(panel))
+        sleep.assert_called_once_with(agent.UNREGISTERED_WAIT)
+
+    def test_a_recognised_token_beats_without_waiting(self):
+        panel = mock.Mock()
+        panel.call.return_value = (200, {})
+        with mock.patch.object(agent.time, "sleep") as sleep, mock.patch.object(agent, "host_info", return_value={}):
+            self.assertTrue(agent.beat(panel))
+        sleep.assert_not_called()
+
+
 class ToolchainTests(SimpleTestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
