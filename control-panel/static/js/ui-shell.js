@@ -152,8 +152,12 @@
         if (collapsed) { root.setAttribute('data-sidebar', 'collapsed'); } else { root.removeAttribute('data-sidebar'); }
         store.set('sidebar-minimized', String(collapsed));
         if (collapseBtn) {
+            var label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
             collapseBtn.setAttribute('aria-pressed', String(collapsed));
-            collapseBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            collapseBtn.setAttribute('aria-label', label);
+            collapseBtn.setAttribute('title', label);
+            var glyph = $('.material-icons', collapseBtn);          /* the icon set swaps SVGs when the name changes */
+            if (glyph) { glyph.textContent = collapsed ? 'left_panel_open' : 'left_panel_close'; }
         }
         /* a collapsed rail has no text, so each item needs its name as a tooltip */
         $$('.webops-nav-item', sidebar || document).forEach(function (a) {
