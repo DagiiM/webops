@@ -44,9 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/DagiiM/webops/<ref>/worker/install.
 ```
 
 It then prints a single `register_worker` command containing only the token's hash; run it once on the panel
-(`cd /workspace/webops/control-panel` with the panel's settings). A pod's disk is wiped on restart: to make a
-worker rebuild itself, set `WEBOPS_WORKER_TOKEN` and `WEBOPS_WORKER_NAME` as pod environment variables, register the
-token's hash once, and use the same `curl ... | sh` line in the pod's start command.
+(`cd /workspace/webops/control-panel` with the panel's settings). A pod's disk is wiped on restart; to make a worker
+survive stops, give it a small volume and `WEBOPS_WORKER_STATE`: see "Persistent volumes" in `worker/README.md`.
 
 ## Updating
 
