@@ -99,7 +99,10 @@ class NotificationsCenter {
         // Check if toggle button already exists
         this.toggleButton = document.getElementById('notificationsToggle');
         
-        if (!this.toggleButton) {
+        if (this.toggleButton) {
+            // The sidebar footer ships the button; this only wires it.
+            this.toggleButton.addEventListener('click', () => this.toggle());
+        } else {
             // Find a suitable place to add the toggle button (e.g., in the header)
             const header = document.querySelector('.webops-header__actions') || 
                           document.querySelector('.webops-header') ||
