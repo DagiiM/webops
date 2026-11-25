@@ -135,6 +135,7 @@ as_app() { runuser -u "$APPUSER" -- env PATH="$VENV/bin:/usr/local/bin:/usr/bin:
 cd "$APP"
 as_app "$VENV/bin/python" manage.py migrate --noinput 2>&1 | grep -v '^INFO\|^WARNING' || true
 as_app "$VENV/bin/python" manage.py collectstatic --noinput >/dev/null 2>&1 || true
+as_app "$VENV/bin/python" manage.py ensure_initial_admin --output "$DATA/initial-admin.txt" 2>&1 | grep -v '^INFO\|^WARNING' || true
 log "reconciling managed databases (restores any whose files are gone from their newest backup)"
 as_app "$VENV/bin/python" manage.py start_managed_databases 2>&1 | grep -v '^INFO\|^WARNING' || true
 
